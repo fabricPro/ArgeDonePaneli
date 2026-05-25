@@ -1,0 +1,148 @@
+{
+  "_schema_version": "1.1",
+  "brand": "Dedar",
+  "brand_slug": "dedar",
+  "country": "Italya",
+  "region": "italyan",
+  "headquarters_city": "Como",
+  "founded_year": 1976,
+  "website": "https://dedar.com",
+  "tracked_since": "2026-05-25",
+  "last_updated": "2026-05-25T23:35:00Z",
+  "product_count_tracked": 1,
+  "_provenance": {
+    "schema_version": "1.1",
+    "created_at": "2026-05-25T23:35:00Z",
+    "last_updated": "2026-05-25T23:35:00Z",
+    "sources_used": [
+      {
+        "url": "adaptorler/dedar.md",
+        "type": "internal_adapter_v1.0",
+        "accessed_at": "2026-05-25T23:35:00Z",
+        "fields_supported": [
+          "country",
+          "headquarters_city",
+          "founded_year",
+          "platform"
+        ]
+      },
+      {
+        "url": "markalar/urunler/dedar_00T19063-cobra.json",
+        "type": "internal_product_record",
+        "accessed_at": "2026-05-25T23:35:00Z",
+        "fields_supported": [
+          "product_count_tracked",
+          "all distribution observed_at_n1"
+        ]
+      }
+    ],
+    "constitutional_violations_check": "passed_at_2026-05-25T23:35:00Z",
+    "audit_history": [
+      {
+        "audit_id": "dedar_marka_v1.0_2026-05-25",
+        "audit_date": "2026-05-25",
+        "version_before": "(yok — Dedar marka ilk insa)",
+        "version_after": "v1.0 (n=1, sadece Cobra denetlendi)",
+        "notes": "Dedar marka profili ilk insa. n=1 (Cobra), insufficient_sample. Statik kimlik (kurucular, CEO, mill ownership, designer roster, anitsal projeler) PENDING — Wikipedia + dedar.com about denetimi sonraki adim."
+      }
+    ]
+  },
+  "width_distribution": {
+    "min_cm": {
+      "value": null,
+      "sample_status": "insufficient_n_1",
+      "sample_size": 1,
+      "observed_at_n1": 325
+    },
+    "max_cm": {
+      "value": null,
+      "sample_status": "insufficient_n_1",
+      "sample_size": 1,
+      "observed_at_n1": 325
+    },
+    "comment": "n=1: Cobra 325 cm. Threshold n>=3 dolana kadar value null."
+  },
+  "color_profile": {
+    "total_variant_count": {
+      "value": null,
+      "sample_status": "insufficient_n_1",
+      "sample_size": 1,
+      "observed_at_n1": 2
+    },
+    "average_per_product": {
+      "value": null,
+      "sample_status": "insufficient_n_1",
+      "sample_size": 1,
+      "observed_at_n1": 2.0
+    },
+    "comment": "n=1: Cobra 2 varyant (002, 004 Duna)."
+  },
+  "weave_distribution": {
+    "leno": {
+      "value": null,
+      "sample_status": "insufficient_n_1",
+      "sample_size": 1,
+      "observed_at_n1": 1,
+      "comment": "Cobra leno"
+    }
+  },
+  "composition_distribution": {
+    "synthetic_ratio_percent": {
+      "value": null,
+      "sample_status": "insufficient_n_1",
+      "sample_size": 1,
+      "observed_at_n1": 100
+    },
+    "natural_ratio_percent": {
+      "value": null,
+      "sample_status": "insufficient_n_1",
+      "sample_size": 1,
+      "observed_at_n1": 0
+    },
+    "blend_ratio_percent": {
+      "value": null,
+      "sample_status": "insufficient_n_1",
+      "sample_size": 1,
+      "observed_at_n1": 0
+    },
+    "comment": "n=1: Cobra %100 FR PES (mono synthetic)."
+  },
+  "country_distribution": {
+    "Italy": 1
+  },
+  "mobidik_strategic_assessment": {
+    "staubli_general_feasibility": "yuksek",
+    "_general_feasibility_basis": "n=1: Cobra staubli=5/5 (leno + FR PES + 325 cm). Dedar urun cesitliligi (jacquard/velvet/leno/sheer) Mobidik kapasitesinin bazi yerlerinde sinirli (jakar YOK, kapasite tablosu). n yukseldikce gercek ortalama gorulebilir.",
+    "average_feasibility_score": {
+      "value": null,
+      "sample_status": "insufficient_n_1",
+      "sample_size": 1,
+      "observed_at_n1": 5.0
+    },
+    "arge_priority_areas": [
+      "Extra-wide leno (325 cm) warp beam yonetimi",
+      "FR PES iplik tedariki + son urun sertifika (IMO MED, BS5867)",
+      "Indoor/outdoor dual-use konumlandirma",
+      "Italian premium leno benchmark"
+    ],
+    "competitive_position": "Dedar Italyan premium 1976 kurulus, Como merkez. Mobidik perspektifi: jakar/damask Dedar'in guclu alanlari (Mobidik jakar YOK), ama leno + sheer + FR Mobidik kapasitesinde TAM. Cobra ilk pilot icin uygun.",
+    "market_opportunity": "AB yat/gemi + hospitality FR pazarinda Dedar Cobra retail 80-130 EUR/m. Mobidik 25-40 EUR/m hedef. Niket + Fil du Temps + Alpaca Leno + Cobra leno 4'lusu birlikte ROI.",
+    "benchmark_value": "n=1: Cobra benchmark olarak yuksek. Marka geneli icin 5+ urun gerek.",
+    "watch_priority": "yuksek"
+  },
+  "data_integrity": {
+    "verified_data_points": 1,
+    "ai_estimated_data_points": 2,
+    "verification_ratio": 0.33,
+    "reliability_label": "insufficient_sample",
+    "sample_size_tracked_products": 1,
+    "_reliability_explanation": "n=1 (Cobra). Threshold n>=3 dolana kadar dagilim istatistikleri null kalir. Statik kimlik (kurucular/CEO/mill/designer) PENDING — Wikipedia + about denetimi gerek."
+  },
+  "notes": [
+    "v1.0 (2026-05-25): Faz 5.3 Cobra canli test sonrasi Dedar marka profili ilk insa.",
+    "Dedar 1976 Como Italya — Italyan premium dokuma markasi (textile design + technical innovation).",
+    "Platform: BigCommerce stencil, CDN cdn11.bigcommerce.com/s-td9auqdllx/.",
+    "Cobra: ilk denetlenmis urun. staubli=5/5, overall=83, yuksek oncelik.",
+    "Statik kimlik PENDING — Wikipedia + dedar.com about + designer collaborations denetimi sonraki adim."
+  ]
+}
