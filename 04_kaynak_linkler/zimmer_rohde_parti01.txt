@@ -1,0 +1,24 @@
+# Zimmer + Rohde — Parti 01
+# Tarih: 2026-05-11
+# Durum: 5/15 ürün işlendi (test partisi)
+# Not: Bazı ürünler Z+R'nin alt markası ADO Goldkante; raporda ayrıştırıldı.
+#
+# === TEST PARTİSİ — İŞLENDİ (5) ===
+https://www.zimmer-rohde.com/en/product-finder/details/ora-3018-914                  # ADO Goldkante / ORA
+https://www.zimmer-rohde.com/en/product-finder/details/melange-linen-10969-900       # Z+R / Melange Linen
+https://www.zimmer-rohde.com/en/product-finder/details/niket-11051-812               # Z+R / Niket
+https://www.zimmer-rohde.com/en/product-finder/details/softgrid-10918-694            # Z+R / Softgrid
+https://www.zimmer-rohde.com/en/product-finder/details/harry-re-3009-110             # ADO Goldkante / Harry RE
+#
+# === KUYRUKTAKİ LİNKLER (10) — ŞABLON ONAYINDAN SONRA ===
+https://www.zimmer-rohde.com/en/product-finder/details/loops-10971-981
+https://www.zimmer-rohde.com/en/product-finder/details/capri-plus-3150-332
+https://www.zimmer-rohde.com/en/product-finder/details/andria-19621-883
+https://www.zimmer-rohde.com/en/product-finder/details/heure-bleue-19650-882
+https://www.zimmer-rohde.com/en/product-finder/details/pure-white-tape-3302-110
+https://www.zimmer-rohde.com/en/product-finder/details/blanc-de-lin-re-19635-880
+https://www.zimmer-rohde.com/en/product-finder/details/pure-white-pinstripe-3301-110
+https://www.zimmer-rohde.com/en/product-finder/details/ishari-11047-894
+https://www.zimmer-rohde.com/en/product-finder/details/nuri-11049-991
+https://www.zimmer-rohde.com/en/product-finder/details/fil-du-temps-19649-883
+# (Not: orijinal listede softgrid-10918-694 iki kez vardı, tekilleştirildi.)

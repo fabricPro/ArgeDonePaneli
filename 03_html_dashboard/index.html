@@ -1,0 +1,2049 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>ARGE Perdelik Pazar Araştırması — Galeri</title>
+<style>
+  :root { --bg:#0f1115; --card:#181b22; --text:#e8eaee; --muted:#9aa3b2; --accent:#c9a86a; --border:#262a33; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);}
+  header{padding:24px 32px;border-bottom:1px solid var(--border);}
+  h1{margin:0 0 4px;font-size:22px;letter-spacing:0.3px}
+  .sub{color:var(--muted);font-size:13px}
+  .stats{display:flex;gap:14px;margin-top:10px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+  .stats b{color:var(--text);font-variant-numeric:tabular-nums}
+  .filters{display:flex;gap:12px;flex-wrap:wrap;padding:16px 32px;border-bottom:1px solid var(--border);background:#11141a;}
+  .filters label{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+  .filters select,.filters input{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:13px;min-width:160px}
+  .count{margin-left:auto;align-self:flex-end;color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+  .count b{color:var(--text)}
+  main{padding:24px 32px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}
+  .group-header{grid-column:1/-1;display:flex;justify-content:space-between;align-items:baseline;padding:18px 0 6px;color:var(--accent);font-size:13px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border);margin-top:4px}
+  .group-header:first-child{margin-top:0;padding-top:0}
+  .group-meta{color:var(--muted);font-size:11px;letter-spacing:0.5px;text-transform:none;font-variant-numeric:tabular-nums}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:transform .15s,border-color .15s}
+  .card:hover{transform:translateY(-2px);border-color:var(--accent)}
+  .thumb{display:block;width:100%;aspect-ratio:1/1;object-fit:cover;background:#23272f;border:0}
+  .thumb-fallback{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;text-align:center;padding:8px;background:#23272f;aspect-ratio:1/1}
+  .body{padding:12px 14px}
+  .brand{color:var(--accent);font-size:11px;letter-spacing:1px;text-transform:uppercase}
+  .name{font-size:14px;margin:2px 0 6px;line-height:1.3}
+  .meta{font-size:11px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px}
+  .chip{background:#222630;border:1px solid var(--border);border-radius:4px;padding:1px 6px}
+  .chip-flag{background:#1a2330;border-color:#2a3a4f;color:#9fc1e8}
+  .chip-colors{background:#2a2330;border-color:#4a3a2a;color:#e8c89f}
+  .mini-swatches{display:flex;gap:3px;margin-top:8px;flex-wrap:wrap}
+  .mini-swatches span{width:14px;height:14px;border-radius:50%;background-size:cover;background-position:center;border:1px solid rgba(255,255,255,.1)}
+  .empty{grid-column:1/-1;padding:60px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:10px}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;padding:24px;z-index:10}
+  .modal.open{display:flex}
+  .modal-inner{background:var(--card);border:1px solid var(--border);border-radius:12px;max-width:1100px;width:100%;max-height:90vh;overflow:auto;padding:24px;position:relative}
+  .close{position:absolute;top:12px;right:16px;background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer}
+  .active-color-bar{margin:10px 0 4px;padding:8px 10px;background:#1c2029;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:10px}
+  .active-color-bar b{color:var(--text)}
+  .active-color-bar .acb-swatch{width:24px;height:24px;border-radius:50%;background-size:cover;background-position:center;border:1px solid rgba(255,255,255,.15)}
+  .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin:6px 0 14px}
+  .gallery img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:zoom-in;transition:transform .15s}
+  .gallery img:hover{transform:scale(1.03);border-color:var(--accent)}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+  td,th{padding:6px 10px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+  th{color:var(--muted);font-weight:500;width:34%}
+  .color-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+  .color-item{display:flex;align-items:center;gap:10px;background:#1e2229;border:1px solid var(--border);border-radius:6px;padding:6px 10px;cursor:pointer;transition:border-color .15s,background .15s}
+  .color-item:hover{border-color:var(--accent);background:#23282f}
+  .color-item.active{border-color:var(--accent);background:#2a2530;box-shadow:inset 0 0 0 1px var(--accent)}
+  .color-swatch{width:30px;height:30px;border-radius:50%;background:#2a2e35 center/cover no-repeat;border:1px solid rgba(255,255,255,.1);flex-shrink:0}
+  .color-meta{display:flex;flex-direction:column;font-size:11px;line-height:1.3;min-width:0}
+  .color-name{color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .color-code{color:var(--muted);font-variant-numeric:tabular-nums}
+  .mobidik{background:#1d2129;border-left:3px solid var(--accent);padding:12px 14px;border-radius:6px;margin-top:14px;font-size:13px;line-height:1.5}
+  .mobidik h4{margin:0 0 6px;color:var(--accent);font-size:12px;letter-spacing:1px;text-transform:uppercase}
+  .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.94);display:none;align-items:center;justify-content:center;z-index:100;cursor:zoom-out;user-select:none;overflow:hidden}
+  .lightbox.open{display:flex}
+  .lightbox img{max-width:96vw;max-height:92vh;object-fit:contain;box-shadow:0 6px 40px rgba(0,0,0,.6);border-radius:4px;transform-origin:center center;transition:transform .15s;will-change:transform;cursor:zoom-in;user-select:none;-webkit-user-drag:none}
+  .lightbox.zoomed img{cursor:grab}
+  .lightbox.dragging img{cursor:grabbing;transition:none}
+  .lb-btn{position:absolute;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;z-index:2}
+  .lb-btn:hover{background:rgba(255,255,255,.18);border-color:var(--accent)}
+  .lb-nav{top:50%;transform:translateY(-50%);width:52px;height:52px;border-radius:50%;font-size:30px;line-height:1}
+  .lb-prev{left:24px} .lb-next{right:24px}
+  .lb-close{top:20px;right:24px;width:42px;height:42px;border-radius:50%;font-size:22px;line-height:1}
+  .lb-open-tab{top:20px;right:80px;height:42px;padding:0 16px;border-radius:21px;font-size:12px;letter-spacing:0.4px;text-transform:uppercase;text-decoration:none}
+  .lb-counter{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);color:#fff;font-size:13px;background:rgba(0,0,0,.5);padding:6px 14px;border-radius:20px;z-index:2}
+  .lb-hint{position:absolute;bottom:24px;right:24px;color:#fff;font-size:11px;background:rgba(0,0,0,.5);padding:5px 12px;border-radius:14px;letter-spacing:0.3px;opacity:.7;pointer-events:none;z-index:2}
+  .lb-zoom-pct{position:absolute;bottom:24px;left:24px;color:#fff;font-size:11px;background:rgba(0,0,0,.5);padding:5px 12px;border-radius:14px;letter-spacing:0.3px;font-variant-numeric:tabular-nums;display:none;z-index:2}
+  .lightbox.zoomed .lb-zoom-pct{display:block}
+</style>
+</head>
+<body>
+<header>
+  <h1>ARGE Perdelik Pazar Araştırması</h1>
+  <div class="sub">Mobidik ARGE — Stäubli armür yapılabilirlik haritası</div>
+  <div class="stats" id="stats"></div>
+</header>
+<div class="filters">
+  <label>Ülke<select id="f-country"><option value="">Tümü</option></select></label>
+  <label>Marka<select id="f-brand"><option value="">Tümü</option></select></label>
+  <label>Kompozisyon<select id="f-comp"><option value="">Tümü</option></select></label>
+  <label>En (cm)<select id="f-width"><option value="">Tümü</option></select></label>
+  <label>Dokuma<select id="f-weave"><option value="">Tümü</option></select></label>
+  <label>Arama<input id="f-q" type="search" placeholder="Ürün kodu / isim..."></label>
+  <div class="count" id="count">0 ürün</div>
+</div>
+<main id="grid"></main>
+<div class="modal" id="modal"><div class="modal-inner"><button class="close" onclick="closeModal()">&times;</button><div id="modal-body"></div></div></div>
+<div class="lightbox" id="lightbox">
+  <img id="lb-img" src="" alt="">
+  <a class="lb-btn lb-open-tab" id="lb-open-tab" href="#" target="_blank" rel="noopener" onclick="event.stopPropagation()">Yeni sekmede aç</a>
+  <button class="lb-btn lb-close" onclick="closeLightbox(event)" title="Kapat (Esc)">&times;</button>
+  <button class="lb-btn lb-nav lb-prev" onclick="lbPrev(event)" title="Önceki (←)">&#8249;</button>
+  <button class="lb-btn lb-nav lb-next" onclick="lbNext(event)" title="Sonraki (→)">&#8250;</button>
+  <div class="lb-counter" id="lb-counter"></div>
+  <div class="lb-zoom-pct" id="lb-zoom-pct">100%</div>
+  <div class="lb-hint">Tekerlek: zoom · Çift tık: 1x↔2x · Sürükle: gez · Esc: kapat</div>
+</div>
+<script>
+const products = [
+  {
+    "marka": "ADO Goldkante",
+    "koleksiyon": "ADO - F23",
+    "urun_kodu": "3018-110",
+    "urun_adi": "ORA",
+    "ulke": "Almanya",
+    "kompozisyon": "59% Polyester, 41% Cotton",
+    "en": "300",
+    "gramaj": "üretici beyan etmiyor",
+    "rapor": "küçük dama, ≤ 8 cm",
+    "dokuma": "dobby",
+    "renkler": [
+      {
+        "kod": "110",
+        "ad": "Krem beyaz",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/0/7/csm_3018110_10ab9f2d2d.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3018110_1.jpg",
+          "../02_gorseller/ado_goldkante/3018110_2.jpg",
+          "../02_gorseller/ado_goldkante/3018110_3.jpg"
+        ]
+      },
+      {
+        "kod": "111",
+        "ad": "Bulut beyazı",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/c/8/csm_3018111_527f3f9cb6.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3018111_1.jpg",
+          "../02_gorseller/ado_goldkante/3018111_2.jpg",
+          "../02_gorseller/ado_goldkante/3018111_3.jpg"
+        ]
+      },
+      {
+        "kod": "131",
+        "ad": "Antik bej",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/6/d/csm_3018131_a96ed68d54.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3018131_1.jpg",
+          "../02_gorseller/ado_goldkante/3018131_2.jpg",
+          "../02_gorseller/ado_goldkante/3018131_3.jpg"
+        ]
+      },
+      {
+        "kod": "191",
+        "ad": "Açık taş grisi",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/5/7/csm_3018191_7b33d812a5.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3018191_1.jpg",
+          "../02_gorseller/ado_goldkante/3018191_2.jpg",
+          "../02_gorseller/ado_goldkante/3018191_3.jpg"
+        ]
+      },
+      {
+        "kod": "313",
+        "ad": "Açık duman grisi",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/4/5/csm_3018313_c38031872e.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3018313_1.jpg",
+          "../02_gorseller/ado_goldkante/3018313_2.jpg",
+          "../02_gorseller/ado_goldkante/3018313_3.jpg"
+        ]
+      },
+      {
+        "kod": "344",
+        "ad": "Koyu antrasit",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/a/f/csm_3018344_25185e39d4.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3018344_1.jpg",
+          "../02_gorseller/ado_goldkante/3018344_2.jpg",
+          "../02_gorseller/ado_goldkante/3018344_3.jpg"
+        ]
+      },
+      {
+        "kod": "594",
+        "ad": "Adaçayı yeşili",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/f/1/csm_3018594_da892930c3.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3018594_1.jpg",
+          "../02_gorseller/ado_goldkante/3018594_2.jpg",
+          "../02_gorseller/ado_goldkante/3018594_3.jpg"
+        ]
+      },
+      {
+        "kod": "612",
+        "ad": "Çam yeşili",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/b/csm_3018612_24077f617d.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3018612_1.jpg",
+          "../02_gorseller/ado_goldkante/3018612_2.jpg",
+          "../02_gorseller/ado_goldkante/3018612_3.jpg"
+        ]
+      },
+      {
+        "kod": "694",
+        "ad": "Sıcak taba",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/4/c/csm_3018694_ae6c08059c.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3018694_1.jpg",
+          "../02_gorseller/ado_goldkante/3018694_2.jpg",
+          "../02_gorseller/ado_goldkante/3018694_3.jpg"
+        ]
+      },
+      {
+        "kod": "894",
+        "ad": "Açık terrakota",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/e/d/csm_3018894_f7317431e8.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3018894_1.jpg",
+          "../02_gorseller/ado_goldkante/3018894_2.jpg",
+          "../02_gorseller/ado_goldkante/3018894_3.jpg"
+        ]
+      },
+      {
+        "kod": "914",
+        "ad": "Lacivert mavi",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/b/8/csm_3018914_bc9b365415.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3018914_1.jpg",
+          "../02_gorseller/ado_goldkante/3018914_2.jpg",
+          "../02_gorseller/ado_goldkante/3018914_3.jpg"
+        ]
+      }
+    ],
+    "performans": [
+      "Room high",
+      "Yıkanabilir 30°"
+    ],
+    "aciklama": "Garda Gölü güney rüzgarına atıf. Mélange iplik + check efekt, modern minimal ile country-house arası bir his.",
+    "stil_notu": "Country/coastal segment; nötr beji-yeşil paleti güçlü.",
+    "url": "https://www.zimmer-rohde.com/en/product-finder/details/ora-3018-914",
+    "mobidik_notu": "<b>Zorluk: Kolay-Orta ✅</b> · Çerçeve: 2-8 (basit dama). PES/Cot karışım iplik Türkiye'de yaygın. 300 cm en — Stäubli armür rapid'imiz 320 cm'e kadarsa rahat. <b>3-4 nötr ton ile 4-6 hafta içinde piyasaya çıkabilir.</b>"
+  },
+  {
+    "marka": "Zimmer + Rohde",
+    "koleksiyon": "Abstract",
+    "urun_kodu": "10969-785",
+    "urun_adi": "Melange Linen",
+    "ulke": "Belçika",
+    "kompozisyon": "100% Flax (linen)",
+    "en": "283",
+    "gramaj": "üretici beyan etmiyor",
+    "rapor": "yok / strüktürel mélange",
+    "dokuma": "plain (sheer)",
+    "renkler": [
+      {
+        "kod": "785",
+        "ad": "Çay yeşili",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/9/7/csm_10969785_8360d4a7db.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/10969785_1.jpg",
+          "../02_gorseller/zimmer_rohde/10969785_2.jpg",
+          "../02_gorseller/zimmer_rohde/10969785_3.jpg",
+          "../02_gorseller/zimmer_rohde/10969785_4.jpg",
+          "../02_gorseller/zimmer_rohde/10969785_5.jpg"
+        ]
+      },
+      {
+        "kod": "882",
+        "ad": "Soluk pudra",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/d/5/csm_10969882_2fbe4bbf1e.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/10969882_1.jpg",
+          "../02_gorseller/zimmer_rohde/10969882_2.jpg",
+          "../02_gorseller/zimmer_rohde/10969882_3.jpg",
+          "../02_gorseller/zimmer_rohde/10969882_4.jpg",
+          "../02_gorseller/zimmer_rohde/10969882_5.jpg"
+        ]
+      },
+      {
+        "kod": "887",
+        "ad": "Açık leylak",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/e/6/csm_10969887_51a1f88762.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/10969887_1.jpg",
+          "../02_gorseller/zimmer_rohde/10969887_2.jpg",
+          "../02_gorseller/zimmer_rohde/10969887_3.jpg",
+          "../02_gorseller/zimmer_rohde/10969887_4.jpg",
+          "../02_gorseller/zimmer_rohde/10969887_5.jpg"
+        ]
+      },
+      {
+        "kod": "900",
+        "ad": "Beyaz keten",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/2/b/csm_10969900_59b4f5a5d5.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/10969900_1.jpg",
+          "../02_gorseller/zimmer_rohde/10969900_2.jpg",
+          "../02_gorseller/zimmer_rohde/10969900_3.jpg",
+          "../02_gorseller/zimmer_rohde/10969900_4.jpg",
+          "../02_gorseller/zimmer_rohde/10969900_5.jpg"
+        ]
+      },
+      {
+        "kod": "980",
+        "ad": "Bej keten",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/7/csm_10969980_28e650b96b.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/10969980_1.jpg",
+          "../02_gorseller/zimmer_rohde/10969980_2.jpg",
+          "../02_gorseller/zimmer_rohde/10969980_3.jpg",
+          "../02_gorseller/zimmer_rohde/10969980_4.jpg",
+          "../02_gorseller/zimmer_rohde/10969980_5.jpg"
+        ]
+      },
+      {
+        "kod": "984",
+        "ad": "Taba keten",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/c/6/csm_10969984_453151f80e.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/10969984_1.jpg",
+          "../02_gorseller/zimmer_rohde/10969984_2.jpg",
+          "../02_gorseller/zimmer_rohde/10969984_3.jpg",
+          "../02_gorseller/zimmer_rohde/10969984_4.jpg",
+          "../02_gorseller/zimmer_rohde/10969984_5.jpg"
+        ]
+      },
+      {
+        "kod": "992",
+        "ad": "Açık duman keten",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/4/d/csm_10969992_b99825721b.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/10969992_1.jpg",
+          "../02_gorseller/zimmer_rohde/10969992_2.jpg",
+          "../02_gorseller/zimmer_rohde/10969992_3.jpg",
+          "../02_gorseller/zimmer_rohde/10969992_4.jpg",
+          "../02_gorseller/zimmer_rohde/10969992_5.jpg"
+        ]
+      },
+      {
+        "kod": "995",
+        "ad": "Doğal krem",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/f/2/csm_10969995_222dcbf59d.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/10969995_1.jpg",
+          "../02_gorseller/zimmer_rohde/10969995_2.jpg",
+          "../02_gorseller/zimmer_rohde/10969995_3.jpg",
+          "../02_gorseller/zimmer_rohde/10969995_4.jpg",
+          "../02_gorseller/zimmer_rohde/10969995_5.jpg"
+        ]
+      },
+      {
+        "kod": "996",
+        "ad": "Sıcak bej",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/f/8/csm_10969996_c4364a7af4.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/10969996_1.jpg",
+          "../02_gorseller/zimmer_rohde/10969996_2.jpg",
+          "../02_gorseller/zimmer_rohde/10969996_3.jpg",
+          "../02_gorseller/zimmer_rohde/10969996_4.jpg",
+          "../02_gorseller/zimmer_rohde/10969996_5.jpg"
+        ]
+      },
+      {
+        "kod": "998",
+        "ad": "Eko beyaz",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/b/d/csm_10969998_e6dd550b0a.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/10969998_1.jpg",
+          "../02_gorseller/zimmer_rohde/10969998_2.jpg",
+          "../02_gorseller/zimmer_rohde/10969998_3.jpg",
+          "../02_gorseller/zimmer_rohde/10969998_4.jpg",
+          "../02_gorseller/zimmer_rohde/10969998_5.jpg"
+        ]
+      }
+    ],
+    "performans": [
+      "Room high",
+      "Yıkanmaz",
+      "Recycling",
+      "Belgian Linen / Masters of Linen",
+      "CO₂-nötr"
+    ],
+    "aciklama": "Tabandan tavana saydam keten. Çözgü + atkıda iki-renkli mélange iplik canlı strüktür yaratıyor. CO₂-nötr, zero-waste Belçika üretimi.",
+    "stil_notu": "Sustainability hikayesi temel diferansiyatör; doğal nötr palet.",
+    "url": "https://www.zimmer-rohde.com/en/product-finder/details/melange-linen-10969-900",
+    "mobidik_notu": "<b>Zorluk: Orta ⚠️</b> · Çerçeve: 2-4 (plain ağırlıklı). %100 keten — softener/krep finish kritik. <b>Lyocell harman ile -%30 maliyet</b> + 'Anatolian Linen' önerilir."
+  },
+  {
+    "marka": "Zimmer + Rohde",
+    "koleksiyon": "After The Rain",
+    "urun_kodu": "11051-812",
+    "urun_adi": "Niket",
+    "ulke": "Almanya",
+    "kompozisyon": "100% Polyester",
+    "en": "300",
+    "gramaj": "üretici beyan etmiyor",
+    "rapor": "grid efekt ≤ 4 cm",
+    "dokuma": "leno",
+    "renkler": [
+      {
+        "kod": "812",
+        "ad": "Açık fildişi",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/0/csm_11051812_fa5ca70917.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/11051812_1.jpg",
+          "../02_gorseller/zimmer_rohde/11051812_2.jpg",
+          "../02_gorseller/zimmer_rohde/11051812_3.jpg",
+          "../02_gorseller/zimmer_rohde/11051812_4.jpg"
+        ]
+      },
+      {
+        "kod": "816",
+        "ad": "Sıcak krem",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/5/f/csm_11051816_9b5a3fe7e2.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/11051816_1.jpg",
+          "../02_gorseller/zimmer_rohde/11051816_2.jpg",
+          "../02_gorseller/zimmer_rohde/11051816_3.jpg",
+          "../02_gorseller/zimmer_rohde/11051816_4.jpg"
+        ]
+      },
+      {
+        "kod": "883",
+        "ad": "Soluk somon",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/9/1/csm_11051883_31d4ededd7.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/11051883_1.jpg",
+          "../02_gorseller/zimmer_rohde/11051883_2.jpg",
+          "../02_gorseller/zimmer_rohde/11051883_3.jpg",
+          "../02_gorseller/zimmer_rohde/11051883_4.jpg"
+        ]
+      },
+      {
+        "kod": "895",
+        "ad": "Açık gri-bej",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/8/2/csm_11051895_5acd66f7de.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/11051895_1.jpg",
+          "../02_gorseller/zimmer_rohde/11051895_2.jpg",
+          "../02_gorseller/zimmer_rohde/11051895_3.jpg",
+          "../02_gorseller/zimmer_rohde/11051895_4.jpg"
+        ]
+      },
+      {
+        "kod": "910",
+        "ad": "Bulutlu mavi",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/4/6/csm_11051910_7ff6c81669.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/11051910_1.jpg",
+          "../02_gorseller/zimmer_rohde/11051910_2.jpg",
+          "../02_gorseller/zimmer_rohde/11051910_3.jpg",
+          "../02_gorseller/zimmer_rohde/11051910_4.jpg"
+        ]
+      }
+    ],
+    "performans": [
+      "Room high",
+      "Yıkanabilir 30°",
+      "Handmade his"
+    ],
+    "aciklama": "Yarı-transparan grid leno tekniği. Özel finishing ile el-yapımı düzensizlik.",
+    "stil_notu": "Beauty of Simplicity — Z+R After The Rain'in sessiz odak ürünü.",
+    "url": "https://www.zimmer-rohde.com/en/product-finder/details/niket-11051-812",
+    "mobidik_notu": "<b>Zorluk: ZOR ⛔ — Stäubli armür standart kurulumda leno yapamaz.</b> Alternatifler: <b>mock-leno dobby</b>, leno gauze yatırımı (~€15-40k), kısmi Jacquard. <b>Acil: Stäubli teknik servisten leno-upgrade fizibilite.</b>"
+  },
+  {
+    "marka": "Zimmer + Rohde",
+    "koleksiyon": "SKETCHBOOK",
+    "urun_kodu": "10918-294",
+    "urun_adi": "Softgrid",
+    "ulke": "Almanya",
+    "kompozisyon": "36% PES, 34% Cotton, 16% Viscose, 14% Flax",
+    "en": "300",
+    "gramaj": "üretici beyan etmiyor",
+    "rapor": "küçük dobby grid ≤ 4 cm",
+    "dokuma": "dobby",
+    "renkler": [
+      {
+        "kod": "294",
+        "ad": "Açık deniz mavisi",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/f/e/csm_10918294_f94bf3b221.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/10918294_1.jpg",
+          "../02_gorseller/zimmer_rohde/10918294_2.jpg"
+        ]
+      },
+      {
+        "kod": "595",
+        "ad": "Adaçayı yeşili",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/4/5/csm_10918595_f8b7b123b7.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/10918595_1.jpg",
+          "../02_gorseller/zimmer_rohde/10918595_2.jpg"
+        ]
+      },
+      {
+        "kod": "694",
+        "ad": "Taba kahve",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/8/a/csm_10918694_37f0ab4ab9.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/10918694_1.jpg",
+          "../02_gorseller/zimmer_rohde/10918694_2.jpg"
+        ]
+      },
+      {
+        "kod": "890",
+        "ad": "Pudra pembe",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/d/d/csm_10918890_889f973791.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/10918890_1.jpg",
+          "../02_gorseller/zimmer_rohde/10918890_2.jpg"
+        ]
+      },
+      {
+        "kod": "895",
+        "ad": "Açık nötr",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/1/0/csm_10918895_1f85291c7f.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/10918895_1.jpg",
+          "../02_gorseller/zimmer_rohde/10918895_2.jpg"
+        ]
+      },
+      {
+        "kod": "900",
+        "ad": "Saf beyaz",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/0/2/csm_10918900_d657bca497.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/10918900_1.jpg",
+          "../02_gorseller/zimmer_rohde/10918900_2.jpg"
+        ]
+      },
+      {
+        "kod": "953",
+        "ad": "Bej-nötr",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/c/7/csm_10918953_13e21f96d0.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/10918953_1.jpg",
+          "../02_gorseller/zimmer_rohde/10918953_2.jpg"
+        ]
+      },
+      {
+        "kod": "981",
+        "ad": "Bulutsu beyaz",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/f/0/csm_10918981_24fb1a922e.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/10918981_1.jpg",
+          "../02_gorseller/zimmer_rohde/10918981_2.jpg"
+        ]
+      },
+      {
+        "kod": "984",
+        "ad": "Açık bej",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/b/2/csm_10918984_706142dc1e.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/10918984_1.jpg",
+          "../02_gorseller/zimmer_rohde/10918984_2.jpg"
+        ]
+      },
+      {
+        "kod": "991",
+        "ad": "Açık taş",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/0/2/csm_10918991_2247b5ae60.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/10918991_1.jpg",
+          "../02_gorseller/zimmer_rohde/10918991_2.jpg"
+        ]
+      },
+      {
+        "kod": "995",
+        "ad": "Krem",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/0/d/csm_10918995_2837f80cce.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/10918995_1.jpg",
+          "../02_gorseller/zimmer_rohde/10918995_2.jpg"
+        ]
+      },
+      {
+        "kod": "997",
+        "ad": "Doğal beyaz",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/b/2/csm_10918997_2f7b41d79d.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/10918997_1.jpg",
+          "../02_gorseller/zimmer_rohde/10918997_2.jpg"
+        ]
+      }
+    ],
+    "performans": [
+      "Room high",
+      "Yıkanabilir 30°"
+    ],
+    "aciklama": "Sketchbook koleksiyonunun düşük-yoğunluk dobby grid serisi.",
+    "stil_notu": "Klasik best-seller, 12 tonla geniş palet.",
+    "url": "https://www.zimmer-rohde.com/en/product-finder/details/softgrid-10918-694",
+    "mobidik_notu": "<b>Zorluk: Dokuma kolay ✅ / iplik tedariki orta-zor ⚠️</b> · 4-bileşenli karışım iplik MOQ riski. <b>3-bileşenli muadil ile %90 yakınlık + %20 maliyet düşüşü.</b>"
+  },
+  {
+    "marka": "ADO Goldkante",
+    "koleksiyon": "ADO - H22",
+    "urun_kodu": "3009-110",
+    "urun_adi": "Harry RE",
+    "ulke": "Almanya",
+    "kompozisyon": "54% rPES, 46% PES",
+    "en": "315",
+    "gramaj": "üretici beyan etmiyor",
+    "rapor": "yok / yapısal",
+    "dokuma": "sheer",
+    "renkler": [
+      {
+        "kod": "110",
+        "ad": "Doğal beyaz",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/a/f/csm_3009110_e899587eac.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3009110_1.jpg",
+          "../02_gorseller/ado_goldkante/3009110_2.jpg",
+          "../02_gorseller/ado_goldkante/3009110_3.jpg"
+        ]
+      }
+    ],
+    "performans": [
+      "Room high",
+      "Yıkanabilir 30°",
+      "Recycling",
+      "Post-consumer"
+    ],
+    "aciklama": "Post-consumer atık PES'ten %50+ recycled iplik. Sheer keten görünümlü voile.",
+    "stil_notu": "Sustainability + classic sheer.",
+    "url": "https://www.zimmer-rohde.com/en/product-finder/details/harry-re-3009-110",
+    "mobidik_notu": "<b>Zorluk: Kolay ✅ — AB ihracatı için ALTIN ürün.</b> Çerçeve: 2. rPES Türkiye'de güçlü. 315 cm en. Z+R retail ~€60-120/m → Mobidik €15-25/m. <b>Acil: GRS sertifika başvurusu.</b>"
+  },
+  {
+    "marka": "Zimmer + Rohde",
+    "koleksiyon": "Abstract",
+    "urun_kodu": "10971-981",
+    "urun_adi": "Loops",
+    "ulke": "Almanya",
+    "kompozisyon": "82% Fleece wool, 16% Alpaca, 2% Polyamide",
+    "en": "315",
+    "gramaj": "üretici beyan etmiyor",
+    "rapor": "yok",
+    "dokuma": "boucle (semi-transparent)",
+    "renkler": [
+      {
+        "kod": "882",
+        "ad": "Pudra wool",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/a/a/csm_10971882_561b21a8c5.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/10971882_1.jpg",
+          "../02_gorseller/zimmer_rohde/10971882_2.jpg",
+          "../02_gorseller/zimmer_rohde/10971882_3.jpg",
+          "../02_gorseller/zimmer_rohde/10971882_4.jpg",
+          "../02_gorseller/zimmer_rohde/10971882_5.jpg"
+        ]
+      },
+      {
+        "kod": "981",
+        "ad": "Bulutsu yün",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/e/6/csm_10971981_6d05b38ed2.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/10971981_1.jpg",
+          "../02_gorseller/zimmer_rohde/10971981_2.jpg",
+          "../02_gorseller/zimmer_rohde/10971981_3.jpg",
+          "../02_gorseller/zimmer_rohde/10971981_4.jpg",
+          "../02_gorseller/zimmer_rohde/10971981_5.jpg"
+        ]
+      },
+      {
+        "kod": "992",
+        "ad": "Saf beyaz yün",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/1/3/csm_10971992_ee86701926.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/10971992_1.jpg",
+          "../02_gorseller/zimmer_rohde/10971992_2.jpg",
+          "../02_gorseller/zimmer_rohde/10971992_3.jpg",
+          "../02_gorseller/zimmer_rohde/10971992_4.jpg",
+          "../02_gorseller/zimmer_rohde/10971992_5.jpg"
+        ]
+      }
+    ],
+    "performans": [
+      "Room high",
+      "Yıkanmaz",
+      "Buruşmaz"
+    ],
+    "aciklama": "Tabandan tavana akıcı yumuşak boucle yün; özel dokuma yapısı sayesinde açık grid dokusu ışığı geçirirken formunu koruyor. Yün ve hacimli iplik yapısı sayesinde doğal olarak buruşmaz.",
+    "stil_notu": "Cozy luxury, wool-rich premium drapery — yün-alpaka karışımı boucle.",
+    "url": "https://www.zimmer-rohde.com/en/product-finder/details/loops-10971-981",
+    "mobidik_notu": "<b>Zorluk: Orta-Zor ⚠️ — özel iplik gerekir.</b> %82 yün + %16 alpaka boucle iplik Türkiye'de tedariki zor (özel sipariş, MOQ yüksek). Çerçeve: 4-8 (open grid). <b>Premium boucle perdelik niş — yatırım yapılırsa lüks ihracat fırsatı.</b>"
+  },
+  {
+    "marka": "ADO Goldkante",
+    "koleksiyon": "Collaboration",
+    "urun_kodu": "3150-332",
+    "urun_adi": "Capri Plus",
+    "ulke": "Almanya",
+    "kompozisyon": "100% Polyester",
+    "en": "310",
+    "gramaj": "üretici beyan etmiyor",
+    "rapor": "yok / lattice",
+    "dokuma": "open latticework",
+    "renkler": [
+      {
+        "kod": "111",
+        "ad": "Bulut beyazı",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/9/csm_3150111_5d78cc123b.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3150111_1.jpg",
+          "../02_gorseller/ado_goldkante/3150111_2.jpg",
+          "../02_gorseller/ado_goldkante/3150111_3.jpg",
+          "../02_gorseller/ado_goldkante/3150111_4.jpg",
+          "../02_gorseller/ado_goldkante/3150111_5.jpg"
+        ]
+      },
+      {
+        "kod": "131",
+        "ad": "Antik bej",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/f/7/csm_3150131_ea83aa5237.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3150131_1.jpg",
+          "../02_gorseller/ado_goldkante/3150131_2.jpg",
+          "../02_gorseller/ado_goldkante/3150131_3.jpg",
+          "../02_gorseller/ado_goldkante/3150131_4.jpg",
+          "../02_gorseller/ado_goldkante/3150131_5.jpg"
+        ]
+      },
+      {
+        "kod": "191",
+        "ad": "Açık taş",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/a/csm_3150191_1708ce4aac.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3150191_1.jpg",
+          "../02_gorseller/ado_goldkante/3150191_2.jpg",
+          "../02_gorseller/ado_goldkante/3150191_3.jpg",
+          "../02_gorseller/ado_goldkante/3150191_4.jpg",
+          "../02_gorseller/ado_goldkante/3150191_5.jpg"
+        ]
+      },
+      {
+        "kod": "192",
+        "ad": "Açık nötr",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/8/6/csm_3150192_d6e1044acb.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3150192_1.jpg",
+          "../02_gorseller/ado_goldkante/3150192_2.jpg",
+          "../02_gorseller/ado_goldkante/3150192_3.jpg",
+          "../02_gorseller/ado_goldkante/3150192_4.jpg",
+          "../02_gorseller/ado_goldkante/3150192_5.jpg"
+        ]
+      },
+      {
+        "kod": "200",
+        "ad": "Bej",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/e/d/csm_3150200_fbb78cf0dc.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3150200_1.jpg",
+          "../02_gorseller/ado_goldkante/3150200_2.jpg",
+          "../02_gorseller/ado_goldkante/3150200_3.jpg",
+          "../02_gorseller/ado_goldkante/3150200_4.jpg",
+          "../02_gorseller/ado_goldkante/3150200_5.jpg"
+        ]
+      },
+      {
+        "kod": "331",
+        "ad": "Bej-gri",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/d/8/csm_3150331_06cc42e402.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3150331_1.jpg",
+          "../02_gorseller/ado_goldkante/3150331_2.jpg",
+          "../02_gorseller/ado_goldkante/3150331_3.jpg",
+          "../02_gorseller/ado_goldkante/3150331_4.jpg",
+          "../02_gorseller/ado_goldkante/3150331_5.jpg"
+        ]
+      },
+      {
+        "kod": "332",
+        "ad": "Antrasit",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/1/d/csm_3150332_158db006db.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3150332_1.jpg",
+          "../02_gorseller/ado_goldkante/3150332_2.jpg",
+          "../02_gorseller/ado_goldkante/3150332_3.jpg",
+          "../02_gorseller/ado_goldkante/3150332_4.jpg",
+          "../02_gorseller/ado_goldkante/3150332_5.jpg"
+        ]
+      },
+      {
+        "kod": "444",
+        "ad": "Açık zeytin",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/8/a/csm_3150444_0785a4a2cc.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3150444_1.jpg",
+          "../02_gorseller/ado_goldkante/3150444_2.jpg",
+          "../02_gorseller/ado_goldkante/3150444_3.jpg",
+          "../02_gorseller/ado_goldkante/3150444_4.jpg",
+          "../02_gorseller/ado_goldkante/3150444_5.jpg"
+        ]
+      },
+      {
+        "kod": "445",
+        "ad": "Köy yeşili",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/1/3/csm_3150445_ef660d9508.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3150445_1.jpg",
+          "../02_gorseller/ado_goldkante/3150445_2.jpg",
+          "../02_gorseller/ado_goldkante/3150445_3.jpg",
+          "../02_gorseller/ado_goldkante/3150445_4.jpg",
+          "../02_gorseller/ado_goldkante/3150445_5.jpg"
+        ]
+      },
+      {
+        "kod": "554",
+        "ad": "Adaçayı",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/a/csm_3150554_3cfb7092e8.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3150554_1.jpg",
+          "../02_gorseller/ado_goldkante/3150554_2.jpg",
+          "../02_gorseller/ado_goldkante/3150554_3.jpg",
+          "../02_gorseller/ado_goldkante/3150554_4.jpg",
+          "../02_gorseller/ado_goldkante/3150554_5.jpg"
+        ]
+      },
+      {
+        "kod": "562",
+        "ad": "Çam",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/f/5/csm_3150562_0d9904283a.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3150562_1.jpg",
+          "../02_gorseller/ado_goldkante/3150562_2.jpg",
+          "../02_gorseller/ado_goldkante/3150562_3.jpg",
+          "../02_gorseller/ado_goldkante/3150562_4.jpg",
+          "../02_gorseller/ado_goldkante/3150562_5.jpg"
+        ]
+      },
+      {
+        "kod": "662",
+        "ad": "Sıcak taba",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/7/a/csm_3150662_c5fbbd03c5.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3150662_1.jpg",
+          "../02_gorseller/ado_goldkante/3150662_2.jpg",
+          "../02_gorseller/ado_goldkante/3150662_3.jpg",
+          "../02_gorseller/ado_goldkante/3150662_4.jpg",
+          "../02_gorseller/ado_goldkante/3150662_5.jpg"
+        ]
+      },
+      {
+        "kod": "682",
+        "ad": "Koyu taba",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/2/5/csm_3150682_067468c472.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3150682_1.jpg",
+          "../02_gorseller/ado_goldkante/3150682_2.jpg",
+          "../02_gorseller/ado_goldkante/3150682_3.jpg",
+          "../02_gorseller/ado_goldkante/3150682_4.jpg",
+          "../02_gorseller/ado_goldkante/3150682_5.jpg"
+        ]
+      },
+      {
+        "kod": "684",
+        "ad": "Antik kahve",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/a/2/csm_3150684_f643d38316.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3150684_1.jpg",
+          "../02_gorseller/ado_goldkante/3150684_2.jpg",
+          "../02_gorseller/ado_goldkante/3150684_3.jpg",
+          "../02_gorseller/ado_goldkante/3150684_4.jpg",
+          "../02_gorseller/ado_goldkante/3150684_5.jpg"
+        ]
+      },
+      {
+        "kod": "843",
+        "ad": "Şarap",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/d/6/csm_3150843_78acd9fea3.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3150843_1.jpg",
+          "../02_gorseller/ado_goldkante/3150843_2.jpg",
+          "../02_gorseller/ado_goldkante/3150843_3.jpg",
+          "../02_gorseller/ado_goldkante/3150843_4.jpg",
+          "../02_gorseller/ado_goldkante/3150843_5.jpg"
+        ]
+      },
+      {
+        "kod": "992",
+        "ad": "Açık duman",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/b/c/csm_3150992_9bd4d5d504.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3150992_1.jpg",
+          "../02_gorseller/ado_goldkante/3150992_2.jpg",
+          "../02_gorseller/ado_goldkante/3150992_3.jpg",
+          "../02_gorseller/ado_goldkante/3150992_4.jpg",
+          "../02_gorseller/ado_goldkante/3150992_5.jpg"
+        ]
+      },
+      {
+        "kod": "994",
+        "ad": "Bulut grisi",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/e/9/csm_3150994_bf77b16cde.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3150994_1.jpg",
+          "../02_gorseller/ado_goldkante/3150994_2.jpg",
+          "../02_gorseller/ado_goldkante/3150994_3.jpg",
+          "../02_gorseller/ado_goldkante/3150994_4.jpg",
+          "../02_gorseller/ado_goldkante/3150994_5.jpg"
+        ]
+      }
+    ],
+    "performans": [
+      "Room high",
+      "Yıkanabilir 30°",
+      "Mükemmel ışık haslığı",
+      "Outdoor uyumlu"
+    ],
+    "aciklama": "İyi vibe ve rahatlama — 17 yumuşak ton, mükemmel ışık haslığı. Açık latticework dokumayla güneş ışığını ev içine taşır. Outdoor da uyumlu.",
+    "stil_notu": "Mediterranean summer — 17 rengin kalabalık paleti, en geniş palet.",
+    "url": "https://www.zimmer-rohde.com/en/product-finder/details/capri-plus-3150-332",
+    "mobidik_notu": "<b>Zorluk: Kolay ✅ — outdoor segment için ALTIN.</b> Çerçeve: 4-6 (lattice). %100 PES outdoor + lightfastness. <b>17 renk paleti güçlü.</b> Türk üretim avantajı: solution-dyed PES tedariki Sasa/Korteks. AB outdoor pazar payı büyüyor."
+  },
+  {
+    "marka": "Etamine",
+    "koleksiyon": "Ailleurs",
+    "urun_kodu": "19621-883",
+    "urun_adi": "Andria",
+    "ulke": "İtalya",
+    "kompozisyon": "68% Cotton, 26% Flax (linen), 5% Viscose, 1% Polyester",
+    "en": "305",
+    "gramaj": "üretici beyan etmiyor",
+    "rapor": "37 cm yükseklik",
+    "dokuma": "broad-striped woven",
+    "renkler": [
+      {
+        "kod": "880",
+        "ad": "Açık çizgi keten",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/8/8/csm_19621880_e9f8582ad7.jpg",
+        "gorseller": [
+          "../02_gorseller/etamine/19621880_1.jpg",
+          "../02_gorseller/etamine/19621880_2.jpg",
+          "../02_gorseller/etamine/19621880_3.jpg",
+          "../02_gorseller/etamine/19621880_4.jpg",
+          "../02_gorseller/etamine/19621880_5.jpg",
+          "../02_gorseller/etamine/19621880_6.jpg"
+        ]
+      },
+      {
+        "kod": "883",
+        "ad": "Vintage çizgi pudra",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/d/f/csm_19621883_c7118c4706.jpg",
+        "gorseller": [
+          "../02_gorseller/etamine/19621883_1.jpg",
+          "../02_gorseller/etamine/19621883_2.jpg",
+          "../02_gorseller/etamine/19621883_3.jpg",
+          "../02_gorseller/etamine/19621883_4.jpg",
+          "../02_gorseller/etamine/19621883_5.jpg",
+          "../02_gorseller/etamine/19621883_6.jpg"
+        ]
+      },
+      {
+        "kod": "887",
+        "ad": "Vintage çizgi nötr",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/a/5/csm_19621887_21274d0e3b.jpg",
+        "gorseller": [
+          "../02_gorseller/etamine/19621887_1.jpg",
+          "../02_gorseller/etamine/19621887_2.jpg",
+          "../02_gorseller/etamine/19621887_3.jpg",
+          "../02_gorseller/etamine/19621887_4.jpg",
+          "../02_gorseller/etamine/19621887_5.jpg",
+          "../02_gorseller/etamine/19621887_6.jpg"
+        ]
+      }
+    ],
+    "performans": [
+      "Yıkanmaz",
+      "Italy production",
+      "Maltinto artisanal dyeing"
+    ],
+    "aciklama": "İtalya'da pamuk ve ketenden dokunan geniş çizgili kumaş. Maltinto artisanal boyama teknigi ile vintage patina katar.",
+    "stil_notu": "Mediterranean stripe + vintage patina — Etamine'in artisanal Italyan üretimi.",
+    "url": "https://www.zimmer-rohde.com/en/product-finder/details/andria-19621-883",
+    "mobidik_notu": "<b>Zorluk: ZOR ⛔ — İtalyan Maltinto artisanal dyeing özel.</b> Geniş çizgili keten/pamuk dokuma kolay (Stäubli dobby), ama 'Maltinto' patina için ipek banyo + handpainted detay gerekir. Mobidik için <b>düşük öncelik</b>, niche replication."
+  },
+  {
+    "marka": "Etamine",
+    "koleksiyon": "Songe d'Ete",
+    "urun_kodu": "19650-882",
+    "urun_adi": "Heure Bleue",
+    "ulke": "Fransa",
+    "kompozisyon": "100% Flax (linen)",
+    "en": "300",
+    "gramaj": "üretici beyan etmiyor",
+    "rapor": "baskı (stripe)",
+    "dokuma": "plain linen voile (printed)",
+    "renkler": [
+      {
+        "kod": "113",
+        "ad": "Açık günbatımı",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/f/8/csm_19650113_f494f5b602.jpg",
+        "gorseller": [
+          "../02_gorseller/etamine/19650113_1.jpg",
+          "../02_gorseller/etamine/19650113_2.jpg",
+          "../02_gorseller/etamine/19650113_3.jpg",
+          "../02_gorseller/etamine/19650113_4.jpg"
+        ]
+      },
+      {
+        "kod": "555",
+        "ad": "Adaçayı denizi",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/a/2/csm_19650555_f54c67eca9.jpg",
+        "gorseller": [
+          "../02_gorseller/etamine/19650555_1.jpg",
+          "../02_gorseller/etamine/19650555_2.jpg",
+          "../02_gorseller/etamine/19650555_3.jpg",
+          "../02_gorseller/etamine/19650555_4.jpg"
+        ]
+      },
+      {
+        "kod": "834",
+        "ad": "Koyu okyanus",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/8/7/csm_19650834_9a9b519b0b.jpg",
+        "gorseller": [
+          "../02_gorseller/etamine/19650834_1.jpg",
+          "../02_gorseller/etamine/19650834_2.jpg",
+          "../02_gorseller/etamine/19650834_3.jpg",
+          "../02_gorseller/etamine/19650834_4.jpg"
+        ]
+      },
+      {
+        "kod": "882",
+        "ad": "Akdeniz pudra",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/6/f/csm_19650882_209c593823.jpg",
+        "gorseller": [
+          "../02_gorseller/etamine/19650882_1.jpg",
+          "../02_gorseller/etamine/19650882_2.jpg",
+          "../02_gorseller/etamine/19650882_3.jpg",
+          "../02_gorseller/etamine/19650882_4.jpg"
+        ]
+      }
+    ],
+    "performans": [
+      "Yıkanabilir 30°",
+      "European Flax certified",
+      "Stone-washed finish"
+    ],
+    "aciklama": "Etamine'in karakteristik renk hassasiyeti. Hava gibi hafif, European Flax sertifikalı keten voile üzerine geniş baskı. Akdeniz manzaraları ve gün batımından ilham yumuşak gradyan çizgi. Stone-washed finish ile yumuşaklık ve karakter.",
+    "stil_notu": "Etamine print + Mediterranean palette — gün batımı çizgisi.",
+    "url": "https://www.zimmer-rohde.com/en/product-finder/details/heure-bleue-19650-882",
+    "mobidik_notu": "<b>Zorluk: Orta ⚠️ — print+keten kombinasyonu.</b> Plain keten voile dokuma kolay (parti01 Melange Linen tipi); asıl iş <b>gradient stripe baskısı</b>. Digital fabric printer + stone-wash finish gerekli. AB print perdelik niş, yatırım: ~€80k."
+  },
+  {
+    "marka": "ADO Goldkante",
+    "koleksiyon": "Color Fields",
+    "urun_kodu": "3302-110",
+    "urun_adi": "Pure White Tape",
+    "ulke": "Almanya",
+    "kompozisyon": "100% Polyester",
+    "en": "320",
+    "gramaj": "üretici beyan etmiyor",
+    "rapor": "16 cm genişlik",
+    "dokuma": "vertical stripe (boucle + loop)",
+    "renkler": [
+      {
+        "kod": "110",
+        "ad": "Krem çizgi",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/f/d/csm_3302110_436eaea7ca.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3302110_1.jpg",
+          "../02_gorseller/ado_goldkante/3302110_2.jpg",
+          "../02_gorseller/ado_goldkante/3302110_3.jpg",
+          "../02_gorseller/ado_goldkante/3302110_4.jpg",
+          "../02_gorseller/ado_goldkante/3302110_5.jpg",
+          "../02_gorseller/ado_goldkante/3302110_6.jpg"
+        ]
+      },
+      {
+        "kod": "200",
+        "ad": "Bej çizgi",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/0/2/csm_3302200_aa205449fe.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3302200_1.jpg",
+          "../02_gorseller/ado_goldkante/3302200_2.jpg",
+          "../02_gorseller/ado_goldkante/3302200_3.jpg",
+          "../02_gorseller/ado_goldkante/3302200_4.jpg",
+          "../02_gorseller/ado_goldkante/3302200_5.jpg",
+          "../02_gorseller/ado_goldkante/3302200_6.jpg"
+        ]
+      }
+    ],
+    "performans": [
+      "Room high",
+      "Yıkanabilir 30°"
+    ],
+    "aciklama": "PURE WHITE TAPE — sade sofistike. İnce dikey çizgi boucle ve loop dokusu ile ışığı kaydırıyor. Sade nötrler sakin atmosfer yaratıyor.",
+    "stil_notu": "Quiet luxury, çizgili nötr — Color Fields koleksiyonu.",
+    "url": "https://www.zimmer-rohde.com/en/product-finder/details/pure-white-tape-3302-110",
+    "mobidik_notu": "<b>Zorluk: Kolay-Orta ✅</b> · Çerçeve: 4-6 (vertical stripe boucle). %100 PES, geniş 320 cm. Boucle iplik özel sipariş gerek. <b>Color Fields koleksiyonu Türkiye için iyi muadil — sade premium pinstripe.</b>"
+  },
+  {
+    "marka": "Etamine",
+    "koleksiyon": "Vents d'été",
+    "urun_kodu": "19635-880",
+    "urun_adi": "Blanc de Lin RE",
+    "ulke": "İtalya",
+    "kompozisyon": "100% Flax (linen)",
+    "en": "155",
+    "gramaj": "üretici beyan etmiyor",
+    "rapor": "crochet desen",
+    "dokuma": "linen crochet (knitted)",
+    "renkler": [
+      {
+        "kod": "880",
+        "ad": "Doğal keten beyaz",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/c/csm_19635880_1cedc51981.jpg",
+        "gorseller": [
+          "../02_gorseller/etamine/19635880_1.jpg",
+          "../02_gorseller/etamine/19635880_2.jpg",
+          "../02_gorseller/etamine/19635880_3.jpg",
+          "../02_gorseller/etamine/19635880_4.jpg"
+        ]
+      }
+    ],
+    "performans": [
+      "Yıkanmaz",
+      "Recycling",
+      "European Flax + OEKOTEX",
+      "Italy artisanal"
+    ],
+    "aciklama": "Linen crochet kumaş, İtalya'da uzman dokumacılarca üretilir. European Flax ve OEKOTEX sertifikalı. Sadece en ince keten lifleri örme ipliğine eğrilir. Yıkanmış finish ile karakter ve özgünlük.",
+    "stil_notu": "Etamine'in en yüksek-segment artisan ürünü — el-örme keten, dar en (155 cm) niş.",
+    "url": "https://www.zimmer-rohde.com/en/product-finder/details/blanc-de-lin-re-19635-880",
+    "mobidik_notu": "<b>Zorluk: ATÖLYE DIŞI ⛔ — linen crochet (örgü).</b> Bu DOKUMA değil ÖRME ürün. Stäubli armür ile yapılamaz. Yatırım: linen knitting (raşel) makinesi (~€100k+). <b>Replication için strateji dışı.</b>"
+  },
+  {
+    "marka": "ADO Goldkante",
+    "koleksiyon": "Color Fields",
+    "urun_kodu": "3301-110",
+    "urun_adi": "Pure White Pinstripe",
+    "ulke": "Almanya",
+    "kompozisyon": "90% Polyester, 10% Cotton",
+    "en": "320",
+    "gramaj": "üretici beyan etmiyor",
+    "rapor": "14 cm genişlik",
+    "dokuma": "pinstripe with slubs",
+    "renkler": [
+      {
+        "kod": "110",
+        "ad": "Beyaz çizgi",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/4/b/csm_3301110_a45f3a17d3.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3301110_1.jpg",
+          "../02_gorseller/ado_goldkante/3301110_2.jpg",
+          "../02_gorseller/ado_goldkante/3301110_3.jpg",
+          "../02_gorseller/ado_goldkante/3301110_4.jpg",
+          "../02_gorseller/ado_goldkante/3301110_5.jpg",
+          "../02_gorseller/ado_goldkante/3301110_6.jpg"
+        ]
+      },
+      {
+        "kod": "200",
+        "ad": "Bej çizgi",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/1/5/csm_3301200_0f4276c782.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3301200_1.jpg",
+          "../02_gorseller/ado_goldkante/3301200_2.jpg",
+          "../02_gorseller/ado_goldkante/3301200_3.jpg",
+          "../02_gorseller/ado_goldkante/3301200_4.jpg",
+          "../02_gorseller/ado_goldkante/3301200_5.jpg"
+        ]
+      }
+    ],
+    "performans": [
+      "Room high",
+      "Yıkanabilir 30°"
+    ],
+    "aciklama": "PURE WHITE PINSTRIPE — zamansız pinstripe modern yorumu. İnce çizgilerde yabani ipek zenginliği. Yüksek pamuk oranıyla hacim, yumuşaklık ve doğal his.",
+    "stil_notu": "Modern minimalist pinstripe, light bone texture — Color Fields.",
+    "url": "https://www.zimmer-rohde.com/en/product-finder/details/pure-white-pinstripe-3301-110",
+    "mobidik_notu": "<b>Zorluk: Kolay ✅</b> · Çerçeve: 2-4 (pinstripe). %90 PES + %10 Cotton — slub iplik için özel sipariş gerek. <b>320 cm en + sade pinstripe AB ihracatına uygun.</b> Türk üretim avantajı yüksek."
+  },
+  {
+    "marka": "Zimmer + Rohde",
+    "koleksiyon": "After The Rain",
+    "urun_kodu": "11047-894",
+    "urun_adi": "Ishari",
+    "ulke": "Almanya",
+    "kompozisyon": "100% Polyester",
+    "en": "310",
+    "gramaj": "üretici beyan etmiyor",
+    "rapor": "yok / yapısal",
+    "dokuma": "double-layer with effect yarns",
+    "renkler": [
+      {
+        "kod": "813",
+        "ad": "Açık fildişi",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/9/c/csm_11047813_9ed0bec3a1.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/11047813_1.jpg",
+          "../02_gorseller/zimmer_rohde/11047813_2.jpg",
+          "../02_gorseller/zimmer_rohde/11047813_3.jpg"
+        ]
+      },
+      {
+        "kod": "891",
+        "ad": "Pudra",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/2/0/csm_11047891_634ceb9c31.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/11047891_1.jpg",
+          "../02_gorseller/zimmer_rohde/11047891_2.jpg",
+          "../02_gorseller/zimmer_rohde/11047891_3.jpg"
+        ]
+      },
+      {
+        "kod": "894",
+        "ad": "Soluk somon",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/f/b/csm_11047894_0cb07be256.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/11047894_1.jpg",
+          "../02_gorseller/zimmer_rohde/11047894_2.jpg",
+          "../02_gorseller/zimmer_rohde/11047894_3.jpg"
+        ]
+      },
+      {
+        "kod": "990",
+        "ad": "Açık nötr",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/5/9/csm_11047990_8e2b1d53f7.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/11047990_1.jpg",
+          "../02_gorseller/zimmer_rohde/11047990_2.jpg",
+          "../02_gorseller/zimmer_rohde/11047990_3.jpg"
+        ]
+      },
+      {
+        "kod": "991",
+        "ad": "Krem",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/7/5/csm_11047991_88a934e294.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/11047991_1.jpg",
+          "../02_gorseller/zimmer_rohde/11047991_2.jpg",
+          "../02_gorseller/zimmer_rohde/11047991_3.jpg"
+        ]
+      }
+    ],
+    "performans": [
+      "Room high",
+      "Yıkanabilir 30°",
+      "Easy-care"
+    ],
+    "aciklama": "Layered transparency — iki ultra-ince dokunmuş katman içinde gevşek bağlı efekt iplikleri. Hafif bouclé karakteri yüzeye canlılık katar. Sadece doğal nötr tonlar.",
+    "stil_notu": "Çift-katman, neutral palette — After The Rain'in sade odak ürünü, Niket'in 'voluminous' kardeşi.",
+    "url": "https://www.zimmer-rohde.com/en/product-finder/details/ishari-11047-894",
+    "mobidik_notu": "<b>Zorluk: Orta ⚠️ — çift katman dokuma.</b> Two ultra-fine woven layers — Stäubli'de double-cloth tekniği gerek. Çerçeve: 8-12. Niket'in voluminous kardeşi. <b>Çift-katman özel teknik, replication için karmaşık.</b>"
+  },
+  {
+    "marka": "Zimmer + Rohde",
+    "koleksiyon": "After The Rain",
+    "urun_kodu": "11049-991",
+    "urun_adi": "Nuri",
+    "ulke": "Almanya",
+    "kompozisyon": "57% Flax (linen), 43% Cotton",
+    "en": "315",
+    "gramaj": "üretici beyan etmiyor",
+    "rapor": "27 cm × 20 cm",
+    "dokuma": "check / woven crosshatch",
+    "renkler": [
+      {
+        "kod": "883",
+        "ad": "Soluk somon crosshatch",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/5/f/csm_11049883_7ba5447d3d.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/11049883_1.jpg",
+          "../02_gorseller/zimmer_rohde/11049883_2.jpg",
+          "../02_gorseller/zimmer_rohde/11049883_3.jpg",
+          "../02_gorseller/zimmer_rohde/11049883_4.jpg",
+          "../02_gorseller/zimmer_rohde/11049883_5.jpg"
+        ]
+      },
+      {
+        "kod": "990",
+        "ad": "Açık nötr crosshatch",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/0/b/csm_11049990_79b0725a9c.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/11049990_1.jpg",
+          "../02_gorseller/zimmer_rohde/11049990_2.jpg",
+          "../02_gorseller/zimmer_rohde/11049990_3.jpg",
+          "../02_gorseller/zimmer_rohde/11049990_4.jpg",
+          "../02_gorseller/zimmer_rohde/11049990_5.jpg"
+        ]
+      },
+      {
+        "kod": "991",
+        "ad": "Krem crosshatch",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/e/5/csm_11049991_d1c85fbeba.jpg",
+        "gorseller": [
+          "../02_gorseller/zimmer_rohde/11049991_1.jpg",
+          "../02_gorseller/zimmer_rohde/11049991_2.jpg",
+          "../02_gorseller/zimmer_rohde/11049991_3.jpg",
+          "../02_gorseller/zimmer_rohde/11049991_4.jpg",
+          "../02_gorseller/zimmer_rohde/11049991_5.jpg"
+        ]
+      }
+    ],
+    "performans": [
+      "Room high",
+      "Yıkanabilir 30°"
+    ],
+    "aciklama": "Woven crosshatch — saydam ve yoğunluk kontrastlarıyla oynayan tabandan-tavana check dokuma. Farklı kalınlıkta iplikler ve farklı dokuma yoğunlukları çizim crosshatching'i andırır.",
+    "stil_notu": "After The Rain'in ressam çizgi'si — keten/pamuk premium crosshatch.",
+    "url": "https://www.zimmer-rohde.com/en/product-finder/details/nuri-11049-991",
+    "mobidik_notu": "<b>Zorluk: Orta ✅</b> · Çerçeve: 4-8 (woven crosshatch). Keten/pamuk 57/43 yaygın karışım. Rapor 27×20 dobby — Stäubli ile rahat yapılabilir. <b>After The Rain'in en uygulanabilir ürünü</b>; pilot kolay."
+  },
+  {
+    "marka": "Etamine",
+    "koleksiyon": "Songe d'Ete",
+    "urun_kodu": "19649-883",
+    "urun_adi": "Fil du Temps",
+    "ulke": "Fransa",
+    "kompozisyon": "100% Acrylic (solution-dyed)",
+    "en": "297",
+    "gramaj": "üretici beyan etmiyor",
+    "rapor": "crochet-inspired",
+    "dokuma": "crochet/gauzy",
+    "renkler": [
+      {
+        "kod": "183",
+        "ad": "Açık taş outdoor",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/1/csm_19649183_ad8443e99e.jpg",
+        "gorseller": [
+          "../02_gorseller/etamine/19649183_1.jpg",
+          "../02_gorseller/etamine/19649183_2.jpg",
+          "../02_gorseller/etamine/19649183_3.jpg",
+          "../02_gorseller/etamine/19649183_4.jpg"
+        ]
+      },
+      {
+        "kod": "383",
+        "ad": "Yeşil outdoor",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/6/e/csm_19649383_04d6d8fdb5.jpg",
+        "gorseller": [
+          "../02_gorseller/etamine/19649383_1.jpg",
+          "../02_gorseller/etamine/19649383_2.jpg",
+          "../02_gorseller/etamine/19649383_3.jpg",
+          "../02_gorseller/etamine/19649383_4.jpg"
+        ]
+      },
+      {
+        "kod": "683",
+        "ad": "Taba outdoor",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/4/3/csm_19649683_f31891a3c7.jpg",
+        "gorseller": [
+          "../02_gorseller/etamine/19649683_1.jpg",
+          "../02_gorseller/etamine/19649683_2.jpg",
+          "../02_gorseller/etamine/19649683_3.jpg",
+          "../02_gorseller/etamine/19649683_4.jpg"
+        ]
+      },
+      {
+        "kod": "880",
+        "ad": "Doğal outdoor",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/0/c/csm_19649880_a16a9b81b9.jpg",
+        "gorseller": [
+          "../02_gorseller/etamine/19649880_1.jpg",
+          "../02_gorseller/etamine/19649880_2.jpg",
+          "../02_gorseller/etamine/19649880_3.jpg",
+          "../02_gorseller/etamine/19649880_4.jpg"
+        ]
+      },
+      {
+        "kod": "883",
+        "ad": "Pudra outdoor",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/b/csm_19649883_1a23962d40.jpg",
+        "gorseller": [
+          "../02_gorseller/etamine/19649883_1.jpg",
+          "../02_gorseller/etamine/19649883_2.jpg",
+          "../02_gorseller/etamine/19649883_3.jpg",
+          "../02_gorseller/etamine/19649883_4.jpg"
+        ]
+      }
+    ],
+    "performans": [
+      "Yıkanabilir 30°",
+      "Outdoor uyumlu",
+      "Water-repellent",
+      "Stain-resistant",
+      "UV/saltwater dayanımı"
+    ],
+    "aciklama": "Katmanlar ve şeffaflık — bazen hava, bazen rafya. Crochet-esinli görünüm 1950'ler Saint-Tropez plaj giyimi eleganca. %100 solution-dyed acrylic ile outstanding indoor/outdoor performans. Klor, tuz, ışık ve hava dayanımı.",
+    "stil_notu": "Indoor/outdoor crochet — outdoor segment için niş premium.",
+    "url": "https://www.zimmer-rohde.com/en/product-finder/details/fil-du-temps-19649-883",
+    "mobidik_notu": "<b>Zorluk: ZOR ⛔ — outdoor acrylic + crochet inspired.</b> Solution-dyed acrylic iplik tedariki + outdoor finishing (water/UV resistant) Türkiye'de niche. Çerçeve: 8-16 (gauzy/crochet effect). <b>Outdoor perdelik niş; uzun vadeli AR-GE projesi.</b>"
+  },
+  {
+    "marka": "ADO Goldkante",
+    "koleksiyon": "Snapshot",
+    "urun_kodu": "3610-110",
+    "urun_adi": "Drift FR",
+    "ulke": "Almanya",
+    "kompozisyon": "100% Polyester (Fire resistant)",
+    "en": "300",
+    "gramaj": "üretici beyan etmiyor",
+    "rapor": "21 cm",
+    "dokuma": "stripe / effect yarn batiste",
+    "renkler": [
+      {
+        "kod": "110",
+        "ad": "Saf beyaz",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/2/c/csm_3610110_b3c43c6634.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3610110_1.jpg",
+          "../02_gorseller/ado_goldkante/3610110_2.jpg"
+        ]
+      },
+      {
+        "kod": "111",
+        "ad": "Doğal beyaz",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/f/3/csm_3610111_c41d7b0cae.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3610111_1.jpg",
+          "../02_gorseller/ado_goldkante/3610111_2.jpg"
+        ]
+      },
+      {
+        "kod": "131",
+        "ad": "Açık kum",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/f/8/csm_3610131_ccd39cf8b9.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3610131_1.jpg",
+          "../02_gorseller/ado_goldkante/3610131_2.jpg"
+        ]
+      },
+      {
+        "kod": "132",
+        "ad": "Kum",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/a/8/csm_3610132_9d29531603.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3610132_1.jpg",
+          "../02_gorseller/ado_goldkante/3610132_2.jpg"
+        ]
+      },
+      {
+        "kod": "191",
+        "ad": "Açık duman",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/e/1/csm_3610191_c65b7033d6.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3610191_1.jpg",
+          "../02_gorseller/ado_goldkante/3610191_2.jpg"
+        ]
+      },
+      {
+        "kod": "333",
+        "ad": "Açık gri",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/a/f/csm_3610333_b22ab04ceb.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3610333_1.jpg",
+          "../02_gorseller/ado_goldkante/3610333_2.jpg"
+        ]
+      },
+      {
+        "kod": "554",
+        "ad": "Adaçayı",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/8/b/csm_3610554_793bfa22c5.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3610554_1.jpg",
+          "../02_gorseller/ado_goldkante/3610554_2.jpg"
+        ]
+      },
+      {
+        "kod": "665",
+        "ad": "Bakır",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/f/c/csm_3610665_2a7e5dee94.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3610665_1.jpg",
+          "../02_gorseller/ado_goldkante/3610665_2.jpg"
+        ]
+      },
+      {
+        "kod": "684",
+        "ad": "Antik kahve",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/8/e/csm_3610684_d236676fe6.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3610684_1.jpg",
+          "../02_gorseller/ado_goldkante/3610684_2.jpg"
+        ]
+      },
+      {
+        "kod": "733",
+        "ad": "Lavanta",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/6/f/csm_3610733_fa693cf29f.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3610733_1.jpg",
+          "../02_gorseller/ado_goldkante/3610733_2.jpg"
+        ]
+      },
+      {
+        "kod": "775",
+        "ad": "Pudra",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/1/4/csm_3610775_15fb127ad2.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3610775_1.jpg",
+          "../02_gorseller/ado_goldkante/3610775_2.jpg"
+        ]
+      },
+      {
+        "kod": "992",
+        "ad": "Duman",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/a/6/csm_3610992_8888362b7f.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3610992_1.jpg",
+          "../02_gorseller/ado_goldkante/3610992_2.jpg"
+        ]
+      },
+      {
+        "kod": "993",
+        "ad": "Açık nötr gri",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/e/8/csm_3610993_9268e11c53.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3610993_1.jpg",
+          "../02_gorseller/ado_goldkante/3610993_2.jpg"
+        ]
+      },
+      {
+        "kod": "995",
+        "ad": "Orta gri",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/c/csm_3610995_ad7b8f8ec8.jpg",
+        "gorseller": [
+          "../02_gorseller/ado_goldkante/3610995_1.jpg",
+          "../02_gorseller/ado_goldkante/3610995_2.jpg"
+        ]
+      }
+    ],
+    "performans": [
+      "Room high",
+      "Yıkanabilir 30°",
+      "Flame retardant (NFPA 701)",
+      "Easy-care"
+    ],
+    "aciklama": "Magnificent kesintili çizgilerle akan; üç boyutlu efekt iplik şeffaf bölümlere işlenmiş. Base fabric SPEED'den ilham — yumuşak batiste, 14 mükemmel uyumlu renkte mix-and-match.",
+    "stil_notu": "Flame-retardant batiste stripe — kontrakt/otel projeleri için yangına dayanıklı transparan perdelik.",
+    "url": "https://www.zimmer-rohde.com/en/product-finder/details/drift-fr-3610-110",
+    "mobidik_notu": "<b>Zorluk: Orta-Zor ⚠️ — FR + 3D efekt iplik.</b> Çerçeve: 4-8 (intermittent stripe + effect yarn). %100 PES FR — kontrakt segmenti (otel/restoran/hastane) için kritik. NFPA 701 sertifikası AB+ABD ihracat şartı. <b>Türk üretim avantajı: Sasa/Korteks FR-PES iplik tedariki güçlü; FR sertifikasyon süreci 4-6 ay.</b> Kontrakt perdelik AB pazarı büyüyor — Mobidik için yeni segment fırsatı."
+  },
+  {
+    "marka": "Travers",
+    "koleksiyon": "Garden Club",
+    "urun_kodu": "44187-683",
+    "urun_adi": "Garden Stripe",
+    "ulke": "ABD",
+    "kompozisyon": "66% Cotton, 17% Polyester, 9% Flax (linen), 8% Viscose",
+    "en": "295",
+    "gramaj": "üretici beyan etmiyor",
+    "rapor": "2 cm",
+    "dokuma": "stripe / handwoven-look sheer",
+    "renkler": [
+      {
+        "kod": "586",
+        "ad": "Deniz mavisi",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/7/csm_44187586_396f93b0fe.jpg",
+        "gorseller": [
+          "../02_gorseller/travers/44187586_1.jpg",
+          "../02_gorseller/travers/44187586_2.jpg",
+          "../02_gorseller/travers/44187586_3.jpg"
+        ]
+      },
+      {
+        "kod": "594",
+        "ad": "Yeşil",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/8/csm_44187594_b31b45ea04.jpg",
+        "gorseller": [
+          "../02_gorseller/travers/44187594_1.jpg",
+          "../02_gorseller/travers/44187594_2.jpg",
+          "../02_gorseller/travers/44187594_3.jpg"
+        ]
+      },
+      {
+        "kod": "683",
+        "ad": "Pudra somon",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/0/f/csm_44187683_8ddf6efc2a.jpg",
+        "gorseller": [
+          "../02_gorseller/travers/44187683_1.jpg",
+          "../02_gorseller/travers/44187683_2.jpg",
+          "../02_gorseller/travers/44187683_3.jpg"
+        ]
+      },
+      {
+        "kod": "844",
+        "ad": "Mercan",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/b/6/csm_44187844_cb048e4a28.jpg",
+        "gorseller": [
+          "../02_gorseller/travers/44187844_1.jpg",
+          "../02_gorseller/travers/44187844_2.jpg",
+          "../02_gorseller/travers/44187844_3.jpg"
+        ]
+      },
+      {
+        "kod": "981",
+        "ad": "Açık duman",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/8/5/csm_44187981_81f4d3e737.jpg",
+        "gorseller": [
+          "../02_gorseller/travers/44187981_1.jpg",
+          "../02_gorseller/travers/44187981_2.jpg",
+          "../02_gorseller/travers/44187981_3.jpg"
+        ]
+      },
+      {
+        "kod": "987",
+        "ad": "Mor / lila",
+        "swatch": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/0/csm_44187987_908abd33b2.jpg",
+        "gorseller": [
+          "../02_gorseller/travers/44187987_1.jpg",
+          "../02_gorseller/travers/44187987_2.jpg",
+          "../02_gorseller/travers/44187987_3.jpg"
+        ]
+      }
+    ],
+    "performans": [
+      "Room high",
+      "Not washable",
+      "Sheer / hafif drape",
+      "Railroaded (yatay yerleştirilmiş dikey çizgi)"
+    ],
+    "aciklama": "Travers sheer selection'ın tamamlayıcısı. Rahat üç renkli çizgi, özel dokuma tekniği ile el-dokuma görünümünde. Hafif, kolay drape, geniş enli — railroaded olarak dikey çizgi gibi gösteriliyor.",
+    "stil_notu": "Handwoven-look multi-fiber sheer — coastal/garden estetiği, US-tasarım Avrupa-üretim Z+R Group.",
+    "url": "https://www.zimmer-rohde.com/en/product-finder/details/garden-stripe-44187-683",
+    "mobidik_notu": "<b>Zorluk: Orta ⚠️ — 4 lifli karışım sheer.</b> Çerçeve: 2-4 (basit ince çizgi, rapor sadece 2 cm). %66 Cot + 17 PES + 9 Keten + 8 Viscose — özel karışım iplik MOQ riski (parti02 Heure Bleue ile benzer 4-bileşen sorunu). <b>Sade pinstripe sheer dokuma kolay; asıl iş el-dokuma görünümlü slub iplik tedariki.</b> 295 cm en + railroaded uygulama — AB markette kolay konumlanır. Türkiye için: keten/pamuk yaygın, ama 4-bileşen birleştiren spinner az."
+  },
+  {
+    "marka": "Kvadrat",
+    "koleksiyon": "Frequency",
+    "urun_kodu": "5539-0101",
+    "urun_adi": "Air Line",
+    "ulke": "Türkiye",
+    "kompozisyon": "100% Linen (mono material)",
+    "en": "üretici beyan etmiyor",
+    "gramaj": "üretici beyan etmiyor",
+    "rapor": "dikey ışık çizgileri (vertical lines)",
+    "dokuma": "dobby",
+    "renkler": [
+      {
+        "kod": "0101",
+        "ad": "White Linen",
+        "swatch": "",
+        "gorseller": [
+          "../02_gorseller/kvadrat/55390101_1.jpg"
+        ]
+      },
+      {
+        "kod": "0111",
+        "ad": "Light Ash",
+        "swatch": "",
+        "gorseller": [
+          "../02_gorseller/kvadrat/55390111_1.jpg"
+        ]
+      },
+      {
+        "kod": "0161",
+        "ad": "Hazel",
+        "swatch": "",
+        "gorseller": [
+          "../02_gorseller/kvadrat/55390161_1.jpg"
+        ]
+      },
+      {
+        "kod": "0331",
+        "ad": "Mosswood",
+        "swatch": "",
+        "gorseller": [
+          "../02_gorseller/kvadrat/55390331_1.jpg"
+        ]
+      },
+      {
+        "kod": "0941",
+        "ad": "Northern Pine",
+        "swatch": "",
+        "gorseller": [
+          "../02_gorseller/kvadrat/55390941_1.jpg"
+        ]
+      }
+    ],
+    "performans": [
+      "Semitransparent",
+      "Renewable resources",
+      "Mono material",
+      "Lightfastness ISO 105-B02",
+      "Garanti 2 yıl",
+      "Yıkanmaz / kuru temizleme",
+      "Çekme ~%1/%1"
+    ],
+    "aciklama": "Yapılı zemin üzerinde şeffaf dikey ışık çizgileri — düz ve desenli arasında salınım. Frequency koleksiyonu ışık ve ritim teması. 5 mélange ton: White Linen → Light Ash → Hazel → Mosswood → Northern Pine. NOT: Kvadrat sadece 20×20cm renk swatch'i veriyor, lifestyle görseli yok.",
+    "stil_notu": "Danimarka design-led, mimari/contract segment. Mono material claim ile döngüsel tasarım söylemi. ÜRETİM TÜRKİYE'DE — Kvadrat sayfa açıkça beyan ediyor.",
+    "url": "https://www.kvadrat.dk/en/products/curtains/5539-air-line",
+    "mobidik_notu": "<b>Zorluk: Kolay-Orta ✅ — BENCHMARK ÜRÜN.</b> Çerçeve: 4-8 (dobby vertical-line). %100 spun keten — Bursa/Ege keten üreticileri yapabilir. <b>STRATEJİK: Kvadrat zaten Türkiye'de fason ürettiriyor</b> — teknik bariyer aşılmış, kalite bandı kanıtlanmış. <b>Asıl soru: hangi Türk üreticide?</b> Bu bilgi tedarik zincirini doğrudan etkiler. EU Flax + OEKOTEX sertifikası AB ihracatı için zorunlu. Pilot: 3 nötr ton × 100 m, 4-6 hafta. Mobidik fiyatı €18-28/m (Kvadrat retail €70-110/m'nin %25-30'u)."
+  },
+  {
+    "marka": "Kvadrat",
+    "koleksiyon": "Frequency",
+    "urun_kodu": "5544-0001",
+    "urun_adi": "Alpaca Leno",
+    "ulke": "İtalya",
+    "kompozisyon": "Alpaca + Lyocell + Wool (staple yarn)",
+    "en": "üretici beyan etmiyor",
+    "gramaj": "üretici beyan etmiyor",
+    "rapor": "leno açık doku (intricate open structure)",
+    "dokuma": "leno",
+    "renkler": [
+      {
+        "kod": "0001",
+        "ad": "Soft Wool (placeholder kod)",
+        "swatch": "",
+        "gorseller": [
+          "../02_gorseller/kvadrat/55440001_1.jpg"
+        ]
+      },
+      {
+        "kod": "0002",
+        "ad": "Almond Bark (placeholder kod)",
+        "swatch": "",
+        "gorseller": [
+          "../02_gorseller/kvadrat/55440002_1.jpg"
+        ]
+      },
+      {
+        "kod": "0003",
+        "ad": "Redwood (placeholder kod)",
+        "swatch": "",
+        "gorseller": [
+          "../02_gorseller/kvadrat/55440003_1.jpg"
+        ]
+      },
+      {
+        "kod": "0004",
+        "ad": "Cool Cedar (placeholder kod)",
+        "swatch": "",
+        "gorseller": [
+          "../02_gorseller/kvadrat/55440004_1.jpg"
+        ]
+      }
+    ],
+    "performans": [
+      "Semitransparent",
+      "Renewable resources",
+      "Leno weave",
+      "Lightfastness ISO 105-B02",
+      "Garanti 2 yıl",
+      "Hand wash cycle / kuru temizleme",
+      "Çekme ~%4/%3 (yüksek)",
+      "Üretim süresi 51 gün"
+    ],
+    "aciklama": "Alpaka + lyocell + yün leno dokuma — açık, parlak, ışıkta canlanan akıcı drape. Doğal yün notlarından atmospheric yeşillere ve smoky red-wood tonlarına paleti. 4 ton: Soft Wool, Almond Bark, Redwood, Cool Cedar. NOT: Sadece swatch görseli (lifestyle yok). Renk kodları placeholder — gerçek kodlar indir_kvadrat.ps1 -ProductId 5544 sonrası güncellenecek.",
+    "stil_notu": "Frequency koleksiyonu; doğal yün/alpaka hissi + smoky organik palet. İtalya artisanal üretim — Air Line'ın 'Türkiye fason' aksine, leno+yün karmaşıklığı İtalya el-uzmanlığını talep ediyor.",
+    "url": "https://www.kvadrat.dk/en/products/curtains/5544-alpaca-leno",
+    "mobidik_notu": "<b>Zorluk: ZOR ⛔ — Stäubli armür leno yapamaz</b> (Z+R Niket ile aynı engel, parti01'de detaylanmıştı). Çerçeve: 4-12 (leno açık doku). <b>Çift teknik engel:</b> (1) Leno gauze attachment yatırımı (~€15-40k), (2) Alpaka+yün+lyocell staple iplik tedariği — Türkiye'de niş (Loops-Z+R'da aynı sorun, Yünsa/Polaron MOQ yüksek). <b>Replication stratejisi:</b> (a) Mock-leno dobby 8-16 çerçeve ile yün ipliği — %60 görsel yakınlık, (b) leno yatırımı yapılırsa Niket + Alpaca Leno + Fil du Temps paket üretilir → ROI mantıklı. <b>İtalyan artisanal üretim (51 gün)</b> Mobidik için zor bir referans — fiyat yakalamak için endüstriyel mock-leno yolu mantıklı."
+  }
+];
+
+function unique(a){return [...new Set(a.filter(Boolean))].sort()}
+function pop(id,vals){const s=document.getElementById(id);vals.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;s.appendChild(o)})}
+function widthBucket(w){if(!w)return null;const n=parseInt(w);if(isNaN(n))return null;if(n<150)return '<150';if(n<280)return '150-280';if(n<320)return '280-320';return '>320'}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function colorsOf(p){return Array.isArray(p.renkler)?p.renkler:[]}
+function colorTotal(arr){return arr.reduce((s,p)=>s+colorsOf(p).length,0)}
+function imgTotal(arr){return arr.reduce((s,p)=>s+colorsOf(p).reduce((t,c)=>t+(c.gorseller?.length||0),0),0)}
+
+// Per-image CDN fallback map: local path -> Z+R CDN URL.
+// Used if local file (indir.ps1 ile inmemiş) yoksa.
+const cdnFallback = {
+  "../02_gorseller/ado_goldkante/3610110_1.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/2/c/csm_3610110_961095bc7d.jpg",
+  "../02_gorseller/ado_goldkante/3610110_2.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/5/d/csm_3610110_2_253ee07ddb.jpg",
+  "../02_gorseller/ado_goldkante/3610111_1.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/f/3/csm_3610111_27df7fcacc.jpg",
+  "../02_gorseller/ado_goldkante/3610111_2.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/5/csm_3610111_2_173dd6a7b7.jpg",
+  "../02_gorseller/ado_goldkante/3610131_1.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/f/8/csm_3610131_d610f8a1d6.jpg",
+  "../02_gorseller/ado_goldkante/3610131_2.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/4/d/csm_3610131_2_ac7bd0ec17.jpg",
+  "../02_gorseller/ado_goldkante/3610132_1.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/a/8/csm_3610132_3fbf499cd4.jpg",
+  "../02_gorseller/ado_goldkante/3610132_2.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/5/d/csm_3610132_2_707cc66a7a.jpg",
+  "../02_gorseller/ado_goldkante/3610191_1.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/e/1/csm_3610191_442c7075c4.jpg",
+  "../02_gorseller/ado_goldkante/3610191_2.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/1/csm_3610191_2_4749e5d209.jpg",
+  "../02_gorseller/ado_goldkante/3610333_1.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/a/f/csm_3610333_131615b7b3.jpg",
+  "../02_gorseller/ado_goldkante/3610333_2.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/8/c/csm_3610333_2_2df0fef314.jpg",
+  "../02_gorseller/ado_goldkante/3610554_1.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/8/b/csm_3610554_f00d2cfba4.jpg",
+  "../02_gorseller/ado_goldkante/3610554_2.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/9/2/csm_3610554_2_4a4a4b3277.jpg",
+  "../02_gorseller/ado_goldkante/3610665_1.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/f/c/csm_3610665_3bff812e57.jpg",
+  "../02_gorseller/ado_goldkante/3610665_2.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/e/b/csm_3610665_2_341da107ab.jpg",
+  "../02_gorseller/ado_goldkante/3610684_1.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/8/e/csm_3610684_32143d4b93.jpg",
+  "../02_gorseller/ado_goldkante/3610684_2.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/b/4/csm_3610684_2_4361960eb9.jpg",
+  "../02_gorseller/ado_goldkante/3610733_1.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/6/f/csm_3610733_b7b06b5dd7.jpg",
+  "../02_gorseller/ado_goldkante/3610733_2.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/e/3/csm_3610733_2_9b3d38c8db.jpg",
+  "../02_gorseller/ado_goldkante/3610775_1.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/1/4/csm_3610775_426b1df68a.jpg",
+  "../02_gorseller/ado_goldkante/3610775_2.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/d/csm_3610775_2_1ebd831f08.jpg",
+  "../02_gorseller/ado_goldkante/3610992_1.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/a/6/csm_3610992_ac6ef5249d.jpg",
+  "../02_gorseller/ado_goldkante/3610992_2.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/9/4/csm_3610992_2_003f8666fc.jpg",
+  "../02_gorseller/ado_goldkante/3610993_1.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/e/8/csm_3610993_4886f002cd.jpg",
+  "../02_gorseller/ado_goldkante/3610993_2.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/b/5/csm_3610993_2_a3af2cbc32.jpg",
+  "../02_gorseller/ado_goldkante/3610995_1.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/c/csm_3610995_30c6d08b29.jpg",
+  "../02_gorseller/ado_goldkante/3610995_2.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/4/3/csm_3610995_2_8193974969.jpg",
+  "../02_gorseller/travers/44187586_1.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/7/csm_44187586_d874eb68ee.jpg",
+  "../02_gorseller/travers/44187586_2.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/8/8/csm_44187_rb_1_993c3f1a8b.jpg",
+  "../02_gorseller/travers/44187586_3.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/4/b/csm_44187_rb_2_29a68042ec.jpg",
+  "../02_gorseller/travers/44187594_1.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/8/csm_44187594_94273d137d.jpg",
+  "../02_gorseller/travers/44187594_2.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/8/8/csm_44187_rb_1_993c3f1a8b.jpg",
+  "../02_gorseller/travers/44187594_3.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/4/b/csm_44187_rb_2_29a68042ec.jpg",
+  "../02_gorseller/travers/44187683_1.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/0/f/csm_44187683_656448434b.jpg",
+  "../02_gorseller/travers/44187683_2.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/8/8/csm_44187_rb_1_993c3f1a8b.jpg",
+  "../02_gorseller/travers/44187683_3.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/4/b/csm_44187_rb_2_29a68042ec.jpg",
+  "../02_gorseller/travers/44187844_1.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/b/6/csm_44187844_034f849807.jpg",
+  "../02_gorseller/travers/44187844_2.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/8/8/csm_44187_rb_1_993c3f1a8b.jpg",
+  "../02_gorseller/travers/44187844_3.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/4/b/csm_44187_rb_2_29a68042ec.jpg",
+  "../02_gorseller/travers/44187981_1.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/8/5/csm_44187981_dcf99969c4.jpg",
+  "../02_gorseller/travers/44187981_2.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/8/8/csm_44187_rb_1_993c3f1a8b.jpg",
+  "../02_gorseller/travers/44187981_3.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/4/b/csm_44187_rb_2_29a68042ec.jpg",
+  "../02_gorseller/travers/44187987_1.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/0/csm_44187987_55ac13212f.jpg",
+  "../02_gorseller/travers/44187987_2.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/8/8/csm_44187_rb_1_993c3f1a8b.jpg",
+  "../02_gorseller/travers/44187987_3.jpg": "https://www.zimmer-rohde.com/fileadmin/_processed_/4/b/csm_44187_rb_2_29a68042ec.jpg"
+};
+
+// Fallback chain: local -> CDN (gerçek görsel) -> swatch (renk örneği) -> "Görsel yok" placeholder.
+function attachImgFallback(img, localPath, swatchUrl){
+  img.dataset.local=localPath||'';
+  img.dataset.cdn=cdnFallback[localPath]||'';
+  img.dataset.swatch=swatchUrl||'';
+  img.dataset.stage='0';
+  img.onerror=function(){
+    if(this.dataset.stage==='0' && this.dataset.cdn){
+      this.dataset.stage='1'; this.src=this.dataset.cdn; return;
+    }
+    if(this.dataset.stage!=='2' && this.dataset.swatch){
+      this.dataset.stage='2'; this.src=this.dataset.swatch; return;
+    }
+    const d=document.createElement('div');
+    d.className='thumb-fallback';
+    d.innerHTML='Görsel yüklenemedi';
+    this.replaceWith(d);
+  };
+}
+
+function buildHeaderStats(){
+  const c = unique(products.map(p=>p.ulke));
+  const total = colorTotal(products);
+  const imgs = imgTotal(products);
+  const parts=[];
+  parts.push('<span><b>'+products.length+'</b> ürün</span>');
+  parts.push('<span><b>'+total+'</b> renk varyantı</span>');
+  parts.push('<span><b>'+imgs+'</b> kumaş görseli</span>');
+  c.forEach(country=>{
+    const items=products.filter(p=>p.ulke===country);
+    parts.push('<span><b>'+items.length+'</b> '+country+' <span style="opacity:.6">('+colorTotal(items)+' renk)</span></span>');
+  });
+  document.getElementById('stats').innerHTML=parts.join(' · ');
+}
+
+function render(){
+  const fcountry=document.getElementById('f-country').value;
+  const fb=document.getElementById('f-brand').value;
+  const fc=document.getElementById('f-comp').value;
+  const fw=document.getElementById('f-width').value;
+  const fv=document.getElementById('f-weave').value;
+  const fq=document.getElementById('f-q').value.toLowerCase();
+  const g=document.getElementById('grid');g.innerHTML='';
+  const list=products.filter(p=>
+    (!fcountry||p.ulke===fcountry)&&(!fb||p.marka===fb)&&
+    (!fc||(p.kompozisyon||'').includes(fc))&&(!fw||widthBucket(p.en)===fw)&&
+    (!fv||p.dokuma===fv)&&(!fq||(p.urun_kodu+' '+p.urun_adi).toLowerCase().includes(fq))
+  );
+  document.getElementById('count').innerHTML='<b>'+list.length+'</b> ürün · <b>'+colorTotal(list)+'</b> renk';
+  if(!list.length){g.innerHTML='<div class="empty">Filtreyle eşleşen ürün yok.</div>';return}
+
+  const grouped={};
+  list.forEach(p=>{const u=p.ulke||'Belirsiz';(grouped[u]=grouped[u]||[]).push(p)});
+  Object.keys(grouped).sort().forEach(country=>{
+    const items=grouped[country];
+    const h=document.createElement('div');h.className='group-header';
+    h.innerHTML='<span>'+esc(country)+'</span><span class="group-meta">'+items.length+' ürün · '+colorTotal(items)+' renk varyantı</span>';
+    g.appendChild(h);
+    items.forEach(p=>{
+      const c=document.createElement('div');c.className='card';c.onclick=()=>openModal(p);
+      const cls=colorsOf(p);
+      const firstColor=cls[0]||{};
+      const firstImg=(firstColor.gorseller&&firstColor.gorseller[0])||'';
+      const img=document.createElement('img');
+      img.className='thumb';img.src=firstImg;img.alt=p.urun_adi||'';img.loading='lazy';
+      attachImgFallback(img, firstImg, firstColor.swatch||'');
+      c.appendChild(img);
+      const body=document.createElement('div');body.className='body';
+      const miniSwatches=cls.slice(0,8).map(r=>'<span style="background-image:url('+esc(r.swatch)+')" title="'+esc(r.ad||r.kod)+'"></span>').join('')+(cls.length>8?'<span style="background:#222;color:#aaa;display:flex;align-items:center;justify-content:center;font-size:9px;border:none;width:auto;padding:0 4px;border-radius:7px">+'+(cls.length-8)+'</span>':'');
+      body.innerHTML='<div class="brand">'+esc(p.marka)+'</div><div class="name">'+esc(p.urun_adi||p.urun_kodu)+'</div><div class="meta"><span class="chip">'+esc(p.urun_kodu)+'</span>'+(p.en?'<span class="chip">'+esc(p.en)+' cm</span>':'')+(p.dokuma?'<span class="chip">'+esc(p.dokuma)+'</span>':'')+(p.ulke?'<span class="chip chip-flag">'+esc(p.ulke)+'</span>':'')+'<span class="chip chip-colors">'+cls.length+' renk</span></div><div class="mini-swatches">'+miniSwatches+'</div>';
+      c.appendChild(body);
+      g.appendChild(c);
+    });
+  });
+}
+
+let currentProduct=null, currentColorIndex=0, currentGallery=[];
+
+function openModal(p){
+  currentProduct=p;
+  currentColorIndex=0;
+  refreshModalContent();
+  document.getElementById('modal').classList.add('open');
+}
+
+function selectColor(idx){
+  currentColorIndex=idx;
+  refreshModalContent();
+}
+
+function refreshModalContent(){
+  const p=currentProduct;
+  const cls=colorsOf(p);
+  const active=cls[currentColorIndex]||{};
+  currentGallery=active.gorseller||[];
+  const swatchUrl=active.swatch||'';
+  const imgs=currentGallery.map((g,i)=>{
+    const cdn=cdnFallback[g]||'';
+    return '<img src="'+esc(g)+'" alt="" title="Tam boyut için tıkla" data-cdn="'+esc(cdn)+'" data-swatch="'+esc(swatchUrl)+'" data-stage="0" onerror="if(this.dataset.stage===\'0\'&&this.dataset.cdn){this.dataset.stage=\'1\';this.src=this.dataset.cdn}else if(this.dataset.stage!==\'2\'&&this.dataset.swatch){this.dataset.stage=\'2\';this.src=this.dataset.swatch}else{this.style.opacity=\'.3\';this.alt=\'Görsel yok\'}" onclick="openLightbox('+i+')">';
+  }).join('');
+  const colorGrid=cls.map((r,i)=>
+    '<div class="color-item'+(i===currentColorIndex?' active':'')+'" onclick="selectColor('+i+')"><div class="color-swatch" style="background-image:url('+esc(r.swatch)+')"></div><div class="color-meta"><div class="color-name" title="'+esc(r.ad)+'">'+esc(r.ad)+'</div><div class="color-code">#'+esc(r.kod)+'</div></div></div>'
+  ).join('');
+  const m=document.getElementById('modal-body');
+  m.innerHTML='<div class="brand" style="color:var(--accent);font-size:12px;letter-spacing:1px">'+esc(p.marka)+' &middot; '+esc(p.koleksiyon)+' &middot; '+esc(p.ulke||'-')+'</div>'+
+    '<h2 style="margin:4px 0 0">'+esc(p.urun_adi)+'</h2>'+
+    '<div style="color:var(--muted);font-size:13px">'+esc(p.urun_kodu)+'</div>'+
+    '<div class="active-color-bar"><div class="acb-swatch" style="background-image:url('+esc(active.swatch||'')+')"></div><span>Seçili renk: <b>'+esc(active.ad||'-')+'</b> · #'+esc(active.kod||'-')+' · <span style="opacity:.7">'+(currentGallery.length)+' görsel</span></span></div>'+
+    '<div class="gallery">'+imgs+'</div>'+
+    '<table>'+
+      '<tr><th>Üretim ülkesi</th><td>'+esc(p.ulke||'—')+'</td></tr>'+
+      '<tr><th>Kompozisyon</th><td>'+esc(p.kompozisyon||'—')+'</td></tr>'+
+      '<tr><th>En</th><td>'+esc(p.en||'—')+' cm</td></tr>'+
+      '<tr><th>Gramaj</th><td>'+esc(p.gramaj||'—')+'</td></tr>'+
+      '<tr><th>Rapor</th><td>'+esc(p.rapor||'—')+'</td></tr>'+
+      '<tr><th>Dokuma</th><td>'+esc(p.dokuma||'—')+'</td></tr>'+
+      '<tr><th>Renk varyantları ('+cls.length+')</th><td><div class="color-grid">'+colorGrid+'</div><div style="font-size:11px;color:var(--muted);margin-top:6px">Bir renge tıklayınca o rengin görselleri yukarıda açılır.</div></td></tr>'+
+      '<tr><th>Performans</th><td>'+esc((p.performans||[]).join(', ')||'—')+'</td></tr>'+
+      '<tr><th>Açıklama</th><td>'+esc(p.aciklama||'—')+'</td></tr>'+
+      '<tr><th>Stil notu</th><td>'+esc(p.stil_notu||'—')+'</td></tr>'+
+      '<tr><th>Kaynak</th><td><a href="'+esc(p.url)+'" target="_blank" style="color:var(--accent)">Ürün sayfası</a></td></tr>'+
+    '</table>'+
+    '<div class="mobidik"><h4>Mobidik Notu &mdash; Stäubli Yapılabilirlik</h4>'+(p.mobidik_notu||'—')+'</div>';
+}
+
+function closeModal(){document.getElementById('modal').classList.remove('open')}
+document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
+
+// Lightbox
+let lbIndex=0, lbScale=1, lbTx=0, lbTy=0, lbDragging=false, lbStartX=0, lbStartY=0;
+function applyTransform(){
+  const img=document.getElementById('lb-img');
+  img.style.transform='translate('+lbTx+'px,'+lbTy+'px) scale('+lbScale+')';
+  document.getElementById('lightbox').classList.toggle('zoomed',lbScale>1);
+  document.getElementById('lb-zoom-pct').textContent=Math.round(lbScale*100)+'%';
+}
+function resetZoom(){lbScale=1;lbTx=0;lbTy=0;applyTransform()}
+function openLightbox(idx){if(!currentGallery.length)return;lbIndex=idx;updateLb();document.getElementById('lightbox').classList.add('open')}
+function updateLb(){
+  const src=currentGallery[lbIndex];
+  const cdn=cdnFallback[src]||'';
+  const lbImg=document.getElementById('lb-img');
+  lbImg.dataset.stage='0';
+  lbImg.dataset.cdn=cdn;
+  lbImg.onerror=function(){
+    if(this.dataset.stage==='0' && this.dataset.cdn){
+      this.dataset.stage='1'; this.src=this.dataset.cdn;
+    } else {
+      this.alt='Görsel yüklenemedi — indir.ps1 çalıştırılması gerek';
+      this.style.opacity='.4';
+    }
+  };
+  lbImg.style.opacity='1';
+  lbImg.src=src;
+  document.getElementById('lb-open-tab').href=cdn||src;
+  const c=document.getElementById('lb-counter');
+  const many=currentGallery.length>1;
+  c.textContent=(lbIndex+1)+' / '+currentGallery.length;
+  c.style.display=many?'':'none';
+  document.querySelector('.lb-prev').style.display=many?'':'none';
+  document.querySelector('.lb-next').style.display=many?'':'none';
+  resetZoom();
+}
+function lbPrev(e){if(e)e.stopPropagation();lbIndex=(lbIndex-1+currentGallery.length)%currentGallery.length;updateLb()}
+function lbNext(e){if(e)e.stopPropagation();lbIndex=(lbIndex+1)%currentGallery.length;updateLb()}
+function closeLightbox(e){if(e)e.stopPropagation();document.getElementById('lightbox').classList.remove('open');resetZoom()}
+document.getElementById('lightbox').addEventListener('click',e=>{if(e.target.id==='lightbox')closeLightbox()});
+document.getElementById('lightbox').addEventListener('wheel',function(e){
+  if(!document.getElementById('lightbox').classList.contains('open'))return;
+  e.preventDefault();
+  const delta=e.deltaY<0?1.18:1/1.18;
+  const newScale=Math.max(1,Math.min(6,lbScale*delta));
+  if(newScale===lbScale)return;
+  const img=document.getElementById('lb-img');
+  const rect=img.getBoundingClientRect();
+  const cx=e.clientX-(rect.left+rect.width/2);
+  const cy=e.clientY-(rect.top+rect.height/2);
+  const ratio=newScale/lbScale-1;
+  lbTx-=cx*ratio;lbTy-=cy*ratio;
+  lbScale=newScale;
+  if(lbScale<=1.01){lbScale=1;lbTx=0;lbTy=0}
+  applyTransform();
+},{passive:false});
+document.getElementById('lb-img').addEventListener('dblclick',function(e){
+  e.stopPropagation();
+  if(lbScale>1){resetZoom();return}
+  const newScale=2.5;
+  const img=this;
+  const rect=img.getBoundingClientRect();
+  const cx=e.clientX-(rect.left+rect.width/2);
+  const cy=e.clientY-(rect.top+rect.height/2);
+  const ratio=newScale-1;
+  lbTx=-cx*ratio;lbTy=-cy*ratio;
+  lbScale=newScale;
+  applyTransform();
+});
+document.getElementById('lb-img').addEventListener('mousedown',function(e){
+  if(lbScale<=1)return;
+  e.preventDefault();e.stopPropagation();
+  lbDragging=true;lbStartX=e.clientX-lbTx;lbStartY=e.clientY-lbTy;
+  this.style.cursor='grabbing';
+});
+document.addEventListener('mousemove',function(e){
+  if(!lbDragging)return;
+  lbTx=e.clientX-lbStartX;lbTy=e.clientY-lbStartY;
+  applyTransform();
+});
+document.addEventListener('mouseup',function(){
+  if(!lbDragging)return;
+  lbDragging=false;
+  const img=document.getElementById('lb-img');
+  if(img)img.style.cursor=lbScale>1?'grab':'';
+});
+document.addEventListener('keydown',function(e){
+  if(!document.getElementById('lightbox').classList.contains('open'))return;
+  if(e.key==='Escape')closeLightbox();
+  else if(e.key==='ArrowLeft')lbPrev();
+  else if(e.key==='ArrowRight')lbNext();
+  else if(e.key==='0'||e.key==='r'||e.key==='R')resetZoom();
+});
+
+// Filter setup
+function populateFilters(){
+  pop('f-country', unique(products.map(p=>p.ulke)));
+  pop('f-brand', unique(products.map(p=>p.marka)));
+  const comps=new Set();
+  products.forEach(p=>{
+    const s=p.kompozisyon||'';
+    ['Cotton','Polyester','Flax','Linen','Wool','Viscose','Acrylic','Lyocell','Alpaca'].forEach(k=>{ if(s.includes(k))comps.add(k); });
+  });
+  pop('f-comp', [...comps].sort());
+    pop('f-width', ['<150','150-280','280-320','>320']);
+  pop('f-weave', unique(products.map(p=>p.dokuma)));
+  ['f-country','f-brand','f-comp','f-width','f-weave','f-q'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.addEventListener(id==='f-q'?'input':'change',render);
+  });
+}
+
+buildHeaderStats();
+populateFilters();
+render();
+</script>
+</body>
+</html>

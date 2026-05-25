@@ -1,0 +1,17 @@
+gorseller/
+pdfler/
+topla/ham_cikti/
+*.pyc
+__pycache__/
+.DS_Store
+*.bak
+
+# Python sanal ortami (2 GB+ playwright/chromium)
+.venv/
+
+# Eski Cowork iterasyonu gorselleri (legacy, ~150 MB, _legacy_cowork/'a tasinacak)
+02_gorseller/
+
+# Bu klasör üst git repo'nun worktree mekanizmasından geldi (numune-master-web).
+# ARGE projesinin parçası değil, içine girilmez.
+.claude/

@@ -1,0 +1,335 @@
+{
+  "_schema_version": "1.3",
+  "_schema_description": "Kanonik ürün şeması v1.1. Tüm ürün JSON'ları bu yapıya uymalıdır. Yeni alan ekleme — eksik veriyi null bırak.",
+  "_schema_changelog": [
+    {
+      "version": "1.0",
+      "date": "2026-05-12",
+      "note": "İlk sürüm"
+    },
+    {
+      "version": "1.1",
+      "date": "2026-05-13",
+      "note": "Kalibrasyon test #1 (Air Line) sonrası: transparency (source veri), launch_year, design_credit, yarn_type, _provenance resmi blok (eski field_metadata yapısı buraya taşındı), description → description_original + description_tr ayrımı (dil disiplini netleştirildi)"
+    },
+    {
+      "version": "1.2",
+      "date": "2026-05-13",
+      "note": "Cobra denetimi sonrası: source_data.commercial.production_model alanı eklendi (stock | make_to_order | mixed | unknown). Cobra make_to_order örneği. Air Line retroaktif olarak 'stock' (doğrulanmadı notuyla)."
+    },
+    {
+      "version": "1.3",
+      "date": "2026-05-13",
+      "note": "Görsel indirme katman testi sonrası: images array elemanları layer_*_attempt yapısı kazandı (Katman 1/2/3 deneme zinciri kaydı), image_analysis bloğu visual analiz alanları (dominant_colors hex array, texture_classification, transparency_visual + matches_source bool) ile genişletildi."
+    }
+  ],
+  "urun_id": "<marka_slug>_<urun_kodu>",
+  "brand": "Marka Adı (orijinal yazım)",
+  "brand_slug": "marka-slug",
+  "collection": "Koleksiyon adı veya null",
+  "product_code": "Ürün kodu",
+  "product_name": "Ürün adı (orijinal dil)",
+  "source_url": "https://...",
+  "scraped_at": "ISO 8601 timestamp",
+  "last_updated": "ISO 8601 timestamp",
+  "source_data": {
+    "_description": "SADECE üretici sitesinden gelen veri. Yoksa null. Asla tahmin yazma.",
+    "_provenance": {
+      "_description": "Her source_data alanının hangi kaynaktan (HTML, PDF, vb.) geldiğini ve doğrulama zincirini taşır. Şema v1.1'de resmileşti.",
+      "schema_version": "1.1",
+      "created_at": "ISO 8601",
+      "last_updated": "ISO 8601",
+      "sources_used": [
+        {
+          "url": "https://example.com/product",
+          "type": "html_product_page | technical_spec_pdf | brand_press_release | wikipedia | iso_database | manual_sample",
+          "accessed_at": "ISO 8601",
+          "fields_supported": []
+        }
+      ],
+      "field_metadata": {
+        "_description": "Alan-alan provenance objeleri. Her PDF/multi-source alan için zorunlu.",
+        "_item_shape": {
+          "value": "alanın değeri (kayıt amaçlı)",
+          "source": "html | technical_spec_pdf | html_and_pdf_consistent | manual_sample",
+          "source_url": "string",
+          "page_number": "int | null (PDF için)",
+          "extracted_at": "ISO 8601",
+          "extraction_confidence": "exact | interpreted",
+          "extraction_notes": "string"
+        }
+      },
+      "fields_from_pdf": [],
+      "fields_from_html": [],
+      "fields_from_inference": [],
+      "constitutional_violations_check": "passed_at_<ISO timestamp> | pending | failed",
+      "audit_history": [
+        {
+          "audit_id": "string",
+          "audit_date": "ISO date",
+          "audit_doc": "yol",
+          "version_before": "string",
+          "version_after": "string",
+          "notes": "string"
+        }
+      ]
+    },
+    "technical": {
+      "composition": [
+        {
+          "fiber_generic": "Keten",
+          "fiber_commercial": null,
+          "ratio_percent": 100,
+          "fr_treatment": null
+        }
+      ],
+      "width_cm": null,
+      "weight_gsm": null,
+      "repeat_cm": {
+        "vertical": null,
+        "horizontal": null
+      },
+      "weave_type_raw": "Sitede yazıldığı gibi (örn. 'Plain weave', 'Jacquard')",
+      "weave_type_normalized": "plain | dobby | jacquard | sheer | leno | null",
+      "yarn_type": "spun | filament | textured | null",
+      "transparency": {
+        "value": null,
+        "_options": [
+          "transparent",
+          "semitransparent",
+          "translucent",
+          "opaque",
+          "blackout"
+        ],
+        "_note": "SOURCE veri. Üretici sitesinde 'Transparency: ...' veya eşdeğer beyan varsa doldurulur. Yoksa null. AI çıkarımı YAPILMAZ — ai_inferences.light_transmission kullanılır."
+      },
+      "usage_area": [],
+      "performance": {
+        "lightfastness": null,
+        "abrasion_martindale": null,
+        "pilling": null,
+        "shrinkage": null,
+        "washing_resistance": null
+      },
+      "acoustic": {
+        "alpha_s_value": null,
+        "absorption_class": null,
+        "comment": null
+      }
+    },
+    "variants": [
+      {
+        "color_code": "900",
+        "color_name": "Ecru",
+        "main_image_url_source": "Sitedeki orijinal URL",
+        "main_image_local_path": "02_gorseller/<marka>/<urun_kodu>/variant_900_main.jpg"
+      }
+    ],
+    "certifications": {
+      "fire_safety": [],
+      "sustainability": [],
+      "other": [],
+      "raw_text": "Sitede yazıldığı şekilde tam metin"
+    },
+    "commercial": {
+      "price_per_meter": null,
+      "price_currency": null,
+      "moq_meters": null,
+      "lead_time_days": null,
+      "country_of_origin": null,
+      "sample_policy": null,
+      "launch_year": null,
+      "production_model": {
+        "_description": "Üretim modeli. 'stock' = stoktan satılır, 'make_to_order' = sipariş üzerine üretilir (uzun lead time), 'mixed' = bazı varyantlar stok bazıları make-to-order, 'unknown' = belirsiz.",
+        "value": "stock | make_to_order | mixed | unknown",
+        "notes": "Sayfa beyanı veya bağlamdan çıkarılan; doğrulanmadıysa belirt"
+      }
+    },
+    "design_credit": {
+      "_description": "Ürünü kim tasarladı? In-house stüdyo veya dış işbirliği.",
+      "designer": null,
+      "type": "in-house | collaborator | unknown | null"
+    },
+    "description_original": {
+      "_description": "Üreticinin orijinal dilinde açıklaması. Dil işaretlenir. Çeviri YAPILMAZ — burası ham orijinal.",
+      "language": "en | it | de | fr | da | null",
+      "text": null,
+      "source_url": null,
+      "extracted_at": null
+    },
+    "description_tr": {
+      "_description": "Türkçe çeviri. Kullanıcı raporları + dashboard için. translation_method ile şeffaflık.",
+      "text": null,
+      "translation_method": "claude_inference | official_brand | manual | null",
+      "translated_at": null,
+      "is_official_translation": false
+    },
+    "style_note": "Üreticinin stil/karakter notu — orijinal dilden Türkçe özet kabul edilebilir, kaynak işaretle"
+  },
+  "ai_inferences": {
+    "_description": "AI tahminleri. Her tahmin için güven seviyesi, yöntem, model ve doğrulama durumu ZORUNLU. ASLA source_data'ya karıştırma. ASLA fiyat/MOQ/sertifikasyon/üretim ülkesi/composition/fr_treatment tahmin etme. Detay: _rehberler/ai_cikarim_metodolojisi.md",
+    "weight_gsm": {
+      "estimated_value": null,
+      "confidence": "high | medium | low | null",
+      "method": "Tahmin yöntemi açık açıklama",
+      "based_on": [],
+      "model": "claude-opus-4-7",
+      "created_at": null,
+      "user_verified": false,
+      "user_correction": null,
+      "user_correction_date": null,
+      "user_correction_source": null
+    },
+    "repeat_cm": {
+      "estimated_value": {
+        "vertical": null,
+        "horizontal": null
+      },
+      "confidence": null,
+      "method": "Görselde piksel ölçümü, bilinen genişlik referansıyla ölçeklenmiş",
+      "model": "claude-opus-4-7",
+      "created_at": null,
+      "user_verified": false,
+      "user_correction": null
+    },
+    "thread_density": {
+      "estimated_warp_per_cm": null,
+      "estimated_weft_per_cm": null,
+      "confidence": null,
+      "method": "Close-up görselden iplik sayımı",
+      "model": "claude-opus-4-7",
+      "created_at": null,
+      "user_verified": false
+    },
+    "light_transmission": {
+      "estimated_class": null,
+      "_options": [
+        "sheer",
+        "semi_sheer",
+        "semi_opaque",
+        "blackout"
+      ],
+      "confidence": null,
+      "method": "Görselde ışık geçirgenliği gözlemi — source_data.technical.transparency null ise çalışır, doluyse boş bırakılır",
+      "model": "claude-opus-4-7",
+      "created_at": null,
+      "user_verified": false
+    }
+  },
+  "image_analysis": {
+    "_description": "İndirilen görsellerden AI tarafından üretilen visual analiz. ai_inferences disiplinine uygun — sertifika/menşei türü veri ÜRETME, sadece görsel karakter sınıflandırması.",
+    "dominant_colors": {
+      "_description": "Görselin baskın 3 rengi, hex array",
+      "value": [
+        "#hexA",
+        "#hexB",
+        "#hexC"
+      ],
+      "_value_count": 3
+    },
+    "texture_classification": "smooth | textured | patterned | sheer_woven | dobby_dimensional",
+    "transparency_visual": "opaque | semi_sheer | sheer | nontransparent",
+    "transparency_visual_matches_source": "bool — source_data.technical.transparency ile karşılaştırma",
+    "color_palette_summary": "Türkçe özet — 1-2 cümle",
+    "style_tags": [],
+    "pattern_type": "düz | dokulu | desenli | jakar",
+    "pattern_density": "düşük | orta | yüksek",
+    "estimated_use_context": [],
+    "_provenance_inference": {
+      "_description": "Visual analiz için provenance — hangi görsele dayanılarak yapıldı, model+confidence",
+      "method": "claude_visual_analysis",
+      "model": "claude-opus-4-7",
+      "confidence": "high | medium | low",
+      "based_on": [
+        "images.main[0].local_path veya tam liste"
+      ],
+      "analyzed_at": "ISO 8601",
+      "notes": "Hangi varyant baz alındı, çözünürlük yeterli mi"
+    }
+  },
+  "images": {
+    "_description": "İndirilen görsellerin Katman 1/2/3 deneme kayıtları. Her görsel için tüm katman denemeleri loglanır (başarılı olan + olanlar). Detay: _rehberler/gorsel_indirme.md",
+    "main": [
+      {
+        "_item_shape": "string — örnekleyici (referans)",
+        "url": "<orijinal URL>",
+        "local_path": "02_gorseller/<marka>/<urun_slug>/<varyant_kodu>.jpg",
+        "variant_code": "<varyant kodu>",
+        "variant_name": "<varyant adı>",
+        "layer_used": "1 | 2 | 3 | null (indirilemedi)",
+        "layer_1_attempt": {
+          "success": "bool",
+          "error": "string veya null",
+          "method": "direct_http_fetch"
+        },
+        "layer_2_attempt": {
+          "success": "bool",
+          "error": "string veya null",
+          "used": "bool — Katman 1 başarısız ise true",
+          "method": "chrome_mcp_navigate_and_extract"
+        },
+        "layer_3_attempt": {
+          "success": "bool",
+          "error": "string veya null",
+          "used": "bool — Katman 1+2 başarısız ise true",
+          "method": "chrome_mcp_page_screenshot"
+        },
+        "downloaded_at": "ISO 8601",
+        "file_size_kb": "int",
+        "dimensions": {
+          "width_px": "int",
+          "height_px": "int"
+        },
+        "quality_check": "passed | low_resolution | watermarked | failed | no_image_downloaded"
+      }
+    ],
+    "variants": [],
+    "lifestyle": [],
+    "technical": [],
+    "_quality_notes": []
+  },
+  "mobidik_evaluation": {
+    "_description": "Bu blok HER ÜRÜN İÇİN ZORUNLU. AI tarafından doldurulur ama Mobidik için kritik karar verisidir.",
+    "staubli_feasibility": {
+      "score": 4,
+      "_scale": "1-5: 5=standart 16 çerçeve, 4=20-24 çerçeve, 3=karmaşık tahar, 2=sınırda, 1=yapılamaz",
+      "frame_count_estimate": "16-20",
+      "warp_compatibility": "uygun | kismi | uygun_degil",
+      "weft_compatibility": "uygun | kismi | uygun_degil",
+      "repeat_size_compatibility": "uygun | kismi | uygun_degil",
+      "reed_density_estimate": "Tahmini tarak sıklığı (dent/cm)",
+      "sizing_requirement": "Haşıl gereksinimi notu",
+      "comment": "2-3 cümle teknik gerekçe (Türkçe)"
+    },
+    "arge_value": {
+      "score": 0,
+      "_scale": "0-100",
+      "key_learnings": [],
+      "comment": "Bu üründen öğrenebileceğimiz teknik"
+    },
+    "market_gap": {
+      "score": 0,
+      "_scale": "0-100",
+      "comment": "Türkiye'de bu segmentte yerel üretim durumu",
+      "target_markets": []
+    },
+    "portfolio_fit": {
+      "score": null,
+      "_scale": "0-100",
+      "similar_existing_products": [],
+      "comment": "Mevcut benchmark setine değer katar mı"
+    },
+    "overall_score": 0,
+    "priority_level": "yuksek | orta | dusuk",
+    "strategic_note": "Genel ARGE yorumu (Türkçe)"
+  },
+  "data_quality": {
+    "_description": "Veri kalitesi şeffaflığı için.",
+    "missing_fields": [],
+    "ai_estimated_fields": [],
+    "user_verified_fields": [],
+    "completeness_percent": 0,
+    "last_verified": null,
+    "notes": []
+  }
+}

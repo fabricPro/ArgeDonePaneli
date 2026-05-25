@@ -1,0 +1,446 @@
+{
+  "_schema_version": "1.3",
+  "urun_id": "kvadrat_5544-alpaca-leno",
+  "brand": "Kvadrat",
+  "brand_slug": "kvadrat",
+  "collection": "Frequency",
+  "product_code": "5544",
+  "product_name": "Alpaca Leno",
+  "source_url": "https://www.kvadrat.dk/en/products/curtains/5544-alpaca-leno",
+  "scraped_at": "2026-05-14T17:42:13Z",
+  "last_updated": "2026-05-25T22:00:00Z",
+  "source_data": {
+    "_description": "Üretici sitesinden gelen veri (topla.py 2026-05-14 çekti). Documents/01_raporlar/kvadrat_parti01_2026-05-25.md kullanıcı doğrulamalı kayıt; ÇELİŞKİ vakası — bkz audit_history.",
+    "_provenance": {
+      "schema_version": "1.1",
+      "created_at": "2026-05-25T22:00:00Z",
+      "last_updated": "2026-05-25T22:00:00Z",
+      "sources_used": [
+        {
+          "url": "https://www.kvadrat.dk/en/products/curtains/5544-alpaca-leno",
+          "type": "html_product_page",
+          "accessed_at": "2026-05-14T17:42:13Z",
+          "fields_supported": ["product_code", "product_name", "composition (4-lif tam)", "width_cm", "weight_linear_meter_g", "weave_type", "performance.lightfastness", "variants[].color_code"]
+        },
+        {
+          "url": "01_raporlar/kvadrat_parti01_2026-05-25.md",
+          "type": "user_verified_report",
+          "accessed_at": "2026-05-25T22:00:00Z",
+          "fields_supported": ["collection (Frequency)", "country_of_origin (Italy)", "variants[].color_name (4 ad)", "shrinkage.warp_percent (~4)", "shrinkage.weft_percent (~3)", "production_model (make_to_order, lead 51 gün)", "rulo_uzunlugu (~60 m)"]
+        },
+        {
+          "url": "kapasite/staubli_uretim_kapasitesi.md",
+          "type": "user_verified_capacity_table",
+          "accessed_at": "2026-05-25T22:00:00Z",
+          "fields_supported": ["mobidik_evaluation.staubli_feasibility (leno TAM, anayasa kural #7 bağlayıcı)"]
+        }
+      ],
+      "field_metadata": {
+        "composition": {
+          "value": "58% wool 17% alpaca 14% lyocell 11% viscose",
+          "source": "html",
+          "source_url": "https://www.kvadrat.dk/en/products/curtains/5544-alpaca-leno",
+          "extracted_at": "2026-05-14T17:42:13Z",
+          "extraction_confidence": "exact",
+          "extraction_notes": "Sayfada 'Composition: 58% wool 17% alpaca 14% lyocell 11% viscose' — 4 lif. ÖNEMLİ: Documents raporu sadece 3 lif (Alpaca+Lyocell+Wool) yazmıştı; viscose unutulmuş. Bu HAM çıktı kayıt 4 lifi doğruluyor."
+        },
+        "width_cm": {
+          "value": 315,
+          "source": "html",
+          "source_url": "https://www.kvadrat.dk/en/products/curtains/5544-alpaca-leno",
+          "extracted_at": "2026-05-14T17:42:13Z",
+          "extraction_confidence": "exact",
+          "extraction_notes": "Sayfada 'Width: 315 cm (124\")' — Air Line ile aynı en"
+        },
+        "weight_linear_meter_g": {
+          "value": 330,
+          "source": "html",
+          "source_url": "https://www.kvadrat.dk/en/products/curtains/5544-alpaca-leno",
+          "extracted_at": "2026-05-14T17:42:13Z",
+          "extraction_confidence": "exact",
+          "extraction_notes": "330 g/lin.m at 315 cm = 104.76 g/m². Air Line'dan (178 g/m²) belirgin daha hafif — leno açık doku tipik karakteristiği."
+        },
+        "weight_gsm": {
+          "value": 105,
+          "source": "html_derived",
+          "source_url": "https://www.kvadrat.dk/en/products/curtains/5544-alpaca-leno",
+          "extracted_at": "2026-05-25T22:00:00Z",
+          "extraction_confidence": "interpreted",
+          "extraction_notes": "330 g/lin.m / 3.15 m = 104.76 g/m². Round to 105."
+        },
+        "weave_type_normalized": {
+          "value": "leno",
+          "source": "html",
+          "source_url": "https://www.kvadrat.dk/en/products/curtains/5544-alpaca-leno",
+          "extracted_at": "2026-05-14T17:42:13Z",
+          "extraction_confidence": "exact",
+          "extraction_notes": "Sayfada 'Construction: Leno weave'. Adaptör normalize: Leno→leno."
+        },
+        "country_of_origin": {
+          "value": "Italy",
+          "source": "user_verified_report",
+          "source_url": "01_raporlar/kvadrat_parti01_2026-05-25.md",
+          "extracted_at": "2026-05-25T22:00:00Z",
+          "extraction_confidence": "exact",
+          "extraction_notes": "Documents raporu: 'Ülke: İtalya (Kvadrat: Produced in: Italy)'. Air Line Türkiye-fason iken Alpaca Leno İtalyan artisanal — aynı koleksiyonda iki farklı üretim modeli."
+        },
+        "performance.lightfastness": {
+          "value": 8,
+          "source": "html",
+          "source_url": "https://www.kvadrat.dk/en/products/curtains/5544-alpaca-leno",
+          "extracted_at": "2026-05-14T17:42:13Z",
+          "extraction_confidence": "exact",
+          "extraction_notes": "Sayfada 'LIGHTFASTNESS: 8 — ISO 105-B02' (yıldız işaretsiz; Air Line ile aynı maksimum skor)."
+        },
+        "shrinkage": {
+          "value": "warp ~4%, weft ~3%",
+          "source": "user_verified_report",
+          "source_url": "01_raporlar/kvadrat_parti01_2026-05-25.md",
+          "extracted_at": "2026-05-25T22:00:00Z",
+          "extraction_confidence": "interpreted",
+          "extraction_notes": "Documents raporu '~%4 / ~%3' demiş; Kvadrat sayfasında shrinkage beyanı body_text_preview'da görünmüyor — büyük olasılıkla PDF technical spec'te. Kullanıcı doğrulamalı kayıttan alındı, kanıt zinciri kullanıcı raporu."
+        }
+      },
+      "fields_from_html": ["product_code", "product_name", "composition", "width_cm", "weight_linear_meter_g", "weave_type_normalized", "performance.lightfastness", "variants[].color_code"],
+      "fields_from_user_report": ["collection", "country_of_origin", "variants[].color_name", "technical.performance.shrinkage", "commercial.production_model", "commercial.lead_time_days"],
+      "fields_from_inference": ["weight_gsm"],
+      "constitutional_violations_check": "passed_at_2026-05-25T22:00:00Z",
+      "audit_history": [
+        {
+          "audit_id": "kvadrat_5544-alpaca-leno_v1.0_2026-05-25",
+          "audit_date": "2026-05-25",
+          "audit_doc": "docs/parti_log.md (kuruluyor)",
+          "version_before": "(yok — sıfırdan inşa)",
+          "version_after": "v1.0 — şema v1.3'e uyumlu, Documents iterasyonundan migrate edildi",
+          "notes": "ÇELİŞKİ VAKASI: Documents/01_raporlar/kvadrat_parti01_2026-05-25.md Mobidik Notu der 'Zorluk: ZOR ⛔ — Stäubli leno yapamaz (Z+R Niket'le aynı engel)' — bu YANLIŞTI. kapasite/staubli_uretim_kapasitesi.md (kullanıcı doğrulamalı): 'Leno (giz) | TAM | Aparat var + aktif üretim var'. Anayasa kural #7 (kapasite tablosu bağlayıcı) + kural #8 (denetlenmiş veri önceliği) uyarınca kapasite kazandı. staubli_feasibility 1/5 (Documents) → 4/5 (kapasite-uyumlu) olarak yeniden hesaplandı. KOMPOZİSYON ÇELİŞKİSİ: Documents raporu 'Alpaca + Lyocell + Wool' (3 lif) demişti; ham_cikti HTML 'wool 58% alpaca 17% lyocell 14% viscose 11%' (4 lif) — sayfa kanıtı kazandı, viscose %11 eklendi."
+        }
+      ]
+    },
+    "technical": {
+      "composition": [
+        {"fiber_generic": "Yün", "fiber_commercial": "Wool", "ratio_percent": 58, "fr_treatment": null},
+        {"fiber_generic": "Alpaka", "fiber_commercial": "Alpaca", "ratio_percent": 17, "fr_treatment": null},
+        {"fiber_generic": "Lyocell", "fiber_commercial": "Lyocell (TENCEL benzeri)", "ratio_percent": 14, "fr_treatment": null},
+        {"fiber_generic": "Viskon", "fiber_commercial": "Viscose", "ratio_percent": 11, "fr_treatment": null}
+      ],
+      "width_cm": 315,
+      "weight_gsm": 105,
+      "weight_linear_meter_g": 330,
+      "repeat_cm": {"vertical": 0, "horizontal": 0},
+      "weave_type_raw": "Leno weave",
+      "weave_type_normalized": "leno",
+      "yarn_type": "staple",
+      "transparency": {
+        "value": null,
+        "_note": "Sayfa beyan etmiyor. Documents raporu 'Yarı-şeffaf' ai_inferences.light_transmission adayı."
+      },
+      "usage_area": ["curtains"],
+      "performance": {
+        "lightfastness": 8,
+        "lightfastness_scale": "ISO 1-8 (ISO 105-B02)",
+        "abrasion_martindale": null,
+        "pilling": null,
+        "shrinkage": {
+          "warp_percent": 4,
+          "weft_percent": 3,
+          "_note": "Documents raporundan; kanıt: kullanıcı doğrulamalı kayıt. Leno + multi-staple yün karakteristiği yüksek çekme."
+        },
+        "washing_resistance": {
+          "machine_wash": false,
+          "hand_wash": true,
+          "professional_dry_clean": true,
+          "iron_max_temp_c": 150,
+          "_raw_text": "Hand wash cycle, Do not bleach, Do not tumble dry, Iron at medium temperature (max. 150°C), Professional dry cleaning"
+        }
+      },
+      "acoustic": {
+        "alpha_s_value": null,
+        "absorption_class": null,
+        "comment": "Akustik perde değil. Multi-staple leno açık doku akustik soğurma için aşırı şeffaf."
+      },
+      "turnable": true,
+      "pattern": "Solid",
+      "rulo_uzunlugu_m": 60,
+      "uretim_suresi_gun": 51
+    },
+    "variants": [
+      {
+        "color_code": "5544-0101",
+        "color_name": "Soft Wool",
+        "color_name_confidence": "user_inferred",
+        "color_name_notes": "İlk renk; Documents raporundaki placeholder 0001 'Soft Wool' → gerçek kod 0101 ile eşleştirildi (Air Line'da 0101=White Linen pattern'i takip ediyor, ilk pozisyon).",
+        "main_image_url_source": "https://kvadrat-imageresizer.azureedge.net/iri/6035F228-3086-4B52-AC65DCACA09BED15?width=2400&format=jpg&scale=both",
+        "main_image_local_path": "gorseller/kvadrat/5544-alpaca-leno/0101_main.jpg"
+      },
+      {
+        "color_code": "5544-0141",
+        "color_name": "Almond Bark",
+        "color_name_confidence": "user_inferred",
+        "main_image_url_source": "https://kvadrat-imageresizer.azureedge.net/iri/E6CB7053-F5C5-452B-9EDFFC1979A6D279?width=2400&format=jpg&scale=both",
+        "main_image_local_path": "gorseller/kvadrat/5544-alpaca-leno/0141_main.jpg"
+      },
+      {
+        "color_code": "5544-0221",
+        "color_name": "Redwood",
+        "color_name_confidence": "user_inferred",
+        "main_image_url_source": "https://kvadrat-imageresizer.azureedge.net/iri/6AC7911D-384F-40CB-A7D010BE668DD7DF?width=2400&format=jpg&scale=both",
+        "main_image_local_path": "gorseller/kvadrat/5544-alpaca-leno/0221_main.jpg"
+      },
+      {
+        "color_code": "5544-0631",
+        "color_name": "Cool Cedar",
+        "color_name_confidence": "user_inferred",
+        "main_image_url_source": "https://kvadrat-imageresizer.azureedge.net/iri/9D669A64-FAE5-4C59-AC8E178BED2EB527?width=2400&format=jpg&scale=both",
+        "main_image_local_path": "gorseller/kvadrat/5544-alpaca-leno/0631_main.jpg"
+      },
+      {
+        "color_code": "5544-0931",
+        "color_name": null,
+        "color_name_confidence": "unknown",
+        "color_name_notes": "5. renk — Kvadrat sayfa body_text_preview'da bu kodun adı görünmüyor (text kısaltıldı). Documents raporu 4 renk listelemişti (0001-0004 placeholder); HTML'de 5 kod var (0101/0141/0221/0631/0931). 5. renk adı bekleniyor — Kvadrat sayfası ya da PDF tam çekildiğinde bilinecek. 0941 serisi marka profilinde 'derin yeşiller' (Air Line 0941=Northern Pine) — büyük olasılıkla benzer bir orman tonu, ama kanıt yok.",
+        "main_image_url_source": "https://kvadrat-imageresizer.azureedge.net/iri/0F611FAB-2466-440E-A3FA9C505A3CB885?width=2400&format=jpg&scale=both",
+        "main_image_local_path": "gorseller/kvadrat/5544-alpaca-leno/0931_main.jpg"
+      }
+    ],
+    "certifications": {
+      "fire_safety": [],
+      "sustainability": ["Renewable resources claim (sayfa)", "Lightfastness ISO 105-B02 score 8"],
+      "other": ["Retail warranty 2 years"],
+      "raw_text": "Sayfada açık sertifika listesi yok. Mono material claim YOK (4 lifli). Yangın güvenliği sertifikası YOK."
+    },
+    "commercial": {
+      "price_per_meter": null,
+      "price_currency": null,
+      "moq_meters": null,
+      "lead_time_days": 51,
+      "country_of_origin": "Italy",
+      "country_of_origin_notes": "İtalyan artisanal üretim. Air Line'ın 14 gün lead time'ı vs Alpaca Leno'nun 51 günü — leno + multi-staple yün/alpaka karmaşıklığı + İtalyan butik tezgah kapasitesi.",
+      "sample_policy": "request_sample_recommended",
+      "launch_year": 2025,
+      "launch_year_source": "Frequency koleksiyonu 2025 (Air Line ile aynı parti)",
+      "production_model": {
+        "value": "make_to_order",
+        "notes": "51 gün lead time make-to-order işareti (Cobra-tipi). Air Line'ın stock modelinden farklı."
+      },
+      "retail_warranty_years": 2,
+      "retail_warranty_notes": "Kvadrat 10 yıl politikasından sapan alt segment."
+    },
+    "design_credit": {
+      "designer": null,
+      "type": "unknown",
+      "notes": "Sayfada specific designer beyan edilmemiş. Kvadrat'ın iç stüdyosu veya bir İtalyan dış tasarım ortağı muhtemel — kanıtsız."
+    },
+    "description_original": {
+      "language": "en",
+      "text": "Alpaca Leno is woven with gentle alpaca, lyocell and wool. Soft yet strong, it is pleasingly tactile and has an intricate, open structure characterised by lustrous depth. Consequently, it comes alive as it drapes in the light. Alpaca Leno's palette flows from natural wool notes to atmospheric greens, and reddish wood notes with a smoky touch. It comprises Soft Wool, Almond Bark, Redwood and Cool Cedar.",
+      "source_url": "https://www.kvadrat.dk/en/products/curtains/5544-alpaca-leno",
+      "extracted_at": "2026-05-14T17:42:13Z",
+      "_note": "Sayfa açıklaması viskon (%11) lifini atlamış — sadece 3 lif (alpaca, lyocell, wool) açıklamada, ama Composition: alanında 4 lif var. Sayfanın kendi içinde tutarsızlık. Description açıklamasında 4 renk adı (Soft Wool, Almond Bark, Redwood, Cool Cedar) listelenmiş ama 5 kod var — 5. renk açıklamada da yok."
+    },
+    "description_tr": {
+      "text": "Alpaca Leno, narin alpaka, lyocell ve yün ile dokunmuş — formülde %11 viskon da var. Yumuşak ama dayanıklı; karmaşık ve açık dokusu lustrous derinlikle karakterize. Işıkta dökümlendikçe canlanır. Palette doğal yün notlarından atmospheric yeşillere ve smoky red-wood tonlarına akar: Soft Wool, Almond Bark, Redwood, Cool Cedar — ve henüz isimlendirilmemiş bir 5. ton (5544-0931).",
+      "translation_method": "claude_inference",
+      "translated_at": "2026-05-25T22:00:00Z",
+      "is_official_translation": false
+    },
+    "style_note": "Frequency koleksiyonu 'organik + dünya tonu' ucu — Air Line'ın 'ışık + ritim' aksiyonuna karşılık. Alpaka + lyocell + yün + viskon dört-lifli staple iplik açık leno doku içinde — ışıkta canlanan parlak derinlik. Atmospheric greens + smoky red-wood + natural wool palet."
+  },
+  "ai_inferences": {
+    "_description": "AI tahminleri — sadece izinli alanlar.",
+    "weight_gsm": {
+      "estimated_value": 105,
+      "confidence": "high",
+      "method": "Linear meter weight / width — 330 g/lin.m / 3.15 m = 104.76 g/m². Matematiksel türetim, tahmin değil.",
+      "based_on": ["source_data.technical.weight_linear_meter_g (330)", "source_data.technical.width_cm (315)"],
+      "model": "claude-opus-4-7",
+      "created_at": "2026-05-25T22:00:00Z",
+      "user_verified": false
+    },
+    "light_transmission": {
+      "estimated_class": "sheer",
+      "confidence": "medium",
+      "method": "Documents 'Yarı-şeffaf' beyan + leno açık doku + 105 g/m² çok düşük gramaj + 'intricate, open structure' + 'comes alive as it drapes in the light'. Leno yapısı en şeffaf dokuma kategorilerinden.",
+      "based_on": ["source_data.description_original (intricate open structure)", "source_data.technical.weight_gsm (105)", "source_data.technical.weave_type_normalized (leno)"],
+      "model": "claude-opus-4-7",
+      "created_at": "2026-05-25T22:00:00Z",
+      "user_verified": false
+    }
+  },
+  "image_analysis": {
+    "_description": "Visual analiz pending — Faz 2 doğrulama sonrası eklenecek.",
+    "dominant_colors": {"value": null, "_note": "5 varyantın her biri için ayrı palet pending"},
+    "texture_classification": null,
+    "transparency_visual": null,
+    "transparency_visual_matches_source": null,
+    "color_palette_summary": "5 tonlu doğal palet: Soft Wool (krem yün), Almond Bark (badem kabuğu), Redwood (kırmızı odun), Cool Cedar (serin sedir yeşili) + 1 bilinmeyen (0931, muhtemel atmospheric green/orman). 'Natural wool notes → atmospheric greens → smoky red-wood' (Kvadrat).",
+    "style_tags": ["italian-artisanal", "leno", "multi-fiber-staple", "wool-alpaca", "natural-fiber-blend", "atmospheric-tones"],
+    "pattern_type": "düz",
+    "pattern_density": "düşük",
+    "estimated_use_context": ["konut", "otel", "butik mağaza", "restoran"],
+    "_provenance_inference": {
+      "method": "claude_visual_analysis",
+      "model": "claude-opus-4-7",
+      "confidence": "medium",
+      "based_on": ["description_original", "Documents raporu"],
+      "analyzed_at": "2026-05-25T22:00:00Z",
+      "notes": "Pending pixel-level analiz."
+    }
+  },
+  "images": {
+    "_description": "Görseller topla.py Katman 1 ile direct HTTP fetch edildi. Mevcut yol: topla/ham_cikti/gorseller/kvadrat/alpaca-leno/. Yeni konvansiyona migrasyon Faz 2 sonunda. Documents/02_gorseller/kvadrat/55440001_1.jpg ... _4.jpg eski PowerShell indirme — placeholder kodlu, terk edilecek (legacy).",
+    "main": [
+      {
+        "url": "https://kvadrat-imageresizer.azureedge.net/iri/B532490A-FCF0-4FAD-A06754F8FDE84853?cachebust=0&width=2400&format=jpg&scale=both&quality=85",
+        "local_path": "gorseller/kvadrat/5544-alpaca-leno/main_01.jpg",
+        "variant_code": null,
+        "variant_name": "Ana hero görsel",
+        "layer_used": 1,
+        "layer_1_attempt": {"success": true, "error": null, "method": "direct_http_fetch"},
+        "downloaded_at": "2026-05-14T17:42:13Z",
+        "file_size_kb": 764.5,
+        "dimensions": {"width_px": 2400, "height_px": 1600},
+        "quality_check": "passed"
+      }
+    ],
+    "variants": [
+      {
+        "url": "https://kvadrat-imageresizer.azureedge.net/iri/6035F228-3086-4B52-AC65DCACA09BED15?width=2400&format=jpg&scale=both",
+        "local_path": "gorseller/kvadrat/5544-alpaca-leno/0101_main.jpg",
+        "variant_code": "5544-0101",
+        "variant_name": "Soft Wool",
+        "layer_used": 1,
+        "layer_1_attempt": {"success": true, "error": null, "method": "direct_http_fetch"},
+        "downloaded_at": "2026-05-14T17:42:13Z",
+        "file_size_kb": 670.6,
+        "dimensions": {"width_px": 2400, "height_px": 2400},
+        "quality_check": "passed"
+      },
+      {
+        "url": "https://kvadrat-imageresizer.azureedge.net/iri/E6CB7053-F5C5-452B-9EDFFC1979A6D279?width=2400&format=jpg&scale=both",
+        "local_path": "gorseller/kvadrat/5544-alpaca-leno/0141_main.jpg",
+        "variant_code": "5544-0141",
+        "variant_name": "Almond Bark",
+        "layer_used": 1,
+        "layer_1_attempt": {"success": true, "error": null, "method": "direct_http_fetch"},
+        "downloaded_at": "2026-05-14T17:42:13Z",
+        "file_size_kb": 1063.9,
+        "dimensions": {"width_px": 2400, "height_px": 2400},
+        "quality_check": "passed"
+      },
+      {
+        "url": "https://kvadrat-imageresizer.azureedge.net/iri/6AC7911D-384F-40CB-A7D010BE668DD7DF?width=2400&format=jpg&scale=both",
+        "local_path": "gorseller/kvadrat/5544-alpaca-leno/0221_main.jpg",
+        "variant_code": "5544-0221",
+        "variant_name": "Redwood",
+        "layer_used": 1,
+        "layer_1_attempt": {"success": true, "error": null, "method": "direct_http_fetch"},
+        "downloaded_at": "2026-05-14T17:42:13Z",
+        "file_size_kb": 912.9,
+        "dimensions": {"width_px": 2400, "height_px": 2400},
+        "quality_check": "passed"
+      },
+      {
+        "url": "https://kvadrat-imageresizer.azureedge.net/iri/9D669A64-FAE5-4C59-AC8E178BED2EB527?width=2400&format=jpg&scale=both",
+        "local_path": "gorseller/kvadrat/5544-alpaca-leno/0631_main.jpg",
+        "variant_code": "5544-0631",
+        "variant_name": "Cool Cedar",
+        "layer_used": 1,
+        "layer_1_attempt": {"success": true, "error": null, "method": "direct_http_fetch"},
+        "downloaded_at": "2026-05-14T17:42:13Z",
+        "file_size_kb": 893.2,
+        "dimensions": {"width_px": 2400, "height_px": 2400},
+        "quality_check": "passed"
+      },
+      {
+        "url": "https://kvadrat-imageresizer.azureedge.net/iri/0F611FAB-2466-440E-A3FA9C505A3CB885?width=2400&format=jpg&scale=both",
+        "local_path": "gorseller/kvadrat/5544-alpaca-leno/0931_main.jpg",
+        "variant_code": "5544-0931",
+        "variant_name": null,
+        "layer_used": 1,
+        "layer_1_attempt": {"success": true, "error": null, "method": "direct_http_fetch"},
+        "downloaded_at": "2026-05-14T17:42:13Z",
+        "file_size_kb": 1027.4,
+        "dimensions": {"width_px": 2400, "height_px": 2400},
+        "quality_check": "passed",
+        "_note": "5. renk — variant_name bilinmiyor (data_quality.missing_fields)"
+      }
+    ],
+    "lifestyle": [
+      {
+        "url": "https://kvadrat-imageresizer.azureedge.net/iri/65D2ACD3-D6F8-4586-B23CC8A5BAFF52D3?cachebust=0&width=2400&format=jpg&scale=both&quality=85",
+        "local_path": "gorseller/kvadrat/5544-alpaca-leno/lifestyle_01.jpg",
+        "layer_used": 1,
+        "layer_1_attempt": {"success": true, "error": null, "method": "direct_http_fetch"},
+        "downloaded_at": "2026-05-14T17:42:13Z",
+        "file_size_kb": 527.1,
+        "dimensions": {"width_px": 2400, "height_px": 1350},
+        "quality_check": "passed",
+        "_note": "Lifestyle görsel Air Line ile aynı URL — Kvadrat aynı çekimi iki ürün için kullanıyor olabilir veya scraper aynı hero'yu yakalamış. Doğrulama gerek."
+      }
+    ],
+    "technical": [
+      {
+        "url": "https://kvadrat-imageresizer.azureedge.net/iri/6AC7911D-384F-40CB-A7D010BE668DD7DF?width=2400&format=jpg&scale=both&quality=85",
+        "local_path": "gorseller/kvadrat/5544-alpaca-leno/detail_02.jpg",
+        "layer_used": 1,
+        "layer_1_attempt": {"success": true, "error": null, "method": "direct_http_fetch"},
+        "downloaded_at": "2026-05-14T17:42:13Z",
+        "file_size_kb": 735.2,
+        "dimensions": {"width_px": 2400, "height_px": 2400},
+        "quality_check": "passed",
+        "_note": "Close-up — leno open structure görseli, iplik dokuma analizine uygun"
+      }
+    ],
+    "_quality_notes": ["12 görsel toplam, hepsi Layer 1 başarılı. Migration pending: ham_cikti → gorseller/kvadrat/5544-alpaca-leno/."]
+  },
+  "mobidik_evaluation": {
+    "_description": "ÇELİŞKİ TESTİ: Documents raporu 'Stäubli leno yapamaz' YANLIŞTI. Kapasite tablosu Leno TAM. Kapasite kazandı (anayasa #7).",
+    "staubli_feasibility": {
+      "score": 4,
+      "frame_count_estimate": "4-12",
+      "warp_compatibility": "uygun",
+      "weft_compatibility": "uygun",
+      "repeat_size_compatibility": "uygun",
+      "reed_density_estimate": null,
+      "sizing_requirement": "Leno için özel haşıl + multi-staple yün/alpaka warp tension hassasiyeti",
+      "comment": "Kapasite tablosu (kullanıcı doğrulamalı): 'Leno (giz) | TAM | Aparat var + aktif üretim var.' Width 315 cm ≤ 360 cm sınırı. Composition: yün TAM (kapasitede 'Yün dokuma deneyimi mevcut'), lyocell + viskon standart selüloz (TAM), alpaka ayrı kategoride listelenmemiş — kapasitede ne yün ne ayrı bir kategoride ama yün+alpaka eklentisi standart deneyim olmalı. Leno TAM olduğu için score 4-5/5 — alpaka tedariki niş olduğu için 4. STRATEGIC NOTE'a: alpaka MOQ Türkiye'de niş (Yünsa, Polaron yün+alpaka). Documents raporu '1/5 Stäubli leno yapamaz' anayasa kural #7 ihlali — kapasite tablosuna göre düzeltildi."
+    },
+    "arge_value": {
+      "score": 80,
+      "key_learnings": [
+        "Leno aparat + yün/alpaka karışım iplik portföyü (Niket + Alpaca Leno + Etamine Fil du Temps üçlüsü)",
+        "Multi-staple iplik tension yönetimi",
+        "Lyocell (TENCEL) tedarik kanalı kurma — Türkiye ithal",
+        "İtalyan artisanal üretim modeli benchmark (51 gün lead time, premium yün/alpaka segment)"
+      ],
+      "comment": "Yüksek değer. 3-ürün leno portföyü (Z+R Niket + Etamine Fil du Temps + Kvadrat Alpaca Leno) leno aparat yatırım ROI'sini 18-24 aydan 12-15 aya indiriyor (Documents raporu hesabı doğru). Alpaca Leno İtalyan premium = AB pazarında yün/alpaka leno talebinin teyidi."
+    },
+    "market_gap": {
+      "score": 70,
+      "comment": "Türkiye'de yün+alpaka leno yerel üretim yok. AB pazarı (özellikle DACH bölgesi, premium yün/alpaka segment) Kvadrat retail €100-150/m; Mobidik €30-45/m hedef = %30 fiyat. Niş ama premium.",
+      "target_markets": ["DACH (DE/AT/CH)", "Nordik", "İtalya (kafa kafaya rekabet, dikkatli)", "TR konut premium"]
+    },
+    "portfolio_fit": {
+      "score": 70,
+      "similar_existing_products": ["Z+R Niket (leno keten — Mobidik'in mevcut benchmark)", "Etamine Fil du Temps (outdoor leno)"],
+      "comment": "Leno portföyüne uyumlu, ama alpaka/yün multi-staple Mobidik portföyünden uzak. ARGE yatırımı (iplik tedariki + leno aparat) gerek."
+    },
+    "overall_score": 73,
+    "priority_level": "orta",
+    "strategic_note": "ÇELİŞKİ DÜZELTİLDİ: Documents raporu 'Stäubli leno yapamaz' demişti — anayasa kural #7'ye göre kapasite tablosu bağlayıcı, leno TAM. Yeniden değerlendirildi: Stäubli leno için engel YOK, yatırım gerekmiyor. Asıl darboğaz multi-staple yün/alpaka iplik tedariki (Yünsa/Polaron MOQ müzakeresi). Replication 3 yol: (1) Mock-leno dobby (8-16 çerçeve) %60 görsel yakınlık, mevcut altyapı ile pilot — eski Documents önerisi hâlâ geçerli alternatif yol; (2) Doğrudan leno (Mobidik kapasitesinde olduğundan ESAS yol), İtalyan premium iplik ithal + Türkiye dokuma; (3) Yünsa/Polaron Türk yün+alpaka MOQ — Loops dosyası ile birleştir. Pilot: 4 nötr ton × 50 m, 8-10 hafta. Acil aksiyon: (a) Yünsa yün+alpaka teklif al, (b) Lyocell TENCEL Türk ithalatçı (Adana/İzmir), (c) 5. renk adı (5544-0931) tespiti — Kvadrat sayfası tam çekimi veya PDF."
+  },
+  "data_quality": {
+    "missing_fields": ["variants[4].color_name (5544-0931)", "technical.performance.abrasion_martindale", "technical.performance.pilling", "commercial.price_per_meter", "commercial.moq_meters", "certifications.fire_safety[]", "design_credit.designer"],
+    "ai_estimated_fields": ["technical.weight_gsm (matematiksel türetim)", "ai_inferences.light_transmission"],
+    "user_verified_fields": ["commercial.country_of_origin (İtalya)", "commercial.lead_time_days (51 gün)", "technical.performance.shrinkage"],
+    "completeness_percent": 72,
+    "last_verified": "2026-05-25T22:00:00Z",
+    "notes": [
+      "5. renk (5544-0931) adı bilinmiyor — Kvadrat sayfa tam çekimi gerek (body_text_preview kısaltıldı).",
+      "Çelişki düzeltildi: Documents Mobidik notu 'leno yapamaz' (1/5) → kapasite tablosu 'leno TAM' (4/5) — anayasa #7 uygulandı.",
+      "Kompozisyon düzeltildi: Documents 3-lif → HTML 4-lif (viscose %11 eklendi).",
+      "Lifestyle görsel URL'i Air Line ile aynı — doğrulama gerek (scraper hatası mı, Kvadrat aynı hero'yu paylaşıyor mu?).",
+      "Documents/02_gorseller/kvadrat/55440001_1.jpg ... _4.jpg legacy placeholder dosyalar — Faz 3'te terk edilecek (yeni gerçek kodlu görseller ham_cikti'da)."
+    ]
+  }
+}

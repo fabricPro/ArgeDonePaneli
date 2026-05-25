@@ -1,0 +1,40 @@
+# Kvadrat — Parti 01
+# Tarih: 2026-05-25
+# Durum: 2/2 ürün işlendi (Air Line + Alpaca Leno)
+# Not: Bu parti yeni marka — Kvadrat (Danimarka, Ebeltoft). Frequency koleksiyonu.
+#      Air Line → Türkiye üretim (Mobidik için kritik benchmark)
+#      Alpaca Leno → İtalya üretim, leno weave (Stäubli yapamaz, Z+R Niket ile aynı engel)
+#
+# === İŞLENDİ (2) ===
+https://www.kvadrat.dk/en/products/curtains/5539-air-line                            # Kvadrat / Air Line / Frequency / %100 Linen / Türkiye üretim
+https://www.kvadrat.dk/en/products/curtains/5544-alpaca-leno                         # Kvadrat / Alpaca Leno / Frequency / Alpaka+Lyocell+Wool / İtalya / LENO
+#
+# === GÖRSEL İNDİRME (resmi Kvadrat archive endpoint) ===
+# Air Line 5539
+https://kvadrat-downloadcenter.azurewebsites.net/api/downloadcenter/downloadimages/5539?culture=en&lowResolution=false
+https://kvadrat-downloadcenter.azurewebsites.net/api/downloadcenter/downloadimages/5539?culture=en&lowResolution=true
+# Alpaca Leno 5544
+https://kvadrat-downloadcenter.azurewebsites.net/api/downloadcenter/downloadimages/5544?culture=en&lowResolution=false
+https://kvadrat-downloadcenter.azurewebsites.net/api/downloadcenter/downloadimages/5544?culture=en&lowResolution=true
+#
+# === TECHNICAL SPECS PDF (en + gramaj + abrasion için) ===
+# Air Line:
+https://kvadrat-downloadcenter.azurewebsites.net/api/downloadcenter/assets/1105103-6a0cdb80/T_5539_stechnical-specification.pdf
+# Alpaca Leno:
+https://kvadrat-downloadcenter.azurewebsites.net/api/downloadcenter/assets/1105274-6a0284b4/T_5544_stechnical-specification.pdf
+#
+# === LIGHTFASTNESS CERTIFICATE ===
+# Air Line:
+https://kvadrat-downloadcenter.azurewebsites.net/api/downloadcenter/assets/1104693-6a0cdbbc/L_5539-Slightfastness.pdf
+# Alpaca Leno:
+https://kvadrat-downloadcenter.azurewebsites.net/api/downloadcenter/assets/1099622-6a02870c/L_5544-Slightfastness.pdf
+#
+# === KUYRUKTA / SONRAKİ PARTİLERDE (Kvadrat curtain serisi) ===
+# Z+R Air Line ile direkt komşu olan Kvadrat ürünleri:
+# https://www.kvadrat.dk/en/products/curtains/5537-lama-lino       # Kvadrat / Lama Lino / Frequency / linen
+# https://www.kvadrat.dk/en/products/curtains/6845-heavy-linen     # Kvadrat / Heavy Linen / %100 keten heavy
+# https://www.kvadrat.dk/en/products/curtains/5801-air-4           # Kvadrat / Air 4 / Trevira CS (different fiber base)
+# https://www.kvadrat.dk/en/products/curtains/6990-aerio           # Kvadrat / Aerio / sheer
+# https://www.kvadrat.dk/en/products/curtains/7091-highlight       # Kvadrat / Highlight
+# https://www.kvadrat.dk/en/products/curtains/7095-artic           # Kvadrat / Artic
+# https://www.kvadrat.dk/en/products/curtains/6739-airflow         # Kvadrat / Airflow

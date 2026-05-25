@@ -1,0 +1,534 @@
+{
+  "_schema_version": "1.1",
+  "_schema_description": "Marka profil şeması v1.1. Kvadrat marka profili denetimi (2026-05-13) sonrası revize edildi. Yeni: 7 stratejik alan, istatistik nested-obje yapısı, resmi _provenance bloğu. CLAUDE.md altın kural #1 gereği şema değişiklikleri kullanıcı onayıyla yapılır — bu sürüm 2026-05-13 onayıyla aktif.",
+  "_schema_changelog": [
+    {
+      "version": "1.0",
+      "date": "2026-05-12",
+      "note": "İlk sürüm"
+    },
+    {
+      "version": "1.1",
+      "date": "2026-05-13",
+      "note": "Kalibrasyon test #1 sonrası: mill_ownership, designer_roster, retail_warranty_years, iso_certifications, reference_projects (eski adı monumental_projects), acquisitions_and_partnerships, _provenance resmi blok, insufficient_sample reliability_label, istatistik alanları nested obje (value+sample_status+sample_size+threshold_required)"
+    }
+  ],
+  "brand": "Marka Adı",
+  "brand_slug": "marka-slug",
+  "country": "Almanya",
+  "region": "alman | nordik | italyan | alpin | fransiz | ingiliz | turk",
+  "headquarters_city": null,
+  "founded_year": null,
+  "website": "https://...",
+  "tracked_since": "ISO date",
+  "last_updated": "ISO 8601 timestamp",
+  "product_count_tracked": 0,
+  "product_count_estimated_total": null,
+  "coverage_percent": null,
+  "_provenance": {
+    "_description": "Marka profilindeki her statik kimlik alanı için kanıt kaydı. Şema 1.1'de resmileşti — alan-alan provenance + sources_used + audit_history.",
+    "schema_version": "1.1",
+    "created_at": "ISO 8601",
+    "last_updated": "ISO 8601",
+    "sources_used": [
+      {
+        "url": "https://example.com/about",
+        "type": "official_about | wikipedia | linkedin | press_release | iso_database | annual_report | dezeen | wallpaper | other",
+        "accessed_at": "ISO 8601",
+        "fields_supported": [
+          "founded_year",
+          "headquarters_city"
+        ]
+      }
+    ],
+    "field_metadata": {
+      "_description": "Alan-alan provenance objeleri. Air Line ürün JSON'undaki yapıyla uyumlu.",
+      "founded_year": {
+        "value": null,
+        "sources": [],
+        "verified_at": null,
+        "confidence": "exact | single_source | multi_source | interpreted"
+      }
+    },
+    "fields_from_pdf": [],
+    "fields_from_html": [],
+    "fields_from_inference": [],
+    "constitutional_violations_check": "passed_at_<ISO timestamp> | pending | failed",
+    "audit_history": [
+      {
+        "audit_id": "marka_kvadrat_2026-05-13",
+        "audit_date": "2026-05-13",
+        "audit_doc": "99_kalite_kontrol/referans_denetimi_marka_kvadrat.md",
+        "version_before": "v0_denetlenmedi",
+        "version_after": "v1.1",
+        "notes": "İlk denetim"
+      }
+    ]
+  },
+  "width_distribution": {
+    "min_cm": {
+      "value": null,
+      "sample_status": "insufficient_n_0",
+      "_sample_status_options": [
+        "insufficient_n_0",
+        "insufficient_n_1",
+        "insufficient_n_2",
+        "sufficient",
+        "stable"
+      ],
+      "sample_size": 0,
+      "threshold_required": 3
+    },
+    "max_cm": {
+      "value": null,
+      "sample_status": "insufficient_n_0",
+      "_sample_status_options": [
+        "insufficient_n_0",
+        "insufficient_n_1",
+        "insufficient_n_2",
+        "sufficient",
+        "stable"
+      ],
+      "sample_size": 0,
+      "threshold_required": 3
+    },
+    "most_common_cm": {
+      "value": [],
+      "sample_status": "insufficient_n_0",
+      "sample_size": 0,
+      "threshold_required": 3
+    },
+    "histogram": {
+      "value": {},
+      "sample_status": "insufficient_n_0",
+      "sample_size": 0,
+      "threshold_required": 3
+    },
+    "comment": "Genişlik eğilimi yorumu — n>=threshold olduğunda dolar"
+  },
+  "color_profile": {
+    "total_variant_count": {
+      "value": null,
+      "sample_status": "insufficient_n_0",
+      "_sample_status_options": [
+        "insufficient_n_0",
+        "insufficient_n_1",
+        "insufficient_n_2",
+        "sufficient",
+        "stable"
+      ],
+      "sample_size": 0,
+      "threshold_required": 3
+    },
+    "average_per_product": {
+      "value": null,
+      "sample_status": "insufficient_n_0",
+      "_sample_status_options": [
+        "insufficient_n_0",
+        "insufficient_n_1",
+        "insufficient_n_2",
+        "sufficient",
+        "stable"
+      ],
+      "sample_size": 0,
+      "threshold_required": 3
+    },
+    "dominant_palette_tr": {
+      "value": [],
+      "sample_status": "insufficient_n_0",
+      "sample_size": 0,
+      "threshold_required": 3
+    },
+    "color_approach": "nötr/monokromatik | doygun/canlı | toprak/doğal | klasik/zengin | null",
+    "comment": "Renk yaklaşımı yorumu"
+  },
+  "composition_distribution": {
+    "synthetic_ratio_percent": {
+      "value": null,
+      "sample_status": "insufficient_n_0",
+      "_sample_status_options": [
+        "insufficient_n_0",
+        "insufficient_n_1",
+        "insufficient_n_2",
+        "sufficient",
+        "stable"
+      ],
+      "sample_size": 0,
+      "threshold_required": 3
+    },
+    "natural_ratio_percent": {
+      "value": null,
+      "sample_status": "insufficient_n_0",
+      "_sample_status_options": [
+        "insufficient_n_0",
+        "insufficient_n_1",
+        "insufficient_n_2",
+        "sufficient",
+        "stable"
+      ],
+      "sample_size": 0,
+      "threshold_required": 3
+    },
+    "blend_ratio_percent": {
+      "value": null,
+      "sample_status": "insufficient_n_0",
+      "_sample_status_options": [
+        "insufficient_n_0",
+        "insufficient_n_1",
+        "insufficient_n_2",
+        "sufficient",
+        "stable"
+      ],
+      "sample_size": 0,
+      "threshold_required": 3
+    },
+    "trevira_cs_usage_percent": {
+      "value": null,
+      "sample_status": "insufficient_n_0",
+      "_sample_status_options": [
+        "insufficient_n_0",
+        "insufficient_n_1",
+        "insufficient_n_2",
+        "sufficient",
+        "stable"
+      ],
+      "sample_size": 0,
+      "threshold_required": 3
+    },
+    "most_common_fibers": {
+      "value": [],
+      "sample_status": "insufficient_n_0",
+      "sample_size": 0,
+      "threshold_required": 3,
+      "_value_item_shape": {
+        "fiber": "string",
+        "usage_percent": "number",
+        "product_count": "int"
+      }
+    },
+    "comment": "Kompozisyon eğilimi yorumu"
+  },
+  "weave_distribution": {
+    "plain": {
+      "value": null,
+      "sample_status": "insufficient_n_0",
+      "_sample_status_options": [
+        "insufficient_n_0",
+        "insufficient_n_1",
+        "insufficient_n_2",
+        "sufficient",
+        "stable"
+      ],
+      "sample_size": 0,
+      "threshold_required": 3
+    },
+    "dobby": {
+      "value": null,
+      "sample_status": "insufficient_n_0",
+      "_sample_status_options": [
+        "insufficient_n_0",
+        "insufficient_n_1",
+        "insufficient_n_2",
+        "sufficient",
+        "stable"
+      ],
+      "sample_size": 0,
+      "threshold_required": 3
+    },
+    "jacquard": {
+      "value": null,
+      "sample_status": "insufficient_n_0",
+      "_sample_status_options": [
+        "insufficient_n_0",
+        "insufficient_n_1",
+        "insufficient_n_2",
+        "sufficient",
+        "stable"
+      ],
+      "sample_size": 0,
+      "threshold_required": 3
+    },
+    "sheer": {
+      "value": null,
+      "sample_status": "insufficient_n_0",
+      "_sample_status_options": [
+        "insufficient_n_0",
+        "insufficient_n_1",
+        "insufficient_n_2",
+        "sufficient",
+        "stable"
+      ],
+      "sample_size": 0,
+      "threshold_required": 3
+    },
+    "leno": {
+      "value": null,
+      "sample_status": "insufficient_n_0",
+      "_sample_status_options": [
+        "insufficient_n_0",
+        "insufficient_n_1",
+        "insufficient_n_2",
+        "sufficient",
+        "stable"
+      ],
+      "sample_size": 0,
+      "threshold_required": 3
+    },
+    "unknown": {
+      "value": null,
+      "sample_status": "insufficient_n_0",
+      "_sample_status_options": [
+        "insufficient_n_0",
+        "insufficient_n_1",
+        "insufficient_n_2",
+        "sufficient",
+        "stable"
+      ],
+      "sample_size": 0,
+      "threshold_required": 3
+    },
+    "comment": "Dokuma yapısı eğilimi"
+  },
+  "product_groups": {
+    "sheer_voile": {
+      "value": null,
+      "sample_status": "insufficient_n_0",
+      "_sample_status_options": [
+        "insufficient_n_0",
+        "insufficient_n_1",
+        "insufficient_n_2",
+        "sufficient",
+        "stable"
+      ],
+      "sample_size": 0,
+      "threshold_required": 3
+    },
+    "dimout": {
+      "value": null,
+      "sample_status": "insufficient_n_0",
+      "_sample_status_options": [
+        "insufficient_n_0",
+        "insufficient_n_1",
+        "insufficient_n_2",
+        "sufficient",
+        "stable"
+      ],
+      "sample_size": 0,
+      "threshold_required": 3
+    },
+    "blackout": {
+      "value": null,
+      "sample_status": "insufficient_n_0",
+      "_sample_status_options": [
+        "insufficient_n_0",
+        "insufficient_n_1",
+        "insufficient_n_2",
+        "sufficient",
+        "stable"
+      ],
+      "sample_size": 0,
+      "threshold_required": 3
+    },
+    "drapery": {
+      "value": null,
+      "sample_status": "insufficient_n_0",
+      "_sample_status_options": [
+        "insufficient_n_0",
+        "insufficient_n_1",
+        "insufficient_n_2",
+        "sufficient",
+        "stable"
+      ],
+      "sample_size": 0,
+      "threshold_required": 3
+    },
+    "acoustic": {
+      "value": null,
+      "sample_status": "insufficient_n_0",
+      "_sample_status_options": [
+        "insufficient_n_0",
+        "insufficient_n_1",
+        "insufficient_n_2",
+        "sufficient",
+        "stable"
+      ],
+      "sample_size": 0,
+      "threshold_required": 3
+    },
+    "decorative_jacquard": {
+      "value": null,
+      "sample_status": "insufficient_n_0",
+      "_sample_status_options": [
+        "insufficient_n_0",
+        "insufficient_n_1",
+        "insufficient_n_2",
+        "sufficient",
+        "stable"
+      ],
+      "sample_size": 0,
+      "threshold_required": 3
+    },
+    "other": {
+      "value": null,
+      "sample_status": "insufficient_n_0",
+      "_sample_status_options": [
+        "insufficient_n_0",
+        "insufficient_n_1",
+        "insufficient_n_2",
+        "sufficient",
+        "stable"
+      ],
+      "sample_size": 0,
+      "threshold_required": 3
+    }
+  },
+  "certification_profile": {
+    "fire_safety_certified_percent": {
+      "value": null,
+      "sample_status": "insufficient_n_0",
+      "_sample_status_options": [
+        "insufficient_n_0",
+        "insufficient_n_1",
+        "insufficient_n_2",
+        "sufficient",
+        "stable"
+      ],
+      "sample_size": 0,
+      "threshold_required": 3
+    },
+    "common_fire_certs": {
+      "value": [],
+      "sample_status": "insufficient_n_0",
+      "sample_size": 0,
+      "threshold_required": 3,
+      "_note": "Sadece tracked ürünlerin SOURCE verisinden ampirik. ASLA marka geneli varsayım veya tahmin yapma."
+    },
+    "sustainability_certs": {
+      "value": [],
+      "sample_status": "insufficient_n_0",
+      "sample_size": 0,
+      "threshold_required": 3
+    },
+    "always_present_certs": {
+      "value": [],
+      "sample_status": "insufficient_n_0",
+      "sample_size": 0,
+      "threshold_required": 3,
+      "_note": "Bir sertifika 'her üründe var' olarak işaretlenmesi için n>=5 ve sample'da %100 oran şart."
+    },
+    "comment": "Sertifikasyon yoğunluğu — ampirik, marka geneli varsayım yasak"
+  },
+  "price_segment": "ekonomik | orta | premium | premium_ust | luxury",
+  "price_segment_confidence": "high | medium | low",
+  "price_data_points": 0,
+  "design_dna": {
+    "style_tags": [],
+    "texture_approach": null,
+    "pattern_density": "düşük | orta | yüksek",
+    "color_saturation": "düşük | orta | yüksek",
+    "target_project_types": [],
+    "summary": "1-2 cümle marka karakter özeti"
+  },
+  "performance_profile": {
+    "acoustic_focus": false,
+    "fr_focus": false,
+    "sustainability_focus": false,
+    "comment": "Teknik öncelik analizi"
+  },
+  "mill_ownership": {
+    "_description": "Üretim modeli — kendi tezgah mı, fason ortak mı?",
+    "owned_countries": [],
+    "partner_countries": [],
+    "ownership_model": "fully_vertical | vertically_integrated_partial | fully_outsourced | unknown",
+    "source_url": null,
+    "verified_at": null
+  },
+  "designer_roster": {
+    "_description": "Marka ile çalışmış/çalışan tasarımcılar. Her item: name, type, since_year, notable_collections, source_url.",
+    "_item_shape": {
+      "name": "string",
+      "type": "in-house | collaborator | founding_designer | historical",
+      "since_year": "int | null",
+      "notable_collections": "array of string",
+      "source_url": "string"
+    },
+    "value": []
+  },
+  "retail_warranty_years": {
+    "_description": "Varsayılan perakende garantisi (yıl). Bazı ürünlerde farklı olabilir — ürün düzeyinde override edilir.",
+    "value": null,
+    "notes": null,
+    "source_url": null
+  },
+  "iso_certifications": {
+    "_description": "Kurumsal ISO sertifikaları (ürün değil, şirket düzeyinde). AB ihale dosyaları için kritik kanıt.",
+    "_item_shape": {
+      "code": "string (ISO 9001, ISO 14001, vb.)",
+      "year_certified": "int",
+      "source_url": "string"
+    },
+    "value": []
+  },
+  "reference_projects": {
+    "_description": "Marka tekstillerinin kullanıldığı anıtsal/referans projeler. Eski adı: monumental_projects (v1.0 önerisinde) → reference_projects (kapsayıcılık için).",
+    "_item_shape": {
+      "project": "string",
+      "location": "string",
+      "year": "int | null",
+      "source_url": "string"
+    },
+    "value": []
+  },
+  "acquisitions_and_partnerships": {
+    "_description": "M&A geçmişi ve stratejik ortaklıklar.",
+    "_item_shape": {
+      "entity": "string",
+      "percentage": "number | null",
+      "year": "int | null",
+      "purpose": "string",
+      "source_url": "string"
+    },
+    "value": []
+  },
+  "data_integrity": {
+    "verified_data_points": 0,
+    "ai_estimated_data_points": 0,
+    "verification_ratio": 0.0,
+    "reliability_label": "insufficient_sample | mostly_estimated | mixed | high_verified",
+    "_reliability_label_rules": {
+      "insufficient_sample": "n<3 tracked ürün — dağılım istatistikleri hesaplanmadı",
+      "mostly_estimated": "n>=3 ama doğrulama <%30",
+      "mixed": "n>=5, doğrulama %30-70",
+      "high_verified": "n>=10, doğrulama >%70"
+    },
+    "comment": "Bu profilin ne kadarı doğrulanmış kaynak verisine dayanıyor"
+  },
+  "mobidik_strategic_assessment": {
+    "staubli_general_feasibility": "yüksek | orta | düşük",
+    "average_feasibility_score": {
+      "value": null,
+      "sample_status": "insufficient_n_0",
+      "_sample_status_options": [
+        "insufficient_n_0",
+        "insufficient_n_1",
+        "insufficient_n_2",
+        "sufficient",
+        "stable"
+      ],
+      "sample_size": 0,
+      "threshold_required": 3
+    },
+    "arge_priority_areas": [],
+    "competitive_position": "Bu markaya karşı Mobidik'in konumu",
+    "market_opportunity": "Türkiye/ihracat pazarı için fırsat değerlendirmesi",
+    "benchmark_value": "Bu marka portföyümüz için ne kadar değerli benchmark",
+    "watch_priority": "yüksek | orta | düşük"
+  },
+  "trend_indicators": {
+    "_description": "Bu marka için zaman içindeki değişimler. Trend iddiası için en az iki farklı zamandan veri noktası şart.",
+    "recent_collection_additions": [],
+    "discontinued_products": [],
+    "shift_signals": []
+  },
+  "notes": []
+}

@@ -1,0 +1,1056 @@
+{
+  "_schema_version": "1.1",
+  "_built_with_methodology": "_rehberler/marka_profili_insa_metodolojisi.md v1.0",
+  "brand": "Kvadrat",
+  "brand_slug": "kvadrat",
+  "country": "Danimarka",
+  "region": "nordik",
+  "headquarters_city": "Ebeltoft",
+  "founded_year": 1968,
+  "website": "https://www.kvadrat.dk",
+  "tracked_since": "2026-05-12",
+  "last_updated": "2026-05-25T22:00:00Z",
+  "product_count_tracked": 2,
+  "product_count_estimated_total": null,
+  "coverage_percent": null,
+  "_provenance": {
+    "_description": "Marka profili v1.0 — Kvadrat. Cobra paterniyle aynı resmi provenance yapısı, marka profili için adapte edildi. Üç ana kaynak: resmi about sayfası, Wikipedia, Air Line ürün kaydı (n=1 gözlem).",
+    "schema_version": "1.1",
+    "created_at": "2026-05-13T15:20:00Z",
+    "last_updated": "2026-05-25T22:00:00Z",
+    "sources_used": [
+      {
+        "url": "https://www.kvadrat.dk/en/about/our-company",
+        "type": "official_about_page",
+        "accessed_at": "2026-05-13T14:20:00Z",
+        "fields_supported": [
+          "country",
+          "region",
+          "founded_year",
+          "headquarters_city",
+          "mill_ownership",
+          "designer_roster (primary list)",
+          "iso_certifications",
+          "retail_warranty_years",
+          "performance_profile.sustainability_focus",
+          "design_dna.summary"
+        ]
+      },
+      {
+        "url": "https://en.wikipedia.org/wiki/Kvadrat_(company)",
+        "type": "wikipedia",
+        "accessed_at": "2026-05-13T14:20:00Z",
+        "fields_supported": [
+          "founded_year (çift teyit)",
+          "headquarters_city (çift teyit)",
+          "founders",
+          "ceo",
+          "designer_roster (ek isimler)",
+          "reference_projects",
+          "acquisitions_and_partnerships",
+          "brand_meaning"
+        ]
+      },
+      {
+        "url": "https://www.linkedin.com/company/kvadrat (search snippet, 2026-05-13)",
+        "type": "linkedin",
+        "accessed_at": "2026-05-13T14:20:00Z",
+        "fields_supported": [
+          "employee_count_range",
+          "headquarters_city (çift teyit)"
+        ]
+      },
+      {
+        "url": "01_veri/urunler_per_marka/kvadrat_5539-air-line.json",
+        "type": "internal_product_record",
+        "accessed_at": "2026-05-13T15:20:00Z",
+        "fields_supported": [
+          "product_count_tracked",
+          "*_distribution.observed_at_n1 (tüm istatistikler)",
+          "mobidik_strategic_assessment.average_feasibility_score.observed_at_n1"
+        ]
+      }
+    ],
+    "field_metadata": {
+      "founded_year": {
+        "value": 1968,
+        "sources": [
+          "https://www.kvadrat.dk/en/about/our-company",
+          "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+        ],
+        "verified_at": "2026-05-13",
+        "confidence": "multi_source"
+      },
+      "headquarters_city": {
+        "value": "Ebeltoft",
+        "sources": [
+          "https://en.wikipedia.org/wiki/Kvadrat_(company)",
+          "https://www.linkedin.com/company/kvadrat (search snippet, 2026-05-13)"
+        ],
+        "verified_at": "2026-05-13",
+        "confidence": "multi_source"
+      },
+      "founders": {
+        "value": [
+          "Poul Byriel",
+          "Erling Rasmussen"
+        ],
+        "sources": [
+          "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+        ],
+        "verified_at": "2026-05-13",
+        "confidence": "single_source"
+      },
+      "ceo_current": {
+        "value": "Anders Byriel",
+        "sources": [
+          "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+        ],
+        "verified_at": "2026-05-13",
+        "confidence": "single_source",
+        "notes": "Wikipedia infobox + 'The direction passed to the next generation in the 1990s, when Poul Byriel's son Anders Byriel took over as the CEO'. Anders Byriel hâlâ CEO mu? Resmi kvadrat.com sayfasında dolaylı teyit ('Anders Byriel' founder/CEO dezeen.com 2021 article'da geçiyor) ama güncel resmi kaynaktan birinci kanal teyit yapılmadı."
+      },
+      "mill_ownership": {
+        "value": {
+          "owned_countries": [
+            "England",
+            "Norway",
+            "Netherlands"
+          ],
+          "ownership_model": "vertically_integrated_partial",
+          "raw_text": "We own weaving mills in England, Norway and the Netherlands"
+        },
+        "sources": [
+          "https://www.kvadrat.dk/en/about/our-company"
+        ],
+        "verified_at": "2026-05-13",
+        "confidence": "exact"
+      },
+      "retail_warranty_years": {
+        "value": 10,
+        "sources": [
+          "https://www.kvadrat.dk/en/about/our-company"
+        ],
+        "verified_at": "2026-05-13",
+        "confidence": "exact",
+        "notes": "'most of our textiles come with a 10-year warranty' — bazı ürünlerde farklı (örn. Air Line: 2 yıl)"
+      },
+      "iso_14001": {
+        "value": {
+          "code": "ISO 14001",
+          "year_certified": 1997
+        },
+        "sources": [
+          "https://www.kvadrat.dk/en/about/our-company"
+        ],
+        "verified_at": "2026-05-13",
+        "confidence": "exact",
+        "raw_text": "In 1997 Kvadrat became ISO 14001 certified"
+      },
+      "lca_framework": {
+        "value": "Life Cycle Assessment (LCA) + Environmental Product Declaration EN15804 (EPD), following ISO 14040",
+        "sources": [
+          "https://www.kvadrat.dk/en/about/our-company"
+        ],
+        "verified_at": "2026-05-13",
+        "confidence": "exact"
+      },
+      "designer_roster_official": {
+        "value": [
+          "Patricia Urquiola",
+          "Ronan and Erwan Bouroullec",
+          "Margrethe Odgaard",
+          "Alfredo Häberli",
+          "Doshi Levien",
+          "Giulio Ridolfo",
+          "Peter Saville",
+          "Pipilotti Rist",
+          "Thomas Demand",
+          "Olafur Eliasson"
+        ],
+        "sources": [
+          "https://www.kvadrat.dk/en/about/our-company"
+        ],
+        "verified_at": "2026-05-13",
+        "confidence": "exact"
+      },
+      "designer_roster_wikipedia_extra": {
+        "value": [
+          "Raf Simons",
+          "Akira Minagawa",
+          "Hella Jongerius",
+          "Tord Boontje",
+          "Miriam Bäckström",
+          "Werner Aisslinger",
+          "Nanna Ditzel (founding-era)",
+          "Finn Sködt (founding-era)",
+          "Nina Koppel (founding-era)",
+          "Gunnar Aagaard Andersen (founding-era)",
+          "Ross Littell (1980s)"
+        ],
+        "sources": [
+          "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+        ],
+        "verified_at": "2026-05-13",
+        "confidence": "exact"
+      },
+      "reference_projects": {
+        "value": [
+          {
+            "project": "30 St Mary Axe (Gherkin)",
+            "location": "London, UK"
+          },
+          {
+            "project": "Museum of Modern Art",
+            "location": "New York, USA"
+          },
+          {
+            "project": "Walt Disney Concert Hall",
+            "location": "Los Angeles, USA"
+          },
+          {
+            "project": "Reichstag Building",
+            "location": "Berlin, Germany"
+          },
+          {
+            "project": "Guggenheim Museum Bilbao",
+            "location": "Bilbao, Spain"
+          },
+          {
+            "project": "Copenhagen Opera House",
+            "location": "Copenhagen, Denmark"
+          },
+          {
+            "project": "Foster & Partners studio",
+            "location": "London, UK"
+          },
+          {
+            "project": "Yves Saint Laurent flagship",
+            "location": "Paris, France"
+          },
+          {
+            "project": "Oslo Opera House",
+            "location": "Oslo, Norway"
+          }
+        ],
+        "sources": [
+          "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+        ],
+        "verified_at": "2026-05-13",
+        "confidence": "exact"
+      },
+      "acquisitions": {
+        "value": [
+          {
+            "entity": "Wooltex (UK)",
+            "percentage": 49,
+            "year": 2011,
+            "purpose": "supply chain expansion"
+          },
+          {
+            "entity": "Really (Denmark)",
+            "percentage": 52,
+            "year": 2017,
+            "purpose": "sustainable upcycled materials"
+          }
+        ],
+        "sources": [
+          "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+        ],
+        "verified_at": "2026-05-13",
+        "confidence": "exact"
+      },
+      "employee_count": {
+        "value": 691,
+        "range": "501-1000",
+        "sources": [
+          "https://www.linkedin.com/company/kvadrat (search snippet, 2026-05-13)"
+        ],
+        "verified_at": "2026-05-13",
+        "confidence": "single_source"
+      },
+      "showrooms": {
+        "value": [
+          {
+            "city": "Copenhagen",
+            "country": "Denmark",
+            "type": "flagship"
+          },
+          {
+            "city": "Stockholm",
+            "country": "Sweden",
+            "type": "flagship"
+          },
+          {
+            "city": "New York",
+            "country": "USA"
+          },
+          {
+            "city": "Los Angeles",
+            "country": "USA"
+          },
+          {
+            "city": "Paris",
+            "country": "France"
+          },
+          {
+            "city": "London",
+            "country": "UK"
+          },
+          {
+            "city": "Milan",
+            "country": "Italy"
+          }
+        ],
+        "sources": [
+          "https://www.kvadrat.dk/en/new-york-showroom",
+          "https://www.kvadrat.dk/en/la-showroom",
+          "https://www.kvadrat.dk/en/about/news/kvadrat-at-home---paris",
+          "https://www.kvadrat.dk/en/about/news/kvadrat-opens-first-residential-showroom-in-london"
+        ],
+        "verified_at": "2026-05-13",
+        "confidence": "multi_source"
+      },
+      "brand_meaning": {
+        "value": "Kvadrat = 'the square' in Danish",
+        "sources": [
+          "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+        ],
+        "verified_at": "2026-05-13",
+        "confidence": "single_source"
+      }
+    },
+    "fields_from_html": [
+      "country",
+      "region",
+      "founded_year",
+      "headquarters_city",
+      "mill_ownership",
+      "designer_roster",
+      "iso_certifications",
+      "retail_warranty_years",
+      "lca_framework"
+    ],
+    "fields_from_wikipedia": [
+      "founders",
+      "ceo_current",
+      "reference_projects",
+      "acquisitions_and_partnerships",
+      "brand_meaning",
+      "designer_roster (ek isimler)"
+    ],
+    "fields_from_internal_product_record": [
+      "product_count_tracked",
+      "tüm *_distribution.observed_at_n1 değerleri",
+      "mobidik_strategic_assessment.average_feasibility_score.observed_at_n1"
+    ],
+    "fields_from_inference": [
+      "design_dna.style_tags",
+      "design_dna.target_project_types",
+      "design_dna.summary",
+      "performance_profile.acoustic_focus",
+      "performance_profile.fr_focus",
+      "performance_profile.sustainability_focus",
+      "mobidik_strategic_assessment.competitive_position",
+      "mobidik_strategic_assessment.market_opportunity",
+      "mobidik_strategic_assessment.benchmark_value",
+      "mobidik_strategic_assessment.watch_priority",
+      "mobidik_strategic_assessment.arge_priority_areas"
+    ],
+    "constitutional_violations_check": "passed_at_2026-05-25T22:00:00Z",
+    "audit_history": [
+      {
+        "audit_id": "kvadrat_marka_v1.0_2026-05-13",
+        "audit_date": "2026-05-13",
+        "audit_doc": "99_kalite_kontrol/referans_denetimi_marka_kvadrat.md + marka_profili_kurulum_raporu_kvadrat.md",
+        "version_before": "(yok — eski _ornek_kvadrat karantinada, kullanılmadı)",
+        "version_after": "v1.0 — sıfırdan, denetlenmiş kaynaklardan, n=1 örneklemle",
+        "notes": "Karantinadaki _ornek_kvadrat.json kullanılmadı. 9 anayasa ihlali + 13 matematiksel sahtecilik içeren önceki referans örnekten ZERO TRANSFER. Bu v1.0 sadece resmi kaynaklardan + Air Line gözleminden inşa edildi."
+      },
+      {
+        "audit_id": "kvadrat_marka_v1.1_2026-05-25",
+        "audit_date": "2026-05-25",
+        "audit_doc": "docs/parti_log.md (kuruluyor)",
+        "version_before": "v1.0 (n=1, sadece Air Line)",
+        "version_after": "v1.1 (n=2, Alpaca Leno eklendi)",
+        "notes": "Documents iterasyonu migrasyonu sirasinda Kvadrat parti01 raporundaki 2. urun (Alpaca Leno 5544) ham_cikti + Documents raporu birlesimiyle denetlendi. CELISKI VAKASI: Documents raporu 'Stabli leno yapamaz' demisti; kapasite tablosu 'leno TAM' der — anayasa kural #7 uyarinca kapasite kazandi. KOMPOZISYON DUZELTMESI: Documents 3-lif demisti; HTML 4-lif (viscose %11 eklendi). 5. renk (5544-0931) adi bilinmiyor (sayfa tam cekimi gerek). product_count 1->2, tum stat bloklari observed_at_n2 ile guncellendi. n=2 hala threshold alti."
+      }
+    ]
+  },
+  "width_distribution": {
+    "min_cm": {
+      "value": null,
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": 315,
+      "observed_at_n2": 315
+    },
+    "max_cm": {
+      "value": null,
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": 315,
+      "observed_at_n2": 315
+    },
+    "most_common_cm": {
+      "value": [],
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": [
+        315
+      ],
+      "observed_at_n2": [
+        315
+      ]
+    },
+    "histogram": {
+      "value": {},
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": {
+        "315": 1
+      },
+      "observed_at_n2": {
+        "315": 2
+      }
+    },
+    "comment": "n=2: Air Line 315 cm + Alpaca Leno 315 cm — ayni en. Threshold n>=3 dolana kadar value hesaplanmaz. Frequency koleksiyonunun standart en degeri 315 cm olabilir."
+  },
+  "color_profile": {
+    "total_variant_count": {
+      "value": null,
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": 5,
+      "observed_at_n2": 10
+    },
+    "average_per_product": {
+      "value": null,
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": 5.0,
+      "observed_at_n2": 5.0
+    },
+    "dominant_palette_tr": {
+      "value": [],
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": [
+        "White Linen",
+        "Light Ash",
+        "Hazel",
+        "Mosswood",
+        "Northern Pine (Air Line paleti)"
+      ],
+      "observed_at_n2": [
+        "White Linen",
+        "Light Ash",
+        "Hazel",
+        "Mosswood",
+        "Northern Pine (Air Line)",
+        "Soft Wool",
+        "Almond Bark",
+        "Redwood",
+        "Cool Cedar",
+        "5544-0931 (isim bilinmiyor)"
+      ]
+    },
+    "color_approach": null,
+    "comment": "n=2: Air Line 5 ton organik melange + Alpaca Leno 5 ton (4 isim + 1 bilinmeyen). Ortalama 5.0/urun. Frequency koleksiyonu icin 5 ton standart gibi gorunuyor."
+  },
+  "composition_distribution": {
+    "synthetic_ratio_percent": {
+      "value": null,
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": 0,
+      "observed_at_n2": 12.5
+    },
+    "natural_ratio_percent": {
+      "value": null,
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": 100,
+      "observed_at_n2": 87.5
+    },
+    "blend_ratio_percent": {
+      "value": null,
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": 0,
+      "observed_at_n2": 50.0
+    },
+    "trevira_cs_usage_percent": {
+      "value": null,
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": 0,
+      "observed_at_n2": 0
+    },
+    "most_common_fibers": {
+      "value": [],
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": [
+        {
+          "fiber": "Keten",
+          "usage_percent_in_sample": 100,
+          "product_count": 1
+        }
+      ],
+      "observed_at_n2": [
+        {
+          "fiber": "Keten",
+          "usage_percent_in_sample": 100,
+          "product_count": 1
+        },
+        {
+          "fiber": "Yun",
+          "usage_percent_in_sample": 58,
+          "product_count": 1
+        },
+        {
+          "fiber": "Alpaka",
+          "usage_percent_in_sample": 17,
+          "product_count": 1
+        },
+        {
+          "fiber": "Lyocell",
+          "usage_percent_in_sample": 14,
+          "product_count": 1
+        },
+        {
+          "fiber": "Viskon",
+          "usage_percent_in_sample": 11,
+          "product_count": 1
+        }
+      ]
+    },
+    "comment": "n=2: Air Line %100 keten mono + Alpaca Leno %58 yun + %17 alpaka + %14 lyocell + %11 viskon. Iki uretici modeli: monomateryal vs multi-staple kompleks blend. Threshold n>=3 oncesi dagilim hesabi yapilmaz."
+  },
+  "weave_distribution": {
+    "plain": {
+      "value": null,
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": 0,
+      "observed_at_n2": 0
+    },
+    "dobby": {
+      "value": null,
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": 1,
+      "observed_at_n2": 1
+    },
+    "jacquard": {
+      "value": null,
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": 0,
+      "observed_at_n2": 0
+    },
+    "sheer": {
+      "value": null,
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": 0,
+      "observed_at_n2": 0
+    },
+    "leno": {
+      "value": null,
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": 0,
+      "observed_at_n2": 1
+    },
+    "unknown": {
+      "value": null,
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": 0,
+      "observed_at_n2": 0
+    },
+    "comment": "n=2: 1 dobby (Air Line) + 1 leno (Alpaca Leno). 50/50 dagilim ama n=2 yetersiz."
+  },
+  "product_groups": {
+    "sheer_voile": {
+      "value": null,
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": 0,
+      "observed_at_n2": 0
+    },
+    "dimout": {
+      "value": null,
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": 0,
+      "observed_at_n2": 0
+    },
+    "blackout": {
+      "value": null,
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": 0,
+      "observed_at_n2": 0
+    },
+    "drapery": {
+      "value": null,
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": 1,
+      "observed_at_n2": 2
+    },
+    "acoustic": {
+      "value": null,
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": 0,
+      "observed_at_n2": 0
+    },
+    "decorative_jacquard": {
+      "value": null,
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": 0,
+      "observed_at_n2": 0
+    },
+    "other": {
+      "value": null,
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": 0,
+      "observed_at_n2": 0
+    }
+  },
+  "certification_profile": {
+    "fire_safety_certified_percent": {
+      "value": null,
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": 0,
+      "observed_at_n2": 0
+    },
+    "common_fire_certs": {
+      "value": [],
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": [],
+      "observed_at_n2": []
+    },
+    "sustainability_certs": {
+      "value": [],
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": [
+        "EU Ecolabel"
+      ],
+      "observed_at_n2": [
+        "EU Ecolabel (Air Line - marka geneli claim, urun-ozel kanit PDF)",
+        "Lightfastness ISO 105-B02 (her iki urunde de skor 8)"
+      ]
+    },
+    "always_present_certs": {
+      "value": [],
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": [],
+      "observed_at_n2": [
+        "Lightfastness ISO 105-B02 score 8",
+        "2-yil retail warranty"
+      ]
+    },
+    "comment": "n=2: Iki urunde de yangin guvenligi sertifikasi YOK. Ikisinde de Lightfastness 8 + 2 yil warranty. Air Line EU Ecolabel claim eder; Alpaca Leno multi-fiber oldugu icin mono material avantajini kaybeder."
+  },
+  "price_segment": "premium_ust",
+  "price_segment_confidence": "medium",
+  "price_data_points": 0,
+  "_price_segment_basis": "Kvadrat resmi sayfa konumlandırması ('leader in design innovation', 'high-performance design textiles', 'majority of woollen products have EU Ecolabel'), Wikipedia anıtsal proje referansları (MoMA/Walt Disney/Reichstag), ve mill ownership 3 ülkede vertically-integrated yapı 'premium_ust' segment için tutarlı. Fiyat data yok (B2B, fiyat yayınlanmıyor) — confidence 'high' değil 'medium'.",
+  "design_dna": {
+    "style_tags": [
+      "scandinavian",
+      "minimalist",
+      "contract-grade",
+      "functional",
+      "design-led",
+      "material-honest"
+    ],
+    "_style_tags_inference": "Kvadrat resmi 'Scandinavia's world-famous design tradition' + 'we push the aesthetic, technological and functional properties'; Wikipedia 'Scandinavian style' + 'Foster and Partners Reichstag debating chamber' (contract-grade). Air Line linen monomaterial (material-honest).",
+    "texture_approach": null,
+    "pattern_density": null,
+    "color_saturation": null,
+    "target_project_types": [
+      "ofis",
+      "otel",
+      "müze/sergi",
+      "kamusal alan",
+      "konut (residential — yeni Kvadrat at Home segmenti)"
+    ],
+    "_target_project_inference": "Resmi: 'commercial and residential interiors'; Wikipedia kullanım örnekleri: private homes, hospitals, airports, trains, museums, concert halls. Air Line target_markets: TR/EU/GCC.",
+    "summary": "Kvadrat İskandinav tasarım geleneğinin önde gelen contract-grade tekstil markası. 1968 Ebeltoft (Danimarka) kuruluşu, vertically-integrated partial üretim modeli (England + Norway + Netherlands tezgah sahibi), 691 çalışan, 7 küresel showroom (Copenhagen + Stockholm flagship). Sürdürülebilirlik 1997'den beri kurumsal ISO 14001 + LCA/EPD EN15804 framework. Anıtsal projeler (Gherkin/MoMA/Walt Disney/Reichstag) marka prestijinin somut göstergesi. Tasarımcı işbirlikleri 15+ uluslararası isim (Urquiola, Bouroullec brothers, Raf Simons, Olafur Eliasson, ...)."
+  },
+  "performance_profile": {
+    "acoustic_focus": true,
+    "fr_focus": false,
+    "sustainability_focus": true,
+    "comment": "acoustic_focus=True: Wikipedia 'Kvadrat develops acoustic panels' + resmi 'acoustic solutions' ürün hatlarından biri. Eski profil 'acoustic_focus=false' diyordu — YANLIŞ idi. fr_focus=False: Resmi sayfa FR'i marka özelliği olarak öne çıkarmıyor; ürün-bazlı FR varyantlar var ama marka geneli odak değil. Air Line'da yangın sertifikası YOK doğrulayıcı. sustainability_focus=True: resmi 'Sustainability-minded from the start' + ISO 14001 1997'den beri + LCA framework + EU Ecolabel programı."
+  },
+  "mill_ownership": {
+    "_description": "Kvadrat üretim modeli (resmi /about/our-company sayfasından).",
+    "owned_countries": [
+      "England",
+      "Norway",
+      "Netherlands"
+    ],
+    "partner_countries": [
+      "Turkey (Air Line üretim ortağı — kim olduğu bilinmiyor)"
+    ],
+    "ownership_model": "vertically_integrated_partial",
+    "source_url": "https://www.kvadrat.dk/en/about/our-company",
+    "verified_at": "2026-05-13"
+  },
+  "designer_roster": {
+    "value": [
+      {
+        "name": "Patricia Urquiola",
+        "type": "collaborator",
+        "since_year": null,
+        "notable_collections": [],
+        "source_url": "https://www.kvadrat.dk/en/about/our-company"
+      },
+      {
+        "name": "Ronan and Erwan Bouroullec",
+        "type": "collaborator",
+        "since_year": null,
+        "notable_collections": [],
+        "source_url": "https://www.kvadrat.dk/en/about/our-company"
+      },
+      {
+        "name": "Margrethe Odgaard",
+        "type": "collaborator",
+        "since_year": null,
+        "notable_collections": [],
+        "source_url": "https://www.kvadrat.dk/en/about/our-company"
+      },
+      {
+        "name": "Alfredo Häberli",
+        "type": "collaborator",
+        "since_year": null,
+        "notable_collections": [],
+        "source_url": "https://www.kvadrat.dk/en/about/our-company"
+      },
+      {
+        "name": "Doshi Levien",
+        "type": "collaborator",
+        "since_year": null,
+        "notable_collections": [],
+        "source_url": "https://www.kvadrat.dk/en/about/our-company"
+      },
+      {
+        "name": "Giulio Ridolfo",
+        "type": "collaborator",
+        "since_year": null,
+        "notable_collections": [],
+        "source_url": "https://www.kvadrat.dk/en/about/our-company"
+      },
+      {
+        "name": "Peter Saville",
+        "type": "collaborator",
+        "since_year": null,
+        "notable_collections": [],
+        "source_url": "https://www.kvadrat.dk/en/about/our-company"
+      },
+      {
+        "name": "Pipilotti Rist",
+        "type": "collaborator",
+        "since_year": null,
+        "notable_collections": [],
+        "source_url": "https://www.kvadrat.dk/en/about/our-company"
+      },
+      {
+        "name": "Thomas Demand",
+        "type": "collaborator",
+        "since_year": null,
+        "notable_collections": [],
+        "source_url": "https://www.kvadrat.dk/en/about/our-company"
+      },
+      {
+        "name": "Olafur Eliasson",
+        "type": "collaborator",
+        "since_year": null,
+        "notable_collections": [],
+        "source_url": "https://www.kvadrat.dk/en/about/our-company"
+      },
+      {
+        "name": "Raf Simons",
+        "type": "collaborator",
+        "since_year": 2014,
+        "notable_collections": [],
+        "source_url": "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+      },
+      {
+        "name": "Akira Minagawa",
+        "type": "collaborator",
+        "since_year": null,
+        "notable_collections": [],
+        "source_url": "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+      },
+      {
+        "name": "Hella Jongerius",
+        "type": "collaborator",
+        "since_year": null,
+        "notable_collections": [],
+        "source_url": "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+      },
+      {
+        "name": "Tord Boontje",
+        "type": "collaborator",
+        "since_year": null,
+        "notable_collections": [],
+        "source_url": "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+      },
+      {
+        "name": "Miriam Bäckström",
+        "type": "collaborator",
+        "since_year": null,
+        "notable_collections": [],
+        "source_url": "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+      },
+      {
+        "name": "Werner Aisslinger",
+        "type": "collaborator",
+        "since_year": null,
+        "notable_collections": [],
+        "source_url": "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+      },
+      {
+        "name": "Nanna Ditzel",
+        "type": "founding_designer",
+        "since_year": 1968,
+        "notable_collections": [
+          "Hallingdal"
+        ],
+        "source_url": "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+      },
+      {
+        "name": "Finn Sködt",
+        "type": "founding_designer",
+        "since_year": null,
+        "notable_collections": [
+          "Divina Melange"
+        ],
+        "source_url": "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+      },
+      {
+        "name": "Nina Koppel",
+        "type": "founding_designer",
+        "since_year": null,
+        "notable_collections": [],
+        "source_url": "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+      },
+      {
+        "name": "Gunnar Aagaard Andersen",
+        "type": "founding_designer",
+        "since_year": null,
+        "notable_collections": [],
+        "source_url": "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+      },
+      {
+        "name": "Ross Littell",
+        "type": "historical",
+        "since_year": 1980,
+        "notable_collections": [],
+        "source_url": "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+      },
+      {
+        "name": "Kvadrat Residential",
+        "type": "in-house",
+        "since_year": null,
+        "notable_collections": [
+          "Air Line"
+        ],
+        "source_url": "01_veri/urunler_per_marka/kvadrat_5539-air-line.json"
+      }
+    ]
+  },
+  "retail_warranty_years": {
+    "value": 10,
+    "notes": "Resmi: 'most of our textiles come with a 10-year warranty'. Bazı alt segment ürünlerde farklı — Air Line: 2 yıl (alt segment sinyali).",
+    "source_url": "https://www.kvadrat.dk/en/about/our-company"
+  },
+  "iso_certifications": {
+    "value": [
+      {
+        "code": "ISO 14001",
+        "year_certified": 1997,
+        "source_url": "https://www.kvadrat.dk/en/about/our-company"
+      }
+    ],
+    "_notes": "ISO 9001 muhtemelen var ama resmi sayfada açıkça belirtilmemiş — kanıtsız listelenmedi."
+  },
+  "reference_projects": {
+    "value": [
+      {
+        "project": "30 St Mary Axe (Gherkin)",
+        "location": "London, UK",
+        "year": null,
+        "source_url": "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+      },
+      {
+        "project": "Museum of Modern Art",
+        "location": "New York, USA",
+        "year": null,
+        "source_url": "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+      },
+      {
+        "project": "Walt Disney Concert Hall",
+        "location": "Los Angeles, USA",
+        "year": null,
+        "source_url": "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+      },
+      {
+        "project": "Reichstag Building (Debating Chamber)",
+        "location": "Berlin, Germany",
+        "year": null,
+        "source_url": "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+      },
+      {
+        "project": "Guggenheim Museum Bilbao",
+        "location": "Bilbao, Spain",
+        "year": null,
+        "source_url": "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+      },
+      {
+        "project": "Copenhagen Opera House",
+        "location": "Copenhagen, Denmark",
+        "year": null,
+        "source_url": "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+      },
+      {
+        "project": "Foster & Partners studio",
+        "location": "London, UK",
+        "year": null,
+        "source_url": "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+      },
+      {
+        "project": "Yves Saint Laurent flagship",
+        "location": "Paris, France",
+        "year": null,
+        "source_url": "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+      },
+      {
+        "project": "Oslo Opera House",
+        "location": "Oslo, Norway",
+        "year": null,
+        "source_url": "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+      }
+    ]
+  },
+  "acquisitions_and_partnerships": {
+    "value": [
+      {
+        "entity": "Wooltex (UK)",
+        "percentage": 49,
+        "year": 2011,
+        "purpose": "supply chain expansion",
+        "source_url": "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+      },
+      {
+        "entity": "Really (Denmark)",
+        "percentage": 52,
+        "year": 2017,
+        "purpose": "sustainable upcycled materials (circular economy)",
+        "source_url": "https://en.wikipedia.org/wiki/Kvadrat_(company)"
+      }
+    ]
+  },
+  "data_integrity": {
+    "verified_data_points": 3,
+    "ai_estimated_data_points": 11,
+    "verification_ratio": 0.0,
+    "reliability_label": "insufficient_sample",
+    "sample_size_tracked_products": 2,
+    "_reliability_explanation": "n=2 (Air Line + Alpaca Leno denetlenmis). Threshold n>=3 dolana kadar dagilim istatistikleri null kalir, reliability_label='insufficient_sample'. Statik kimlik (founding/headquarters/mill/designers/projects) dolu; istatistik bloklari observed_at_n2 ile gozlem korunuyor. 1 daha urun eklendiginde n=3 (mostly_estimated) olur.",
+    "comment": "Statik kimlik %100 dogrulanmis (multi_source); dagilim istatistikleri 0% (n esigi). 3. urun eklendiginde reliability='mostly_estimated' yukselir. Frequency koleksiyonu ortak ozellikler: 315 cm en, lightfastness 8, 2 yil warranty."
+  },
+  "mobidik_strategic_assessment": {
+    "staubli_general_feasibility": "yüksek",
+    "_general_feasibility_basis": "n=2: Air Line 5/5 (dobby + keten + TR uretim) + Alpaca Leno 4/5 (leno TAM + multi-staple iplik nis). Ortalama 4.5. Kvadrat marka geneli icin yuksek feasibility tahmini guclendi. Onceki n=1 Documents notu Alpaca Leno icin 1/5 demisti — kapasite tablosu duzeltisi (anayasa #7).",
+    "average_feasibility_score": {
+      "value": null,
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "threshold_required": 3,
+      "observed_at_n1": 5.0,
+      "observed_at_n2": 4.5
+    },
+    "arge_priority_areas": [
+      "%100 keten monomateryal dobby (Air Line örneği)",
+      "Spun keten ipliği + warp tension yönetimi",
+      "315 cm geniş en warp beam yönetimi",
+      "EU Ecolabel + PFAS-free + REACH + Prop 65 + LBC Red list uyumu (sürdürülebilirlik dosyası)",
+      "Kvadrat'ın Türkiye üretim ortağını tespit etmek (rekabet/partnership istihbaratı)",
+      "Kvadrat'ın acoustic ürün hattı (Mobidik için niş, Stäubli kapsamı dışı ama strateji için önemli)",
+      "Leno + yun/alpaka multi-staple iplik portfoyu — Niket + Etamine Fil du Temps + Alpaca Leno = 3-urun leno hatti (ROI 12-15 ay)",
+      "Italyan artisanal uretim modeli benchmark (51 gun lead time, premium yun/alpaka segment, MTO)"
+    ],
+    "competitive_position": "Kvadrat İskandinav contract-grade premium üst segment lideri. Mobidik perspektifi: doğrudan rakip DEĞİL — Kvadrat fiyat seviyesi (B2B premium) ve marka değeri Mobidik'in oyun alanı dışı. ANCAK Mobidik için 3 stratejik açı: (a) Air Line Türkiye'de üretiliyor → Kvadrat'ın fason ortağı kim, Mobidik o pozisyona aday olabilir mi? (b) Aynı estetik dilde FR-treated varyant + İstanbul yat segmenti gibi niş için pazar fırsatı. (c) Marka değeri olmadan teknik benzerlikle daha düşük segmente kaymak — 'Kvadrat-tarzı sade dobby semi-sheer' yerel pazarda.",
+    "market_opportunity": "Türkiye yerel pazarda 'Kvadrat tarzı' sade-sürdürülebilir-sertifikalı perde üreten yok. AB ihraç pazarı: doğrudan rakip değil (Kvadrat zaten 7 showroom + global dealer), ama orta-üst segmente yerel-üretim Türkiye etiketiyle pozisyonlanılabilir. NOT: Kvadrat'ın 691 çalışanı + mill 3 ülkede + 60 yıl marka değeri Mobidik'in çok üstünde — kafa kafaya rekabet hedefi değil.",
+    "benchmark_value": "Çok yüksek. Kvadrat tasarım disiplini + sertifikasyon programı + sürdürülebilirlik framework'ü Mobidik'in hedeflemesi gereken referans noktası. Air Line testi Mobidik'in 5/5 staubli_feasibility çıkardığı ürün — yapısal/teknik uyumluluk kanıtlandı. Marka geneli benchmark için 5+ ürün denetlenmeli (insufficient_n_1 şu an).",
+    "watch_priority": "yüksek"
+  },
+  "trend_indicators": {
+    "_description": "Trend iddiaları için en az iki farklı zamandan veri noktası şart. Şu an 1 ürün/1 zaman noktası — trend YOK.",
+    "recent_collection_additions": [
+      {
+        "collection": "Frequency (Air Line dahil)",
+        "launch_year_observed": 2025,
+        "source": "Air Line PDF"
+      }
+    ],
+    "discontinued_products": [],
+    "shift_signals": []
+  },
+  "notes": [
+    "Bu profil v1.0 — kalibrasyon modu, sıfırdan inşa edildi (2026-05-13).",
+    "Eski _ornek_kvadrat.json (karantinada) hiçbir değer transfer edilmedi — 9 anayasa ihlali + 13 matematiksel sahtecilik içeriyordu (referans_denetimi_marka_kvadrat.md).",
+    "n=1 (sadece Air Line). Dağılım istatistikleri null + observed_at_n1 ile gözlem korundu. 2. ürün eklendiğinde sample_size=2, 3'ünde dağılımlar hesaplanır.",
+    "Statik kimlik (founding/headquarters/mill_ownership/designers/projects/acquisitions) resmi about + Wikipedia + LinkedIn ile çok kaynak teyitli. Air Line ürün kaydı 4. kaynak (gözlem).",
+    "performance_profile.acoustic_focus = TRUE — eski profil bunu false demişti, Wikipedia 'Kvadrat develops acoustic panels' + resmi 'acoustic solutions' düzeltti.",
+    "Anayasa ihlali check: passed. Marka geneli sertifika iddiası YOK. Kategorik 'her üründe X' türü iddia YOK. Trend iddiası YOK (n=1, zaman serisi yok).",
+    "Master kvadrat.json'a aktarılmadı (zaten bu dosya kendisi). Dashboard/parti_log tetiklenmedi — kalibrasyon modu sürüyor.",
+    "v1.1 (2026-05-25): Alpaca Leno (5544) eklendi. n=1 -> n=2.",
+    "Frequency koleksiyonu gozlemi: ayni en (315 cm), ayni lightfastness (8), ayni warranty (2 yil). Iki farkli uretici modeli (Air Line=Turkiye fason stock, Alpaca Leno=Italyan artisanal MTO).",
+    "CELISKI DUZELTMESI: Documents Mobidik notu Alpaca Leno icin 'Stabli leno yapamaz' demisti (yanlis); kapasite tablosu der 'leno TAM' (dogru, kullanici dogrulamali). Anayasa #7 + #8 uyarinca kapasite kazandi. staubli_feasibility 1/5 -> 4/5."
+  ]
+}
