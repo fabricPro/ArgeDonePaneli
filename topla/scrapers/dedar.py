@@ -160,11 +160,7 @@ def scrape_dedar(url: str) -> dict:
         data["_body_text_preview"] = body_text[:2000] if body_text else None
 
         # === Düzeltme 5: galeri (v1.1.1 — daraltılmış URL filtresi) ===
-        # base_images: extract_image_specs() — Kvadrat-spesifik selector pattern (Dedar'da
-        # çoğunlukla random sayfa img'lerini yakalar, sadece ilgili olanı dedupe ile alıyoruz)
         base_images = extract_image_specs(page)
-        # Filtre: base_images'tan cdn11.bigcommerce.com URL'leri varsa attribute_rule_images
-        # path'i içermeyenleri at (header logo, related thumbnails)
         base_images = [
             img for img in base_images
             if not (
@@ -173,8 +169,24 @@ def scrape_dedar(url: str) -> dict:
                 and "/products/" not in (img.get("kaynak_url") or "")
             )
         ]
-        # extra_images: daraltılmış pattern (sadece attribute_rule_images + inspirations)
         extra_images = _extract_dedar_gallery_images(html, data.get("product_code"))
+
+        # === v1.1.2: her varyanta gid + ana gorsel + renk adi al ===
+        variants_enriched = _scrape_variant_pages(page, url, data["variants_raw"])
+        data["variants_raw"] = variants_enriched
+
+        # Her varyantin ana gorseli base_images'a "varyant" tipinde eklenir
+        for v in variants_enriched:
+            if v.get("main_image_url"):
+                extra_images.append({
+                    "tip": "varyant",
+                    "kaynak_url": v["main_image_url"],
+                    "varyant_adi": v.get("name") or v.get("sku"),
+                    "_variant_sku": v.get("sku"),
+                    "_variant_code": v.get("color_suffix"),
+                })
+
+        # Dedupe + birlestir
         seen_urls = {img["kaynak_url"] for img in base_images}
         for img in extra_images:
             if img["kaynak_url"] not in seen_urls:
@@ -184,6 +196,76 @@ def scrape_dedar(url: str) -> dict:
 
         browser.close()
         return data
+
+
+def _scrape_variant_pages(page, base_url: str, variants_raw: list) -> list:
+    """v1.1.2: her varyant SKU URL'sine git, renk adi + ana gorsel al.
+
+    Dedar BigCommerce SKU parametresi degisince sayfa render edilen renk swatch'i,
+    'Selected Colore is X NAME' satiri, ve gallery main image yeniler.
+    """
+    if not variants_raw:
+        return []
+
+    enriched = []
+    for v in variants_raw:
+        sku = v.get("sku")
+        color_suffix = v.get("color_suffix") or v.get("sku_suffix")
+        if not sku:
+            # Eski format compat
+            enriched.append(v)
+            continue
+
+        # URL: base_url ?sku=<full_sku>
+        # Cobra: https://dedar.com/cobra/?sku=00T1906300004 -> 00T1906300002 vs.
+        try:
+            variant_url = re.sub(r"\?sku=[\w]+", f"?sku={sku}", base_url)
+            if "?sku=" not in variant_url:
+                variant_url = f"{base_url}{'&' if '?' in base_url else '?'}sku={sku}"
+
+            page.goto(variant_url, wait_until="domcontentloaded", timeout=30000)
+            try:
+                page.wait_for_load_state("networkidle", timeout=8000)
+            except Exception:
+                pass
+            page.wait_for_timeout(800)
+
+            # Renk adi: "Selected Colore is X NAME"
+            try:
+                vbody = page.locator("body").inner_text(timeout=3000)
+            except Exception:
+                vbody = ""
+            name = None
+            m = re.search(r"Selected Colore is\s+\d+\s+([^\n]+)", vbody)
+            if m:
+                name = m.group(1).strip()
+
+            # Ana gorsel: attribute_rule_images URL'i bu sayfa icin
+            vhtml = page.content()
+            m_img = re.search(
+                r'https://cdn11\.bigcommerce\.com/s-td9auqdllx/[^\s"\'<>]*attribute_rule_images/[^\s"\'<>]+\.(?:jpg|jpeg|png|webp)',
+                vhtml,
+                re.IGNORECASE,
+            )
+            main_image_url = m_img.group(0) if m_img else None
+
+            enriched.append({
+                "sku": sku,
+                "color_suffix": color_suffix,
+                "name": name,
+                "main_image_url": main_image_url,
+                "url": variant_url,
+            })
+        except Exception as e:
+            enriched.append({
+                "sku": sku,
+                "color_suffix": color_suffix,
+                "name": None,
+                "main_image_url": None,
+                "_error": str(e)[:200],
+            })
+
+    return enriched
 
 
 # === Yardımcı fonksiyonlar ===
