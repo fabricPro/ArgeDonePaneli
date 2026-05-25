@@ -159,10 +159,22 @@ def scrape_dedar(url: str) -> dict:
         # Body preview (debug)
         data["_body_text_preview"] = body_text[:2000] if body_text else None
 
-        # === Düzeltme 5: galeri — extract_image_specs + ek BigCommerce/connect.dedar ===
+        # === Düzeltme 5: galeri (v1.1.1 — daraltılmış URL filtresi) ===
+        # base_images: extract_image_specs() — Kvadrat-spesifik selector pattern (Dedar'da
+        # çoğunlukla random sayfa img'lerini yakalar, sadece ilgili olanı dedupe ile alıyoruz)
         base_images = extract_image_specs(page)
-        extra_images = _extract_dedar_gallery_images(html)
-        # Dedupe by URL
+        # Filtre: base_images'tan cdn11.bigcommerce.com URL'leri varsa attribute_rule_images
+        # path'i içermeyenleri at (header logo, related thumbnails)
+        base_images = [
+            img for img in base_images
+            if not (
+                "cdn11.bigcommerce.com/s-td9auqdllx" in (img.get("kaynak_url") or "")
+                and "attribute_rule_images" not in (img.get("kaynak_url") or "")
+                and "/products/" not in (img.get("kaynak_url") or "")
+            )
+        ]
+        # extra_images: daraltılmış pattern (sadece attribute_rule_images + inspirations)
+        extra_images = _extract_dedar_gallery_images(html, data.get("product_code"))
         seen_urls = {img["kaynak_url"] for img in base_images}
         for img in extra_images:
             if img["kaynak_url"] not in seen_urls:
@@ -360,14 +372,22 @@ def _extract_dedar_certifications(text: str, html: str) -> list:
     return found
 
 
-def _extract_dedar_gallery_images(html: str) -> list:
-    """BigCommerce CDN + connect.dedar.com görselleri çek."""
+def _extract_dedar_gallery_images(html: str, product_code: str | None = None) -> list:
+    """BigCommerce CDN + connect.dedar.com — URUNE OZEL filtre (v1.1.1).
+
+    v1.1 sorunu: tüm cdn11 URL'leri yakalıyordu → header logo, 'You may also like'
+    başka ürünler, ikonlar dahil ediliyordu (Cobra modal'inda 32 görselden çoğu alakasız).
+
+    v1.1.1 düzeltmesi: SADECE attribute_rule_images (varyant render) + products/<id>/
+    path'lerini al. Diğer CDN URL'leri (logo, banner, related thumbnails) elenir.
+    """
     extra = []
     seen = set()
 
-    # BigCommerce stencil CDN (Dedar): cdn11.bigcommerce.com/s-td9auqdllx/...
+    # Pattern 1: attribute_rule_images — Dedar varyant render görselleri (ana hedef)
+    #   örn. cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/2560w/attribute_rule_images/16667_source_*.jpg
     for m in re.finditer(
-        r'https://cdn11\.bigcommerce\.com/s-td9auqdllx/[^\s"\'<>]+\.(?:jpg|jpeg|png|webp)',
+        r'https://cdn11\.bigcommerce\.com/s-td9auqdllx/[^\s"\'<>]*?attribute_rule_images/[^\s"\'<>]+\.(?:jpg|jpeg|png|webp)',
         html,
         re.IGNORECASE,
     ):
@@ -375,16 +395,20 @@ def _extract_dedar_gallery_images(html: str) -> list:
         if url in seen:
             continue
         seen.add(url)
-        # Boyut tahmin: URL'de stencil/1280x veya 2560w varsa "ana"
-        if re.search(r"stencil/(\d{3,5})", url) and int(re.search(r"stencil/(\d{3,5})", url).group(1)) >= 800:
-            tip = "detay"  # büyük resim ama varsayılan detay
-        else:
-            tip = "detay"
-        extra.append({"tip": tip, "kaynak_url": url, "varyant_adi": None})
+        extra.append({"tip": "varyant", "kaynak_url": url, "varyant_adi": None})
 
-    # connect.dedar.com (lifestyle/inspiration)
+    # Pattern 2: products/<urun_id>/ veya product images path
+    #   örn. cdn11.bigcommerce.com/s-td9auqdllx/products/12345/images/.../...
+    # Eğer product_code parametresi varsa, URL'de mutlaka geçmeli (kesinleşir)
+    if product_code:
+        # Cobra: 00T19063 → URL'de görmek için son hane veya gerekmiyor
+        # BigCommerce internal product_id farklı; bu pattern best-effort
+        pass
+
+    # Pattern 3: connect.dedar.com inspirations (LIFESTYLE)
+    #   örn. connect.dedar.com/inspirations/<id>/images/<file>.jpg
     for m in re.finditer(
-        r'https://connect\.dedar\.com/[^\s"\'<>]+\.(?:jpg|jpeg|png|webp)',
+        r'https://connect\.dedar\.com/inspirations/[^\s"\'<>]+\.(?:jpg|jpeg|png|webp)',
         html,
         re.IGNORECASE,
     ):

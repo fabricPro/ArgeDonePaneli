@@ -165,9 +165,16 @@ def migrate_urun(ham_json_path: Path, product_code: str, urun_slug: str, urun_js
     print(f"  JSON guncellendi: {urun_json_path.name}")
 
 
+# En guncel ham cikti dosyalari (scraper v1.1.1 sonrasi)
+def _latest_ham(prefix: str) -> Path:
+    candidates = sorted(HAM_CIKTI.glob(f"{prefix}*.json"))
+    if not candidates:
+        raise SystemExit(f"HATA: {prefix}*.json bulunamadi")
+    return candidates[-1]
+
 # === Cobra ===
 migrate_urun(
-    ham_json_path=HAM_CIKTI / "dedar_cobra_20260525T205810Z.json",
+    ham_json_path=_latest_ham("dedar_cobra_"),
     product_code="00T19063",
     urun_slug="cobra",
     urun_json_filename="dedar_00T19063-cobra.json",
@@ -175,7 +182,7 @@ migrate_urun(
 
 # === Days Like Now ===
 migrate_urun(
-    ham_json_path=HAM_CIKTI / "dedar_days-like-now_20260525T205940Z.json",
+    ham_json_path=_latest_ham("dedar_days-like-now_"),
     product_code="00T25007",
     urun_slug="days-like-now",
     urun_json_filename="dedar_00T25007-days-like-now.json",
