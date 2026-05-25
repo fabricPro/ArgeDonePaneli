@@ -41,7 +41,7 @@ def build_renkler(d: dict) -> list[dict]:
             continue
         images_by_variant.setdefault(vc, []).append("../" + img["local_path"])
 
-    # Varyanta atanmamis ortak galeri (Cobra/DLN gibi scraper tek varyant cekenler icin fallback)
+    # main + technical + lifestyle ortak galeri
     fallback_images: list[str] = []
     for img in d.get("images", {}).get("main", []):
         if img.get("local_path"):
@@ -52,22 +52,34 @@ def build_renkler(d: dict) -> list[dict]:
     for img in d.get("images", {}).get("lifestyle", []):
         if img.get("local_path"):
             fallback_images.append("../" + img["local_path"])
-    # Dedupe (sira korumali)
     seen = set()
     fallback_images = [x for x in fallback_images if not (x in seen or seen.add(x))]
+
+    # TUM varyant gorselleri pool — bir renge ozel gorsel yoksa diger renklerden goster
+    all_variant_images: list[str] = []
+    for img in d.get("images", {}).get("variants", []):
+        if img.get("local_path"):
+            all_variant_images.append("../" + img["local_path"])
+    seen2 = set()
+    all_variant_images = [x for x in all_variant_images if not (x in seen2 or seen2.add(x))]
+
+    # Pool: variant-specific olmayan urunler icin (varyant + fallback birlesik)
+    pool_images = all_variant_images + [x for x in fallback_images if x not in all_variant_images]
 
     for var in d["source_data"]["variants"]:
         full_code = var["color_code"]
         renk_kodu = full_code.split("-")[-1] if "-" in full_code else full_code
 
         gorseller = images_by_variant.get(full_code, [])
-        # Variant-specific yoksa ana_local_path
         if not gorseller and var.get("main_image_local_path"):
             gorseller = ["../" + var["main_image_local_path"]]
-        # Hala boşsa veya 1'den az ise ortak galeri ekle (scraper varyant ayrimi yapmayan markalar)
-        if len(gorseller) < 2 and fallback_images:
+        # Hala bossa: TUM ortak pool'u goster (variant + main + technical + lifestyle)
+        if not gorseller and pool_images:
+            gorseller = list(pool_images)
+        # Kismi varsa (< 2): kalan pool'u ekle
+        elif len(gorseller) < 2 and pool_images:
             existing = set(gorseller)
-            for f in fallback_images:
+            for f in pool_images:
                 if f not in existing:
                     gorseller.append(f)
 
