@@ -27,9 +27,13 @@ SCALE_EMOJI = {5: "✅", 4: "✅", 3: "⚠️", 2: "⚠️", 1: "⛔"}
 
 
 def build_renkler(d: dict) -> list[dict]:
-    """sema variants[] + images.variants[] -> dashboard renkler[]"""
+    """sema variants[] + images.variants[] -> dashboard renkler[]
+
+    Fallback (Faz 5.11 sonrasi): scraper varyant ayrimi yapmazsa
+    (Dedar gibi), main + technical + lifestyle gallerysi tum varyantlara
+    ortak gosterilir.
+    """
     renkler = []
-    # Gorselleri renk koduna gore grupla
     images_by_variant: dict[str, list[str]] = {}
     for img in d.get("images", {}).get("variants", []):
         vc = img.get("variant_code")
@@ -37,15 +41,35 @@ def build_renkler(d: dict) -> list[dict]:
             continue
         images_by_variant.setdefault(vc, []).append("../" + img["local_path"])
 
+    # Varyanta atanmamis ortak galeri (Cobra/DLN gibi scraper tek varyant cekenler icin fallback)
+    fallback_images: list[str] = []
+    for img in d.get("images", {}).get("main", []):
+        if img.get("local_path"):
+            fallback_images.append("../" + img["local_path"])
+    for img in d.get("images", {}).get("technical", []):
+        if img.get("local_path"):
+            fallback_images.append("../" + img["local_path"])
+    for img in d.get("images", {}).get("lifestyle", []):
+        if img.get("local_path"):
+            fallback_images.append("../" + img["local_path"])
+    # Dedupe (sira korumali)
+    seen = set()
+    fallback_images = [x for x in fallback_images if not (x in seen or seen.add(x))]
+
     for var in d["source_data"]["variants"]:
         full_code = var["color_code"]
-        # Son segment renk kodu (orn. "5539-0101" -> "0101", "3018-110" -> "110")
         renk_kodu = full_code.split("-")[-1] if "-" in full_code else full_code
 
         gorseller = images_by_variant.get(full_code, [])
-        # Eger images.variants'ta yoksa main_image_local_path'i kullan
+        # Variant-specific yoksa ana_local_path
         if not gorseller and var.get("main_image_local_path"):
             gorseller = ["../" + var["main_image_local_path"]]
+        # Hala boşsa veya 1'den az ise ortak galeri ekle (scraper varyant ayrimi yapmayan markalar)
+        if len(gorseller) < 2 and fallback_images:
+            existing = set(gorseller)
+            for f in fallback_images:
+                if f not in existing:
+                    gorseller.append(f)
 
         renkler.append({
             "kod": renk_kodu,
