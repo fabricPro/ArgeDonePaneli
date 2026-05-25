@@ -6,6 +6,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from topla.scrapers.kvadrat import scrape_kvadrat
+from topla.scrapers.dedar import scrape_dedar
 from topla.images import download_all
 from topla.puanlama.staubli import compute_staubli_feasibility
 from topla.puanlama.mobidik import compute_mobidik_score
@@ -29,9 +30,11 @@ def scrape_and_score(url: str) -> dict:
 
     if brand == "kvadrat":
         source_data = scrape_kvadrat(url)
+    elif brand == "dedar":
+        source_data = scrape_dedar(url)
     else:
         raise ValueError(
-            f"Adaptör henüz yok: {brand}. Şu anda yalnız Kvadrat destekleniyor."
+            f"Adaptör henüz yok: {brand}. Şu anda Kvadrat ve Dedar destekleniyor."
         )
 
     image_specs = source_data.pop("_image_specs", [])
