@@ -93,9 +93,21 @@ def build_mobidik_notu(d: dict) -> str:
         frame = sf.get("frame_count_estimate", "N/A")
         comment = sf.get("comment", "")
         strategic = me.get("strategic_note", "")
-        # Strategic note kisa tutalim (300 karakter)
+        overall = me.get("overall_score") or 0
         if len(strategic) > 350:
             strategic = strategic[:350] + "..."
+
+        # ALTIN badge — overall >= 80 olan urunler Mobidik pilot oncelik
+        altin_badge = ""
+        if overall >= 80:
+            altin_badge = (
+                "<div style='background:linear-gradient(135deg,#FFD700,#FFA500);"
+                "color:#1a1a1a;font-weight:700;padding:6px 12px;border-radius:4px;"
+                "display:inline-block;margin-bottom:8px;font-size:0.95em;"
+                "box-shadow:0 2px 6px rgba(255,165,0,0.5);'>"
+                f"⭐ ALTIN ÜRÜN — Mobidik pilot adayı ({overall}/100) ⭐"
+                "</div><br>"
+            )
 
         # Celiski tespiti: audit_history'de "CELISKI" gecer mi?
         audit_str = json.dumps(d["source_data"]["_provenance"]["audit_history"], ensure_ascii=False)
@@ -105,6 +117,7 @@ def build_mobidik_notu(d: dict) -> str:
             celiski_badge = " <span style='background:#ffe066;padding:2px 6px;border-radius:3px;font-size:0.85em'>⚠️ Documents çelişkisi düzeltildi (anayasa #7)</span>"
 
         return (
+            f"{altin_badge}"
             f"<b>Stäubli: {score}/5 {emoji}</b>{celiski_badge} · "
             f"Çerçeve: {frame}. {comment}<br>"
             f"<b>Strateji ({priority} öncelik):</b> {strategic}"
