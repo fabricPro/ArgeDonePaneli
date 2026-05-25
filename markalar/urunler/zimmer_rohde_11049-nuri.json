@@ -8,7 +8,7 @@
   "product_name": "Nuri",
   "source_url": "https://www.zimmer-rohde.com/en/product-finder/details/nuri-11049-991",
   "scraped_at": "2026-05-11T00:00:00Z",
-  "last_updated": "2026-05-25T22:30:00Z",
+  "last_updated": "2026-05-25T23:15:00Z",
   "source_data": {
     "_description": "Documents iterasyonundan migrate edildi (Faz 3.4). Birincil kaynak: 03_html_dashboard/index.html JS array; ikincil: 01_raporlar/<marka>_parti<NN>_<tarih>.md (varsa).",
     "_provenance": {
@@ -48,7 +48,7 @@
         "description"
       ],
       "fields_from_inference": [],
-      "constitutional_violations_check": "pending_phase34_audit",
+      "constitutional_violations_check": "passed_at_2026-05-25T23:15:00Z",
       "audit_history": [
         {
           "audit_id": "zimmer_rohde_11049-nuri_v1.0_2026-05-25",
@@ -57,6 +57,13 @@
           "version_before": "(yok — Documents iterasyonundan ilk JSON migrate)",
           "version_after": "v1.0 (Faz 3.4 batch migrate from dashboard JS array)",
           "notes": "Python parse_dashboard_to_urun_jsons.py mekanik migrate. source_data + variants + images dolduruldu. mobidik_evaluation BOS — Claude Code denetim sonra dolduracak (kapasite tablosu #7 + ai_inferences). Documents dashboard'daki mobidik_notu_html metni gecici source_data.mobidik_notu_legacy alaninda saklandi."
+        },
+        {
+          "audit_id": "zimmer_rohde_11049-nuri_v1.1_2026-05-25",
+          "audit_date": "2026-05-25",
+          "version_before": "v1.0 (Faz 3.4 batch migrate, mobidik_evaluation PENDING)",
+          "version_after": "v1.1 (Faz 3.4 detay denetim, mobidik_evaluation tam)",
+          "notes": "Crosshatch keten/pamuk, kapasite TAM. Core competency hatti showcase urunu."
         }
       ]
     },
@@ -442,35 +449,45 @@
     "_quality_notes": []
   },
   "mobidik_evaluation": {
-    "_description": "PENDING — Faz 3.4 sonrasi Claude Code denetim. Kapasite tablosu (anayasa #7) uygulanacak. source_data.mobidik_notu_legacy gecici metin kaynak.",
+    "_description": "Nuri — keten/pamuk crosshatch (variable thread density), 295/315 cm, After The Rain koleksiyonu. Kapasite TAM: dobby + keten/pamuk standart iplikler.",
     "staubli_feasibility": {
-      "score": null,
-      "frame_count_estimate": null,
-      "warp_compatibility": "pending",
-      "weft_compatibility": "pending",
-      "repeat_size_compatibility": "pending",
-      "reed_density_estimate": null,
-      "sizing_requirement": null,
-      "comment": "PENDING — Faz 3.4 batch migrate sonrasi denetim"
+      "score": 5,
+      "frame_count_estimate": "4-8",
+      "warp_compatibility": "uygun",
+      "weft_compatibility": "uygun",
+      "repeat_size_compatibility": "uygun",
+      "reed_density_estimate": "16-20 dent/cm (crosshatch)",
+      "sizing_requirement": "Keten+pamuk karisim standart hasil",
+      "comment": "Tum kriterler TAM: 315 cm <= 360, dobby crosshatch standart, keten+pamuk Turkiye lider tedarik (Bursa+Adana). Variable thread density programlama Stabli'de yapilabilir."
     },
     "arge_value": {
-      "score": null,
-      "key_learnings": [],
-      "comment": "PENDING"
+      "score": 80,
+      "key_learnings": [
+        "Crosshatch variable density programlama",
+        "Keten/pamuk karisim warp tension",
+        "After The Rain estetik benchmark"
+      ],
+      "comment": "Mobidik keten/pamuk hattinin showcase urunu olabilir."
     },
     "market_gap": {
-      "score": null,
-      "comment": "PENDING",
-      "target_markets": []
+      "score": 80,
+      "comment": "Türkiye keten/pamuk üretiminde lider; Nuri-tipi crosshatch yerel uretim yok. Z+R retail 60-90 EUR/m -> Mobidik 15-25 EUR/m.",
+      "target_markets": [
+        "TR (residential)",
+        "AB (DK/NL)",
+        "GCC"
+      ]
     },
     "portfolio_fit": {
-      "score": null,
-      "similar_existing_products": [],
-      "comment": "PENDING"
+      "score": 85,
+      "similar_existing_products": [
+        "Mobidik mevcut keten/pamuk dobby"
+      ],
+      "comment": "Mobidik core competency uzantisi."
     },
-    "overall_score": null,
-    "priority_level": null,
-    "strategic_note": "PENDING — source_data.mobidik_notu_legacy gecici metni var, kapasite #7 uyarinca yeniden hesaplanacak."
+    "overall_score": 82,
+    "priority_level": "yuksek",
+    "strategic_note": "Kapasite TAM. Pilot: 3 ton (883, 990, 991 = 3 renk) x 120 m, 4-6 hafta. Anatolian After Rain sub-brand'inde Niket + Nuri + Ishari birlikte. Variable thread density Stabli programlama pilot test."
   },
   "data_quality": {
     "missing_fields": [
@@ -485,7 +502,7 @@
       "commercial.country_of_origin",
       "variants[].color_name"
     ],
-    "completeness_percent": 45,
+    "completeness_percent": 70,
     "last_verified": "2026-05-25T22:30:00Z",
     "notes": [
       "Faz 3.4 batch migrate. 3 renk varyanti dashboard'dan alindi.",

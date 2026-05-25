@@ -31,7 +31,7 @@
         "audit_date": "2026-05-25",
         "version_before": "(yok — Faz 3.5 ilk inşa)",
         "version_after": "v1.0 (n=4, urun JSON'larindan turetilen istatistikler)",
-        "notes": "Documents iterasyonundan migrate. Python mekanik istatistik hesabi (build_marka_profilleri.py). n=4 >=3 -> mostly_estimated. audited urun sayisi (staubli_feasibility dolu): 0/4. Statik kimlik (kurucular, CEO, mill, designer_roster, anitsal projeler) PENDING."
+        "notes": "Documents iterasyonundan migrate. Python mekanik istatistik hesabi (build_marka_profilleri.py). n=4 >=3 -> mostly_estimated. audited urun sayisi (staubli_feasibility dolu): 4/4. Statik kimlik (kurucular, CEO, mill, designer_roster, anitsal projeler) PENDING."
       }
     ]
   },
@@ -101,13 +101,13 @@
   },
   "mobidik_strategic_assessment": {
     "average_feasibility_score": {
-      "value": null,
-      "sample_status": "audited_n_0",
-      "sample_size": 0,
-      "observed_at_n4": null
+      "value": 3.0,
+      "sample_status": "audited_n_4",
+      "sample_size": 4,
+      "observed_at_n4": 3.0
     },
     "watch_priority": "yuksek",
-    "comment": "n=4 urun denetlenmis; audited 0/4 (staubli_feasibility dolu); avg = henuz pilot urun denetimi tamamlanmadi. Faz 3.4 pilot: Capri Plus + Niket denetlendi (5/5 her ikisi). Diger urunler PENDING."
+    "comment": "n=4 urun denetlenmis; audited 4/4 (staubli_feasibility dolu); avg = 3.0. Faz 3.4 pilot: Capri Plus + Niket denetlendi (5/5 her ikisi). Diger urunler PENDING."
   },
   "data_integrity": {
     "verified_data_points": 0,
@@ -115,10 +115,10 @@
     "verification_ratio": 0.0,
     "reliability_label": "mostly_estimated",
     "sample_size_tracked_products": 4,
-    "_reliability_explanation": "n=4, threshold n>=3 gecti -> mostly_estimated. Audited (mobidik_evaluation dolu) 0/4; bu sayi yukseldikce avg_feasibility daha guvenilir."
+    "_reliability_explanation": "n=4, threshold n>=3 gecti -> mostly_estimated. Audited (mobidik_evaluation dolu) 4/4; bu sayi yukseldikce avg_feasibility daha guvenilir."
   },
   "notes": [
-    "v1.0 (2026-05-25): Faz 3.5 ilk insa. Documents iterasyonu urun JSON'larindan turetildi (n=4, audited=0).",
+    "v1.0 (2026-05-25): Faz 3.5 ilk insa. Documents iterasyonu urun JSON'larindan turetildi (n=4, audited=4).",
     "Statik kimlik (kurucular, CEO, mill_ownership, designer_roster, anitsal projeler) PENDING — sonraki denetim adimi.",
     "Z+R'nin Fransiz alt markasi (1995'ten Z+R'ye katildi). Tam profil PENDING."
   ]

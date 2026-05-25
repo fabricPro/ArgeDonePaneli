@@ -8,7 +8,7 @@
   "product_name": "Fil du Temps",
   "source_url": "https://www.zimmer-rohde.com/en/product-finder/details/fil-du-temps-19649-883",
   "scraped_at": "2026-05-11T00:00:00Z",
-  "last_updated": "2026-05-25T22:30:00Z",
+  "last_updated": "2026-05-25T23:15:00Z",
   "source_data": {
     "_description": "Documents iterasyonundan migrate edildi (Faz 3.4). Birincil kaynak: 03_html_dashboard/index.html JS array; ikincil: 01_raporlar/<marka>_parti<NN>_<tarih>.md (varsa).",
     "_provenance": {
@@ -48,7 +48,7 @@
         "description"
       ],
       "fields_from_inference": [],
-      "constitutional_violations_check": "pending_phase34_audit",
+      "constitutional_violations_check": "passed_at_2026-05-25T23:15:00Z",
       "audit_history": [
         {
           "audit_id": "etamine_19649-fil-du-temps_v1.0_2026-05-25",
@@ -57,6 +57,13 @@
           "version_before": "(yok — Documents iterasyonundan ilk JSON migrate)",
           "version_after": "v1.0 (Faz 3.4 batch migrate from dashboard JS array)",
           "notes": "Python parse_dashboard_to_urun_jsons.py mekanik migrate. source_data + variants + images dolduruldu. mobidik_evaluation BOS — Claude Code denetim sonra dolduracak (kapasite tablosu #7 + ai_inferences). Documents dashboard'daki mobidik_notu_html metni gecici source_data.mobidik_notu_legacy alaninda saklandi."
+        },
+        {
+          "audit_id": "etamine_19649-fil-du-temps_v1.1_2026-05-25",
+          "audit_date": "2026-05-25",
+          "version_before": "v1.0 (Faz 3.4 batch migrate, mobidik_evaluation PENDING)",
+          "version_after": "v1.1 (Faz 3.4 detay denetim, mobidik_evaluation tam)",
+          "notes": "Solution-dyed acrylic leno outdoor. Leno + outdoor finishing kombinasyon, dokuma TAM. Capri Plus + leno hatti birlesimi."
         }
       ]
     },
@@ -526,35 +533,47 @@
     "_quality_notes": []
   },
   "mobidik_evaluation": {
-    "_description": "PENDING — Faz 3.4 sonrasi Claude Code denetim. Kapasite tablosu (anayasa #7) uygulanacak. source_data.mobidik_notu_legacy gecici metin kaynak.",
+    "_description": "Fil du Temps — solution-dyed acrylic crochet-inspired leno (gauzy outdoor), 297 cm. Kapasite: leno TAM, acrylic solution-dyed Aksa fason mumkun, outdoor finishing fason.",
     "staubli_feasibility": {
-      "score": null,
-      "frame_count_estimate": null,
-      "warp_compatibility": "pending",
-      "weft_compatibility": "pending",
-      "repeat_size_compatibility": "pending",
-      "reed_density_estimate": null,
-      "sizing_requirement": null,
-      "comment": "PENDING — Faz 3.4 batch migrate sonrasi denetim"
+      "score": 4,
+      "frame_count_estimate": "8-12",
+      "warp_compatibility": "uygun",
+      "weft_compatibility": "uygun",
+      "repeat_size_compatibility": "uygun (crochet pattern)",
+      "reed_density_estimate": "10-14 dent/cm (leno open)",
+      "sizing_requirement": "Acrylic warp tension + outdoor finishing protocol",
+      "comment": "Leno TAM (kapasite tablosu); width 297 ok. Solution-dyed acrylic iplik Aksa Türkiye uretici (fason teklif), outdoor finishing (water/UV/saltwater) ayri proses. Skor 4: dokuma TAM, ek finishing fason karmasik."
     },
     "arge_value": {
-      "score": null,
-      "key_learnings": [],
-      "comment": "PENDING"
+      "score": 75,
+      "key_learnings": [
+        "Solution-dyed acrylic iplik tedariki (Aksa)",
+        "Outdoor finishing fason (water-repellent + UV)",
+        "Crochet-inspired leno programlama"
+      ],
+      "comment": "Niket + Alpaca Leno + Fil du Temps = 3-urun leno portfoyu (+ Loops yun/alpaka). Outdoor segment Etamine."
     },
     "market_gap": {
-      "score": null,
-      "comment": "PENDING",
-      "target_markets": []
+      "score": 65,
+      "comment": "Türkiye outdoor acrylic perde yerel uretim sinirli. AB outdoor segment buyuyor. Etamine retail 100-150 EUR/m -> Mobidik 25-40 EUR/m.",
+      "target_markets": [
+        "AB (DACH outdoor)",
+        "TR otel terasi",
+        "GCC"
+      ]
     },
     "portfolio_fit": {
-      "score": null,
-      "similar_existing_products": [],
-      "comment": "PENDING"
+      "score": 70,
+      "similar_existing_products": [
+        "Niket leno",
+        "Alpaca Leno",
+        "Capri Plus outdoor"
+      ],
+      "comment": "Leno + outdoor kombinasyonu, Capri Plus ile birlikte outdoor hatti."
     },
-    "overall_score": null,
-    "priority_level": null,
-    "strategic_note": "PENDING — source_data.mobidik_notu_legacy gecici metni var, kapasite #7 uyarinca yeniden hesaplanacak."
+    "overall_score": 72,
+    "priority_level": "orta",
+    "strategic_note": "Kapasite TAM dokumada (leno). Asil iş: (1) Aksa solution-dyed acrylic iplik teklif, (2) Outdoor finishing fason (water+UV+saltwater) tedarikci tespit, (3) Pilot: 2 ton x 60 m, 8-10 hafta. Leno portfoyu ROI hesabinda Niket + Alpaca Leno + Fil du Temps + Loops birlestir."
   },
   "data_quality": {
     "missing_fields": [
@@ -569,7 +588,7 @@
       "commercial.country_of_origin",
       "variants[].color_name"
     ],
-    "completeness_percent": 45,
+    "completeness_percent": 70,
     "last_verified": "2026-05-25T22:30:00Z",
     "notes": [
       "Faz 3.4 batch migrate. 5 renk varyanti dashboard'dan alindi.",

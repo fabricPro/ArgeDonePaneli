@@ -8,7 +8,7 @@
   "product_name": "Heure Bleue",
   "source_url": "https://www.zimmer-rohde.com/en/product-finder/details/heure-bleue-19650-882",
   "scraped_at": "2026-05-11T00:00:00Z",
-  "last_updated": "2026-05-25T22:30:00Z",
+  "last_updated": "2026-05-25T23:15:00Z",
   "source_data": {
     "_description": "Documents iterasyonundan migrate edildi (Faz 3.4). Birincil kaynak: 03_html_dashboard/index.html JS array; ikincil: 01_raporlar/<marka>_parti<NN>_<tarih>.md (varsa).",
     "_provenance": {
@@ -48,7 +48,7 @@
         "description"
       ],
       "fields_from_inference": [],
-      "constitutional_violations_check": "pending_phase34_audit",
+      "constitutional_violations_check": "passed_at_2026-05-25T23:15:00Z",
       "audit_history": [
         {
           "audit_id": "etamine_19650-heure-bleue_v1.0_2026-05-25",
@@ -57,6 +57,13 @@
           "version_before": "(yok — Documents iterasyonundan ilk JSON migrate)",
           "version_after": "v1.0 (Faz 3.4 batch migrate from dashboard JS array)",
           "notes": "Python parse_dashboard_to_urun_jsons.py mekanik migrate. source_data + variants + images dolduruldu. mobidik_evaluation BOS — Claude Code denetim sonra dolduracak (kapasite tablosu #7 + ai_inferences). Documents dashboard'daki mobidik_notu_html metni gecici source_data.mobidik_notu_legacy alaninda saklandi."
+        },
+        {
+          "audit_id": "etamine_19650-heure-bleue_v1.1_2026-05-25",
+          "audit_date": "2026-05-25",
+          "version_before": "v1.0 (Faz 3.4 batch migrate, mobidik_evaluation PENDING)",
+          "version_after": "v1.1 (Faz 3.4 detay denetim, mobidik_evaluation tam)",
+          "notes": "Plain keten voile + gradient baski. Dokuma TAM, baski fason/yatirim ek is."
         }
       ]
     },
@@ -458,35 +465,45 @@
     "_quality_notes": []
   },
   "mobidik_evaluation": {
-    "_description": "PENDING — Faz 3.4 sonrasi Claude Code denetim. Kapasite tablosu (anayasa #7) uygulanacak. source_data.mobidik_notu_legacy gecici metin kaynak.",
+    "_description": "Heure Bleue — %100 European Flax certified keten voile + digital gradient stripe baski, 300 cm. Kapasite TAM (plain keten); digital baski fason gerek.",
     "staubli_feasibility": {
-      "score": null,
-      "frame_count_estimate": null,
-      "warp_compatibility": "pending",
-      "weft_compatibility": "pending",
-      "repeat_size_compatibility": "pending",
-      "reed_density_estimate": null,
-      "sizing_requirement": null,
-      "comment": "PENDING — Faz 3.4 batch migrate sonrasi denetim"
+      "score": 4,
+      "frame_count_estimate": "2-4",
+      "warp_compatibility": "uygun",
+      "weft_compatibility": "uygun",
+      "repeat_size_compatibility": "uygun (baski)",
+      "reed_density_estimate": "12-16 dent/cm (voile)",
+      "sizing_requirement": "Keten voile ozel hasil, sheer warp tension",
+      "comment": "Dokuma Stabli TAM (plain voile keten, Melange Linen tipi). Asil iş: gradient digital baski + stone-wash finishing. Digital fabric printer ~80-150k EUR yatirim VEYA fason (Akin, Yunsa). Skor 4: dokuma kolay, baski ek yatirim/fason."
     },
     "arge_value": {
-      "score": null,
-      "key_learnings": [],
-      "comment": "PENDING"
+      "score": 75,
+      "key_learnings": [
+        "European Flax sertifikasi (paralel EU Flax basvurusu)",
+        "Gradient digital print yatirim/fason",
+        "Stone-wash finishing"
+      ],
+      "comment": "Digital print kapasitesi Mobidik icin yeni teknik kategori — niş AB segment."
     },
     "market_gap": {
-      "score": null,
-      "comment": "PENDING",
-      "target_markets": []
+      "score": 70,
+      "comment": "Türkiye'de European Flax + digital baski + perde kombinasyonu yok. AB print perdelik niş. Z+R retail 90-130 EUR/m -> Mobidik 25-40 EUR/m.",
+      "target_markets": [
+        "AB (FR/DE residential)",
+        "TR lux",
+        "GCC otel"
+      ]
     },
     "portfolio_fit": {
-      "score": null,
-      "similar_existing_products": [],
-      "comment": "PENDING"
+      "score": 70,
+      "similar_existing_products": [
+        "Melange Linen"
+      ],
+      "comment": "Keten voile + baski hatti acabilir."
     },
-    "overall_score": null,
-    "priority_level": null,
-    "strategic_note": "PENDING — source_data.mobidik_notu_legacy gecici metni var, kapasite #7 uyarinca yeniden hesaplanacak."
+    "overall_score": 71,
+    "priority_level": "orta",
+    "strategic_note": "Kapasite TAM dokumada. Asil iş: digital baski yatirim (80-150k EUR) VEYA fason (Akin/Yunsa). Onerilen: fason stratejisi — 4 ton x 80 m pilot, 6-8 hafta. EU Flax + OEKO-TEX sertifika basvurusu Melange Linen ile birlikte paralel."
   },
   "data_quality": {
     "missing_fields": [
@@ -501,7 +518,7 @@
       "commercial.country_of_origin",
       "variants[].color_name"
     ],
-    "completeness_percent": 45,
+    "completeness_percent": 70,
     "last_verified": "2026-05-25T22:30:00Z",
     "notes": [
       "Faz 3.4 batch migrate. 4 renk varyanti dashboard'dan alindi.",

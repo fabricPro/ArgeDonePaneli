@@ -8,7 +8,7 @@
   "product_name": "Softgrid",
   "source_url": "https://www.zimmer-rohde.com/en/product-finder/details/softgrid-10918-694",
   "scraped_at": "2026-05-11T00:00:00Z",
-  "last_updated": "2026-05-25T22:30:00Z",
+  "last_updated": "2026-05-25T23:15:00Z",
   "source_data": {
     "_description": "Documents iterasyonundan migrate edildi (Faz 3.4). Birincil kaynak: 03_html_dashboard/index.html JS array; ikincil: 01_raporlar/<marka>_parti<NN>_<tarih>.md (varsa).",
     "_provenance": {
@@ -48,7 +48,7 @@
         "description"
       ],
       "fields_from_inference": [],
-      "constitutional_violations_check": "pending_phase34_audit",
+      "constitutional_violations_check": "passed_at_2026-05-25T23:15:00Z",
       "audit_history": [
         {
           "audit_id": "zimmer_rohde_10918-softgrid_v1.0_2026-05-25",
@@ -57,6 +57,13 @@
           "version_before": "(yok — Documents iterasyonundan ilk JSON migrate)",
           "version_after": "v1.0 (Faz 3.4 batch migrate from dashboard JS array)",
           "notes": "Python parse_dashboard_to_urun_jsons.py mekanik migrate. source_data + variants + images dolduruldu. mobidik_evaluation BOS — Claude Code denetim sonra dolduracak (kapasite tablosu #7 + ai_inferences). Documents dashboard'daki mobidik_notu_html metni gecici source_data.mobidik_notu_legacy alaninda saklandi."
+        },
+        {
+          "audit_id": "zimmer_rohde_10918-softgrid_v1.1_2026-05-25",
+          "audit_date": "2026-05-25",
+          "version_before": "v1.0 (Faz 3.4 batch migrate, mobidik_evaluation PENDING)",
+          "version_after": "v1.1 (Faz 3.4 detay denetim, mobidik_evaluation tam)",
+          "notes": "Dobby 4-bilesen karisim, kapasite TAM. 4-bilesen MOQ darboğaz, 3-bilesen muadili oneriliyor."
         }
       ]
     },
@@ -643,35 +650,43 @@
     "_quality_notes": []
   },
   "mobidik_evaluation": {
-    "_description": "PENDING — Faz 3.4 sonrasi Claude Code denetim. Kapasite tablosu (anayasa #7) uygulanacak. source_data.mobidik_notu_legacy gecici metin kaynak.",
+    "_description": "Softgrid — 4-bilesen karisim (PES 36%, Cot 34%, Vis 16%, Lin 14%) dobby grid, 300 cm, 12 renk. Kapasite TAM ama iplik MOQ riski.",
     "staubli_feasibility": {
-      "score": null,
-      "frame_count_estimate": null,
-      "warp_compatibility": "pending",
-      "weft_compatibility": "pending",
-      "repeat_size_compatibility": "pending",
-      "reed_density_estimate": null,
-      "sizing_requirement": null,
-      "comment": "PENDING — Faz 3.4 batch migrate sonrasi denetim"
+      "score": 5,
+      "frame_count_estimate": "4-8",
+      "warp_compatibility": "uygun",
+      "weft_compatibility": "uygun",
+      "repeat_size_compatibility": "uygun",
+      "reed_density_estimate": "16-20 dent/cm (dobby grid)",
+      "sizing_requirement": "Multi-fiber blend yarn warp tension hassasiyeti",
+      "comment": "Stabli kriterleri TAM: 300 cm, dobby TAM, 4-bilesen karisim iplik standart kategoriler icinde. Asil darbogaz: 4-fiber MOQ."
     },
     "arge_value": {
-      "score": null,
-      "key_learnings": [],
-      "comment": "PENDING"
+      "score": 75,
+      "key_learnings": [
+        "4-bilesen karisim iplik MOQ yonetimi",
+        "3-bilesen muadili ile %90 yakinlik + maliyet -%20",
+        "Sketchbook koleksiyon estetik benchmark"
+      ],
+      "comment": "4-bilesen iplik tedariki Turkiye'de niş (Korteks). 3-bilesen alternatif (PES+Cot+Lin) %90 yakinlik."
     },
     "market_gap": {
-      "score": null,
-      "comment": "PENDING",
-      "target_markets": []
+      "score": 70,
+      "comment": "Multi-fiber dobby grid Türkiye'de yerel üretim yok. Mobidik 3-bilesen muadili ile maliyet avantaji.",
+      "target_markets": [
+        "TR",
+        "DACH",
+        "Nordik"
+      ]
     },
     "portfolio_fit": {
-      "score": null,
+      "score": 75,
       "similar_existing_products": [],
-      "comment": "PENDING"
+      "comment": "Mobidik karisim iplik portfoyune iyi ek. 12 renk yonetimi orta zorluk."
     },
-    "overall_score": null,
-    "priority_level": null,
-    "strategic_note": "PENDING — source_data.mobidik_notu_legacy gecici metni var, kapasite #7 uyarinca yeniden hesaplanacak."
+    "overall_score": 74,
+    "priority_level": "orta",
+    "strategic_note": "Kapasite TAM, ana darbogaz 4-bilesen iplik MOQ. Onerilen: 3-bilesen muadil (PES+Cot+Lin) ile pilot, %90 gorsel yakinlik + %20 maliyet dususu. Pilot: 4 notr ton x 100 m, 6-8 hafta. Korteks 3-bilesen teklif talep et."
   },
   "data_quality": {
     "missing_fields": [
@@ -686,7 +701,7 @@
       "commercial.country_of_origin",
       "variants[].color_name"
     ],
-    "completeness_percent": 45,
+    "completeness_percent": 70,
     "last_verified": "2026-05-25T22:30:00Z",
     "notes": [
       "Faz 3.4 batch migrate. 12 renk varyanti dashboard'dan alindi.",

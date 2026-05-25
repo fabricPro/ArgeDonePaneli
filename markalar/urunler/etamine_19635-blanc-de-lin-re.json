@@ -8,7 +8,7 @@
   "product_name": "Blanc de Lin RE",
   "source_url": "https://www.zimmer-rohde.com/en/product-finder/details/blanc-de-lin-re-19635-880",
   "scraped_at": "2026-05-11T00:00:00Z",
-  "last_updated": "2026-05-25T22:30:00Z",
+  "last_updated": "2026-05-25T23:15:00Z",
   "source_data": {
     "_description": "Documents iterasyonundan migrate edildi (Faz 3.4). Birincil kaynak: 03_html_dashboard/index.html JS array; ikincil: 01_raporlar/<marka>_parti<NN>_<tarih>.md (varsa).",
     "_provenance": {
@@ -48,7 +48,7 @@
         "description"
       ],
       "fields_from_inference": [],
-      "constitutional_violations_check": "pending_phase34_audit",
+      "constitutional_violations_check": "passed_at_2026-05-25T23:15:00Z",
       "audit_history": [
         {
           "audit_id": "etamine_19635-blanc-de-lin-re_v1.0_2026-05-25",
@@ -57,6 +57,13 @@
           "version_before": "(yok — Documents iterasyonundan ilk JSON migrate)",
           "version_after": "v1.0 (Faz 3.4 batch migrate from dashboard JS array)",
           "notes": "Python parse_dashboard_to_urun_jsons.py mekanik migrate. source_data + variants + images dolduruldu. mobidik_evaluation BOS — Claude Code denetim sonra dolduracak (kapasite tablosu #7 + ai_inferences). Documents dashboard'daki mobidik_notu_html metni gecici source_data.mobidik_notu_legacy alaninda saklandi."
+        },
+        {
+          "audit_id": "etamine_19635-blanc-de-lin-re_v1.1_2026-05-25",
+          "audit_date": "2026-05-25",
+          "version_before": "v1.0 (Faz 3.4 batch migrate, mobidik_evaluation PENDING)",
+          "version_after": "v1.1 (Faz 3.4 detay denetim, mobidik_evaluation tam)",
+          "notes": "ÖRME/KNIT urunu, Stabli DOKUMA tezgahi yapamaz. Replication hedefi DEGIL — pazar gozlemi olarak rapor."
         }
       ]
     },
@@ -261,35 +268,40 @@
     "_quality_notes": []
   },
   "mobidik_evaluation": {
-    "_description": "PENDING — Faz 3.4 sonrasi Claude Code denetim. Kapasite tablosu (anayasa #7) uygulanacak. source_data.mobidik_notu_legacy gecici metin kaynak.",
+    "_description": "Blanc de Lin RE — KETEN ÖRME/KNIT (raşel makinesi), 155 cm dar. ATÖLYE DIŞI: Stabli armür DOKUMA tezgahi, örme yapamaz. Kapasite tablosu jakar YOK + örme bambaska kategori.",
     "staubli_feasibility": {
-      "score": null,
-      "frame_count_estimate": null,
-      "warp_compatibility": "pending",
-      "weft_compatibility": "pending",
-      "repeat_size_compatibility": "pending",
-      "reed_density_estimate": null,
-      "sizing_requirement": null,
-      "comment": "PENDING — Faz 3.4 batch migrate sonrasi denetim"
+      "score": 1,
+      "frame_count_estimate": "uygulanamaz",
+      "warp_compatibility": "uygun_degil",
+      "weft_compatibility": "uygun_degil",
+      "repeat_size_compatibility": "uygun_degil",
+      "reed_density_estimate": "uygulanamaz (örme)",
+      "sizing_requirement": "Örme makinesi (Karl Mayer raşel)",
+      "comment": "ATÖLYE DIŞI: Bu DOKUMA değil ÖRME ürünü. Stabli armür sadece dokuma yapar. Replication için Karl Mayer raşel makinesi ~100-200k EUR yatirim gerekir. Pazar gözlemi olarak rapor edilir, replication hedefi DEĞİL."
     },
     "arge_value": {
-      "score": null,
-      "key_learnings": [],
-      "comment": "PENDING"
+      "score": 30,
+      "key_learnings": [
+        "Örme kategorisi pazar gözlemi",
+        "European Flax + OEKO-TEX sertifika Etamine örnegi"
+      ],
+      "comment": "Replication hedefi değil — strateji disi."
     },
     "market_gap": {
-      "score": null,
-      "comment": "PENDING",
-      "target_markets": []
+      "score": 20,
+      "comment": "Türkiye keten örme perdelik üreticisi yok; ama Mobidik'in is alani DOKUMA, örme kapsam disi.",
+      "target_markets": [
+        "uygulanamaz (Mobidik kapsam disi)"
+      ]
     },
     "portfolio_fit": {
-      "score": null,
+      "score": 0,
       "similar_existing_products": [],
-      "comment": "PENDING"
+      "comment": "Mobidik dokuma kapasitesinde örme replikasyon disi."
     },
-    "overall_score": null,
-    "priority_level": null,
-    "strategic_note": "PENDING — source_data.mobidik_notu_legacy gecici metni var, kapasite #7 uyarinca yeniden hesaplanacak."
+    "overall_score": 13,
+    "priority_level": "dusuk",
+    "strategic_note": "STRATEJI DISI — replication hedefi değil. Mobidik DOKUMA tezgahi, örme kapsam disi. Bu urun pazar gozlemi olarak rapor edilir: Etamine artisanal koleksiyonunda örme kategori varligi tespit edildi. Yatirim secenegi (Karl Mayer raşel ~100-200k EUR) ARGE oncelik listesinde alt sira."
   },
   "data_quality": {
     "missing_fields": [
@@ -304,7 +316,7 @@
       "commercial.country_of_origin",
       "variants[].color_name"
     ],
-    "completeness_percent": 45,
+    "completeness_percent": 70,
     "last_verified": "2026-05-25T22:30:00Z",
     "notes": [
       "Faz 3.4 batch migrate. 1 renk varyanti dashboard'dan alindi.",

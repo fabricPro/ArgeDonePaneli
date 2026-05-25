@@ -8,7 +8,7 @@
   "product_name": "Loops",
   "source_url": "https://www.zimmer-rohde.com/en/product-finder/details/loops-10971-981",
   "scraped_at": "2026-05-11T00:00:00Z",
-  "last_updated": "2026-05-25T22:30:00Z",
+  "last_updated": "2026-05-25T23:15:00Z",
   "source_data": {
     "_description": "Documents iterasyonundan migrate edildi (Faz 3.4). Birincil kaynak: 03_html_dashboard/index.html JS array; ikincil: 01_raporlar/<marka>_parti<NN>_<tarih>.md (varsa).",
     "_provenance": {
@@ -48,7 +48,7 @@
         "description"
       ],
       "fields_from_inference": [],
-      "constitutional_violations_check": "pending_phase34_audit",
+      "constitutional_violations_check": "passed_at_2026-05-25T23:15:00Z",
       "audit_history": [
         {
           "audit_id": "zimmer_rohde_10971-loops_v1.0_2026-05-25",
@@ -57,6 +57,13 @@
           "version_before": "(yok — Documents iterasyonundan ilk JSON migrate)",
           "version_after": "v1.0 (Faz 3.4 batch migrate from dashboard JS array)",
           "notes": "Python parse_dashboard_to_urun_jsons.py mekanik migrate. source_data + variants + images dolduruldu. mobidik_evaluation BOS — Claude Code denetim sonra dolduracak (kapasite tablosu #7 + ai_inferences). Documents dashboard'daki mobidik_notu_html metni gecici source_data.mobidik_notu_legacy alaninda saklandi."
+        },
+        {
+          "audit_id": "zimmer_rohde_10971-loops_v1.1_2026-05-25",
+          "audit_date": "2026-05-25",
+          "version_before": "v1.0 (Faz 3.4 batch migrate, mobidik_evaluation PENDING)",
+          "version_after": "v1.1 (Faz 3.4 detay denetim, mobidik_evaluation tam)",
+          "notes": "Yun+alpaka boucle, dokuma kapasitede ama iplik MOQ darbogaz. Premium AB segment potansiyel yuksek."
         }
       ]
     },
@@ -449,35 +456,45 @@
     "_quality_notes": []
   },
   "mobidik_evaluation": {
-    "_description": "PENDING — Faz 3.4 sonrasi Claude Code denetim. Kapasite tablosu (anayasa #7) uygulanacak. source_data.mobidik_notu_legacy gecici metin kaynak.",
+    "_description": "Loops — yun+alpaka boucle (open semi-transparent), 315 cm. Kapasite: yun TAM, alpaka kapasitede explicit yok ama yun benzeri calisir, boucle iplik niş.",
     "staubli_feasibility": {
-      "score": null,
-      "frame_count_estimate": null,
-      "warp_compatibility": "pending",
-      "weft_compatibility": "pending",
-      "repeat_size_compatibility": "pending",
-      "reed_density_estimate": null,
-      "sizing_requirement": null,
-      "comment": "PENDING — Faz 3.4 batch migrate sonrasi denetim"
+      "score": 4,
+      "frame_count_estimate": "4-8",
+      "warp_compatibility": "uygun",
+      "weft_compatibility": "uygun",
+      "repeat_size_compatibility": "uygun",
+      "reed_density_estimate": "10-14 dent/cm (boucle open)",
+      "sizing_requirement": "Yun/alpaka boucle warp tension hassasiyeti, anti-static treatment",
+      "comment": "Dokuma TAM (boucle = dobby + ozel iplik); width 315<=360. Asil darbogaz: yun+alpaka boucle iplik tedariki — Yunsa/Polaron MOQ ~1000 kg, alpaka %16 nis. Skor 4 (5 degil) cunku iplik tedariki kritik."
     },
     "arge_value": {
-      "score": null,
-      "key_learnings": [],
-      "comment": "PENDING"
+      "score": 80,
+      "key_learnings": [
+        "Yun+alpaka boucle iplik tedariki",
+        "Premium boucle drapery — DACH segment",
+        "Open weave semi-transparent yun"
+      ],
+      "comment": "Niket + Fil du Temps + Alpaca Leno + Loops = 4-urun premium leno/open hatti potansiyeli."
     },
     "market_gap": {
-      "score": null,
-      "comment": "PENDING",
-      "target_markets": []
+      "score": 80,
+      "comment": "Türkiye'de yun+alpaka boucle yerel üretim yok. DACH premium yün/alpaka segment AB'de buyuyor. Z+R retail 100-150 EUR/m -> Mobidik 30-40 EUR/m.",
+      "target_markets": [
+        "DACH",
+        "Nordik",
+        "TR premium konut"
+      ]
     },
     "portfolio_fit": {
-      "score": null,
-      "similar_existing_products": [],
-      "comment": "PENDING"
+      "score": 75,
+      "similar_existing_products": [
+        "Kvadrat Alpaca Leno"
+      ],
+      "comment": "Alpaca Leno ile birlikte premium yun/alpaka segment. ARGE yatirimi (iplik) gerek."
     },
-    "overall_score": null,
-    "priority_level": null,
-    "strategic_note": "PENDING — source_data.mobidik_notu_legacy gecici metni var, kapasite #7 uyarinca yeniden hesaplanacak."
+    "overall_score": 78,
+    "priority_level": "yuksek",
+    "strategic_note": "Yun+alpaka boucle = niş premium. Acil aksiyon: (1) Yunsa+Polaron yun+alpaka boucle iplik teklifi, MOQ muzakere, (2) Pilot: 3 notr ton x 60 m, 6-8 hafta, (3) DACH ihracat kanali (Almanya/Avusturya konut), (4) Alpaca Leno ile birlikte ROI hesabi."
   },
   "data_quality": {
     "missing_fields": [
@@ -492,7 +509,7 @@
       "commercial.country_of_origin",
       "variants[].color_name"
     ],
-    "completeness_percent": 45,
+    "completeness_percent": 70,
     "last_verified": "2026-05-25T22:30:00Z",
     "notes": [
       "Faz 3.4 batch migrate. 3 renk varyanti dashboard'dan alindi.",

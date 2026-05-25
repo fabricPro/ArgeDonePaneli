@@ -8,7 +8,7 @@
   "product_name": "Andria",
   "source_url": "https://www.zimmer-rohde.com/en/product-finder/details/andria-19621-883",
   "scraped_at": "2026-05-11T00:00:00Z",
-  "last_updated": "2026-05-25T22:30:00Z",
+  "last_updated": "2026-05-25T23:15:00Z",
   "source_data": {
     "_description": "Documents iterasyonundan migrate edildi (Faz 3.4). Birincil kaynak: 03_html_dashboard/index.html JS array; ikincil: 01_raporlar/<marka>_parti<NN>_<tarih>.md (varsa).",
     "_provenance": {
@@ -48,7 +48,7 @@
         "description"
       ],
       "fields_from_inference": [],
-      "constitutional_violations_check": "pending_phase34_audit",
+      "constitutional_violations_check": "passed_at_2026-05-25T23:15:00Z",
       "audit_history": [
         {
           "audit_id": "etamine_19621-andria_v1.0_2026-05-25",
@@ -57,6 +57,13 @@
           "version_before": "(yok — Documents iterasyonundan ilk JSON migrate)",
           "version_after": "v1.0 (Faz 3.4 batch migrate from dashboard JS array)",
           "notes": "Python parse_dashboard_to_urun_jsons.py mekanik migrate. source_data + variants + images dolduruldu. mobidik_evaluation BOS — Claude Code denetim sonra dolduracak (kapasite tablosu #7 + ai_inferences). Documents dashboard'daki mobidik_notu_html metni gecici source_data.mobidik_notu_legacy alaninda saklandi."
+        },
+        {
+          "audit_id": "etamine_19621-andria_v1.1_2026-05-25",
+          "audit_date": "2026-05-25",
+          "version_before": "v1.0 (Faz 3.4 batch migrate, mobidik_evaluation PENDING)",
+          "version_after": "v1.1 (Faz 3.4 detay denetim, mobidik_evaluation tam)",
+          "notes": "Maltinto artisanal el-boyama dokuma sonrasi finishing — Stabli'de dokuma TAM, finishing replication kismi. Dusuk oncelik."
         }
       ]
     },
@@ -500,35 +507,41 @@
     "_quality_notes": []
   },
   "mobidik_evaluation": {
-    "_description": "PENDING — Faz 3.4 sonrasi Claude Code denetim. Kapasite tablosu (anayasa #7) uygulanacak. source_data.mobidik_notu_legacy gecici metin kaynak.",
+    "_description": "Andria — Maltinto el-boyama artisanal, broad-striped woven, %68 Cot + %26 Lin + %5 Vis + %1 PES, 305 cm. Dokuma TAM ama Maltinto finishing replication zor.",
     "staubli_feasibility": {
-      "score": null,
-      "frame_count_estimate": null,
-      "warp_compatibility": "pending",
-      "weft_compatibility": "pending",
-      "repeat_size_compatibility": "pending",
-      "reed_density_estimate": null,
-      "sizing_requirement": null,
-      "comment": "PENDING — Faz 3.4 batch migrate sonrasi denetim"
+      "score": 3,
+      "frame_count_estimate": "4-8",
+      "warp_compatibility": "uygun",
+      "weft_compatibility": "uygun",
+      "repeat_size_compatibility": "uygun (37 cm)",
+      "reed_density_estimate": "16-20 dent/cm",
+      "sizing_requirement": "Multi-fiber karisim warp tension",
+      "comment": "Dokuma (broad-striped) Stabli TAM, ama Maltinto = el-boyama artisanal finishing (dokuma sonrasi), Mobidik replication kismi. Skor 3: dokuma yapilabilir, vintage patina yapilamaz."
     },
     "arge_value": {
-      "score": null,
-      "key_learnings": [],
-      "comment": "PENDING"
+      "score": 60,
+      "key_learnings": [
+        "Multi-fiber karisim dokuma",
+        "Plain version artisanal-suz uretim"
+      ],
+      "comment": "Maltinto fason zor — Mobidik icin replikasyon kismi."
     },
     "market_gap": {
-      "score": null,
-      "comment": "PENDING",
-      "target_markets": []
+      "score": 55,
+      "comment": "Niche artisanal Turkiye'de fason calisan az. Plain version (Maltinto'suz) pilot mumkun ama orjinal estetik kaybediyor.",
+      "target_markets": [
+        "TR (lux residential)",
+        "AB (artisanal segment niche)"
+      ]
     },
     "portfolio_fit": {
-      "score": null,
+      "score": 50,
       "similar_existing_products": [],
-      "comment": "PENDING"
+      "comment": "Mobidik portfoyune kismi uyum (artisanal segment dis)."
     },
-    "overall_score": null,
-    "priority_level": null,
-    "strategic_note": "PENDING — source_data.mobidik_notu_legacy gecici metni var, kapasite #7 uyarinca yeniden hesaplanacak."
+    "overall_score": 55,
+    "priority_level": "dusuk",
+    "strategic_note": "DUSUK ONCELIK. Replication kismi: dokuma yapilabilir ama Maltinto el-boyama yatirim ister. Plain version pilot 3 ton x 60 m mumkun (Maltinto'suz), ama 'vintage patina' yok. Onerilen: pas gec, Etamine'nin Heure Bleue + Fil du Temps'a yogunlas."
   },
   "data_quality": {
     "missing_fields": [
@@ -543,7 +556,7 @@
       "commercial.country_of_origin",
       "variants[].color_name"
     ],
-    "completeness_percent": 45,
+    "completeness_percent": 70,
     "last_verified": "2026-05-25T22:30:00Z",
     "notes": [
       "Faz 3.4 batch migrate. 3 renk varyanti dashboard'dan alindi.",

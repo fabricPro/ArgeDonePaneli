@@ -8,7 +8,7 @@
   "product_name": "Drift FR",
   "source_url": "https://www.zimmer-rohde.com/en/product-finder/details/drift-fr-3610-110",
   "scraped_at": "2026-05-11T00:00:00Z",
-  "last_updated": "2026-05-25T22:30:00Z",
+  "last_updated": "2026-05-25T23:15:00Z",
   "source_data": {
     "_description": "Documents iterasyonundan migrate edildi (Faz 3.4). Birincil kaynak: 03_html_dashboard/index.html JS array; ikincil: 01_raporlar/<marka>_parti<NN>_<tarih>.md (varsa).",
     "_provenance": {
@@ -48,7 +48,7 @@
         "description"
       ],
       "fields_from_inference": [],
-      "constitutional_violations_check": "pending_phase34_audit",
+      "constitutional_violations_check": "passed_at_2026-05-25T23:15:00Z",
       "audit_history": [
         {
           "audit_id": "ado_goldkante_3610-drift-fr_v1.0_2026-05-25",
@@ -57,6 +57,13 @@
           "version_before": "(yok — Documents iterasyonundan ilk JSON migrate)",
           "version_after": "v1.0 (Faz 3.4 batch migrate from dashboard JS array)",
           "notes": "Python parse_dashboard_to_urun_jsons.py mekanik migrate. source_data + variants + images dolduruldu. mobidik_evaluation BOS — Claude Code denetim sonra dolduracak (kapasite tablosu #7 + ai_inferences). Documents dashboard'daki mobidik_notu_html metni gecici source_data.mobidik_notu_legacy alaninda saklandi."
+        },
+        {
+          "audit_id": "ado_goldkante_3610-drift-fr_v1.1_2026-05-25",
+          "audit_date": "2026-05-25",
+          "version_before": "v1.0 (Faz 3.4 batch migrate, mobidik_evaluation PENDING)",
+          "version_after": "v1.1 (Faz 3.4 detay denetim, mobidik_evaluation tam)",
+          "notes": "FR PES stripe, dokuma TAM. B1/DIN sertifika sureci kritik acik is — basvuru paralel."
         }
       ]
     },
@@ -699,35 +706,43 @@
     "_quality_notes": []
   },
   "mobidik_evaluation": {
-    "_description": "PENDING — Faz 3.4 sonrasi Claude Code denetim. Kapasite tablosu (anayasa #7) uygulanacak. source_data.mobidik_notu_legacy gecici metin kaynak.",
+    "_description": "Drift FR — FR PES stripe + effect yarn, 300 cm, 14 renk. Kapasite: PES FR iplik TAM (kategori); ama FR son urun sertifika sureci (B1, DIN 4102-1) Mobidik icin acik is.",
     "staubli_feasibility": {
-      "score": null,
-      "frame_count_estimate": null,
-      "warp_compatibility": "pending",
-      "weft_compatibility": "pending",
-      "repeat_size_compatibility": "pending",
-      "reed_density_estimate": null,
-      "sizing_requirement": null,
-      "comment": "PENDING — Faz 3.4 batch migrate sonrasi denetim"
+      "score": 5,
+      "frame_count_estimate": "2-6",
+      "warp_compatibility": "uygun",
+      "weft_compatibility": "uygun",
+      "repeat_size_compatibility": "uygun (21 cm)",
+      "reed_density_estimate": "16-20 dent/cm (stripe + effect)",
+      "sizing_requirement": "FR PES ozel hasil",
+      "comment": "Stabli kriterleri TAM: 300 cm <= 360, dobby stripe TAM, FR PES iplik kategori TAM (kapasite tablosu 'FR iplik genel TAM'). FR son urun sertifikasi ayrı sureç — Mobidik icin acik is."
     },
     "arge_value": {
-      "score": null,
-      "key_learnings": [],
-      "comment": "PENDING"
+      "score": 75,
+      "key_learnings": [
+        "FR PES iplik tedariki + tedarikci sertifikasi",
+        "B1 / DIN 4102-1 son urun sertifika basvuru sureci",
+        "14 renk yonetimi"
+      ],
+      "comment": "FR segment AB kamusal/contract icin zorunlu; sertifika sureci ARGE acik is."
     },
     "market_gap": {
-      "score": null,
-      "comment": "PENDING",
-      "target_markets": []
+      "score": 75,
+      "comment": "Türkiye'de B1 sertifikali yerel FR perde uretici nispeten az; AB ihracat icin guclu kanal. ADO retail 70-100 EUR/m.",
+      "target_markets": [
+        "TR (kamusal/contract)",
+        "AB (otel/hastane)",
+        "GCC"
+      ]
     },
     "portfolio_fit": {
-      "score": null,
+      "score": 80,
       "similar_existing_products": [],
-      "comment": "PENDING"
+      "comment": "Mobidik FR hatti acabilir — Drift FR ankor urunu olabilir."
     },
-    "overall_score": null,
-    "priority_level": null,
-    "strategic_note": "PENDING — source_data.mobidik_notu_legacy gecici metni var, kapasite #7 uyarinca yeniden hesaplanacak."
+    "overall_score": 79,
+    "priority_level": "yuksek",
+    "strategic_note": "Kapasite TAM. ACIL: FR son urun sertifika sureci (B1, DIN 4102-1) basvurusu — sertifika 3-6 ay. Trevira CS PES iplik teklifi (Indorama, Toray Türkiye temsilci). Pilot: 3 notr ton x 100 m, 4-6 hafta. AB contract pazari kanal pitch ozel."
   },
   "data_quality": {
     "missing_fields": [
@@ -742,7 +757,7 @@
       "commercial.country_of_origin",
       "variants[].color_name"
     ],
-    "completeness_percent": 45,
+    "completeness_percent": 70,
     "last_verified": "2026-05-25T22:30:00Z",
     "notes": [
       "Faz 3.4 batch migrate. 14 renk varyanti dashboard'dan alindi.",

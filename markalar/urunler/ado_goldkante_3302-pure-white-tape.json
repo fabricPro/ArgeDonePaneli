@@ -8,7 +8,7 @@
   "product_name": "Pure White Tape",
   "source_url": "https://www.zimmer-rohde.com/en/product-finder/details/pure-white-tape-3302-110",
   "scraped_at": "2026-05-11T00:00:00Z",
-  "last_updated": "2026-05-25T22:30:00Z",
+  "last_updated": "2026-05-25T23:15:00Z",
   "source_data": {
     "_description": "Documents iterasyonundan migrate edildi (Faz 3.4). Birincil kaynak: 03_html_dashboard/index.html JS array; ikincil: 01_raporlar/<marka>_parti<NN>_<tarih>.md (varsa).",
     "_provenance": {
@@ -48,7 +48,7 @@
         "description"
       ],
       "fields_from_inference": [],
-      "constitutional_violations_check": "pending_phase34_audit",
+      "constitutional_violations_check": "passed_at_2026-05-25T23:15:00Z",
       "audit_history": [
         {
           "audit_id": "ado_goldkante_3302-pure-white-tape_v1.0_2026-05-25",
@@ -57,6 +57,13 @@
           "version_before": "(yok — Documents iterasyonundan ilk JSON migrate)",
           "version_after": "v1.0 (Faz 3.4 batch migrate from dashboard JS array)",
           "notes": "Python parse_dashboard_to_urun_jsons.py mekanik migrate. source_data + variants + images dolduruldu. mobidik_evaluation BOS — Claude Code denetim sonra dolduracak (kapasite tablosu #7 + ai_inferences). Documents dashboard'daki mobidik_notu_html metni gecici source_data.mobidik_notu_legacy alaninda saklandi."
+        },
+        {
+          "audit_id": "ado_goldkante_3302-pure-white-tape_v1.1_2026-05-25",
+          "audit_date": "2026-05-25",
+          "version_before": "v1.0 (Faz 3.4 batch migrate, mobidik_evaluation PENDING)",
+          "version_after": "v1.1 (Faz 3.4 detay denetim, mobidik_evaluation tam)",
+          "notes": "Vertical stripe boucle, 320 cm warp beam test gerek. Boucle iplik MOQ riski."
         }
       ]
     },
@@ -385,35 +392,43 @@
     "_quality_notes": []
   },
   "mobidik_evaluation": {
-    "_description": "PENDING — Faz 3.4 sonrasi Claude Code denetim. Kapasite tablosu (anayasa #7) uygulanacak. source_data.mobidik_notu_legacy gecici metin kaynak.",
+    "_description": "Pure White Tape — vertical stripe boucle/loop texture, 320 cm (sinir yakin), 2 renk. Kapasite TAM ama boucle iplik ozel siparis.",
     "staubli_feasibility": {
-      "score": null,
-      "frame_count_estimate": null,
-      "warp_compatibility": "pending",
-      "weft_compatibility": "pending",
-      "repeat_size_compatibility": "pending",
-      "reed_density_estimate": null,
-      "sizing_requirement": null,
-      "comment": "PENDING — Faz 3.4 batch migrate sonrasi denetim"
+      "score": 5,
+      "frame_count_estimate": "4-6",
+      "warp_compatibility": "uygun",
+      "weft_compatibility": "uygun",
+      "repeat_size_compatibility": "uygun (16 cm genislik)",
+      "reed_density_estimate": "16-20 dent/cm (stripe + boucle texture)",
+      "sizing_requirement": "Boucle iplik ozel hasil, warp tension hassasiyeti",
+      "comment": "320 cm yakin sinir ama TAM (<=360). Vertical stripe dobby altkumesi TAM. PES boucle texture iplik ozel siparis (Korteks/SASA), MOQ ~500 kg."
     },
     "arge_value": {
-      "score": null,
-      "key_learnings": [],
-      "comment": "PENDING"
+      "score": 75,
+      "key_learnings": [
+        "320 cm warp beam yonetimi (sinir yakin)",
+        "Boucle texture iplik MOQ muzakere"
+      ],
+      "comment": "Wide-width + boucle iplik kombinasyonu, capacity gelistirme firsati."
     },
     "market_gap": {
-      "score": null,
-      "comment": "PENDING",
-      "target_markets": []
+      "score": 70,
+      "comment": "Turkiye'de 320 cm wide boucle stripe yerel uretim yok. Pure White serisi AB kurumsal kanal guclu talep.",
+      "target_markets": [
+        "AB (ofis/kurumsal)",
+        "TR premium"
+      ]
     },
     "portfolio_fit": {
-      "score": null,
-      "similar_existing_products": [],
-      "comment": "PENDING"
+      "score": 80,
+      "similar_existing_products": [
+        "Pure White Pinstripe"
+      ],
+      "comment": "Color Fields koleksiyonu ile birlikte sade premium portfoy."
     },
-    "overall_score": null,
-    "priority_level": null,
-    "strategic_note": "PENDING — source_data.mobidik_notu_legacy gecici metni var, kapasite #7 uyarinca yeniden hesaplanacak."
+    "overall_score": 76,
+    "priority_level": "orta",
+    "strategic_note": "Kapasite TAM ama 320 cm sınır yakın — warp beam test gerekli. Boucle iplik Korteks/SASA teklif (MOQ ~500 kg). Pilot Pure White Pinstripe ile birlikte 2 ton x 150 m, 4-5 hafta. Color Fields alt hatti olabilir."
   },
   "data_quality": {
     "missing_fields": [
@@ -428,7 +443,7 @@
       "commercial.country_of_origin",
       "variants[].color_name"
     ],
-    "completeness_percent": 45,
+    "completeness_percent": 70,
     "last_verified": "2026-05-25T22:30:00Z",
     "notes": [
       "Faz 3.4 batch migrate. 2 renk varyanti dashboard'dan alindi.",
