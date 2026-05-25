@@ -2,6 +2,8 @@ gorseller/
 pdfler/
 topla/ham_cikti/
 topla/logs/
+# Faz 6: haftalik oz-degerlendirme cikti — generated, kalici docs degil
+docs/haftalik_oz_degerlendirme_*.md
 *.pyc
 __pycache__/
 .DS_Store

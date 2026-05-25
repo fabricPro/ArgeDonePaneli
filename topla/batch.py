@@ -43,15 +43,21 @@ USER_AGENT = (
 
 
 # Marka kayit defteri — region + kategori URL + URL pattern + scraper varligi
+#
+# product_url_regex: href icinde aranan pattern. Onceden hrefler extract edilir
+# (re.findall href="..."), sonra her href bu pattern'le test edilir.
+# Domain filter: relatif href'ler ve domain'a uyan absolute href'ler dahil.
 BRANDS: dict[str, dict] = {
     "kvadrat": {
         "region": "nordik",
         "display": "Kvadrat",
+        "domain": "kvadrat.dk",
         "category_url": "https://www.kvadrat.dk/en/products/curtains",
-        # /en/products/curtains/5539-air-line
+        # /en/products/curtains/5539-air-line (4-6 hane kod)
         "product_url_regex": (
-            r"https?://(?:www\.)?kvadrat\.dk/en/products/curtains/"
-            r"(?P<code>\d{4,5})-(?P<slug>[a-z0-9-]+)"
+            r"^/en/products/curtains/"
+            r"(?P<code>\d{4,6})-(?P<slug>[a-z][a-z0-9-]+?)"
+            r"(?:[/?#]|$)"
         ),
         "use_playwright": True,
         "has_scraper": True,
@@ -59,7 +65,7 @@ BRANDS: dict[str, dict] = {
     "sahco": {
         "region": "nordik",
         "display": "Sahco",
-        # Sahco artik Kvadrat Group altinda; web sitesinde "sahco.com" hala canli
+        "domain": "sahco.com",
         "category_url": "https://www.sahco.com/en/products/curtain",
         "product_url_regex": None,  # TODO Faz 7.x: site keşfi gerek
         "use_playwright": True,
@@ -68,16 +74,31 @@ BRANDS: dict[str, dict] = {
     "dedar": {
         "region": "italyan",
         "display": "Dedar",
-        "category_url": "https://dedar.com/products/curtain/",
+        "domain": "dedar.com",
+        # /products/ ana sayfasi kurumsal grid (urun listesi DEGIL).
+        # Asil urunler alt-kategori sayfalarinda. Cobra = indoor-outdoor,
+        # Days Like Now = curtain (silk sheer).
+        "category_urls": [
+            "https://dedar.com/products/curtain/",
+            "https://dedar.com/products/sheer/",
+            "https://dedar.com/products/indoor-outdoor/",
+            "https://dedar.com/products/fire-retardant/",
+            "https://dedar.com/products/jacquard/",
+        ],
         # /cobra/ veya /days-like-now/ — slug-only, kod yok
-        # Non-product paths (products, account, cart, blog vs.) blacklist
+        # Non-product slugs blacklist (kurumsal sayfalar)
         "product_url_regex": (
-            r"https?://(?:www\.)?dedar\.com/"
+            r"^/"
             r"(?!products|account|cart|search|checkout|wishlist|contact"
             r"|about|blog|news|press|support|login|register|newsletter"
-            r"|fr/|en/|it/|de/|es/|cookie|privacy|terms)"
-            r"(?P<slug>[a-z0-9][a-z0-9-]+)/"
-            r"(?:\?sku=(?P<code>[A-Z0-9]+))?"
+            r"|projects|inspiration|company|download|moodboards|history"
+            r"|governance|responsibility|legal-notes|payments|careers"
+            r"|sustainability|certifications|stories|magazine|catalogue"
+            r"|catalogues|stores|store-locator|where-to-buy"
+            r"|fr/|en/|it/|de/|es/|cookie|privacy|terms|wp-|static|assets"
+            r"|img/|images/|api/|sitemap|category|categories|shop)"
+            r"(?P<slug>[a-z][a-z0-9-]+)/"
+            r"(?:\?sku=(?P<code>[A-Z0-9]+))?(?:[?#]|$)"
         ),
         "use_playwright": True,
         "has_scraper": True,
@@ -85,12 +106,13 @@ BRANDS: dict[str, dict] = {
     "rubelli": {
         "region": "italyan",
         "display": "Rubelli",
-        # rubelli.com perdelik kategorisi (Use=curtain filtresi)
-        "category_url": "https://www.rubelli.com/en/products?usage=curtain",
+        "domain": "rubelli.com",
+        # /en/textiles tum tekstilleri listeler (adaptorler/rubelli.md referans)
+        "category_url": "https://www.rubelli.com/en/textiles",
         # /en/<slug>-<5haneli-kod>
         "product_url_regex": (
-            r"https?://(?:www\.)?rubelli\.com/en/"
-            r"(?P<slug>[a-z0-9-]+)-(?P<code>\d{5})(?!\d)"
+            r"^/en/"
+            r"(?P<slug>[a-z][a-z0-9-]+?)-(?P<code>\d{5})(?!\d)"
         ),
         "use_playwright": True,
         "has_scraper": True,
@@ -98,29 +120,30 @@ BRANDS: dict[str, dict] = {
     "zimmer_rohde": {
         "region": "alman",
         "display": "Zimmer + Rohde",
+        "domain": "zimmer-rohde.com",
         "category_url": (
             "https://www.zimmer-rohde.com/en/product-finder"
             "?brand=zimmer-rohde&category=curtains"
         ),
-        # /en/product-finder/details/melange-linen-10969-980
-        # (?!\d) garanti: kod sonu, 4-haneli ADO ile karismaz
+        # /en/product-finder/details/melange-linen-10969-980 (5-hane kod)
         "product_url_regex": (
-            r"/en/product-finder/details/"
+            r"^/en/product-finder/details/"
             r"(?P<slug>[a-z0-9-]+?)-(?P<code>\d{5})(?!\d)(?:-\d{3})?"
         ),
-        "use_playwright": False,  # Z+R requests + 429 backoff yetiyor
+        "use_playwright": False,
         "has_scraper": True,
     },
     "ado_goldkante": {
         "region": "alman",
         "display": "ADO Goldkante",
+        "domain": "zimmer-rohde.com",
         "category_url": (
             "https://www.zimmer-rohde.com/en/product-finder"
             "?brand=ado-goldkante&category=curtains"
         ),
-        # 4-haneli kod, sonra rakam YOK (Z+R 5-haneli ile karismaz)
+        # 4-haneli kod (Z+R 5-haneli ile karismaz)
         "product_url_regex": (
-            r"/en/product-finder/details/"
+            r"^/en/product-finder/details/"
             r"(?P<slug>[a-z0-9-]+?)-(?P<code>\d{4})(?!\d)(?:-\d{3})?"
         ),
         "use_playwright": False,
@@ -129,12 +152,13 @@ BRANDS: dict[str, dict] = {
     "etamine": {
         "region": "alman",
         "display": "Etamine",
+        "domain": "zimmer-rohde.com",
         "category_url": (
             "https://www.zimmer-rohde.com/en/product-finder"
             "?brand=etamine&category=curtains"
         ),
         "product_url_regex": (
-            r"/en/product-finder/details/"
+            r"^/en/product-finder/details/"
             r"(?P<slug>[a-z0-9-]+?)-(?P<code>\d{5})(?!\d)(?:-\d{3})?"
         ),
         "use_playwright": False,
@@ -143,12 +167,13 @@ BRANDS: dict[str, dict] = {
     "travers": {
         "region": "alman",
         "display": "Travers",
+        "domain": "zimmer-rohde.com",
         "category_url": (
             "https://www.zimmer-rohde.com/en/product-finder"
             "?brand=travers&category=curtains"
         ),
         "product_url_regex": (
-            r"/en/product-finder/details/"
+            r"^/en/product-finder/details/"
             r"(?P<slug>[a-z0-9-]+?)-(?P<code>\d{5})(?!\d)(?:-\d{3})?"
         ),
         "use_playwright": False,
@@ -157,6 +182,7 @@ BRANDS: dict[str, dict] = {
     "nya_nordiska": {
         "region": "alman",
         "display": "Nya Nordiska",
+        "domain": "nya-nordiska.com",
         "category_url": "https://www.nya-nordiska.com/en/products/curtain",
         "product_url_regex": None,  # TODO
         "use_playwright": True,
@@ -165,6 +191,7 @@ BRANDS: dict[str, dict] = {
     "creation_baumann": {
         "region": "alman",
         "display": "Creation Baumann",
+        "domain": "creationbaumann.com",
         "category_url": "https://www.creationbaumann.com/en/products/curtain",
         "product_url_regex": None,  # TODO
         "use_playwright": True,
@@ -239,45 +266,103 @@ def fetch_html_playwright(url: str, wait_ms: int = 3500) -> str | None:
         return None
 
 
-def fetch_category_html(brand_slug: str) -> str | None:
-    """Marka kategori sayfasinin HTML'ini cek (Playwright vs requests)."""
+def _resolve_category_urls(brand_slug: str) -> list[str]:
+    """Spec'ten kategori URL'lerini cek (tek 'category_url' veya liste 'category_urls')."""
     spec = BRANDS[brand_slug]
-    url = spec["category_url"]
-    if spec["use_playwright"]:
-        html = fetch_html_playwright(url)
+    if "category_urls" in spec:
+        urls = spec["category_urls"]
+        if isinstance(urls, list):
+            return urls
+    if "category_url" in spec:
+        return [spec["category_url"]]
+    return []
+
+
+def fetch_category_html(brand_slug: str) -> str | None:
+    """Tek kategori URL'i icin HTML. Birden fazla URL varsa hepsini birlestir."""
+    urls = _resolve_category_urls(brand_slug)
+    if not urls:
+        return None
+    spec = BRANDS[brand_slug]
+    parts: list[str] = []
+    for url in urls:
+        html: str | None = None
+        if spec["use_playwright"]:
+            html = fetch_html_playwright(url)
+        if not html:
+            html = fetch_html_requests(url)
         if html:
-            return html
-    return fetch_html_requests(url)
+            parts.append(html)
+    return "\n".join(parts) if parts else None
+
+
+def _normalize_to_path(href: str) -> str | None:
+    """href'i path'e cevir (kendi domain'inden gelenler icin).
+
+    Donus: '/en/products/...' veya None (cross-domain).
+    """
+    if href.startswith("//"):
+        href = "https:" + href
+    if href.startswith("http"):
+        from urllib.parse import urlparse
+        p = urlparse(href)
+        return p.path + (("?" + p.query) if p.query else "")
+    if href.startswith("/"):
+        return href
+    return None  # relative path veya javascript:, mailto: vs.
 
 
 def extract_product_urls(brand_slug: str, html: str) -> list[dict]:
-    """HTML'den urun URL'lerini cikar — adaylar listesi."""
+    """HTML'den href'leri extract et, her birini brand pattern'i ile test et."""
     spec = BRANDS[brand_slug]
-    pattern = spec.get("product_url_regex")
-    if not pattern:
+    pattern_str = spec.get("product_url_regex")
+    if not pattern_str:
         return []
+
+    pattern = re.compile(pattern_str, re.IGNORECASE)
+    domain = spec.get("domain", "").lower()
+
+    # Tum href= attribute'larini topla
+    hrefs = re.findall(r'href=["\']([^"\']+)["\']', html, re.IGNORECASE)
+
+    # Ayrica raw text icinde gozuken URL'leri de yakala (Vue.js state vs.)
+    # (data attribute, JSON-LD vs. icin)
+    extras = re.findall(
+        r'(?:["\']|>)((?:https?://[a-zA-Z0-9.-]+)?/[a-zA-Z0-9/_?=&#%-]+)(?=["\'<])',
+        html,
+    )
+    all_candidates = list(hrefs) + list(extras)
 
     seen: set[str] = set()
     products: list[dict] = []
-    for m in re.finditer(pattern, html, re.IGNORECASE):
+    for raw in all_candidates:
+        # Cross-domain filter: absolute href'ler kendi domain'inde mi?
+        if raw.startswith("http"):
+            if domain and domain not in raw.lower():
+                continue
+        path = _normalize_to_path(raw)
+        if path is None:
+            continue
+
+        m = pattern.search(path)
+        if not m:
+            continue
         d = m.groupdict()
         code = d.get("code") or ""
         slug = d.get("slug") or ""
         if not slug:
             continue
-        # Dedar gibi kategori sayfasi: code bos olabilir, slug yeterli
         key = f"{code}-{slug}" if code else slug
         if key in seen:
             continue
         seen.add(key)
 
-        # URL'i normalize et (relative -> absolute)
-        full_match = m.group(0)
-        if full_match.startswith("/"):
-            full_match = urljoin(spec["category_url"], full_match)
-
+        # Tam URL olarak normalize (ilk kategori URL'i base)
+        base_urls = _resolve_category_urls(brand_slug)
+        base = base_urls[0] if base_urls else f"https://{domain}"
+        full_url = urljoin(base, path)
         products.append({
-            "url": full_match,
+            "url": full_url,
             "code": code or None,
             "slug": slug,
             "key": key,
@@ -325,11 +410,12 @@ def discover_brand(brand_slug: str) -> dict:
             "error": f"BRANDS kaydinda yok: {brand_slug}",
         }
 
+    category_urls = _resolve_category_urls(brand_slug)
     if not spec.get("product_url_regex"):
         return {
             "brand_slug": brand_slug,
             "status": "no_url_pattern",
-            "category_url": spec["category_url"],
+            "category_urls": category_urls,
             "note": (
                 f"{spec['display']} URL pattern'i henuz tanimli degil "
                 "(Faz 7.x: site kesfi gerek)."
@@ -341,7 +427,7 @@ def discover_brand(brand_slug: str) -> dict:
         return {
             "brand_slug": brand_slug,
             "status": "fetch_failed",
-            "category_url": spec["category_url"],
+            "category_urls": category_urls,
             "error": "Kategori sayfasi cekilemedi (requests + Playwright fallback)",
         }
 
@@ -351,7 +437,7 @@ def discover_brand(brand_slug: str) -> dict:
     return {
         "brand_slug": brand_slug,
         "display": spec["display"],
-        "category_url": spec["category_url"],
+        "category_urls": category_urls,
         "status": "ok",
         "html_length": len(html),
         "toplam_kesfedilen": len(discovered),

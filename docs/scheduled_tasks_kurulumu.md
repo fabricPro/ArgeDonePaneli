@@ -29,14 +29,20 @@ scheduled_tasks/run_batch.ps1 -Region <bolge>
 topla/batch.py run_batch(<bolge>)
    ↓ her marka için
 fetch_category_html (requests veya Playwright)
-   ↓
-extract_product_urls (regex)
+   ↓ (Dedar gibi multi-URL'ler: tum alt-kategoriler tek tek cekilip birlestirilir)
+extract_product_urls (href-based, brand domain filter, regex pattern)
    ↓
 diff_with_existing (markalar/urunler/*.json ile karşılaştır)
    ↓
 topla/ham_cikti/aday_<bolge>_<YYYYMMDD>.json
 + topla/logs/batch_<bolge>_<YYYYMMDD>.log
 ```
+
+**BRANDS spec — kategori URL'leri:**
+
+İki form:
+- `category_url: str` — tek URL (Kvadrat, Rubelli, Z+R Group)
+- `category_urls: list[str]` — birden fazla alt-kategori (Dedar: curtain + sheer + indoor-outdoor + FR + jakar)
 
 ## Kurulum Adımları
 
