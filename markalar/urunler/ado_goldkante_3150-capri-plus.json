@@ -8,7 +8,7 @@
   "product_name": "Capri Plus",
   "source_url": "https://www.zimmer-rohde.com/en/product-finder/details/capri-plus-3150-332",
   "scraped_at": "2026-05-11T00:00:00Z",
-  "last_updated": "2026-05-25T22:45:00Z",
+  "last_updated": "2026-05-26T03:00:00Z",
   "source_data": {
     "_description": "Documents iterasyonundan migrate edildi (Faz 3.4). Birincil kaynak: 03_html_dashboard/index.html JS array; ikincil: 01_raporlar/<marka>_parti<NN>_<tarih>.md (varsa).",
     "_provenance": {
@@ -65,6 +65,20 @@
           "version_before": "v1.0 (Faz 3.4 batch migrate, mobidik_evaluation PENDING)",
           "version_after": "v1.1 (Faz 3.4 pilot denetim, mobidik_evaluation tam, weave dobby duzeltmesi)",
           "notes": "Capri Plus ALTIN urun ilk pilot denetim. Kapasite tablosu uygulandi: width 310 cm <= 360, dobby open latticework TAM, %100 PES standart iplik TAM. staubli_feasibility=5/5 (Documents notu Kolay-Orta diyordu, uyumlu). 'Open latticework' weave_type_normalized=dobby olarak duzeltildi (parser None dondurdu)."
+        },
+        {
+          "audit_id": "ado_goldkante_3150-capri-plus_v_zr_download_2026-05-26",
+          "audit_date": "2026-05-26",
+          "version_before": "(eski indir.ps1 sadece 1 renk)",
+          "version_after": "Z+R Group downloader — 5/85 renk gorsel disk'te",
+          "notes": "Faz 5.13 Z+R Group otomatik renk gorsel indirme. Indirilen renkler: 0, cached: 5. Renk basina detay: {'111': {'durum': 'indirildi', 'sayi': 0}, '131': {'durum': 'indirildi', 'sayi': 0}, '191': {'durum': 'indirildi', 'sayi': 0}, '192': {'durum': 'indirildi', 'sayi': 0}, '200': {'durum': 'indirildi', 'sayi': 0}}..."
+        },
+        {
+          "audit_id": "ado_goldkante_3150-capri-plus_v_zr_download_2026-05-26",
+          "audit_date": "2026-05-26",
+          "version_before": "(eski indir.ps1 sadece 1 renk)",
+          "version_after": "Z+R Group downloader — 5/85 renk gorsel disk'te",
+          "notes": "Faz 5.13 Z+R Group otomatik renk gorsel indirme. Indirilen renkler: 0, cached: 5. Renk basina detay: {'111': {'durum': 'indirildi', 'sayi': 0}, '131': {'durum': 'indirildi', 'sayi': 0}, '191': {'durum': 'indirildi', 'sayi': 0}, '192': {'durum': 'indirildi', 'sayi': 0}, '200': {'durum': 'indirildi', 'sayi': 0}}..."
         }
       ]
     },
