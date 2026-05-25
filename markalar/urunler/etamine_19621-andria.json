@@ -1,0 +1,554 @@
+{
+  "_schema_version": "1.3",
+  "urun_id": "etamine_19621-andria",
+  "brand": "Etamine",
+  "brand_slug": "etamine",
+  "collection": "Ailleurs",
+  "product_code": "19621",
+  "product_name": "Andria",
+  "source_url": "https://www.zimmer-rohde.com/en/product-finder/details/andria-19621-883",
+  "scraped_at": "2026-05-11T00:00:00Z",
+  "last_updated": "2026-05-25T22:30:00Z",
+  "source_data": {
+    "_description": "Documents iterasyonundan migrate edildi (Faz 3.4). Birincil kaynak: 03_html_dashboard/index.html JS array; ikincil: 01_raporlar/<marka>_parti<NN>_<tarih>.md (varsa).",
+    "_provenance": {
+      "schema_version": "1.1",
+      "created_at": "2026-05-25T22:30:00Z",
+      "last_updated": "2026-05-25T22:30:00Z",
+      "sources_used": [
+        {
+          "url": "03_html_dashboard/index.html (Documents iterasyonu, parti01-03 sonrasi)",
+          "type": "internal_dashboard_pre_migration",
+          "accessed_at": "2026-05-25T22:30:00Z",
+          "fields_supported": [
+            "composition",
+            "width_cm",
+            "weave_type",
+            "variants",
+            "country_of_origin",
+            "description"
+          ]
+        },
+        {
+          "url": "https://www.zimmer-rohde.com/en/product-finder/details/andria-19621-883",
+          "type": "html_product_page",
+          "accessed_at": "2026-05-11T00:00:00Z",
+          "fields_supported": [
+            "original_source_for_all_fields"
+          ]
+        }
+      ],
+      "field_metadata": {},
+      "fields_from_dashboard_migration": [
+        "composition",
+        "width_cm",
+        "weave_type_raw",
+        "variants",
+        "country_of_origin",
+        "description"
+      ],
+      "fields_from_inference": [],
+      "constitutional_violations_check": "pending_phase34_audit",
+      "audit_history": [
+        {
+          "audit_id": "etamine_19621-andria_v1.0_2026-05-25",
+          "audit_date": "2026-05-25",
+          "audit_doc": "docs/parti_log.md (kuruluyor)",
+          "version_before": "(yok — Documents iterasyonundan ilk JSON migrate)",
+          "version_after": "v1.0 (Faz 3.4 batch migrate from dashboard JS array)",
+          "notes": "Python parse_dashboard_to_urun_jsons.py mekanik migrate. source_data + variants + images dolduruldu. mobidik_evaluation BOS — Claude Code denetim sonra dolduracak (kapasite tablosu #7 + ai_inferences). Documents dashboard'daki mobidik_notu_html metni gecici source_data.mobidik_notu_legacy alaninda saklandi."
+        }
+      ]
+    },
+    "technical": {
+      "composition": [
+        {
+          "fiber_generic": "Pamuk",
+          "fiber_commercial": "Cotton",
+          "ratio_percent": 68,
+          "fr_treatment": null
+        },
+        {
+          "fiber_generic": "Keten",
+          "fiber_commercial": "Flax (linen)",
+          "ratio_percent": 26,
+          "fr_treatment": null
+        },
+        {
+          "fiber_generic": "Viskon",
+          "fiber_commercial": "Viscose",
+          "ratio_percent": 5,
+          "fr_treatment": null
+        },
+        {
+          "fiber_generic": "Polyester",
+          "fiber_commercial": "Polyester",
+          "ratio_percent": 1,
+          "fr_treatment": null
+        }
+      ],
+      "width_cm": 305,
+      "weight_gsm": null,
+      "repeat_cm": {
+        "vertical": 37.0,
+        "horizontal": null
+      },
+      "weave_type_raw": "broad-striped woven",
+      "weave_type_normalized": null,
+      "yarn_type": null,
+      "transparency": {
+        "value": null,
+        "_note": "Documents dashboard transparency beyan etmiyor; ai_inferences.light_transmission adayi."
+      },
+      "usage_area": [
+        "curtains"
+      ],
+      "performance": {
+        "lightfastness": null,
+        "abrasion_martindale": null,
+        "pilling": null,
+        "shrinkage": {
+          "warp_percent": null,
+          "weft_percent": null
+        },
+        "washing_resistance": null
+      },
+      "acoustic": {
+        "alpha_s_value": null,
+        "absorption_class": null,
+        "comment": null
+      }
+    },
+    "variants": [
+      {
+        "color_code": "19621-880",
+        "color_name": "Açık çizgi keten",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/8/8/csm_19621880_e9f8582ad7.jpg",
+        "main_image_local_path": "gorseller/etamine/19621/880_1.jpg"
+      },
+      {
+        "color_code": "19621-883",
+        "color_name": "Vintage çizgi pudra",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/d/f/csm_19621883_c7118c4706.jpg",
+        "main_image_local_path": "gorseller/etamine/19621/883_1.jpg"
+      },
+      {
+        "color_code": "19621-887",
+        "color_name": "Vintage çizgi nötr",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/a/5/csm_19621887_21274d0e3b.jpg",
+        "main_image_local_path": "gorseller/etamine/19621/887_1.jpg"
+      }
+    ],
+    "certifications": {
+      "fire_safety": [],
+      "sustainability": [],
+      "other": [],
+      "raw_text": "Yıkanmaz, Italy production, Maltinto artisanal dyeing"
+    },
+    "commercial": {
+      "price_per_meter": null,
+      "price_currency": null,
+      "moq_meters": null,
+      "lead_time_days": null,
+      "country_of_origin": "İtalya",
+      "sample_policy": null,
+      "launch_year": null,
+      "production_model": {
+        "value": "unknown",
+        "notes": "Documents migrasyonunda beyan yok"
+      }
+    },
+    "design_credit": {
+      "designer": null,
+      "type": "unknown"
+    },
+    "description_original": {
+      "language": "tr",
+      "text": "İtalya'da pamuk ve ketenden dokunan geniş çizgili kumaş. Maltinto artisanal boyama teknigi ile vintage patina katar.",
+      "source_url": "https://www.zimmer-rohde.com/en/product-finder/details/andria-19621-883",
+      "extracted_at": "2026-05-11T00:00:00Z",
+      "_note": "Documents iterasyonu Turkce ozet — orijinal Ingilizce/Almanca aciklama Z+R sayfasinda ayrica cekilebilir"
+    },
+    "description_tr": {
+      "text": "İtalya'da pamuk ve ketenden dokunan geniş çizgili kumaş. Maltinto artisanal boyama teknigi ile vintage patina katar.",
+      "translation_method": "user_curated",
+      "translated_at": "2026-05-11T00:00:00Z",
+      "is_official_translation": false
+    },
+    "style_note": "Mediterranean stripe + vintage patina — Etamine'in artisanal Italyan üretimi.",
+    "performans_legacy": [
+      "Yıkanmaz",
+      "Italy production",
+      "Maltinto artisanal dyeing"
+    ],
+    "mobidik_notu_legacy": "Zorluk: ZOR ⛔ — İtalyan Maltinto artisanal dyeing özel. Geniş çizgili keten/pamuk dokuma kolay (Stäubli dobby), ama 'Maltinto' patina için ipek banyo + handpainted detay gerekir. Mobidik için düşük öncelik, niche replication."
+  },
+  "ai_inferences": {
+    "_description": "Faz 3.4 batch migrate sonrasi Claude Code denetim sirasinda doldurulacak.",
+    "weight_gsm": {
+      "estimated_value": null,
+      "confidence": null,
+      "method": "pending",
+      "based_on": [],
+      "model": "claude-opus-4-7",
+      "created_at": null,
+      "user_verified": false,
+      "user_correction": null
+    },
+    "light_transmission": {
+      "estimated_class": null,
+      "confidence": null,
+      "method": "pending",
+      "model": "claude-opus-4-7",
+      "created_at": null,
+      "user_verified": false,
+      "user_correction": null
+    }
+  },
+  "image_analysis": {
+    "_description": "Visual analiz pending — Faz 3.4 sonrasi denetim asamasinda eklenecek.",
+    "dominant_colors": {
+      "value": null
+    },
+    "texture_classification": null,
+    "transparency_visual": null,
+    "color_palette_summary": "3 renk varyanti — palet Documents dashboard'da listelendi",
+    "style_tags": [],
+    "pattern_type": null,
+    "pattern_density": null,
+    "estimated_use_context": [
+      "curtains"
+    ]
+  },
+  "images": {
+    "_description": "18 gorsel — Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 yeni gorseller/<marka>/<urun>/<renk>_<sira>.jpg konvansiyonuna migrate edildi.",
+    "main": [],
+    "variants": [
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/8/8/csm_19621880_e9f8582ad7.jpg",
+        "local_path": "gorseller/etamine/19621/880_1.jpg",
+        "variant_code": "19621-880",
+        "variant_name": "Açık çizgi keten",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19621 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19621/880_2.jpg",
+        "variant_code": "19621-880",
+        "variant_name": "Açık çizgi keten",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19621 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19621/880_3.jpg",
+        "variant_code": "19621-880",
+        "variant_name": "Açık çizgi keten",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19621 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19621/880_4.jpg",
+        "variant_code": "19621-880",
+        "variant_name": "Açık çizgi keten",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19621 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19621/880_5.jpg",
+        "variant_code": "19621-880",
+        "variant_name": "Açık çizgi keten",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19621 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19621/880_6.jpg",
+        "variant_code": "19621-880",
+        "variant_name": "Açık çizgi keten",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19621 altinda"
+      },
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/d/f/csm_19621883_c7118c4706.jpg",
+        "local_path": "gorseller/etamine/19621/883_1.jpg",
+        "variant_code": "19621-883",
+        "variant_name": "Vintage çizgi pudra",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19621 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19621/883_2.jpg",
+        "variant_code": "19621-883",
+        "variant_name": "Vintage çizgi pudra",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19621 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19621/883_3.jpg",
+        "variant_code": "19621-883",
+        "variant_name": "Vintage çizgi pudra",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19621 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19621/883_4.jpg",
+        "variant_code": "19621-883",
+        "variant_name": "Vintage çizgi pudra",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19621 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19621/883_5.jpg",
+        "variant_code": "19621-883",
+        "variant_name": "Vintage çizgi pudra",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19621 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19621/883_6.jpg",
+        "variant_code": "19621-883",
+        "variant_name": "Vintage çizgi pudra",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19621 altinda"
+      },
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/a/5/csm_19621887_21274d0e3b.jpg",
+        "local_path": "gorseller/etamine/19621/887_1.jpg",
+        "variant_code": "19621-887",
+        "variant_name": "Vintage çizgi nötr",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19621 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19621/887_2.jpg",
+        "variant_code": "19621-887",
+        "variant_name": "Vintage çizgi nötr",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19621 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19621/887_3.jpg",
+        "variant_code": "19621-887",
+        "variant_name": "Vintage çizgi nötr",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19621 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19621/887_4.jpg",
+        "variant_code": "19621-887",
+        "variant_name": "Vintage çizgi nötr",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19621 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19621/887_5.jpg",
+        "variant_code": "19621-887",
+        "variant_name": "Vintage çizgi nötr",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19621 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19621/887_6.jpg",
+        "variant_code": "19621-887",
+        "variant_name": "Vintage çizgi nötr",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19621 altinda"
+      }
+    ],
+    "lifestyle": [],
+    "technical": [],
+    "_quality_notes": []
+  },
+  "mobidik_evaluation": {
+    "_description": "PENDING — Faz 3.4 sonrasi Claude Code denetim. Kapasite tablosu (anayasa #7) uygulanacak. source_data.mobidik_notu_legacy gecici metin kaynak.",
+    "staubli_feasibility": {
+      "score": null,
+      "frame_count_estimate": null,
+      "warp_compatibility": "pending",
+      "weft_compatibility": "pending",
+      "repeat_size_compatibility": "pending",
+      "reed_density_estimate": null,
+      "sizing_requirement": null,
+      "comment": "PENDING — Faz 3.4 batch migrate sonrasi denetim"
+    },
+    "arge_value": {
+      "score": null,
+      "key_learnings": [],
+      "comment": "PENDING"
+    },
+    "market_gap": {
+      "score": null,
+      "comment": "PENDING",
+      "target_markets": []
+    },
+    "portfolio_fit": {
+      "score": null,
+      "similar_existing_products": [],
+      "comment": "PENDING"
+    },
+    "overall_score": null,
+    "priority_level": null,
+    "strategic_note": "PENDING — source_data.mobidik_notu_legacy gecici metni var, kapasite #7 uyarinca yeniden hesaplanacak."
+  },
+  "data_quality": {
+    "missing_fields": [
+      "technical.performance.*",
+      "commercial.price_per_meter",
+      "commercial.moq_meters",
+      "ai_inferences.*",
+      "mobidik_evaluation.*"
+    ],
+    "ai_estimated_fields": [],
+    "user_verified_fields": [
+      "commercial.country_of_origin",
+      "variants[].color_name"
+    ],
+    "completeness_percent": 45,
+    "last_verified": "2026-05-25T22:30:00Z",
+    "notes": [
+      "Faz 3.4 batch migrate. 3 renk varyanti dashboard'dan alindi.",
+      "mobidik_evaluation + ai_inferences PENDING — Claude Code denetim sonra dolduracak.",
+      "Gorsel yollari yeni konvansiyona (gorseller/etamine/19621) uyarlandi."
+    ]
+  }
+}

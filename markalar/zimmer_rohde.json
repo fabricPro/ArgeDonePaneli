@@ -1,0 +1,153 @@
+{
+  "_schema_version": "1.1",
+  "brand": "Zimmer + Rohde",
+  "brand_slug": "zimmer_rohde",
+  "country": "Almanya",
+  "region": "alman_alpin",
+  "headquarters_city": "Oberursel",
+  "founded_year": 1956,
+  "website": "https://www.zimmer-rohde.com",
+  "tracked_since": "2026-05-11",
+  "last_updated": "2026-05-25T22:55:00Z",
+  "product_count_tracked": 6,
+  "_provenance": {
+    "schema_version": "1.1",
+    "created_at": "2026-05-25T22:55:00Z",
+    "last_updated": "2026-05-25T22:55:00Z",
+    "sources_used": [
+      {
+        "url": "Documents/01_raporlar + 03_html_dashboard/index.html",
+        "type": "internal_dashboard_pre_migration",
+        "accessed_at": "2026-05-25T22:55:00Z",
+        "fields_supported": [
+          "all_stat_distributions_from_n_products"
+        ]
+      }
+    ],
+    "constitutional_violations_check": "passed_at_2026-05-25T22:55:00Z",
+    "audit_history": [
+      {
+        "audit_id": "zimmer_rohde_marka_v1.0_2026-05-25",
+        "audit_date": "2026-05-25",
+        "version_before": "(yok — Faz 3.5 ilk inşa)",
+        "version_after": "v1.0 (n=6, urun JSON'larindan turetilen istatistikler)",
+        "notes": "Documents iterasyonundan migrate. Python mekanik istatistik hesabi (build_marka_profilleri.py). n=6 >=3 -> mostly_estimated. audited urun sayisi (staubli_feasibility dolu): 1/6. Statik kimlik (kurucular, CEO, mill, designer_roster, anitsal projeler) PENDING."
+      }
+    ]
+  },
+  "width_distribution": {
+    "min_cm": {
+      "value": 283,
+      "sample_status": "ok",
+      "sample_size": 6,
+      "observed_at_n6": 283
+    },
+    "max_cm": {
+      "value": 315,
+      "sample_status": "ok",
+      "sample_size": 6,
+      "observed_at_n6": 315
+    },
+    "comment": "n=6, en araligi: 283-315 cm"
+  },
+  "color_profile": {
+    "total_variant_count": {
+      "value": 38,
+      "sample_status": "ok",
+      "sample_size": 6,
+      "observed_at_n6": 38
+    },
+    "average_per_product": {
+      "value": 6.3,
+      "sample_status": "ok",
+      "sample_size": 6,
+      "observed_at_n6": 6.3
+    },
+    "comment": "n=6, toplam 38 renk varyanti, ortalama 6.3/urun"
+  },
+  "weave_distribution": {
+    "dobby": {
+      "value": 16.7,
+      "sample_status": "ok",
+      "sample_size": 6,
+      "observed_at_n6": 1,
+      "comment": "1/6 urunde dobby"
+    },
+    "plain": {
+      "value": 16.7,
+      "sample_status": "ok",
+      "sample_size": 6,
+      "observed_at_n6": 1,
+      "comment": "1/6 urunde plain"
+    },
+    "boucle": {
+      "value": 16.7,
+      "sample_status": "ok",
+      "sample_size": 6,
+      "observed_at_n6": 1,
+      "comment": "1/6 urunde boucle"
+    },
+    "double_cloth": {
+      "value": 16.7,
+      "sample_status": "ok",
+      "sample_size": 6,
+      "observed_at_n6": 1,
+      "comment": "1/6 urunde double_cloth"
+    },
+    "leno": {
+      "value": 16.7,
+      "sample_status": "ok",
+      "sample_size": 6,
+      "observed_at_n6": 1,
+      "comment": "1/6 urunde leno"
+    }
+  },
+  "composition_distribution": {
+    "synthetic_ratio_percent": {
+      "value": 33.7,
+      "sample_status": "ok",
+      "sample_size": 6,
+      "observed_at_n6": 33.7
+    },
+    "natural_ratio_percent": {
+      "value": 44.0,
+      "sample_status": "ok",
+      "sample_size": 6,
+      "observed_at_n6": 44.0
+    },
+    "blend_ratio_percent": {
+      "value": 50.0,
+      "sample_status": "ok",
+      "sample_size": 6,
+      "observed_at_n6": 50.0
+    },
+    "comment": "n=6, 3 mono + 3 blend; avg synth %33.7, natural %44.0"
+  },
+  "country_distribution": {
+    "Almanya": 5,
+    "Belçika": 1
+  },
+  "mobidik_strategic_assessment": {
+    "average_feasibility_score": {
+      "value": null,
+      "sample_status": "audited_n_1",
+      "sample_size": 1,
+      "observed_at_n6": 5.0
+    },
+    "watch_priority": "yuksek",
+    "comment": "n=6 urun denetlenmis; audited 1/6 (staubli_feasibility dolu); avg = 5.0. Faz 3.4 pilot: Capri Plus + Niket denetlendi (5/5 her ikisi). Diger urunler PENDING."
+  },
+  "data_integrity": {
+    "verified_data_points": 0,
+    "ai_estimated_data_points": 0,
+    "verification_ratio": 0.0,
+    "reliability_label": "mostly_estimated",
+    "sample_size_tracked_products": 6,
+    "_reliability_explanation": "n=6, threshold n>=3 gecti -> mostly_estimated. Audited (mobidik_evaluation dolu) 1/6; bu sayi yukseldikce avg_feasibility daha guvenilir."
+  },
+  "notes": [
+    "v1.0 (2026-05-25): Faz 3.5 ilk insa. Documents iterasyonu urun JSON'larindan turetildi (n=6, audited=1).",
+    "Statik kimlik (kurucular, CEO, mill_ownership, designer_roster, anitsal projeler) PENDING — sonraki denetim adimi.",
+    "Tam statik kimlik (kurucular, CEO, mill, designer_roster, anitsal projeler) Faz 3.5 sonraki denetim adimi — Z+R about + Wikipedia."
+  ]
+}

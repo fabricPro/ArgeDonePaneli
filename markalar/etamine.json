@@ -1,0 +1,125 @@
+{
+  "_schema_version": "1.1",
+  "brand": "Etamine",
+  "brand_slug": "etamine",
+  "country": "Fransa",
+  "region": "fransiz_alpin",
+  "headquarters_city": "Paris",
+  "founded_year": 1986,
+  "website": "https://www.zimmer-rohde.com/en/etamine",
+  "tracked_since": "2026-05-11",
+  "last_updated": "2026-05-25T22:55:00Z",
+  "product_count_tracked": 4,
+  "_provenance": {
+    "schema_version": "1.1",
+    "created_at": "2026-05-25T22:55:00Z",
+    "last_updated": "2026-05-25T22:55:00Z",
+    "sources_used": [
+      {
+        "url": "Documents/01_raporlar + 03_html_dashboard/index.html",
+        "type": "internal_dashboard_pre_migration",
+        "accessed_at": "2026-05-25T22:55:00Z",
+        "fields_supported": [
+          "all_stat_distributions_from_n_products"
+        ]
+      }
+    ],
+    "constitutional_violations_check": "passed_at_2026-05-25T22:55:00Z",
+    "audit_history": [
+      {
+        "audit_id": "etamine_marka_v1.0_2026-05-25",
+        "audit_date": "2026-05-25",
+        "version_before": "(yok — Faz 3.5 ilk inşa)",
+        "version_after": "v1.0 (n=4, urun JSON'larindan turetilen istatistikler)",
+        "notes": "Documents iterasyonundan migrate. Python mekanik istatistik hesabi (build_marka_profilleri.py). n=4 >=3 -> mostly_estimated. audited urun sayisi (staubli_feasibility dolu): 0/4. Statik kimlik (kurucular, CEO, mill, designer_roster, anitsal projeler) PENDING."
+      }
+    ]
+  },
+  "width_distribution": {
+    "min_cm": {
+      "value": 155,
+      "sample_status": "ok",
+      "sample_size": 4,
+      "observed_at_n4": 155
+    },
+    "max_cm": {
+      "value": 305,
+      "sample_status": "ok",
+      "sample_size": 4,
+      "observed_at_n4": 305
+    },
+    "comment": "n=4, en araligi: 155-305 cm"
+  },
+  "color_profile": {
+    "total_variant_count": {
+      "value": 13,
+      "sample_status": "ok",
+      "sample_size": 4,
+      "observed_at_n4": 13
+    },
+    "average_per_product": {
+      "value": 3.2,
+      "sample_status": "ok",
+      "sample_size": 4,
+      "observed_at_n4": 3.2
+    },
+    "comment": "n=4, toplam 13 renk varyanti, ortalama 3.2/urun"
+  },
+  "weave_distribution": {
+    "plain": {
+      "value": 25.0,
+      "sample_status": "ok",
+      "sample_size": 4,
+      "observed_at_n4": 1,
+      "comment": "1/4 urunde plain"
+    }
+  },
+  "composition_distribution": {
+    "synthetic_ratio_percent": {
+      "value": 25.2,
+      "sample_status": "ok",
+      "sample_size": 4,
+      "observed_at_n4": 25.2
+    },
+    "natural_ratio_percent": {
+      "value": 73.5,
+      "sample_status": "ok",
+      "sample_size": 4,
+      "observed_at_n4": 73.5
+    },
+    "blend_ratio_percent": {
+      "value": 25.0,
+      "sample_status": "ok",
+      "sample_size": 4,
+      "observed_at_n4": 25.0
+    },
+    "comment": "n=4, 3 mono + 1 blend; avg synth %25.2, natural %73.5"
+  },
+  "country_distribution": {
+    "İtalya": 2,
+    "Fransa": 2
+  },
+  "mobidik_strategic_assessment": {
+    "average_feasibility_score": {
+      "value": null,
+      "sample_status": "audited_n_0",
+      "sample_size": 0,
+      "observed_at_n4": null
+    },
+    "watch_priority": "yuksek",
+    "comment": "n=4 urun denetlenmis; audited 0/4 (staubli_feasibility dolu); avg = henuz pilot urun denetimi tamamlanmadi. Faz 3.4 pilot: Capri Plus + Niket denetlendi (5/5 her ikisi). Diger urunler PENDING."
+  },
+  "data_integrity": {
+    "verified_data_points": 0,
+    "ai_estimated_data_points": 0,
+    "verification_ratio": 0.0,
+    "reliability_label": "mostly_estimated",
+    "sample_size_tracked_products": 4,
+    "_reliability_explanation": "n=4, threshold n>=3 gecti -> mostly_estimated. Audited (mobidik_evaluation dolu) 0/4; bu sayi yukseldikce avg_feasibility daha guvenilir."
+  },
+  "notes": [
+    "v1.0 (2026-05-25): Faz 3.5 ilk insa. Documents iterasyonu urun JSON'larindan turetildi (n=4, audited=0).",
+    "Statik kimlik (kurucular, CEO, mill_ownership, designer_roster, anitsal projeler) PENDING — sonraki denetim adimi.",
+    "Z+R'nin Fransiz alt markasi (1995'ten Z+R'ye katildi). Tam profil PENDING."
+  ]
+}

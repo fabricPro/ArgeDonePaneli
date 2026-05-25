@@ -1,0 +1,1644 @@
+{
+  "_schema_version": "1.3",
+  "urun_id": "ado_goldkante_3150-capri-plus",
+  "brand": "ADO Goldkante",
+  "brand_slug": "ado_goldkante",
+  "collection": "Collaboration",
+  "product_code": "3150",
+  "product_name": "Capri Plus",
+  "source_url": "https://www.zimmer-rohde.com/en/product-finder/details/capri-plus-3150-332",
+  "scraped_at": "2026-05-11T00:00:00Z",
+  "last_updated": "2026-05-25T22:45:00Z",
+  "source_data": {
+    "_description": "Documents iterasyonundan migrate edildi (Faz 3.4). Birincil kaynak: 03_html_dashboard/index.html JS array; ikincil: 01_raporlar/<marka>_parti<NN>_<tarih>.md (varsa).",
+    "_provenance": {
+      "schema_version": "1.1",
+      "created_at": "2026-05-25T22:30:00Z",
+      "last_updated": "2026-05-25T22:30:00Z",
+      "sources_used": [
+        {
+          "url": "03_html_dashboard/index.html (Documents iterasyonu, parti01-03 sonrasi)",
+          "type": "internal_dashboard_pre_migration",
+          "accessed_at": "2026-05-25T22:30:00Z",
+          "fields_supported": [
+            "composition",
+            "width_cm",
+            "weave_type",
+            "variants",
+            "country_of_origin",
+            "description"
+          ]
+        },
+        {
+          "url": "https://www.zimmer-rohde.com/en/product-finder/details/capri-plus-3150-332",
+          "type": "html_product_page",
+          "accessed_at": "2026-05-11T00:00:00Z",
+          "fields_supported": [
+            "original_source_for_all_fields"
+          ]
+        }
+      ],
+      "field_metadata": {},
+      "fields_from_dashboard_migration": [
+        "composition",
+        "width_cm",
+        "weave_type_raw",
+        "variants",
+        "country_of_origin",
+        "description"
+      ],
+      "fields_from_inference": [],
+      "constitutional_violations_check": "passed_at_2026-05-25T22:45:00Z",
+      "audit_history": [
+        {
+          "audit_id": "ado_goldkante_3150-capri-plus_v1.0_2026-05-25",
+          "audit_date": "2026-05-25",
+          "audit_doc": "docs/parti_log.md (kuruluyor)",
+          "version_before": "(yok — Documents iterasyonundan ilk JSON migrate)",
+          "version_after": "v1.0 (Faz 3.4 batch migrate from dashboard JS array)",
+          "notes": "Python parse_dashboard_to_urun_jsons.py mekanik migrate. source_data + variants + images dolduruldu. mobidik_evaluation BOS — Claude Code denetim sonra dolduracak (kapasite tablosu #7 + ai_inferences). Documents dashboard'daki mobidik_notu_html metni gecici source_data.mobidik_notu_legacy alaninda saklandi."
+        },
+        {
+          "audit_id": "ado_goldkante_3150-capri-plus_v1.1_2026-05-25",
+          "audit_date": "2026-05-25",
+          "audit_doc": "docs/parti_log.md (kuruluyor)",
+          "version_before": "v1.0 (Faz 3.4 batch migrate, mobidik_evaluation PENDING)",
+          "version_after": "v1.1 (Faz 3.4 pilot denetim, mobidik_evaluation tam, weave dobby duzeltmesi)",
+          "notes": "Capri Plus ALTIN urun ilk pilot denetim. Kapasite tablosu uygulandi: width 310 cm <= 360, dobby open latticework TAM, %100 PES standart iplik TAM. staubli_feasibility=5/5 (Documents notu Kolay-Orta diyordu, uyumlu). 'Open latticework' weave_type_normalized=dobby olarak duzeltildi (parser None dondurdu)."
+        }
+      ]
+    },
+    "technical": {
+      "composition": [
+        {
+          "fiber_generic": "Polyester",
+          "fiber_commercial": "Polyester",
+          "ratio_percent": 100,
+          "fr_treatment": null
+        }
+      ],
+      "width_cm": 310,
+      "weight_gsm": null,
+      "repeat_cm": {
+        "vertical": null,
+        "horizontal": null
+      },
+      "weave_type_raw": "open latticework",
+      "weave_type_normalized": "dobby",
+      "yarn_type": null,
+      "transparency": {
+        "value": null,
+        "_note": "Documents dashboard transparency beyan etmiyor; ai_inferences.light_transmission adayi."
+      },
+      "usage_area": [
+        "curtains"
+      ],
+      "performance": {
+        "lightfastness": null,
+        "abrasion_martindale": null,
+        "pilling": null,
+        "shrinkage": {
+          "warp_percent": null,
+          "weft_percent": null
+        },
+        "washing_resistance": null
+      },
+      "acoustic": {
+        "alpha_s_value": null,
+        "absorption_class": null,
+        "comment": null
+      }
+    },
+    "variants": [
+      {
+        "color_code": "3150-111",
+        "color_name": "Bulut beyazı",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/9/csm_3150111_5d78cc123b.jpg",
+        "main_image_local_path": "gorseller/ado_goldkante/3150/111_1.jpg"
+      },
+      {
+        "color_code": "3150-131",
+        "color_name": "Antik bej",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/f/7/csm_3150131_ea83aa5237.jpg",
+        "main_image_local_path": "gorseller/ado_goldkante/3150/131_1.jpg"
+      },
+      {
+        "color_code": "3150-191",
+        "color_name": "Açık taş",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/a/csm_3150191_1708ce4aac.jpg",
+        "main_image_local_path": "gorseller/ado_goldkante/3150/191_1.jpg"
+      },
+      {
+        "color_code": "3150-192",
+        "color_name": "Açık nötr",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/8/6/csm_3150192_d6e1044acb.jpg",
+        "main_image_local_path": "gorseller/ado_goldkante/3150/192_1.jpg"
+      },
+      {
+        "color_code": "3150-200",
+        "color_name": "Bej",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/e/d/csm_3150200_fbb78cf0dc.jpg",
+        "main_image_local_path": "gorseller/ado_goldkante/3150/200_1.jpg"
+      },
+      {
+        "color_code": "3150-331",
+        "color_name": "Bej-gri",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/d/8/csm_3150331_06cc42e402.jpg",
+        "main_image_local_path": "gorseller/ado_goldkante/3150/331_1.jpg"
+      },
+      {
+        "color_code": "3150-332",
+        "color_name": "Antrasit",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/1/d/csm_3150332_158db006db.jpg",
+        "main_image_local_path": "gorseller/ado_goldkante/3150/332_1.jpg"
+      },
+      {
+        "color_code": "3150-444",
+        "color_name": "Açık zeytin",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/8/a/csm_3150444_0785a4a2cc.jpg",
+        "main_image_local_path": "gorseller/ado_goldkante/3150/444_1.jpg"
+      },
+      {
+        "color_code": "3150-445",
+        "color_name": "Köy yeşili",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/1/3/csm_3150445_ef660d9508.jpg",
+        "main_image_local_path": "gorseller/ado_goldkante/3150/445_1.jpg"
+      },
+      {
+        "color_code": "3150-554",
+        "color_name": "Adaçayı",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/a/csm_3150554_3cfb7092e8.jpg",
+        "main_image_local_path": "gorseller/ado_goldkante/3150/554_1.jpg"
+      },
+      {
+        "color_code": "3150-562",
+        "color_name": "Çam",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/f/5/csm_3150562_0d9904283a.jpg",
+        "main_image_local_path": "gorseller/ado_goldkante/3150/562_1.jpg"
+      },
+      {
+        "color_code": "3150-662",
+        "color_name": "Sıcak taba",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/7/a/csm_3150662_c5fbbd03c5.jpg",
+        "main_image_local_path": "gorseller/ado_goldkante/3150/662_1.jpg"
+      },
+      {
+        "color_code": "3150-682",
+        "color_name": "Koyu taba",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/2/5/csm_3150682_067468c472.jpg",
+        "main_image_local_path": "gorseller/ado_goldkante/3150/682_1.jpg"
+      },
+      {
+        "color_code": "3150-684",
+        "color_name": "Antik kahve",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/a/2/csm_3150684_f643d38316.jpg",
+        "main_image_local_path": "gorseller/ado_goldkante/3150/684_1.jpg"
+      },
+      {
+        "color_code": "3150-843",
+        "color_name": "Şarap",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/d/6/csm_3150843_78acd9fea3.jpg",
+        "main_image_local_path": "gorseller/ado_goldkante/3150/843_1.jpg"
+      },
+      {
+        "color_code": "3150-992",
+        "color_name": "Açık duman",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/b/c/csm_3150992_9bd4d5d504.jpg",
+        "main_image_local_path": "gorseller/ado_goldkante/3150/992_1.jpg"
+      },
+      {
+        "color_code": "3150-994",
+        "color_name": "Bulut grisi",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/e/9/csm_3150994_bf77b16cde.jpg",
+        "main_image_local_path": "gorseller/ado_goldkante/3150/994_1.jpg"
+      }
+    ],
+    "certifications": {
+      "fire_safety": [],
+      "sustainability": [],
+      "other": [],
+      "raw_text": "Room high, Yıkanabilir 30°, Mükemmel ışık haslığı, Outdoor uyumlu"
+    },
+    "commercial": {
+      "price_per_meter": null,
+      "price_currency": null,
+      "moq_meters": null,
+      "lead_time_days": null,
+      "country_of_origin": "Almanya",
+      "sample_policy": null,
+      "launch_year": null,
+      "production_model": {
+        "value": "unknown",
+        "notes": "Documents migrasyonunda beyan yok"
+      }
+    },
+    "design_credit": {
+      "designer": null,
+      "type": "unknown"
+    },
+    "description_original": {
+      "language": "tr",
+      "text": "İyi vibe ve rahatlama — 17 yumuşak ton, mükemmel ışık haslığı. Açık latticework dokumayla güneş ışığını ev içine taşır. Outdoor da uyumlu.",
+      "source_url": "https://www.zimmer-rohde.com/en/product-finder/details/capri-plus-3150-332",
+      "extracted_at": "2026-05-11T00:00:00Z",
+      "_note": "Documents iterasyonu Turkce ozet — orijinal Ingilizce/Almanca aciklama Z+R sayfasinda ayrica cekilebilir"
+    },
+    "description_tr": {
+      "text": "İyi vibe ve rahatlama — 17 yumuşak ton, mükemmel ışık haslığı. Açık latticework dokumayla güneş ışığını ev içine taşır. Outdoor da uyumlu.",
+      "translation_method": "user_curated",
+      "translated_at": "2026-05-11T00:00:00Z",
+      "is_official_translation": false
+    },
+    "style_note": "Mediterranean summer — 17 rengin kalabalık paleti, en geniş palet.",
+    "performans_legacy": [
+      "Room high",
+      "Yıkanabilir 30°",
+      "Mükemmel ışık haslığı",
+      "Outdoor uyumlu"
+    ],
+    "mobidik_notu_legacy": "Zorluk: Kolay ✅ — outdoor segment için ALTIN. Çerçeve: 4-6 (lattice). %100 PES outdoor + lightfastness. 17 renk paleti güçlü. Türk üretim avantajı: solution-dyed PES tedariki Sasa/Korteks. AB outdoor pazar payı büyüyor."
+  },
+  "ai_inferences": {
+    "_description": "Faz 3.4 batch migrate sonrasi Claude Code denetim sirasinda doldurulacak.",
+    "weight_gsm": {
+      "estimated_value": null,
+      "confidence": null,
+      "method": "pending",
+      "based_on": [],
+      "model": "claude-opus-4-7",
+      "created_at": null,
+      "user_verified": false,
+      "user_correction": null
+    },
+    "light_transmission": {
+      "estimated_class": null,
+      "confidence": null,
+      "method": "pending",
+      "model": "claude-opus-4-7",
+      "created_at": null,
+      "user_verified": false,
+      "user_correction": null
+    }
+  },
+  "image_analysis": {
+    "_description": "Visual analiz pending — Faz 3.4 sonrasi denetim asamasinda eklenecek.",
+    "dominant_colors": {
+      "value": null
+    },
+    "texture_classification": null,
+    "transparency_visual": null,
+    "color_palette_summary": "17 renk varyanti — palet Documents dashboard'da listelendi",
+    "style_tags": [],
+    "pattern_type": null,
+    "pattern_density": null,
+    "estimated_use_context": [
+      "curtains"
+    ]
+  },
+  "images": {
+    "_description": "85 gorsel — Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 yeni gorseller/<marka>/<urun>/<renk>_<sira>.jpg konvansiyonuna migrate edildi.",
+    "main": [],
+    "variants": [
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/9/csm_3150111_5d78cc123b.jpg",
+        "local_path": "gorseller/ado_goldkante/3150/111_1.jpg",
+        "variant_code": "3150-111",
+        "variant_name": "Bulut beyazı",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/111_2.jpg",
+        "variant_code": "3150-111",
+        "variant_name": "Bulut beyazı",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/111_3.jpg",
+        "variant_code": "3150-111",
+        "variant_name": "Bulut beyazı",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/111_4.jpg",
+        "variant_code": "3150-111",
+        "variant_name": "Bulut beyazı",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/111_5.jpg",
+        "variant_code": "3150-111",
+        "variant_name": "Bulut beyazı",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/f/7/csm_3150131_ea83aa5237.jpg",
+        "local_path": "gorseller/ado_goldkante/3150/131_1.jpg",
+        "variant_code": "3150-131",
+        "variant_name": "Antik bej",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/131_2.jpg",
+        "variant_code": "3150-131",
+        "variant_name": "Antik bej",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/131_3.jpg",
+        "variant_code": "3150-131",
+        "variant_name": "Antik bej",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/131_4.jpg",
+        "variant_code": "3150-131",
+        "variant_name": "Antik bej",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/131_5.jpg",
+        "variant_code": "3150-131",
+        "variant_name": "Antik bej",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/a/csm_3150191_1708ce4aac.jpg",
+        "local_path": "gorseller/ado_goldkante/3150/191_1.jpg",
+        "variant_code": "3150-191",
+        "variant_name": "Açık taş",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/191_2.jpg",
+        "variant_code": "3150-191",
+        "variant_name": "Açık taş",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/191_3.jpg",
+        "variant_code": "3150-191",
+        "variant_name": "Açık taş",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/191_4.jpg",
+        "variant_code": "3150-191",
+        "variant_name": "Açık taş",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/191_5.jpg",
+        "variant_code": "3150-191",
+        "variant_name": "Açık taş",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/8/6/csm_3150192_d6e1044acb.jpg",
+        "local_path": "gorseller/ado_goldkante/3150/192_1.jpg",
+        "variant_code": "3150-192",
+        "variant_name": "Açık nötr",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/192_2.jpg",
+        "variant_code": "3150-192",
+        "variant_name": "Açık nötr",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/192_3.jpg",
+        "variant_code": "3150-192",
+        "variant_name": "Açık nötr",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/192_4.jpg",
+        "variant_code": "3150-192",
+        "variant_name": "Açık nötr",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/192_5.jpg",
+        "variant_code": "3150-192",
+        "variant_name": "Açık nötr",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/e/d/csm_3150200_fbb78cf0dc.jpg",
+        "local_path": "gorseller/ado_goldkante/3150/200_1.jpg",
+        "variant_code": "3150-200",
+        "variant_name": "Bej",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/200_2.jpg",
+        "variant_code": "3150-200",
+        "variant_name": "Bej",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/200_3.jpg",
+        "variant_code": "3150-200",
+        "variant_name": "Bej",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/200_4.jpg",
+        "variant_code": "3150-200",
+        "variant_name": "Bej",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/200_5.jpg",
+        "variant_code": "3150-200",
+        "variant_name": "Bej",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/d/8/csm_3150331_06cc42e402.jpg",
+        "local_path": "gorseller/ado_goldkante/3150/331_1.jpg",
+        "variant_code": "3150-331",
+        "variant_name": "Bej-gri",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/331_2.jpg",
+        "variant_code": "3150-331",
+        "variant_name": "Bej-gri",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/331_3.jpg",
+        "variant_code": "3150-331",
+        "variant_name": "Bej-gri",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/331_4.jpg",
+        "variant_code": "3150-331",
+        "variant_name": "Bej-gri",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/331_5.jpg",
+        "variant_code": "3150-331",
+        "variant_name": "Bej-gri",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/1/d/csm_3150332_158db006db.jpg",
+        "local_path": "gorseller/ado_goldkante/3150/332_1.jpg",
+        "variant_code": "3150-332",
+        "variant_name": "Antrasit",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/332_2.jpg",
+        "variant_code": "3150-332",
+        "variant_name": "Antrasit",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/332_3.jpg",
+        "variant_code": "3150-332",
+        "variant_name": "Antrasit",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/332_4.jpg",
+        "variant_code": "3150-332",
+        "variant_name": "Antrasit",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/332_5.jpg",
+        "variant_code": "3150-332",
+        "variant_name": "Antrasit",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/8/a/csm_3150444_0785a4a2cc.jpg",
+        "local_path": "gorseller/ado_goldkante/3150/444_1.jpg",
+        "variant_code": "3150-444",
+        "variant_name": "Açık zeytin",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/444_2.jpg",
+        "variant_code": "3150-444",
+        "variant_name": "Açık zeytin",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/444_3.jpg",
+        "variant_code": "3150-444",
+        "variant_name": "Açık zeytin",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/444_4.jpg",
+        "variant_code": "3150-444",
+        "variant_name": "Açık zeytin",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/444_5.jpg",
+        "variant_code": "3150-444",
+        "variant_name": "Açık zeytin",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/1/3/csm_3150445_ef660d9508.jpg",
+        "local_path": "gorseller/ado_goldkante/3150/445_1.jpg",
+        "variant_code": "3150-445",
+        "variant_name": "Köy yeşili",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/445_2.jpg",
+        "variant_code": "3150-445",
+        "variant_name": "Köy yeşili",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/445_3.jpg",
+        "variant_code": "3150-445",
+        "variant_name": "Köy yeşili",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/445_4.jpg",
+        "variant_code": "3150-445",
+        "variant_name": "Köy yeşili",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/445_5.jpg",
+        "variant_code": "3150-445",
+        "variant_name": "Köy yeşili",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/a/csm_3150554_3cfb7092e8.jpg",
+        "local_path": "gorseller/ado_goldkante/3150/554_1.jpg",
+        "variant_code": "3150-554",
+        "variant_name": "Adaçayı",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/554_2.jpg",
+        "variant_code": "3150-554",
+        "variant_name": "Adaçayı",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/554_3.jpg",
+        "variant_code": "3150-554",
+        "variant_name": "Adaçayı",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/554_4.jpg",
+        "variant_code": "3150-554",
+        "variant_name": "Adaçayı",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/554_5.jpg",
+        "variant_code": "3150-554",
+        "variant_name": "Adaçayı",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/f/5/csm_3150562_0d9904283a.jpg",
+        "local_path": "gorseller/ado_goldkante/3150/562_1.jpg",
+        "variant_code": "3150-562",
+        "variant_name": "Çam",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/562_2.jpg",
+        "variant_code": "3150-562",
+        "variant_name": "Çam",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/562_3.jpg",
+        "variant_code": "3150-562",
+        "variant_name": "Çam",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/562_4.jpg",
+        "variant_code": "3150-562",
+        "variant_name": "Çam",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/562_5.jpg",
+        "variant_code": "3150-562",
+        "variant_name": "Çam",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/7/a/csm_3150662_c5fbbd03c5.jpg",
+        "local_path": "gorseller/ado_goldkante/3150/662_1.jpg",
+        "variant_code": "3150-662",
+        "variant_name": "Sıcak taba",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/662_2.jpg",
+        "variant_code": "3150-662",
+        "variant_name": "Sıcak taba",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/662_3.jpg",
+        "variant_code": "3150-662",
+        "variant_name": "Sıcak taba",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/662_4.jpg",
+        "variant_code": "3150-662",
+        "variant_name": "Sıcak taba",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/662_5.jpg",
+        "variant_code": "3150-662",
+        "variant_name": "Sıcak taba",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/2/5/csm_3150682_067468c472.jpg",
+        "local_path": "gorseller/ado_goldkante/3150/682_1.jpg",
+        "variant_code": "3150-682",
+        "variant_name": "Koyu taba",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/682_2.jpg",
+        "variant_code": "3150-682",
+        "variant_name": "Koyu taba",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/682_3.jpg",
+        "variant_code": "3150-682",
+        "variant_name": "Koyu taba",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/682_4.jpg",
+        "variant_code": "3150-682",
+        "variant_name": "Koyu taba",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/682_5.jpg",
+        "variant_code": "3150-682",
+        "variant_name": "Koyu taba",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/a/2/csm_3150684_f643d38316.jpg",
+        "local_path": "gorseller/ado_goldkante/3150/684_1.jpg",
+        "variant_code": "3150-684",
+        "variant_name": "Antik kahve",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/684_2.jpg",
+        "variant_code": "3150-684",
+        "variant_name": "Antik kahve",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/684_3.jpg",
+        "variant_code": "3150-684",
+        "variant_name": "Antik kahve",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/684_4.jpg",
+        "variant_code": "3150-684",
+        "variant_name": "Antik kahve",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/684_5.jpg",
+        "variant_code": "3150-684",
+        "variant_name": "Antik kahve",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/d/6/csm_3150843_78acd9fea3.jpg",
+        "local_path": "gorseller/ado_goldkante/3150/843_1.jpg",
+        "variant_code": "3150-843",
+        "variant_name": "Şarap",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/843_2.jpg",
+        "variant_code": "3150-843",
+        "variant_name": "Şarap",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/843_3.jpg",
+        "variant_code": "3150-843",
+        "variant_name": "Şarap",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/843_4.jpg",
+        "variant_code": "3150-843",
+        "variant_name": "Şarap",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/843_5.jpg",
+        "variant_code": "3150-843",
+        "variant_name": "Şarap",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/b/c/csm_3150992_9bd4d5d504.jpg",
+        "local_path": "gorseller/ado_goldkante/3150/992_1.jpg",
+        "variant_code": "3150-992",
+        "variant_name": "Açık duman",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/992_2.jpg",
+        "variant_code": "3150-992",
+        "variant_name": "Açık duman",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/992_3.jpg",
+        "variant_code": "3150-992",
+        "variant_name": "Açık duman",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/992_4.jpg",
+        "variant_code": "3150-992",
+        "variant_name": "Açık duman",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/992_5.jpg",
+        "variant_code": "3150-992",
+        "variant_name": "Açık duman",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/e/9/csm_3150994_bf77b16cde.jpg",
+        "local_path": "gorseller/ado_goldkante/3150/994_1.jpg",
+        "variant_code": "3150-994",
+        "variant_name": "Bulut grisi",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/994_2.jpg",
+        "variant_code": "3150-994",
+        "variant_name": "Bulut grisi",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/994_3.jpg",
+        "variant_code": "3150-994",
+        "variant_name": "Bulut grisi",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/994_4.jpg",
+        "variant_code": "3150-994",
+        "variant_name": "Bulut grisi",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/ado_goldkante/3150/994_5.jpg",
+        "variant_code": "3150-994",
+        "variant_name": "Bulut grisi",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/ado_goldkante/3150 altinda"
+      }
+    ],
+    "lifestyle": [],
+    "technical": [],
+    "_quality_notes": []
+  },
+  "mobidik_evaluation": {
+    "_description": "ADO Capri Plus — ALTIN urun (outdoor PES, 17 renk, R+T Stuttgart 2027 hedefi). Kapasite tablosu #7 uygulandi: width 310<=360, dobby (open latticework) TAM, %100 PES standart iplik TAM.",
+    "staubli_feasibility": {
+      "score": 5,
+      "frame_count_estimate": "2-8",
+      "warp_compatibility": "uygun",
+      "weft_compatibility": "uygun",
+      "repeat_size_compatibility": "uygun",
+      "reed_density_estimate": "20-25 dent/cm (open lattice)",
+      "sizing_requirement": "Standart PES hasil",
+      "comment": "Tum Stabli kriterleri TAM: width 310 cm < 360 sinir, dobby open latticework standart kapasitede, %100 solution-dyed PES iplik tedariki Turkiye'de cok guclu (SASA, Korteks)."
+    },
+    "arge_value": {
+      "score": 85,
+      "key_learnings": [
+        "Solution-dyed PES iplik tedariki — Turkiye lider (SASA, Korteks GRS sertifikali)",
+        "Open latticework yapisi (gozenekli dobby) — outdoor segment temel yapi",
+        "17 renk paleti — outdoor PES genis palet yonetimi"
+      ],
+      "comment": "ALTIN URUN. Outdoor PES segment AB'de %25/yil buyuyor. Mobidik icin en uygun ilk uretim kapasitesi."
+    },
+    "market_gap": {
+      "score": 88,
+      "comment": "Turkiye yerel pazarda 'Kvadrat-tarzi open latticework outdoor' yerel uretici yok. AB pazari Kvadrat/Z+R retail 60-100 EUR/m; Mobidik 18-25 EUR/m hedef = -%70 fiyat. R+T Stuttgart 2027 fuari hedef.",
+      "target_markets": [
+        "TR (outdoor + ic mekan)",
+        "AB (DACH outdoor)",
+        "GCC (otel terasi)"
+      ]
+    },
+    "portfolio_fit": {
+      "score": 90,
+      "similar_existing_products": [],
+      "comment": "Mobidik mevcut keten + dobby portfoyune mukemmel uyuyor. 'Mediterranean Outdoor' alt hattinin kalip urunu olabilir."
+    },
+    "overall_score": 87,
+    "priority_level": "yuksek",
+    "strategic_note": "ALTIN URUN. Capri Plus = open latticework outdoor PES, 17 renk, Stabli icin dogrudan uygun. Acil aksiyonlar: (1) Solution-dyed PES iplik teklifleri (SASA, Korteks 4 renk numune), (2) Pilot: 5 notr ton x 150 m, 4-6 hafta, (3) R+T Stuttgart 2027 fuari hedef, (4) GRS sertifika basvurusu paralel. Pazar: Z+R retail 60-100 EUR/m -> Mobidik 18-25 EUR/m hedef (-%70 fiyat avantaji)."
+  },
+  "data_quality": {
+    "missing_fields": [
+      "technical.performance.abrasion_martindale",
+      "technical.performance.shrinkage.warp_percent",
+      "commercial.price_per_meter",
+      "commercial.moq_meters",
+      "certifications.fire_safety[]"
+    ],
+    "ai_estimated_fields": [],
+    "user_verified_fields": [
+      "commercial.country_of_origin",
+      "variants[].color_name",
+      "mobidik_evaluation.staubli_feasibility.score (5/5)",
+      "mobidik_evaluation.strategic_note (ALTIN urun aksiyon plani)"
+    ],
+    "completeness_percent": 70,
+    "last_verified": "2026-05-25T22:30:00Z",
+    "notes": [
+      "Faz 3.4 batch migrate. 17 renk varyanti dashboard'dan alindi.",
+      "mobidik_evaluation + ai_inferences PENDING — Claude Code denetim sonra dolduracak.",
+      "Gorsel yollari yeni konvansiyona (gorseller/ado_goldkante/3150) uyarlandi."
+    ]
+  }
+}

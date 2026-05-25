@@ -1,0 +1,580 @@
+{
+  "_schema_version": "1.3",
+  "urun_id": "etamine_19649-fil-du-temps",
+  "brand": "Etamine",
+  "brand_slug": "etamine",
+  "collection": "Songe d'Ete",
+  "product_code": "19649",
+  "product_name": "Fil du Temps",
+  "source_url": "https://www.zimmer-rohde.com/en/product-finder/details/fil-du-temps-19649-883",
+  "scraped_at": "2026-05-11T00:00:00Z",
+  "last_updated": "2026-05-25T22:30:00Z",
+  "source_data": {
+    "_description": "Documents iterasyonundan migrate edildi (Faz 3.4). Birincil kaynak: 03_html_dashboard/index.html JS array; ikincil: 01_raporlar/<marka>_parti<NN>_<tarih>.md (varsa).",
+    "_provenance": {
+      "schema_version": "1.1",
+      "created_at": "2026-05-25T22:30:00Z",
+      "last_updated": "2026-05-25T22:30:00Z",
+      "sources_used": [
+        {
+          "url": "03_html_dashboard/index.html (Documents iterasyonu, parti01-03 sonrasi)",
+          "type": "internal_dashboard_pre_migration",
+          "accessed_at": "2026-05-25T22:30:00Z",
+          "fields_supported": [
+            "composition",
+            "width_cm",
+            "weave_type",
+            "variants",
+            "country_of_origin",
+            "description"
+          ]
+        },
+        {
+          "url": "https://www.zimmer-rohde.com/en/product-finder/details/fil-du-temps-19649-883",
+          "type": "html_product_page",
+          "accessed_at": "2026-05-11T00:00:00Z",
+          "fields_supported": [
+            "original_source_for_all_fields"
+          ]
+        }
+      ],
+      "field_metadata": {},
+      "fields_from_dashboard_migration": [
+        "composition",
+        "width_cm",
+        "weave_type_raw",
+        "variants",
+        "country_of_origin",
+        "description"
+      ],
+      "fields_from_inference": [],
+      "constitutional_violations_check": "pending_phase34_audit",
+      "audit_history": [
+        {
+          "audit_id": "etamine_19649-fil-du-temps_v1.0_2026-05-25",
+          "audit_date": "2026-05-25",
+          "audit_doc": "docs/parti_log.md (kuruluyor)",
+          "version_before": "(yok — Documents iterasyonundan ilk JSON migrate)",
+          "version_after": "v1.0 (Faz 3.4 batch migrate from dashboard JS array)",
+          "notes": "Python parse_dashboard_to_urun_jsons.py mekanik migrate. source_data + variants + images dolduruldu. mobidik_evaluation BOS — Claude Code denetim sonra dolduracak (kapasite tablosu #7 + ai_inferences). Documents dashboard'daki mobidik_notu_html metni gecici source_data.mobidik_notu_legacy alaninda saklandi."
+        }
+      ]
+    },
+    "technical": {
+      "composition": [
+        {
+          "fiber_generic": "Akrilik",
+          "fiber_commercial": "Acrylic (solution-dyed)",
+          "ratio_percent": 100,
+          "fr_treatment": null
+        }
+      ],
+      "width_cm": 297,
+      "weight_gsm": null,
+      "repeat_cm": {
+        "vertical": null,
+        "horizontal": null
+      },
+      "weave_type_raw": "crochet/gauzy",
+      "weave_type_normalized": null,
+      "yarn_type": null,
+      "transparency": {
+        "value": null,
+        "_note": "Documents dashboard transparency beyan etmiyor; ai_inferences.light_transmission adayi."
+      },
+      "usage_area": [
+        "curtains"
+      ],
+      "performance": {
+        "lightfastness": null,
+        "abrasion_martindale": null,
+        "pilling": null,
+        "shrinkage": {
+          "warp_percent": null,
+          "weft_percent": null
+        },
+        "washing_resistance": null
+      },
+      "acoustic": {
+        "alpha_s_value": null,
+        "absorption_class": null,
+        "comment": null
+      }
+    },
+    "variants": [
+      {
+        "color_code": "19649-183",
+        "color_name": "Açık taş outdoor",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/1/csm_19649183_ad8443e99e.jpg",
+        "main_image_local_path": "gorseller/etamine/19649/183_1.jpg"
+      },
+      {
+        "color_code": "19649-383",
+        "color_name": "Yeşil outdoor",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/6/e/csm_19649383_04d6d8fdb5.jpg",
+        "main_image_local_path": "gorseller/etamine/19649/383_1.jpg"
+      },
+      {
+        "color_code": "19649-683",
+        "color_name": "Taba outdoor",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/4/3/csm_19649683_f31891a3c7.jpg",
+        "main_image_local_path": "gorseller/etamine/19649/683_1.jpg"
+      },
+      {
+        "color_code": "19649-880",
+        "color_name": "Doğal outdoor",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/0/c/csm_19649880_a16a9b81b9.jpg",
+        "main_image_local_path": "gorseller/etamine/19649/880_1.jpg"
+      },
+      {
+        "color_code": "19649-883",
+        "color_name": "Pudra outdoor",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/b/csm_19649883_1a23962d40.jpg",
+        "main_image_local_path": "gorseller/etamine/19649/883_1.jpg"
+      }
+    ],
+    "certifications": {
+      "fire_safety": [],
+      "sustainability": [],
+      "other": [],
+      "raw_text": "Yıkanabilir 30°, Outdoor uyumlu, Water-repellent, Stain-resistant, UV/saltwater dayanımı"
+    },
+    "commercial": {
+      "price_per_meter": null,
+      "price_currency": null,
+      "moq_meters": null,
+      "lead_time_days": null,
+      "country_of_origin": "Fransa",
+      "sample_policy": null,
+      "launch_year": null,
+      "production_model": {
+        "value": "unknown",
+        "notes": "Documents migrasyonunda beyan yok"
+      }
+    },
+    "design_credit": {
+      "designer": null,
+      "type": "unknown"
+    },
+    "description_original": {
+      "language": "tr",
+      "text": "Katmanlar ve şeffaflık — bazen hava, bazen rafya. Crochet-esinli görünüm 1950'ler Saint-Tropez plaj giyimi eleganca. %100 solution-dyed acrylic ile outstanding indoor/outdoor performans. Klor, tuz, ışık ve hava dayanımı.",
+      "source_url": "https://www.zimmer-rohde.com/en/product-finder/details/fil-du-temps-19649-883",
+      "extracted_at": "2026-05-11T00:00:00Z",
+      "_note": "Documents iterasyonu Turkce ozet — orijinal Ingilizce/Almanca aciklama Z+R sayfasinda ayrica cekilebilir"
+    },
+    "description_tr": {
+      "text": "Katmanlar ve şeffaflık — bazen hava, bazen rafya. Crochet-esinli görünüm 1950'ler Saint-Tropez plaj giyimi eleganca. %100 solution-dyed acrylic ile outstanding indoor/outdoor performans. Klor, tuz, ışık ve hava dayanımı.",
+      "translation_method": "user_curated",
+      "translated_at": "2026-05-11T00:00:00Z",
+      "is_official_translation": false
+    },
+    "style_note": "Indoor/outdoor crochet — outdoor segment için niş premium.",
+    "performans_legacy": [
+      "Yıkanabilir 30°",
+      "Outdoor uyumlu",
+      "Water-repellent",
+      "Stain-resistant",
+      "UV/saltwater dayanımı"
+    ],
+    "mobidik_notu_legacy": "Zorluk: ZOR ⛔ — outdoor acrylic + crochet inspired. Solution-dyed acrylic iplik tedariki + outdoor finishing (water/UV resistant) Türkiye'de niche. Çerçeve: 8-16 (gauzy/crochet effect). Outdoor perdelik niş; uzun vadeli AR-GE projesi."
+  },
+  "ai_inferences": {
+    "_description": "Faz 3.4 batch migrate sonrasi Claude Code denetim sirasinda doldurulacak.",
+    "weight_gsm": {
+      "estimated_value": null,
+      "confidence": null,
+      "method": "pending",
+      "based_on": [],
+      "model": "claude-opus-4-7",
+      "created_at": null,
+      "user_verified": false,
+      "user_correction": null
+    },
+    "light_transmission": {
+      "estimated_class": null,
+      "confidence": null,
+      "method": "pending",
+      "model": "claude-opus-4-7",
+      "created_at": null,
+      "user_verified": false,
+      "user_correction": null
+    }
+  },
+  "image_analysis": {
+    "_description": "Visual analiz pending — Faz 3.4 sonrasi denetim asamasinda eklenecek.",
+    "dominant_colors": {
+      "value": null
+    },
+    "texture_classification": null,
+    "transparency_visual": null,
+    "color_palette_summary": "5 renk varyanti — palet Documents dashboard'da listelendi",
+    "style_tags": [],
+    "pattern_type": null,
+    "pattern_density": null,
+    "estimated_use_context": [
+      "curtains"
+    ]
+  },
+  "images": {
+    "_description": "20 gorsel — Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 yeni gorseller/<marka>/<urun>/<renk>_<sira>.jpg konvansiyonuna migrate edildi.",
+    "main": [],
+    "variants": [
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/1/csm_19649183_ad8443e99e.jpg",
+        "local_path": "gorseller/etamine/19649/183_1.jpg",
+        "variant_code": "19649-183",
+        "variant_name": "Açık taş outdoor",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19649 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19649/183_2.jpg",
+        "variant_code": "19649-183",
+        "variant_name": "Açık taş outdoor",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19649 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19649/183_3.jpg",
+        "variant_code": "19649-183",
+        "variant_name": "Açık taş outdoor",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19649 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19649/183_4.jpg",
+        "variant_code": "19649-183",
+        "variant_name": "Açık taş outdoor",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19649 altinda"
+      },
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/6/e/csm_19649383_04d6d8fdb5.jpg",
+        "local_path": "gorseller/etamine/19649/383_1.jpg",
+        "variant_code": "19649-383",
+        "variant_name": "Yeşil outdoor",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19649 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19649/383_2.jpg",
+        "variant_code": "19649-383",
+        "variant_name": "Yeşil outdoor",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19649 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19649/383_3.jpg",
+        "variant_code": "19649-383",
+        "variant_name": "Yeşil outdoor",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19649 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19649/383_4.jpg",
+        "variant_code": "19649-383",
+        "variant_name": "Yeşil outdoor",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19649 altinda"
+      },
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/4/3/csm_19649683_f31891a3c7.jpg",
+        "local_path": "gorseller/etamine/19649/683_1.jpg",
+        "variant_code": "19649-683",
+        "variant_name": "Taba outdoor",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19649 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19649/683_2.jpg",
+        "variant_code": "19649-683",
+        "variant_name": "Taba outdoor",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19649 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19649/683_3.jpg",
+        "variant_code": "19649-683",
+        "variant_name": "Taba outdoor",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19649 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19649/683_4.jpg",
+        "variant_code": "19649-683",
+        "variant_name": "Taba outdoor",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19649 altinda"
+      },
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/0/c/csm_19649880_a16a9b81b9.jpg",
+        "local_path": "gorseller/etamine/19649/880_1.jpg",
+        "variant_code": "19649-880",
+        "variant_name": "Doğal outdoor",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19649 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19649/880_2.jpg",
+        "variant_code": "19649-880",
+        "variant_name": "Doğal outdoor",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19649 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19649/880_3.jpg",
+        "variant_code": "19649-880",
+        "variant_name": "Doğal outdoor",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19649 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19649/880_4.jpg",
+        "variant_code": "19649-880",
+        "variant_name": "Doğal outdoor",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19649 altinda"
+      },
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/3/b/csm_19649883_1a23962d40.jpg",
+        "local_path": "gorseller/etamine/19649/883_1.jpg",
+        "variant_code": "19649-883",
+        "variant_name": "Pudra outdoor",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19649 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19649/883_2.jpg",
+        "variant_code": "19649-883",
+        "variant_name": "Pudra outdoor",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19649 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19649/883_3.jpg",
+        "variant_code": "19649-883",
+        "variant_name": "Pudra outdoor",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19649 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/etamine/19649/883_4.jpg",
+        "variant_code": "19649-883",
+        "variant_name": "Pudra outdoor",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/etamine/19649 altinda"
+      }
+    ],
+    "lifestyle": [],
+    "technical": [],
+    "_quality_notes": []
+  },
+  "mobidik_evaluation": {
+    "_description": "PENDING — Faz 3.4 sonrasi Claude Code denetim. Kapasite tablosu (anayasa #7) uygulanacak. source_data.mobidik_notu_legacy gecici metin kaynak.",
+    "staubli_feasibility": {
+      "score": null,
+      "frame_count_estimate": null,
+      "warp_compatibility": "pending",
+      "weft_compatibility": "pending",
+      "repeat_size_compatibility": "pending",
+      "reed_density_estimate": null,
+      "sizing_requirement": null,
+      "comment": "PENDING — Faz 3.4 batch migrate sonrasi denetim"
+    },
+    "arge_value": {
+      "score": null,
+      "key_learnings": [],
+      "comment": "PENDING"
+    },
+    "market_gap": {
+      "score": null,
+      "comment": "PENDING",
+      "target_markets": []
+    },
+    "portfolio_fit": {
+      "score": null,
+      "similar_existing_products": [],
+      "comment": "PENDING"
+    },
+    "overall_score": null,
+    "priority_level": null,
+    "strategic_note": "PENDING — source_data.mobidik_notu_legacy gecici metni var, kapasite #7 uyarinca yeniden hesaplanacak."
+  },
+  "data_quality": {
+    "missing_fields": [
+      "technical.performance.*",
+      "commercial.price_per_meter",
+      "commercial.moq_meters",
+      "ai_inferences.*",
+      "mobidik_evaluation.*"
+    ],
+    "ai_estimated_fields": [],
+    "user_verified_fields": [
+      "commercial.country_of_origin",
+      "variants[].color_name"
+    ],
+    "completeness_percent": 45,
+    "last_verified": "2026-05-25T22:30:00Z",
+    "notes": [
+      "Faz 3.4 batch migrate. 5 renk varyanti dashboard'dan alindi.",
+      "mobidik_evaluation + ai_inferences PENDING — Claude Code denetim sonra dolduracak.",
+      "Gorsel yollari yeni konvansiyona (gorseller/etamine/19649) uyarlandi."
+    ]
+  }
+}

@@ -1,0 +1,503 @@
+{
+  "_schema_version": "1.3",
+  "urun_id": "zimmer_rohde_11047-ishari",
+  "brand": "Zimmer + Rohde",
+  "brand_slug": "zimmer_rohde",
+  "collection": "After The Rain",
+  "product_code": "11047",
+  "product_name": "Ishari",
+  "source_url": "https://www.zimmer-rohde.com/en/product-finder/details/ishari-11047-894",
+  "scraped_at": "2026-05-11T00:00:00Z",
+  "last_updated": "2026-05-25T22:30:00Z",
+  "source_data": {
+    "_description": "Documents iterasyonundan migrate edildi (Faz 3.4). Birincil kaynak: 03_html_dashboard/index.html JS array; ikincil: 01_raporlar/<marka>_parti<NN>_<tarih>.md (varsa).",
+    "_provenance": {
+      "schema_version": "1.1",
+      "created_at": "2026-05-25T22:30:00Z",
+      "last_updated": "2026-05-25T22:30:00Z",
+      "sources_used": [
+        {
+          "url": "03_html_dashboard/index.html (Documents iterasyonu, parti01-03 sonrasi)",
+          "type": "internal_dashboard_pre_migration",
+          "accessed_at": "2026-05-25T22:30:00Z",
+          "fields_supported": [
+            "composition",
+            "width_cm",
+            "weave_type",
+            "variants",
+            "country_of_origin",
+            "description"
+          ]
+        },
+        {
+          "url": "https://www.zimmer-rohde.com/en/product-finder/details/ishari-11047-894",
+          "type": "html_product_page",
+          "accessed_at": "2026-05-11T00:00:00Z",
+          "fields_supported": [
+            "original_source_for_all_fields"
+          ]
+        }
+      ],
+      "field_metadata": {},
+      "fields_from_dashboard_migration": [
+        "composition",
+        "width_cm",
+        "weave_type_raw",
+        "variants",
+        "country_of_origin",
+        "description"
+      ],
+      "fields_from_inference": [],
+      "constitutional_violations_check": "pending_phase34_audit",
+      "audit_history": [
+        {
+          "audit_id": "zimmer_rohde_11047-ishari_v1.0_2026-05-25",
+          "audit_date": "2026-05-25",
+          "audit_doc": "docs/parti_log.md (kuruluyor)",
+          "version_before": "(yok — Documents iterasyonundan ilk JSON migrate)",
+          "version_after": "v1.0 (Faz 3.4 batch migrate from dashboard JS array)",
+          "notes": "Python parse_dashboard_to_urun_jsons.py mekanik migrate. source_data + variants + images dolduruldu. mobidik_evaluation BOS — Claude Code denetim sonra dolduracak (kapasite tablosu #7 + ai_inferences). Documents dashboard'daki mobidik_notu_html metni gecici source_data.mobidik_notu_legacy alaninda saklandi."
+        }
+      ]
+    },
+    "technical": {
+      "composition": [
+        {
+          "fiber_generic": "Polyester",
+          "fiber_commercial": "Polyester",
+          "ratio_percent": 100,
+          "fr_treatment": null
+        }
+      ],
+      "width_cm": 310,
+      "weight_gsm": null,
+      "repeat_cm": {
+        "vertical": null,
+        "horizontal": null
+      },
+      "weave_type_raw": "double-layer with effect yarns",
+      "weave_type_normalized": "double_cloth",
+      "yarn_type": null,
+      "transparency": {
+        "value": null,
+        "_note": "Documents dashboard transparency beyan etmiyor; ai_inferences.light_transmission adayi."
+      },
+      "usage_area": [
+        "curtains"
+      ],
+      "performance": {
+        "lightfastness": null,
+        "abrasion_martindale": null,
+        "pilling": null,
+        "shrinkage": {
+          "warp_percent": null,
+          "weft_percent": null
+        },
+        "washing_resistance": null
+      },
+      "acoustic": {
+        "alpha_s_value": null,
+        "absorption_class": null,
+        "comment": null
+      }
+    },
+    "variants": [
+      {
+        "color_code": "11047-813",
+        "color_name": "Açık fildişi",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/9/c/csm_11047813_9ed0bec3a1.jpg",
+        "main_image_local_path": "gorseller/zimmer_rohde/11047/813_1.jpg"
+      },
+      {
+        "color_code": "11047-891",
+        "color_name": "Pudra",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/2/0/csm_11047891_634ceb9c31.jpg",
+        "main_image_local_path": "gorseller/zimmer_rohde/11047/891_1.jpg"
+      },
+      {
+        "color_code": "11047-894",
+        "color_name": "Soluk somon",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/f/b/csm_11047894_0cb07be256.jpg",
+        "main_image_local_path": "gorseller/zimmer_rohde/11047/894_1.jpg"
+      },
+      {
+        "color_code": "11047-990",
+        "color_name": "Açık nötr",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/5/9/csm_11047990_8e2b1d53f7.jpg",
+        "main_image_local_path": "gorseller/zimmer_rohde/11047/990_1.jpg"
+      },
+      {
+        "color_code": "11047-991",
+        "color_name": "Krem",
+        "main_image_url_source": "https://www.zimmer-rohde.com/fileadmin/_processed_/7/5/csm_11047991_88a934e294.jpg",
+        "main_image_local_path": "gorseller/zimmer_rohde/11047/991_1.jpg"
+      }
+    ],
+    "certifications": {
+      "fire_safety": [],
+      "sustainability": [],
+      "other": [],
+      "raw_text": "Room high, Yıkanabilir 30°, Easy-care"
+    },
+    "commercial": {
+      "price_per_meter": null,
+      "price_currency": null,
+      "moq_meters": null,
+      "lead_time_days": null,
+      "country_of_origin": "Almanya",
+      "sample_policy": null,
+      "launch_year": null,
+      "production_model": {
+        "value": "unknown",
+        "notes": "Documents migrasyonunda beyan yok"
+      }
+    },
+    "design_credit": {
+      "designer": null,
+      "type": "unknown"
+    },
+    "description_original": {
+      "language": "tr",
+      "text": "Layered transparency — iki ultra-ince dokunmuş katman içinde gevşek bağlı efekt iplikleri. Hafif bouclé karakteri yüzeye canlılık katar. Sadece doğal nötr tonlar.",
+      "source_url": "https://www.zimmer-rohde.com/en/product-finder/details/ishari-11047-894",
+      "extracted_at": "2026-05-11T00:00:00Z",
+      "_note": "Documents iterasyonu Turkce ozet — orijinal Ingilizce/Almanca aciklama Z+R sayfasinda ayrica cekilebilir"
+    },
+    "description_tr": {
+      "text": "Layered transparency — iki ultra-ince dokunmuş katman içinde gevşek bağlı efekt iplikleri. Hafif bouclé karakteri yüzeye canlılık katar. Sadece doğal nötr tonlar.",
+      "translation_method": "user_curated",
+      "translated_at": "2026-05-11T00:00:00Z",
+      "is_official_translation": false
+    },
+    "style_note": "Çift-katman, neutral palette — After The Rain'in sade odak ürünü, Niket'in 'voluminous' kardeşi.",
+    "performans_legacy": [
+      "Room high",
+      "Yıkanabilir 30°",
+      "Easy-care"
+    ],
+    "mobidik_notu_legacy": "Zorluk: Orta ⚠️ — çift katman dokuma. Two ultra-fine woven layers — Stäubli'de double-cloth tekniği gerek. Çerçeve: 8-12. Niket'in voluminous kardeşi. Çift-katman özel teknik, replication için karmaşık."
+  },
+  "ai_inferences": {
+    "_description": "Faz 3.4 batch migrate sonrasi Claude Code denetim sirasinda doldurulacak.",
+    "weight_gsm": {
+      "estimated_value": null,
+      "confidence": null,
+      "method": "pending",
+      "based_on": [],
+      "model": "claude-opus-4-7",
+      "created_at": null,
+      "user_verified": false,
+      "user_correction": null
+    },
+    "light_transmission": {
+      "estimated_class": null,
+      "confidence": null,
+      "method": "pending",
+      "model": "claude-opus-4-7",
+      "created_at": null,
+      "user_verified": false,
+      "user_correction": null
+    }
+  },
+  "image_analysis": {
+    "_description": "Visual analiz pending — Faz 3.4 sonrasi denetim asamasinda eklenecek.",
+    "dominant_colors": {
+      "value": null
+    },
+    "texture_classification": null,
+    "transparency_visual": null,
+    "color_palette_summary": "5 renk varyanti — palet Documents dashboard'da listelendi",
+    "style_tags": [],
+    "pattern_type": null,
+    "pattern_density": null,
+    "estimated_use_context": [
+      "curtains"
+    ]
+  },
+  "images": {
+    "_description": "15 gorsel — Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 yeni gorseller/<marka>/<urun>/<renk>_<sira>.jpg konvansiyonuna migrate edildi.",
+    "main": [],
+    "variants": [
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/9/c/csm_11047813_9ed0bec3a1.jpg",
+        "local_path": "gorseller/zimmer_rohde/11047/813_1.jpg",
+        "variant_code": "11047-813",
+        "variant_name": "Açık fildişi",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/zimmer_rohde/11047 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/zimmer_rohde/11047/813_2.jpg",
+        "variant_code": "11047-813",
+        "variant_name": "Açık fildişi",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/zimmer_rohde/11047 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/zimmer_rohde/11047/813_3.jpg",
+        "variant_code": "11047-813",
+        "variant_name": "Açık fildişi",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/zimmer_rohde/11047 altinda"
+      },
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/2/0/csm_11047891_634ceb9c31.jpg",
+        "local_path": "gorseller/zimmer_rohde/11047/891_1.jpg",
+        "variant_code": "11047-891",
+        "variant_name": "Pudra",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/zimmer_rohde/11047 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/zimmer_rohde/11047/891_2.jpg",
+        "variant_code": "11047-891",
+        "variant_name": "Pudra",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/zimmer_rohde/11047 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/zimmer_rohde/11047/891_3.jpg",
+        "variant_code": "11047-891",
+        "variant_name": "Pudra",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/zimmer_rohde/11047 altinda"
+      },
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/f/b/csm_11047894_0cb07be256.jpg",
+        "local_path": "gorseller/zimmer_rohde/11047/894_1.jpg",
+        "variant_code": "11047-894",
+        "variant_name": "Soluk somon",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/zimmer_rohde/11047 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/zimmer_rohde/11047/894_2.jpg",
+        "variant_code": "11047-894",
+        "variant_name": "Soluk somon",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/zimmer_rohde/11047 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/zimmer_rohde/11047/894_3.jpg",
+        "variant_code": "11047-894",
+        "variant_name": "Soluk somon",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/zimmer_rohde/11047 altinda"
+      },
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/5/9/csm_11047990_8e2b1d53f7.jpg",
+        "local_path": "gorseller/zimmer_rohde/11047/990_1.jpg",
+        "variant_code": "11047-990",
+        "variant_name": "Açık nötr",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/zimmer_rohde/11047 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/zimmer_rohde/11047/990_2.jpg",
+        "variant_code": "11047-990",
+        "variant_name": "Açık nötr",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/zimmer_rohde/11047 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/zimmer_rohde/11047/990_3.jpg",
+        "variant_code": "11047-990",
+        "variant_name": "Açık nötr",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/zimmer_rohde/11047 altinda"
+      },
+      {
+        "url": "https://www.zimmer-rohde.com/fileadmin/_processed_/7/5/csm_11047991_88a934e294.jpg",
+        "local_path": "gorseller/zimmer_rohde/11047/991_1.jpg",
+        "variant_code": "11047-991",
+        "variant_name": "Krem",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/zimmer_rohde/11047 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/zimmer_rohde/11047/991_2.jpg",
+        "variant_code": "11047-991",
+        "variant_name": "Krem",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/zimmer_rohde/11047 altinda"
+      },
+      {
+        "url": null,
+        "local_path": "gorseller/zimmer_rohde/11047/991_3.jpg",
+        "variant_code": "11047-991",
+        "variant_name": "Krem",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "documents_legacy_pre_migrate"
+        },
+        "downloaded_at": "2026-05-11T00:00:00Z",
+        "quality_check": "passed",
+        "_note": "Documents iterasyonu PowerShell indir.ps1 ile indirildi; Faz 3.3 migrate sonrasi gorseller/zimmer_rohde/11047 altinda"
+      }
+    ],
+    "lifestyle": [],
+    "technical": [],
+    "_quality_notes": []
+  },
+  "mobidik_evaluation": {
+    "_description": "PENDING — Faz 3.4 sonrasi Claude Code denetim. Kapasite tablosu (anayasa #7) uygulanacak. source_data.mobidik_notu_legacy gecici metin kaynak.",
+    "staubli_feasibility": {
+      "score": null,
+      "frame_count_estimate": null,
+      "warp_compatibility": "pending",
+      "weft_compatibility": "pending",
+      "repeat_size_compatibility": "pending",
+      "reed_density_estimate": null,
+      "sizing_requirement": null,
+      "comment": "PENDING — Faz 3.4 batch migrate sonrasi denetim"
+    },
+    "arge_value": {
+      "score": null,
+      "key_learnings": [],
+      "comment": "PENDING"
+    },
+    "market_gap": {
+      "score": null,
+      "comment": "PENDING",
+      "target_markets": []
+    },
+    "portfolio_fit": {
+      "score": null,
+      "similar_existing_products": [],
+      "comment": "PENDING"
+    },
+    "overall_score": null,
+    "priority_level": null,
+    "strategic_note": "PENDING — source_data.mobidik_notu_legacy gecici metni var, kapasite #7 uyarinca yeniden hesaplanacak."
+  },
+  "data_quality": {
+    "missing_fields": [
+      "technical.performance.*",
+      "commercial.price_per_meter",
+      "commercial.moq_meters",
+      "ai_inferences.*",
+      "mobidik_evaluation.*"
+    ],
+    "ai_estimated_fields": [],
+    "user_verified_fields": [
+      "commercial.country_of_origin",
+      "variants[].color_name"
+    ],
+    "completeness_percent": 45,
+    "last_verified": "2026-05-25T22:30:00Z",
+    "notes": [
+      "Faz 3.4 batch migrate. 5 renk varyanti dashboard'dan alindi.",
+      "mobidik_evaluation + ai_inferences PENDING — Claude Code denetim sonra dolduracak.",
+      "Gorsel yollari yeni konvansiyona (gorseller/zimmer_rohde/11047) uyarlandi."
+    ]
+  }
+}

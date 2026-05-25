@@ -1,0 +1,124 @@
+{
+  "_schema_version": "1.1",
+  "brand": "Travers",
+  "brand_slug": "travers",
+  "country": "ABD",
+  "region": "amerikan",
+  "headquarters_city": "New York",
+  "founded_year": null,
+  "website": "https://www.zimmer-rohde.com/en/travers",
+  "tracked_since": "2026-05-11",
+  "last_updated": "2026-05-25T22:55:00Z",
+  "product_count_tracked": 1,
+  "_provenance": {
+    "schema_version": "1.1",
+    "created_at": "2026-05-25T22:55:00Z",
+    "last_updated": "2026-05-25T22:55:00Z",
+    "sources_used": [
+      {
+        "url": "Documents/01_raporlar + 03_html_dashboard/index.html",
+        "type": "internal_dashboard_pre_migration",
+        "accessed_at": "2026-05-25T22:55:00Z",
+        "fields_supported": [
+          "all_stat_distributions_from_n_products"
+        ]
+      }
+    ],
+    "constitutional_violations_check": "passed_at_2026-05-25T22:55:00Z",
+    "audit_history": [
+      {
+        "audit_id": "travers_marka_v1.0_2026-05-25",
+        "audit_date": "2026-05-25",
+        "version_before": "(yok — Faz 3.5 ilk inşa)",
+        "version_after": "v1.0 (n=1, urun JSON'larindan turetilen istatistikler)",
+        "notes": "Documents iterasyonundan migrate. Python mekanik istatistik hesabi (build_marka_profilleri.py). n=1 <3 -> insufficient_sample. audited urun sayisi (staubli_feasibility dolu): 0/1. Statik kimlik (kurucular, CEO, mill, designer_roster, anitsal projeler) PENDING."
+      }
+    ]
+  },
+  "width_distribution": {
+    "min_cm": {
+      "value": null,
+      "sample_status": "insufficient_n_1",
+      "sample_size": 1,
+      "observed_at_n1": 295
+    },
+    "max_cm": {
+      "value": null,
+      "sample_status": "insufficient_n_1",
+      "sample_size": 1,
+      "observed_at_n1": 295
+    },
+    "comment": "n=1, en araligi: 295-295 cm"
+  },
+  "color_profile": {
+    "total_variant_count": {
+      "value": null,
+      "sample_status": "insufficient_n_1",
+      "sample_size": 1,
+      "observed_at_n1": 6
+    },
+    "average_per_product": {
+      "value": null,
+      "sample_status": "insufficient_n_1",
+      "sample_size": 1,
+      "observed_at_n1": 6.0
+    },
+    "comment": "n=1, toplam 6 renk varyanti, ortalama 6.0/urun"
+  },
+  "weave_distribution": {
+    "sheer": {
+      "value": null,
+      "sample_status": "insufficient_n_1",
+      "sample_size": 1,
+      "observed_at_n1": 1,
+      "comment": "1/1 urunde sheer"
+    }
+  },
+  "composition_distribution": {
+    "synthetic_ratio_percent": {
+      "value": null,
+      "sample_status": "insufficient_n_1",
+      "sample_size": 1,
+      "observed_at_n1": 17.0
+    },
+    "natural_ratio_percent": {
+      "value": null,
+      "sample_status": "insufficient_n_1",
+      "sample_size": 1,
+      "observed_at_n1": 75.0
+    },
+    "blend_ratio_percent": {
+      "value": null,
+      "sample_status": "insufficient_n_1",
+      "sample_size": 1,
+      "observed_at_n1": 100.0
+    },
+    "comment": "n=1, 0 mono + 1 blend; avg synth %17.0, natural %75.0"
+  },
+  "country_distribution": {
+    "ABD": 1
+  },
+  "mobidik_strategic_assessment": {
+    "average_feasibility_score": {
+      "value": null,
+      "sample_status": "audited_n_0",
+      "sample_size": 0,
+      "observed_at_n1": null
+    },
+    "watch_priority": "orta",
+    "comment": "n=1 urun denetlenmis; audited 0/1 (staubli_feasibility dolu); avg = henuz pilot urun denetimi tamamlanmadi. Faz 3.4 pilot: Capri Plus + Niket denetlendi (5/5 her ikisi). Diger urunler PENDING."
+  },
+  "data_integrity": {
+    "verified_data_points": 0,
+    "ai_estimated_data_points": 0,
+    "verification_ratio": 0.0,
+    "reliability_label": "insufficient_sample",
+    "sample_size_tracked_products": 1,
+    "_reliability_explanation": "n=1, threshold n>=3 gecmedi -> insufficient_sample. Audited (mobidik_evaluation dolu) 0/1; bu sayi yukseldikce avg_feasibility daha guvenilir."
+  },
+  "notes": [
+    "v1.0 (2026-05-25): Faz 3.5 ilk insa. Documents iterasyonu urun JSON'larindan turetildi (n=1, audited=0).",
+    "Statik kimlik (kurucular, CEO, mill_ownership, designer_roster, anitsal projeler) PENDING — sonraki denetim adimi.",
+    "Z+R'nin ABD alt markasi. Founding year + tam profil PENDING."
+  ]
+}
