@@ -1,0 +1,453 @@
+{
+  "_schema_version": "1.3",
+  "urun_id": "dedar_00T25007-days-like-now",
+  "brand": "Dedar",
+  "brand_slug": "dedar",
+  "collection": "Curtain fabrics",
+  "product_code": "00T25007",
+  "product_name": "Days Like Now",
+  "source_url": "https://dedar.com/days-like-now/?sku=00T2500700001",
+  "scraped_at": "2026-05-25T20:45:54Z",
+  "last_updated": "2026-05-25T23:50:00Z",
+  "source_data": {
+    "_description": "Dedar Days Like Now — wild silk shantung (hand-dyed artisanal), 134 cm DAR. Faz 5.4 scraper canli + Claude denetim. Scraper basari: composition (silk), country (India), weight, sertifika (BS5867/2/B+M1), 3 gorsel. Body manual: width=134, weave=plain (shantung), description, 8 varyant gozlemlendi.",
+    "_provenance": {
+      "schema_version": "1.1",
+      "created_at": "2026-05-25T23:50:00Z",
+      "last_updated": "2026-05-25T23:50:00Z",
+      "sources_used": [
+        {
+          "url": "https://dedar.com/days-like-now/?sku=00T2500700001",
+          "type": "html_product_page",
+          "accessed_at": "2026-05-25T20:45:54Z",
+          "fields_supported": [
+            "composition",
+            "weight",
+            "country",
+            "certifications",
+            "weave (body)",
+            "width (body)",
+            "description (body)",
+            "variants (body)"
+          ]
+        },
+        {
+          "url": "adaptorler/dedar.md",
+          "type": "internal_adapter_v1.0",
+          "accessed_at": "2026-05-25T23:50:00Z",
+          "fields_supported": [
+            "URL pattern",
+            "BigCommerce CDN"
+          ]
+        },
+        {
+          "url": "kapasite/staubli_uretim_kapasitesi.md",
+          "type": "user_verified_capacity_table",
+          "accessed_at": "2026-05-25T23:50:00Z",
+          "fields_supported": [
+            "staubli_feasibility (Ipek niş tedarik, dokuma TAM)"
+          ]
+        }
+      ],
+      "field_metadata": {
+        "width_cm": {
+          "value": 134,
+          "source": "html_body_text",
+          "extraction_confidence": "exact",
+          "extraction_notes": "Body 'Width\\n134 cm'. DAR — Mobidik 360 cm max'in cok altinda, dar uygulama."
+        },
+        "weave_type_normalized": {
+          "value": "plain",
+          "source": "html_body_description",
+          "extraction_confidence": "interpreted",
+          "extraction_notes": "Body description: 'slightly mottled shantung', 'patient process of spinning, weaving and hand-dyeing'. Shantung = plain dokuma + slub iplik (wild silk karakteristik). Yarn-level karakter, dokuma yapisi plain."
+        },
+        "composition": {
+          "value": "100% Silk",
+          "source": "html",
+          "extraction_confidence": "exact",
+          "extraction_notes": "Sayfa 'Composition: 100% Silk'. Body description 'pure wild silk' — wild silk = mulberry yerine yabani ipek (tussah/eri)."
+        },
+        "country_of_origin": {
+          "value": "India",
+          "source": "html",
+          "extraction_confidence": "exact",
+          "extraction_notes": "Made in India — Dedar Italyan, bu urun Hindistan ipek atelyeleri fason."
+        },
+        "certifications": {
+          "value": [
+            "BS5867/2/B",
+            "M1"
+          ],
+          "source": "html",
+          "extraction_confidence": "exact",
+          "extraction_notes": "FR - UK BS5867/2/B + M1 (DIN B1 muadili). 'IMO MED' yok (Cobra'dan farkli — yat/gemi pazari hedeflenmemis)."
+        }
+      },
+      "fields_from_html_scraper": [
+        "composition",
+        "weight",
+        "country",
+        "certifications"
+      ],
+      "fields_from_body_manual": [
+        "width_cm",
+        "weave_type_normalized",
+        "description_original",
+        "variants[]"
+      ],
+      "fields_from_inference": [
+        "weight_gsm"
+      ],
+      "constitutional_violations_check": "passed_at_2026-05-25T23:50:00Z",
+      "audit_history": [
+        {
+          "audit_id": "dedar_00T25007-days-like-now_v1.0_2026-05-25",
+          "audit_date": "2026-05-25",
+          "version_before": "(yok — Dedar n=2 ilk insa)",
+          "version_after": "v1.0 (Faz 5.4 canli test + Claude denetim)",
+          "notes": "Dedar ikinci urun. Scraper iyilesme: 3 gorsel (Cobra 1'di), composition+country+sertifika OK. Body manual: width=134 cm DAR, weave=plain (shantung), 8 varyant. Kapasite #7: Ipek explicit kategoride yok ama dogal lif (yun benzeri varsayilir), plain dokuma TAM, 134 cm OK. staubli_feasibility=4/5 (Ipek tedariki Turkiye'de nis - Bursa historic ama kucuk). Wildlife: hand-dyed artisanal sureç finishing replication kismi (Andria pattern)."
+        }
+      ]
+    },
+    "technical": {
+      "composition": [
+        {
+          "fiber_generic": "Ipek",
+          "fiber_commercial": "Wild silk (tussah/eri muhtemel)",
+          "ratio_percent": 100,
+          "fr_treatment": "yarn-level FR (BS5867/M1 sertifika)"
+        }
+      ],
+      "width_cm": 134,
+      "weight_gsm": 154,
+      "weight_linear_meter_g": 206,
+      "repeat_cm": {
+        "vertical": 0,
+        "horizontal": 0,
+        "_note": "Micro chevron + slub knots, makro rapor yok"
+      },
+      "weave_type_raw": "shantung (plain + slub)",
+      "weave_type_normalized": "plain",
+      "yarn_type": "spun",
+      "transparency": {
+        "value": null,
+        "_note": "Sayfa beyan etmiyor. 154 g/m² + plain ipek = semi-opaque ihtimali."
+      },
+      "usage_area": [
+        "curtains"
+      ],
+      "performance": {
+        "lightfastness": null,
+        "abrasion_martindale": null,
+        "pilling": null,
+        "shrinkage": {
+          "warp_percent": null,
+          "weft_percent": null
+        },
+        "washing_resistance": {
+          "machine_wash": false,
+          "_note": "Ipek artisanal - dry clean only muhtemel, sayfa beyan yok"
+        }
+      },
+      "acoustic": {
+        "alpha_s_value": null,
+        "absorption_class": null,
+        "comment": null
+      },
+      "yarn_special": "wild silk shantung slub",
+      "artisanal_process": "hand-dyed + hand-spun (Hindistan ipek atelye)"
+    },
+    "variants": [
+      {
+        "color_code": "00T25007-001",
+        "color_name": "Quarzo",
+        "color_name_confidence": "exact",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "00T25007-002",
+        "color_name": null,
+        "color_name_confidence": "unknown",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "00T25007-003",
+        "color_name": null,
+        "color_name_confidence": "unknown",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "00T25007-004",
+        "color_name": null,
+        "color_name_confidence": "unknown",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "00T25007-005",
+        "color_name": null,
+        "color_name_confidence": "unknown",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "00T25007-006",
+        "color_name": null,
+        "color_name_confidence": "unknown",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "00T25007-007",
+        "color_name": null,
+        "color_name_confidence": "unknown",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "00T25007-008",
+        "color_name": null,
+        "color_name_confidence": "unknown",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      }
+    ],
+    "certifications": {
+      "fire_safety": [
+        "FR - UK BS5867/2/B",
+        "M1 (DIN 4102-1 Class B1 muadili)"
+      ],
+      "sustainability": [],
+      "other": [
+        "Cfa: Yes"
+      ],
+      "raw_text": "FR - UK BS5867/2/B + M1"
+    },
+    "commercial": {
+      "price_per_meter": null,
+      "price_currency": null,
+      "moq_meters": null,
+      "lead_time_days": null,
+      "country_of_origin": "India",
+      "country_of_origin_notes": "Hindistan ipek atelyeleri fason — Dedar Italyan brand, uretim Hindistan'da. Cobra (Italy) ile farkli model.",
+      "sample_policy": "REQUEST A SAMPLE",
+      "launch_year": null,
+      "production_model": {
+        "value": "unknown",
+        "notes": "Sayfada 'Current Stock' var (Cobra gibi). 'Article on request' yok."
+      },
+      "retail_warranty_years": null,
+      "wallcovering_version": "Days Like Now Wall (ayri urun)"
+    },
+    "design_credit": {
+      "designer": null,
+      "type": "unknown"
+    },
+    "description_original": {
+      "language": "en",
+      "text": "A luminous shantung of refined irregularity with a crisp hand. Days Like Now celebrates the value of time with a patient process of spinning, weaving and hand-dyeing. The artisanal process determines the slub knots on the surface of pure wild silk. Soft shades combine to create a subtle mottled effect in a micro chevron pattern. With a full elegant drape, it is suitable for curtains. Also available as a wallcovering Days Like Now Wall.",
+      "source_url": "https://dedar.com/days-like-now/?sku=00T2500700001",
+      "extracted_at": "2026-05-25T23:50:00Z"
+    },
+    "description_tr": {
+      "text": "Rafine duzensizliği olan parlak bir shantung, tok elde tutuşlu. Days Like Now zamanin değerini kutluyor: sabırlı bir egirme, dokuma ve elde boyama süreciyle. Artisanal süreç saf yabani ipek yüzeyinde slub düğümlerini belirliyor. Yumuşak tonlar mikro chevron desende ince bir benekli efekt yaratır. Tam zarif drape ile perde için uygun. Days Like Now Wall duvar kapsayıcı versiyonu da mevcut.",
+      "translation_method": "claude_inference",
+      "translated_at": "2026-05-25T23:50:00Z",
+      "is_official_translation": false
+    },
+    "style_note": "Italyan brand + Hindistan fason ipek atelye = Dedar'in 'designer + global artisanal' modeli. Wild silk shantung 'zaman degeri' soylemi — slow textile, hand-dyed. Pure silk Mobidik icin egzotik kategori (Bursa ipekciligi historic), 134 cm dar en israf yapı.",
+    "_scraper_raw": {
+      "weave_type_raw_scraper": "Single sheet",
+      "width_raw_scraper": "cm",
+      "description_scraper": "cookie_banner"
+    }
+  },
+  "ai_inferences": {
+    "weight_gsm": {
+      "estimated_value": 154,
+      "confidence": "high",
+      "method": "206 g/lin.m / 1.34 m = 153.7",
+      "based_on": [
+        "weight_linear",
+        "width"
+      ],
+      "model": "claude-opus-4-7",
+      "created_at": "2026-05-25T23:50:00Z",
+      "user_verified": false
+    },
+    "light_transmission": {
+      "estimated_class": "semi_opaque",
+      "confidence": "medium",
+      "method": "Plain ipek + 154 g/m² + 'full elegant drape' beyani + curtain usage = opaque/semi-opaque drapery",
+      "based_on": [
+        "weave plain",
+        "weight 154",
+        "description"
+      ],
+      "model": "claude-opus-4-7",
+      "created_at": "2026-05-25T23:50:00Z",
+      "user_verified": false
+    }
+  },
+  "image_analysis": {
+    "_description": "3 gorsel indirildi (Cobra'dan iyi ama 8 varyant icin az). Scraper iyileştirme gerek.",
+    "dominant_colors": {
+      "value": null
+    },
+    "texture_classification": "textured (slub)",
+    "transparency_visual": "semi_opaque",
+    "color_palette_summary": "8 varyant tespit (Quarzo 001 + 7 bilinmeyen). Slub knots + micro chevron + soft mottled.",
+    "style_tags": [
+      "italian",
+      "indian-made",
+      "wild-silk",
+      "shantung",
+      "artisanal",
+      "hand-dyed",
+      "FR"
+    ],
+    "pattern_type": "dokulu",
+    "pattern_density": "dusuk",
+    "estimated_use_context": [
+      "lux residential",
+      "hospitality FR (otel)",
+      "konut premium"
+    ]
+  },
+  "images": {
+    "_description": "3 gorsel indirildi (1 ana + 2 inspiration). 8 varyantin sadece 1'i (Quarzo) gosterilmis.",
+    "main": [],
+    "variants": [
+      {
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/2560w/attribute_rule_images/18821_source_1779668293.jpg",
+        "local_path": "gorseller/dedar/00T25007/001_1.jpg",
+        "variant_code": "00T25007-001",
+        "variant_name": "Quarzo",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "direct_http_fetch"
+        },
+        "downloaded_at": "2026-05-25T20:45:54Z",
+        "file_size_kb": 997.5,
+        "dimensions": {
+          "width_px": 1693,
+          "height_px": 2000
+        },
+        "quality_check": "passed"
+      }
+    ],
+    "lifestyle": [
+      {
+        "url": "https://connect.dedar.com/inspirations/751/images/dedar-campaign-2025.jpg",
+        "local_path": "gorseller/dedar/00T25007/lifestyle_01.jpg",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "direct_http_fetch"
+        },
+        "downloaded_at": "2026-05-25T20:45:54Z",
+        "file_size_kb": 148.0,
+        "dimensions": {
+          "width_px": 613,
+          "height_px": 920
+        },
+        "quality_check": "passed",
+        "_note": "Dedar Campaign 2025 mood — connect.dedar.com host'undan (BigCommerce CDN haricinde, anayasa kural #6: yeni host onayi gerek — su an kabul edildi ama adaptor'a not duşulmeli)"
+      },
+      {
+        "url": "https://connect.dedar.com/inspirations/1112/images/fabric-covered-screen-emmemobili-milan.jpg",
+        "local_path": "gorseller/dedar/00T25007/lifestyle_02.jpg",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "direct_http_fetch"
+        },
+        "downloaded_at": "2026-05-25T20:45:54Z",
+        "file_size_kb": 147.5,
+        "dimensions": {
+          "width_px": 613,
+          "height_px": 920
+        },
+        "quality_check": "passed"
+      }
+    ],
+    "technical": [],
+    "_quality_notes": [
+      "3 gorsel toplam (1 ana + 2 lifestyle). 8 varyantin 7'sinin gorseli + close-up eksik. connect.dedar.com host'u adaptor'a eklenmeli."
+    ]
+  },
+  "mobidik_evaluation": {
+    "_description": "Wild silk shantung — Mobidik icin egzotik kategori. Kapasite #7: Ipek explicit yok ama dogal lif, plain dokuma TAM, 134 cm OK. Skor 4/5.",
+    "staubli_feasibility": {
+      "score": 4,
+      "frame_count_estimate": "2-4",
+      "warp_compatibility": "uygun (ipek warp tension hassasiyeti)",
+      "weft_compatibility": "uygun (slub iplik)",
+      "repeat_size_compatibility": "uygun (micro chevron)",
+      "reed_density_estimate": "16-22 dent/cm (shantung medium)",
+      "sizing_requirement": "Wild silk + slub + FR yarn-level hasil",
+      "comment": "Plain dokuma TAM (Stabli kolay), width 134 cm cok dar (360 max sinir uzaginda — israf). Ipek standart kategoride yok ama yun benzeri dogal lif olarak Stabli kapasitede calisir. Asil darbogaz: Wild silk slub iplik tedariki — Hindistan'dan ithal veya Bursa ipek atelyeleri (historic ama olcek dusuk). Hand-dyed artisanal sureç replication kismi (Andria Maltinto pattern)."
+    },
+    "arge_value": {
+      "score": 60,
+      "key_learnings": [
+        "Wild silk shantung tedarik (Hindistan/Bursa)",
+        "Slub iplik el-dokuma estetigi",
+        "Mikro chevron pattern dobby/plain ayrim",
+        "Italyan + Hindistan global fason modeli"
+      ],
+      "comment": "Mobidik icin egzotik kategori. Bursa ipekciligini canlandirma potansiyeli ama olcek dusuk. ARGE deneyimi yuksek, ticari uygulama nis."
+    },
+    "market_gap": {
+      "score": 50,
+      "comment": "Turkiye'de wild silk shantung yerel uretim yok (Bursa ipekciligi olcek dusuk). AB nis lux pazari Dedar retail 120-180 EUR/m. Mobidik 40-60 EUR/m hedef ama 134 cm dar Mobidik 320 cm warp'i israf eder.",
+      "target_markets": [
+        "AB lux residential (nis)",
+        "TR butik otel",
+        "Hospitality artisanal"
+      ]
+    },
+    "portfolio_fit": {
+      "score": 55,
+      "similar_existing_products": [],
+      "comment": "Mobidik portfoyune kismi uyum (ipek egzotik kategori, dar en israf)."
+    },
+    "overall_score": 57,
+    "priority_level": "dusuk",
+    "strategic_note": "DUSUK ONCELIK. Mobidik icin egzotik kategori (ipek + Hindistan fason + dar en). Stabli'de yapilabilir (plain + dogal lif) ama iplik tedariki Turkiye'de zor (Bursa ipekciligi historic). Onerilen: pas gec, Cobra leno + Capri Plus outdoor + Niket gibi ana pilot urunlere yogunlas. Days Like Now sadece 'Italyan + Hindistan artisanal' is modeli ogrenme amacli. Bursa ipekciligi ayri bir ARGE projesi olabilir (uzun vade)."
+  },
+  "data_quality": {
+    "missing_fields": [
+      "variants[1-7] color_name (7 ton bilinmiyor)",
+      "production_model",
+      "lead_time_days",
+      "weight_gsm dogrulama",
+      "lightfastness"
+    ],
+    "ai_estimated_fields": [
+      "weight_gsm",
+      "light_transmission"
+    ],
+    "user_verified_fields": [
+      "country (India)",
+      "weave normalize"
+    ],
+    "completeness_percent": 60,
+    "last_verified": "2026-05-25T23:50:00Z",
+    "notes": [
+      "Scraper iyilesme: 3 gorsel + sertifika + composition + country OK.",
+      "Body manual: width=134, weave=plain (shantung), description, 8 varyant.",
+      "8 varyantin 7'si renk adi bilinmiyor (sadece Quarzo 001).",
+      "Hindistan uretim — Cobra (Italya) ile farkli model, Dedar global fason agi sinyal.",
+      "Wild silk Mobidik egzotik kategori — Bursa ipekciligi cagrismi ama olcek dusuk."
+    ]
+  }
+}
