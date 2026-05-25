@@ -21,10 +21,8 @@ import re
 import sys
 import time
 from pathlib import Path
-from urllib.parse import urljoin
 
 import requests
-from playwright.sync_api import sync_playwright
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -42,68 +40,48 @@ USER_AGENT = (
 BASE = "https://www.zimmer-rohde.com"
 
 
-_cookie_handled = {"done": False}
+def fetch_variant_images(urun_slug: str, urun_kodu: str, renk_kodu: str) -> list[str]:
+    """Tek bir renk URL'sine requests ile git, csm CDN URL'lerini topla.
 
-
-def fetch_variant_images(page, urun_slug: str, urun_kodu: str, renk_kodu: str, debug: bool = False) -> list[str]:
-    """Tek bir renk URL'sine git, csm CDN URL'lerini topla."""
+    429 rate-limit retry: 5/10/20 sn backoff.
+    """
     url = f"{BASE}/en/product-finder/details/{urun_slug}-{urun_kodu}-{renk_kodu}"
-    try:
-        page.goto(url, wait_until="domcontentloaded", timeout=30000)
-    except Exception as e:
-        print(f"    HATA: {renk_kodu} sayfa yuklenmedi: {e}")
+    html = None
+    for attempt, backoff in enumerate([0, 5, 10, 20]):
+        if backoff:
+            print(f" [429 backoff {backoff}s]", end="", flush=True)
+            time.sleep(backoff)
+        try:
+            r = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=20)
+        except Exception as e:
+            print(f" [HATA: {e}]", end="")
+            return []
+        if r.status_code == 200:
+            html = r.text
+            break
+        if r.status_code != 429:
+            print(f" [status {r.status_code}]", end="")
+            return []
+    if html is None:
+        print(" [hala 429]", end="")
         return []
 
-    # Cookie banner — ilk sayfada bir kez
-    if not _cookie_handled["done"]:
-        for sel in [
-            "button:has-text('Accept all')",
-            "button:has-text('Accept')",
-            "button:has-text('Akzeptieren')",
-            "button:has-text('Reject')",
-            "button:has-text('Only necessary')",
-        ]:
-            try:
-                page.click(sel, timeout=2000)
-                _cookie_handled["done"] = True
-                print(f"    Cookie banner kapatildi: {sel}")
-                break
-            except Exception:
-                continue
-        _cookie_handled["done"] = True  # bir daha denenmesin
-
-    try:
-        page.wait_for_load_state("networkidle", timeout=8000)
-    except Exception:
-        pass
-    page.wait_for_timeout(1500)  # Vue render icin bekle
-
-    html = page.content()
-
-    if debug:
-        debug_path = Path("debug_zr_html.html")
-        debug_path.write_text(html, encoding="utf-8")
-        print(f"    DEBUG: HTML yazildi -> {debug_path}")
-        # csm geciyor mu?
-        csm_count = len(re.findall(r"csm_", html))
-        print(f"    DEBUG: html'de 'csm_' sayisi: {csm_count}")
-        # ilk 3 csm URL'i (full pattern)
-        for m in re.finditer(r"csm_[^\s\"'<>]+\.jpg", html)[:3] if csm_count else []:
-            print(f"      ornek: {m.group(0)[:100]}")
-
-    # csm_<urun><renk>_<X>_<hash>.jpg pattern — daha esnek
+    # csm_<urun><renk>_<X>_<hash>.jpg pattern — goreli URL (HTML'de prefix yok)
     full_code = urun_kodu + renk_kodu
     pattern = (
-        rf"https://www\.zimmer-rohde\.com/fileadmin/_processed_/[^/]+/[^/]+/"
+        rf"/?fileadmin/_processed_/[a-zA-Z0-9]+/[a-zA-Z0-9]+/"
         rf"csm_{full_code}[_a-zA-Z0-9]*\.jpg"
     )
     urls = []
     seen = set()
     for m in re.finditer(pattern, html, re.IGNORECASE):
-        u = m.group(0)
-        if u not in seen:
-            seen.add(u)
-            urls.append(u)
+        path = m.group(0)
+        full_url = BASE + ("/" + path.lstrip("/"))
+        if full_url not in seen:
+            seen.add(full_url)
+            urls.append(full_url)
+    # Rate-limit yumusatici
+    time.sleep(1.5)
     return urls
 
 
@@ -124,37 +102,32 @@ def download_image(url: str, dst: Path) -> bool:
 
 
 def process_urun(
-    page,
     brand_slug: str,
     urun_kodu: str,
     urun_slug: str,
     variant_codes: list[str],
     dry_run: bool = False,
 ) -> dict:
-    """Bir urun icin tum renk varyantlarini isle."""
+    """Bir urun icin tum renk varyantlarini isle (requests-based)."""
     dst_dir = GORSELLER / brand_slug / urun_kodu
     dst_dir.mkdir(parents=True, exist_ok=True)
 
     stats = {"renk_basina": {}, "toplam_indirilen": 0, "toplam_atlanan": 0}
 
-    is_first = True
     for renk in variant_codes:
         renk_clean = renk.split("-")[-1] if "-" in renk else renk
-        # Mevcut dosya var mi (atla)
         existing = list(dst_dir.glob(f"{renk_clean}_*.jpg"))
         if len(existing) >= 3:
-            print(f"    {renk_clean}: {len(existing)} dosya zaten var, atlandi")
+            print(f"    {renk_clean}: {len(existing)} cached, atlandi")
             stats["toplam_atlanan"] += len(existing)
             stats["renk_basina"][renk_clean] = {"durum": "cached", "sayi": len(existing)}
-            is_first = False
             continue
 
-        print(f"    {renk_clean}: sayfa cekiliyor...", end=" ", flush=True)
-        urls = fetch_variant_images(page, urun_slug, urun_kodu, renk_clean, debug=is_first)
-        is_first = False
-        print(f"{len(urls)} URL bulundu")
+        urls = fetch_variant_images(urun_slug, urun_kodu, renk_clean)
+        print(f"    {renk_clean}: {len(urls)} URL", end="", flush=True)
 
         if dry_run:
+            print(" (dry-run)")
             stats["renk_basina"][renk_clean] = {"durum": "dry-run", "sayi": len(urls)}
             continue
 
@@ -166,7 +139,8 @@ def process_urun(
             if download_image(url, dst):
                 indirilen += 1
                 stats["toplam_indirilen"] += 1
-                time.sleep(0.2)  # nazik ol
+                time.sleep(0.15)
+        print(f" -> {indirilen} indirildi")
         stats["renk_basina"][renk_clean] = {"durum": "indirildi", "sayi": indirilen}
 
     return stats
@@ -229,30 +203,22 @@ def main():
 
     print(f"Hedef: {len(targets)} urun islenecek")
 
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        context = browser.new_context(user_agent=USER_AGENT)
-        page = context.new_page()
+    for brand_slug, urun_kodu, urun_slug in targets:
+        json_files = list(URUNLER.glob(f"{brand_slug}_{urun_kodu}-*.json"))
+        if not json_files:
+            print(f"  ATLANDI: {brand_slug}/{urun_kodu} JSON yok")
+            continue
+        json_path = json_files[0]
+        with json_path.open(encoding="utf-8") as f:
+            d = json.load(f)
+        variants = d.get("source_data", {}).get("variants", [])
+        variant_codes = [v["color_code"] for v in variants]
 
-        for brand_slug, urun_kodu, urun_slug in targets:
-            # JSON'dan variant_codes oku
-            json_files = list(URUNLER.glob(f"{brand_slug}_{urun_kodu}-*.json"))
-            if not json_files:
-                print(f"  ATLANDI: {brand_slug}/{urun_kodu} JSON yok")
-                continue
-            json_path = json_files[0]
-            with json_path.open(encoding="utf-8") as f:
-                d = json.load(f)
-            variants = d.get("source_data", {}).get("variants", [])
-            variant_codes = [v["color_code"] for v in variants]
+        print(f"\n=== {brand_slug} / {urun_kodu} {urun_slug} ({len(variant_codes)} renk) ===")
+        stats = process_urun(brand_slug, urun_kodu, urun_slug, variant_codes)
+        print(f"  Toplam indirilen: {stats['toplam_indirilen']}, Cached: {stats['toplam_atlanan']}")
 
-            print(f"\n=== {brand_slug} / {urun_kodu} {urun_slug} ({len(variant_codes)} renk) ===")
-            stats = process_urun(page, brand_slug, urun_kodu, urun_slug, variant_codes)
-            print(f"  Indirilen: {stats['toplam_indirilen']}, Cached: {stats['toplam_atlanan']}")
-
-            update_json_for_urun(json_path, brand_slug, urun_kodu, stats)
-
-        browser.close()
+        update_json_for_urun(json_path, brand_slug, urun_kodu, stats)
 
 
 if __name__ == "__main__":
