@@ -8,12 +8,12 @@
   "founded_year": 1858,
   "website": "https://www.rubelli.com",
   "tracked_since": "2026-05-26",
-  "last_updated": "2026-05-26T01:30:00Z",
-  "product_count_tracked": 1,
+  "last_updated": "2026-05-26T02:00:00Z",
+  "product_count_tracked": 2,
   "_provenance": {
     "schema_version": "1.1",
     "created_at": "2026-05-26T01:30:00Z",
-    "last_updated": "2026-05-26T01:30:00Z",
+    "last_updated": "2026-05-26T02:00:00Z",
     "sources_used": [
       {
         "url": "adaptorler/rubelli.md",
@@ -31,7 +31,7 @@
         "accessed_at": "2026-05-26T01:30:00Z"
       }
     ],
-    "constitutional_violations_check": "passed_at_2026-05-26T01:30:00Z",
+    "constitutional_violations_check": "passed_at_2026-05-26T02:00:00Z",
     "audit_history": [
       {
         "audit_id": "rubelli_marka_v1.0_2026-05-26",
@@ -39,86 +39,104 @@
         "version_before": "(yok)",
         "version_after": "v1.0 (n=1 Charles)",
         "notes": "Rubelli marka profili ilk insa. 1858 Venedik kurulus, 557 ürün textiles. Charles tek denetim — UPHOLSTERY (Heavy use), Mobidik perdelik kapsam disi. Statik kimlik (kurucular/CEO/mill/designer roster) PENDING. Rubelli perdelik ürünleri (Curtains/Sheers filtre) icin pilot sonraki adim."
+      },
+      {
+        "audit_id": "rubelli_marka_v1.1_2026-05-26",
+        "audit_date": "2026-05-26",
+        "version_before": "v1.0 (n=1, Charles)",
+        "version_after": "v1.1 (n=2, Filicudi eklendi)",
+        "notes": "Filicudi (outdoor acrylic Tempotest) eklendi. n=1 -> n=2. Charles + Filicudi her ikisi Heavy use upholstery. Rubelli'de Curtains filtre meta etiketleri var ama denetlenen 2 urun de upholstery. avg_staubli 4.0. Rubelli perdelik gercek pilotu (sheer/lightweight) sonraki adim — Dimlight (30771) veya Spectrum (30756) aday."
       }
     ]
   },
   "width_distribution": {
     "min_cm": {
       "value": null,
-      "sample_status": "insufficient_n_1",
-      "sample_size": 1,
-      "observed_at_n1": 145
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "observed_at_n1": 145,
+      "observed_at_n2": 141
     },
     "max_cm": {
       "value": null,
-      "sample_status": "insufficient_n_1",
-      "sample_size": 1,
-      "observed_at_n1": 145
+      "sample_status": "insufficient_n_2",
+      "sample_size": 2,
+      "observed_at_n1": 145,
+      "observed_at_n2": 145
     },
-    "comment": "n=1: Charles 145 cm — Rubelli'nin upholstery standart eni. Perdelik ürünleri farklı olabilir (300+ cm)."
+    "comment": "n=2: Charles 145 + Filicudi 141 — Rubelli upholstery dar en standardı (141-145 cm)."
   },
   "color_profile": {
     "total_variant_count": {
       "value": null,
       "sample_status": "insufficient_n_1",
-      "sample_size": 1,
-      "observed_at_n1": 28
+      "sample_size": 2,
+      "observed_at_n1": 28,
+      "observed_at_n2": 38
     },
     "average_per_product": {
       "value": null,
       "sample_status": "insufficient_n_1",
-      "sample_size": 1,
-      "observed_at_n1": 28.0
+      "sample_size": 2,
+      "observed_at_n1": 28.0,
+      "observed_at_n2": 19.0
     },
-    "comment": "n=1: Charles 28 İtalyanca renk varyantı — Rubelli geniş palet yönetimi."
+    "comment": "n=2: Charles 28 + Filicudi 10 = 38 varyant. Rubelli ortalama 19/ürün — geniş palet."
   },
   "weave_distribution": {
     "plain": {
       "value": null,
       "sample_status": "insufficient_n_1",
-      "sample_size": 1,
+      "sample_size": 2,
       "observed_at_n1": 1,
-      "comment": "Charles plain (moiré)"
+      "comment": "2 plain (Charles moiré + Filicudi outdoor)",
+      "observed_at_n2": 2
     }
   },
   "composition_distribution": {
     "synthetic_ratio_percent": {
       "value": null,
       "sample_status": "insufficient_n_1",
-      "sample_size": 1,
-      "observed_at_n1": 37
+      "sample_size": 2,
+      "observed_at_n1": 37,
+      "observed_at_n2": 68.5
     },
     "natural_ratio_percent": {
       "value": null,
       "sample_status": "insufficient_n_1",
-      "sample_size": 1,
-      "observed_at_n1": 63
+      "sample_size": 2,
+      "observed_at_n1": 63,
+      "observed_at_n2": 31.5
     },
     "blend_ratio_percent": {
       "value": null,
       "sample_status": "insufficient_n_1",
-      "sample_size": 1,
-      "observed_at_n1": 100
+      "sample_size": 2,
+      "observed_at_n1": 100,
+      "observed_at_n2": 50.0
     },
-    "comment": "n=1: Charles 3-bileşen (Cotton+Viscose+Linen) blend, natural-dominant."
+    "comment": "n=2: Charles 3-bileşen blend natural + Filicudi mono acrylic. Çeşitlilik yüksek."
   },
   "country_distribution": {
-    "Italy": 1
+    "Italy": 2
   },
   "mobidik_strategic_assessment": {
     "staubli_general_feasibility": "orta",
-    "_general_feasibility_basis": "n=1: Charles 4/5 (plain TAM, moiré finishing ek). Rubelli urun yelpazesi 557 — damask/jakar/velvet agirlikli + plain + sheers + curtains var. Mobidik perdelik icin sadece Curtains/Sheers kategorisi relevant. Damask/jakar Stäubli yapamaz (kapasite YOK). Marka geneli orta tahmini.",
+    "_general_feasibility_basis": "n=2: Charles 4/5 + Filicudi 4/5 (her ikisi upholstery, plain dokuma TAM ama dar 141-145 cm). Rubelli urun yelpazesi 557 — perdelik (Curtains) filtreli 160 ürün var ama denetlenen ikisi de Heavy use. Rubelli'de gercek perdelik (sheer/lightweight curtain) için ayrı pilot gerek.",
     "average_feasibility_score": {
       "value": null,
       "sample_status": "insufficient_n_1",
-      "sample_size": 1,
-      "observed_at_n1": 4.0
+      "sample_size": 2,
+      "observed_at_n1": 4.0,
+      "observed_at_n2": 4.0
     },
     "arge_priority_areas": [
       "Moiré finishing tekniği (basinç+ısı kalandr) — Mobidik yatirim alani",
       "Italyan tasarımcı işbirlikleri benchmark (Formafantasma)",
       "Multi-fiber blend iplik (CO/VI/LI) tedariki",
-      "557 ürün katalog yönetimi (geniş palet, Rubelli scale benchmark)"
+      "557 ürün katalog yönetimi (geniş palet, Rubelli scale benchmark)",
+      "Solution-dyed acrylic Tempotest (Filicudi) — Mobidik outdoor portfoyu icin Aksa Türk alternatifi",
+      "Moire finishing (Charles) — Mobidik finishing makinesi (calender) yatirim alani"
     ],
     "competitive_position": "Rubelli Italyan premium 1858 kurulus, Venedik — yüzyıllık damask geleneği + çağdaş tasarımcı işbirlikleri. Mobidik perspektifi: Rubelli upholstery (Charles tipi) Mobidik kapsam DIŞI. Perdelik ve sheer ürünleri için ayrı pilot gerek — Curtains/Sheers filtre.",
     "market_opportunity": "Rubelli perdelik segmentinde (Curtains/Sheers) Mobidik nis pozisyon olabilir. Rubelli retail 80-150 EUR/m premium; Mobidik 25-40 EUR/m hedef. Italyan damask geleneği Mobidik kapasitesinde değil (jakar YOK), ama plain/sheer/leno yapilir.",
@@ -130,8 +148,8 @@
     "ai_estimated_data_points": 2,
     "verification_ratio": 0.0,
     "reliability_label": "insufficient_sample",
-    "sample_size_tracked_products": 1,
-    "_reliability_explanation": "n=1 (Charles upholstery). Perdelik ürünleri icin n=0 — perdelik filtreli pilot acil gerek."
+    "sample_size_tracked_products": 2,
+    "_reliability_explanation": "n=2 (Charles upholstery + Filicudi outdoor upholstery). Threshold n>=3 oncesi dagilim null. Iki denetim de upholstery — Mobidik perdelik segmenti icin Rubelli gercek sheer/lightweight curtain (Dimlight veya benzer) pilot gerek."
   },
   "notes": [
     "v1.0 (2026-05-26): Rubelli marka profili ilk inşa.",
@@ -139,6 +157,8 @@
     "557 ürün textiles katalog. Upholstery + Curtains + Sheers + Wallcoverings + Outdoor.",
     "Charles tek denetlenmiş — UPHOLSTERY (Heavy use), Mobidik perdelik kapsam DIŞI.",
     "Sonraki adim: Rubelli textiles?use=curtains kategorisinden 2-3 perdelik üründe pilot.",
-    "Statik kimlik (Wikipedia + about) PENDING."
+    "Statik kimlik (Wikipedia + about) PENDING.",
+    "v1.1 (2026-05-26): Filicudi eklendi. n=2. avg_staubli=4.0. Her iki urun upholstery — perdelik pilot devam.",
+    "Tempotest outdoor acrylic (Filicudi) Mobidik için Capri Plus PES'in acrylic alternatif analoğu — Aksa Türk tedariki ARGE alanı."
   ]
 }

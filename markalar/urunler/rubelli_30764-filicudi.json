@@ -1,0 +1,332 @@
+{
+  "_schema_version": "1.3",
+  "urun_id": "rubelli_30764-filicudi",
+  "brand": "Rubelli",
+  "brand_slug": "rubelli",
+  "collection": null,
+  "product_code": "30764",
+  "product_name": "Filicudi",
+  "source_url": "https://www.rubelli.com/en/filicudi-30764",
+  "scraped_at": "2026-05-25T21:57:48.917243+00:00",
+  "last_updated": "2026-05-26T02:00:00Z",
+  "source_data": {
+    "_description": "Rubelli Filicudi (Formafantasma) — %100 Solution-Dyed Acrylic Tempotest, 141 cm, 10 renk. Heavy use upholstery (suitable for upholstery), perdelik kategoride listede ama primer upholstery. Tempotest = Italyan outdoor acrylic benchmark. Capri Plus (ADO solution-dyed PES) ile karsilastirilabilir.",
+    "_provenance": {
+      "schema_version": "1.1",
+      "created_at": "2026-05-26T02:00:00Z",
+      "last_updated": "2026-05-26T02:00:00Z",
+      "sources_used": [
+        {
+          "url": "https://www.rubelli.com/en/filicudi-30764",
+          "type": "html_product_page",
+          "accessed_at": "2026-05-25T21:57:48.917243+00:00"
+        },
+        {
+          "url": "kapasite/staubli_uretim_kapasitesi.md",
+          "type": "user_verified_capacity_table",
+          "accessed_at": "2026-05-26T02:00:00Z"
+        }
+      ],
+      "constitutional_violations_check": "passed_at_2026-05-26T02:00:00Z",
+      "audit_history": [
+        {
+          "audit_id": "rubelli_30764-filicudi_v1.0_2026-05-26",
+          "audit_date": "2026-05-26",
+          "audit_doc": "topla/scripts/create_rubelli_filicudi.py",
+          "version_before": "(yok — Rubelli n=2 ekleniyor)",
+          "version_after": "v1.0",
+          "notes": "Rubelli 2. denetim. Scraper v1.1 Use fix calisti (Heavy use yakalandi, v1.0'da Care and treatment yanlis idi). Filicudi Heavy use upholstery — Curtains kategoride listede ama description 'suitable for upholstery'. Solution-dyed acrylic Tempotest outdoor benchmark (Capri Plus PES analog). 10 varyant tespit (Sabbia, Grigio, Avorio, vb.), 1 gorsel (variant click iyilesme gerek)."
+        }
+      ]
+    },
+    "technical": {
+      "composition": [],
+      "width_cm": 141,
+      "weight_gsm": null,
+      "repeat_cm": {
+        "vertical": null,
+        "horizontal": null
+      },
+      "weave_type_raw": "Plain",
+      "weave_type_normalized": "plain",
+      "yarn_type": "filament",
+      "transparency": {
+        "value": null
+      },
+      "usage_area": [
+        "upholstery",
+        "heavy_use",
+        "outdoor"
+      ],
+      "performance": {
+        "lightfastness": null,
+        "abrasion_martindale": null,
+        "pilling": null,
+        "shrinkage": {
+          "warp_percent": null,
+          "weft_percent": null
+        }
+      },
+      "acoustic": {
+        "alpha_s_value": null,
+        "absorption_class": null,
+        "comment": null
+      },
+      "outdoor_rated": true,
+      "tempotest_certified": true
+    },
+    "variants": [
+      {
+        "color_code": "30764-002",
+        "color_name": "Sabbia",
+        "color_name_confidence": "exact",
+        "main_image_url_source": "https://cdn.rubelli.com/A30764_002/30764_2.840x840c.jpg",
+        "main_image_local_path": "gorseller/rubelli/30764/002_main.jpg"
+      },
+      {
+        "color_code": "30764-001",
+        "color_name": "Filicudi",
+        "color_name_confidence": "exact",
+        "main_image_url_source": "https://cdn.rubelli.com/A30764_001/30764_1.840x840c.jpg",
+        "main_image_local_path": "gorseller/rubelli/30764/001_main.jpg"
+      },
+      {
+        "color_code": "30764-003",
+        "color_name": "Grigio",
+        "color_name_confidence": "exact",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30764-004",
+        "color_name": "Ruggine",
+        "color_name_confidence": "exact",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30764-005",
+        "color_name": "Legno di rosa",
+        "color_name_confidence": "exact",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30764-006",
+        "color_name": "Ocra",
+        "color_name_confidence": "exact",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30764-007",
+        "color_name": "Acqua",
+        "color_name_confidence": "exact",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30764-008",
+        "color_name": "Reseda",
+        "color_name_confidence": "exact",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30764-009",
+        "color_name": "Blu",
+        "color_name_confidence": "exact",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30764-010",
+        "color_name": "Crepuscolo",
+        "color_name_confidence": "exact",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      }
+    ],
+    "certifications": {
+      "fire_safety": [
+        "CAL TB117:2013",
+        "BS5852"
+      ],
+      "sustainability": [
+        "Oeko-Tex Standard 100"
+      ],
+      "other": [
+        "Tempotest (Italyan outdoor acrylic sertifikasi)"
+      ],
+      "raw_text": "CAL.TB117, BS5852, Oeko-Tex"
+    },
+    "commercial": {
+      "price_per_meter": null,
+      "price_currency": null,
+      "moq_meters": null,
+      "lead_time_days": null,
+      "country_of_origin": "Italy",
+      "sample_policy": "REQUEST A SAMPLE",
+      "launch_year": null,
+      "production_model": {
+        "value": "stock",
+        "notes": "Current Stock"
+      }
+    },
+    "design_credit": {
+      "designer": "Formafantasma",
+      "type": "collaborator"
+    },
+    "description_original": {
+      "language": "en",
+      "text": "Filicudi is similar to the plain Elba and completes its colour range. It is suitable for upholstery.",
+      "source_url": "https://www.rubelli.com/en/filicudi-30764",
+      "extracted_at": "2026-05-26T02:00:00Z"
+    },
+    "description_tr": {
+      "text": "Filicudi, plain Elba'ya benzer ve onun renk paletini tamamlıyor. Upholstery için uygundur.",
+      "translation_method": "claude_inference",
+      "translated_at": "2026-05-26T02:00:00Z",
+      "is_official_translation": false
+    },
+    "style_note": "Italyan premium outdoor acrylic — Tempotest sertifikali. Plain dokuma + Solution-Dyed Acrylic = Capri Plus (PES) ile paralel teknoloji ama farkli iplik. Formafantasma tasarim.",
+    "use_text": "Heavy use",
+    "mobidik_scope": "upholstery_kapsam_disi"
+  },
+  "ai_inferences": {
+    "light_transmission": {
+      "estimated_class": "opaque",
+      "confidence": "high",
+      "method": "Heavy use upholstery + solution-dyed acrylic + 141 cm dar = opaque",
+      "based_on": [
+        "use heavy",
+        "composition acrylic"
+      ],
+      "model": "claude-opus-4-7",
+      "created_at": "2026-05-26T02:00:00Z",
+      "user_verified": false
+    }
+  },
+  "image_analysis": {
+    "_description": "10 varyant tespit, sadece 1 gorsel (variant click iyilesme gerek).",
+    "dominant_colors": {
+      "value": null
+    },
+    "color_palette_summary": "10 İtalyanca renk (Avorio, Sabbia, Grigio, ...)",
+    "style_tags": [
+      "italian",
+      "rubelli",
+      "formafantasma",
+      "tempotest",
+      "outdoor",
+      "acrylic",
+      "plain"
+    ],
+    "pattern_type": "düz",
+    "pattern_density": "düşük",
+    "estimated_use_context": [
+      "outdoor mobilya",
+      "otel terasi",
+      "premium konut"
+    ]
+  },
+  "images": {
+    "_description": "Rubelli v1.1, 2 gorsel (10 varyant icin az — variant click pending).",
+    "main": [],
+    "variants": [
+      {
+        "url": "https://cdn.rubelli.com/A30764_001/30764_1.840x840c.jpg",
+        "local_path": "gorseller/rubelli/30764/001_main.jpg",
+        "variant_code": "30764-001",
+        "variant_name": "Filicudi",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "scraper_v1_1_rubelli"
+        },
+        "quality_check": "passed"
+      },
+      {
+        "url": "https://cdn.rubelli.com/A30764_002/30764_2.840x840c.jpg",
+        "local_path": "gorseller/rubelli/30764/002_main.jpg",
+        "variant_code": "30764-002",
+        "variant_name": "Sabbia",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "scraper_v1_1_rubelli"
+        },
+        "quality_check": "passed"
+      }
+    ],
+    "lifestyle": [],
+    "technical": [],
+    "_quality_notes": [
+      "10 varyant tespit, sadece 1 gorsel — variant click iyilesme sonraki."
+    ]
+  },
+  "mobidik_evaluation": {
+    "_description": "Filicudi UPHOLSTERY (Heavy use) — Mobidik perdelik kapsam DISI. Ancak Tempotest outdoor acrylic teknolojisi Capri Plus (PES) icin analog: Mobidik solution-dyed acrylic alternatif olarak Aksa Türk üreticisi.",
+    "staubli_feasibility": {
+      "score": 4,
+      "frame_count_estimate": "2-4",
+      "warp_compatibility": "uygun",
+      "weft_compatibility": "uygun",
+      "repeat_size_compatibility": "uygun",
+      "reed_density_estimate": "16-22 dent/cm",
+      "sizing_requirement": "Solution-dyed acrylic standart hasil",
+      "comment": "Plain dokuma TAM, %100 acrylic standart kategoride (Stabli'ye uygun), 141 cm dar. Solution-dyed acrylic Aksa Turk uretici (Capri Plus PES'le paralel iplik tedariki). Tempotest outdoor sertifikası Mobidik için yeni alan. Skor 4: dokuma TAM, dar en + upholstery (heavy use) Mobidik perdelik projesi disi."
+    },
+    "arge_value": {
+      "score": 65,
+      "key_learnings": [
+        "Solution-dyed acrylic outdoor (Aksa Turk tedariki)",
+        "Tempotest sertifika Italyan benchmark",
+        "Capri Plus PES vs Filicudi acrylic karsilastirma"
+      ],
+      "comment": "Mobidik outdoor portfoyu icin (Capri Plus + Fil du Temps + Filicudi) acrylic alternatifi."
+    },
+    "market_gap": {
+      "score": 50,
+      "comment": "Upholstery — perdelik segment disi. Outdoor acrylic Türkiye'de Aksa var, Mobidik için outdoor mobilya segmenti acilim potansiyeli (Mobidik perdelik haricinde).",
+      "target_markets": [
+        "TR outdoor mobilya",
+        "AB outdoor (DACH)"
+      ]
+    },
+    "portfolio_fit": {
+      "score": 40,
+      "similar_existing_products": [
+        "Capri Plus (ADO outdoor PES)"
+      ],
+      "comment": "Mobidik perdelik portfoyune uyumsuz (upholstery + dar)."
+    },
+    "overall_score": 50,
+    "priority_level": "dusuk",
+    "strategic_note": "DUSUK ONCELIK (perdelik kapsam DIŞI). Filicudi Heavy use upholstery, Rubelli'nin Curtains kategori meta etiketi var ama description 'suitable for upholstery'. Tempotest outdoor acrylic teknolojisi Mobidik'in Capri Plus (PES) ile paralel — Aksa Türk solution-dyed acrylic alternative tedariki ARGE alani olabilir (uzun vade). Rubelli perdelik (gerçek sheer/lightweight curtain) icin Dimlight veya diger urunde pilot gerek (3. Rubelli denetimi)."
+  },
+  "data_quality": {
+    "missing_fields": [
+      "weight_gsm",
+      "lightfastness",
+      "9 variant gorseli"
+    ],
+    "ai_estimated_fields": [
+      "light_transmission"
+    ],
+    "user_verified_fields": [
+      "country (Italy)",
+      "Use (Heavy use)",
+      "designer (Formafantasma)"
+    ],
+    "completeness_percent": 62,
+    "last_verified": "2026-05-26T02:00:00Z",
+    "notes": [
+      "Rubelli 2. denetim, scraper v1.1 Use fix calisti.",
+      "Filicudi outdoor acrylic Tempotest — Mobidik için Aksa solution-dyed acrylic ARGE.",
+      "Variant click iyilesme: sonraki v1.2 (color picker click-based fetch)."
+    ]
+  }
+}

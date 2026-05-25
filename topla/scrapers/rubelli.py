@@ -127,7 +127,7 @@ def scrape_rubelli(url: str) -> dict:
             _extract_label_value(body_text, "Pattern repeat")
             or _extract_label_value(body_text, "Repeat")
         )
-        data["use_text"] = _extract_label_value(body_text, "Use")
+        data["use_text"] = _extract_use_value(body_text)
         data["country_of_origin"] = (
             _extract_label_value(body_text, "Made in")
             or _extract_label_value(body_text, "Country of origin")
@@ -203,6 +203,30 @@ def scrape_rubelli(url: str) -> dict:
 
         browser.close()
         return data
+
+
+USE_KEYWORDS = [
+    "Heavy use", "Medium use", "Light use",
+    "Curtains", "Sheers",
+    "Outdoor", "Indoor/Outdoor",
+    "Wallcovering", "Upholstery",
+]
+
+
+def _extract_use_value(body_text: str) -> str | None:
+    """v1.1: Rubelli Use alani — kategorik keyword ara (genel 'Use' label cakismasini onler)."""
+    if not body_text:
+        return None
+    # Önce 'Use\n' label ile kategorik değer
+    for kw in USE_KEYWORDS:
+        m = re.search(rf"\bUse\s*\n\s*{re.escape(kw)}\b", body_text, re.IGNORECASE)
+        if m:
+            return kw
+    # Fallback: body'de hangi USE keyword'i geciyor
+    for kw in USE_KEYWORDS:
+        if re.search(rf"\b{re.escape(kw)}\b", body_text, re.IGNORECASE):
+            return kw
+    return None
 
 
 def _extract_label_value(text: str, label: str) -> str | None:
