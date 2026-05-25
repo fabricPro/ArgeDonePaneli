@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>🌟 ALTIN Ürünler — Mobidik ARGE Pilot Adayları</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #0d1117; color: #e6edf3; line-height: 1.6; padding: 20px; }
+  .navbar { position: sticky; top: 0; background: #161b22; padding: 15px 20px;
+    margin: -20px -20px 30px -20px; border-bottom: 2px solid #FFA500;
+    display: flex; justify-content: space-between; align-items: center; z-index: 100; }
+  .navbar a { color: #FFD700; text-decoration: none; font-weight: 600;
+    padding: 8px 16px; border: 1px solid #FFD700; border-radius: 4px;
+    transition: background 0.2s; }
+  .navbar a:hover { background: rgba(255,215,0,0.1); }
+  .ust-banner { text-align: center; padding: 30px 20px; margin-bottom: 30px;
+    background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,165,0,0.05));
+    border-radius: 12px; border: 1px solid rgba(255,165,0,0.3); }
+  .ust-banner h1 { font-size: 2.2em; margin-bottom: 10px;
+    background: linear-gradient(135deg, #FFD700, #FFA500); -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent; background-clip: text; }
+  .ust-banner p { color: #8b949e; font-size: 1.05em; }
+  .ozet { display: flex; gap: 20px; justify-content: center; margin-top: 15px; flex-wrap: wrap; }
+  .ozet-kutu { background: #161b22; padding: 10px 20px; border-radius: 6px;
+    border: 1px solid #30363d; }
+  .ozet-kutu strong { color: #FFD700; }
+  .altin-kart { background: #161b22; border-radius: 12px; padding: 25px;
+    margin-bottom: 30px; border: 2px solid rgba(255,165,0,0.3);
+    box-shadow: 0 4px 12px rgba(255,165,0,0.1); }
+  .altin-baslik { border-bottom: 1px solid #30363d; padding-bottom: 15px;
+    margin-bottom: 20px; }
+  .rozet { display: inline-flex; align-items: center; gap: 10px;
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #1a1a1a; font-weight: 700; padding: 8px 16px;
+    border-radius: 6px; margin-bottom: 10px;
+    box-shadow: 0 3px 8px rgba(255,165,0,0.4); }
+  .rozet-icon { font-size: 1.3em; }
+  .skor { background: rgba(0,0,0,0.2); padding: 2px 10px; border-radius: 4px;
+    margin-left: 8px; }
+  .altin-baslik h2 { font-size: 1.6em; color: #f0f6fc; }
+  .sub-brand { color: #8b949e; margin-top: 8px; font-size: 0.95em; }
+  .altin-icerik { display: grid; grid-template-columns: 1fr 1fr; gap: 25px;
+    margin-bottom: 25px; }
+  @media (max-width: 900px) { .altin-icerik { grid-template-columns: 1fr; } }
+  .gorsel-kolon h3, .spec-kolon h3 { color: #FFD700; margin-bottom: 12px;
+    font-size: 1.1em; }
+  .gorsel-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .gorsel-grid img { width: 100%; height: 140px; object-fit: cover;
+    border-radius: 6px; cursor: pointer; transition: transform 0.2s; }
+  .gorsel-grid img:hover { transform: scale(1.05); }
+  .gorsel-yok { background: #21262d; height: 140px; display: flex;
+    align-items: center; justify-content: center; border-radius: 6px;
+    color: #8b949e; font-size: 0.9em; grid-column: 1/-1; }
+  .spec-tablo { width: 100%; border-collapse: collapse; }
+  .spec-tablo td { padding: 8px 10px; border-bottom: 1px solid #30363d;
+    font-size: 0.95em; }
+  .spec-tablo td:first-child { color: #8b949e; width: 40%; }
+  .mobidik-aksiyon { background: rgba(255,215,0,0.05); padding: 20px;
+    border-radius: 8px; border: 1px solid rgba(255,215,0,0.2); }
+  .mobidik-aksiyon h3 { color: #FFA500; margin-bottom: 15px; font-size: 1.2em; }
+  .aksiyon-bolum { margin-bottom: 15px; }
+  .aksiyon-bolum h4 { color: #FFD700; font-size: 1em; margin-bottom: 6px; }
+  .aksiyon-bolum p { color: #c9d1d9; font-size: 0.95em; }
+  .aksiyon-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+    margin-top: 15px; }
+  @media (max-width: 700px) { .aksiyon-grid { grid-template-columns: 1fr; } }
+  .aksiyon-kutu { background: #0d1117; padding: 12px; border-radius: 6px;
+    border-left: 3px solid #FFA500; }
+  .aksiyon-kutu h4 { color: #FFD700; font-size: 0.9em; margin-bottom: 5px; }
+  .aksiyon-kutu p { color: #c9d1d9; font-size: 0.9em; }
+  .footer { text-align: center; color: #6e7681; padding: 30px 20px;
+    margin-top: 30px; border-top: 1px solid #30363d; }
+  .lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%;
+    height: 100%; background: rgba(0,0,0,0.95); z-index: 1000;
+    cursor: pointer; }
+  .lightbox img { max-width: 90vw; max-height: 90vh; position: absolute;
+    top: 50%; left: 50%; transform: translate(-50%, -50%); }
+</style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="index.html">← Tüm Dashboard'a Dön (23 ürün)</a>
+    <span style="color:#8b949e;">Mobidik ARGE — ALTIN ürünler raporu</span>
+  </nav>
+
+  <header class="ust-banner">
+    <h1>🌟 ALTIN ÜRÜNLER — Mobidik Pilot Adayları</h1>
+    <p>Otomasyonun keşfettiği ALTIN ürünler — <strong>overall_score ≥ 80</strong></p>
+    <div class="ozet">
+      <div class="ozet-kutu"><strong>7</strong> ALTIN ürün</div>
+      <div class="ozet-kutu"><strong>4</strong> marka</div>
+      <div class="ozet-kutu">Skor aralığı <strong>81–87</strong>/100</div>
+    </div>
+  </header>
+
+  <main>
+    
+<section class="altin-kart">
+  <div class="altin-baslik">
+    <div class="rozet">
+      <span class="rozet-icon">☀️</span>
+      ALTIN ÜRÜN — Mobidik pilot adayı
+      <span class="skor">87/100</span>
+    </div>
+    <h2>ADO Goldkante · Capri Plus · 3150</h2>
+    <div class="sub-brand">🏷️ <strong>Mediterranean Outdoor</strong></div>
+  </div>
+
+  <div class="altin-icerik">
+    <div class="gorsel-kolon">
+      <div class="gorsel-grid"><img src="../gorseller/ado_goldkante/3150/111_1.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/ado_goldkante/3150/111_2.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/ado_goldkante/3150/111_3.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/ado_goldkante/3150/111_4.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/ado_goldkante/3150/111_5.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/ado_goldkante/3150/131_1.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"></div>
+    </div>
+
+    <div class="spec-kolon">
+      <h3>📋 Teknik Özellikler</h3>
+      <table class="spec-tablo">
+        <tr><td>Stäubli</td><td><strong>5/5 ✅</strong></td></tr>
+        <tr><td>Üretim ülkesi</td><td>Almanya</td></tr>
+        <tr><td>Kompozisyon</td><td>100% Polyester</td></tr>
+        <tr><td>En</td><td>310 cm</td></tr>
+        <tr><td>Gramaj</td><td>üretici beyan etmiyor</td></tr>
+        <tr><td>Dokuma</td><td>dobby</td></tr>
+        <tr><td>Renk varyantı</td><td>17 renk</td></tr>
+        <tr><td>Designer</td><td>—</td></tr>
+        <tr><td>Sertifikalar</td><td>—</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="mobidik-aksiyon">
+    <h3>🎯 MOBİDİK AKSİYON</h3>
+
+    <div class="aksiyon-bolum">
+      <h4>🔧 Stäubli Yapılabilirlik (Kapasite #7)</h4>
+      <p>Tum Stabli kriterleri TAM: width 310 cm &lt; 360 sinir, dobby open latticework standart kapasitede, %100 solution-dyed PES iplik tedariki Turkiye'de cok guclu (SASA, Korteks).</p>
+    </div>
+
+    <div class="aksiyon-bolum">
+      <h4>📈 Stratejik Not</h4>
+      <p>ALTIN URUN. Capri Plus = open latticework outdoor PES, 17 renk, Stabli icin dogrudan uygun. Acil aksiyonlar: (1) Solution-dyed PES iplik teklifleri (SASA, Korteks 4 renk numune), (2) Pilot: 5 notr ton x 150 m, 4-6 hafta, (3) R+T Stuttgart 2027 fuari hedef, (4) GRS sertifika basvurusu paralel. Pazar: Z+R retail 60-100 EUR/m -&gt; Mobidik 18-25 EUR/m hedef (-%70 fiyat avantaji).</p>
+    </div>
+
+    <div class="aksiyon-grid">
+      <div class="aksiyon-kutu">
+        <h4>🧵 İplik Tedarikçi</h4>
+        <p>SASA / Korteks (solution-dyed PES)</p>
+      </div>
+      <div class="aksiyon-kutu">
+        <h4>🏭 Fason Üretici</h4>
+        <p>Bursa havzasi outdoor ureticisi</p>
+      </div>
+      <div class="aksiyon-kutu">
+        <h4>📜 Sertifika İhtiyacı</h4>
+        <p>OEKO-TEX (genel)</p>
+      </div>
+      <div class="aksiyon-kutu">
+        <h4>📅 Pilot Timeline</h4>
+        <p><strong>Ay 3-4</strong> · 4-6 hafta<br>
+        Miktar: 5 notr ton x 150 m</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="altin-kart">
+  <div class="altin-baslik">
+    <div class="rozet">
+      <span class="rozet-icon">♻️</span>
+      ALTIN ÜRÜN — Mobidik pilot adayı
+      <span class="skor">85/100</span>
+    </div>
+    <h2>ADO Goldkante · Harry RE · 3009</h2>
+    <div class="sub-brand">🏷️ <strong>Surdurulebilirlik (GRS hatti)</strong></div>
+  </div>
+
+  <div class="altin-icerik">
+    <div class="gorsel-kolon">
+      <div class="gorsel-grid"><img src="../gorseller/ado_goldkante/3009/110_1.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/ado_goldkante/3009/110_2.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/ado_goldkante/3009/110_3.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"></div>
+    </div>
+
+    <div class="spec-kolon">
+      <h3>📋 Teknik Özellikler</h3>
+      <table class="spec-tablo">
+        <tr><td>Stäubli</td><td><strong>5/5 ✅</strong></td></tr>
+        <tr><td>Üretim ülkesi</td><td>Almanya</td></tr>
+        <tr><td>Kompozisyon</td><td>54% rPES, 46% PES</td></tr>
+        <tr><td>En</td><td>315 cm</td></tr>
+        <tr><td>Gramaj</td><td>üretici beyan etmiyor</td></tr>
+        <tr><td>Dokuma</td><td>sheer</td></tr>
+        <tr><td>Renk varyantı</td><td>1 renk</td></tr>
+        <tr><td>Designer</td><td>—</td></tr>
+        <tr><td>Sertifikalar</td><td>—</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="mobidik-aksiyon">
+    <h3>🎯 MOBİDİK AKSİYON</h3>
+
+    <div class="aksiyon-bolum">
+      <h4>🔧 Stäubli Yapılabilirlik (Kapasite #7)</h4>
+      <p>Stabli kriterleri TAM: sheer plain + rPES standart iplik. 315 cm yakin sinir ama hala TAM. GRS sertifika sureci paralel.</p>
+    </div>
+
+    <div class="aksiyon-bolum">
+      <h4>📈 Stratejik Not</h4>
+      <p>ALTIN urun adayi. Kapasite TAM, asıl iş: GRS sertifika basvurusu (3-6 ay). SASA + Korteks rPES teklifi al, GRS chain-of-custody sertifika basvur. Pilot: 2 ton x 100 m, 4-6 hafta. Capri Plus + Harry RE = ADO 2-urun ALTIN portfoy.</p>
+    </div>
+
+    <div class="aksiyon-grid">
+      <div class="aksiyon-kutu">
+        <h4>🧵 İplik Tedarikçi</h4>
+        <p>SASA / Korteks GRS-sertifikali rPES</p>
+      </div>
+      <div class="aksiyon-kutu">
+        <h4>🏭 Fason Üretici</h4>
+        <p>Bursa havzasi recycled sertifikali</p>
+      </div>
+      <div class="aksiyon-kutu">
+        <h4>📜 Sertifika İhtiyacı</h4>
+        <p>GRS basvurusu ALTIN ANAHTAR (3-6 ay)</p>
+      </div>
+      <div class="aksiyon-kutu">
+        <h4>📅 Pilot Timeline</h4>
+        <p><strong>Ay 3-4 (paralel)</strong> · 4-6 hafta uretim + GRS 3-6 ay<br>
+        Miktar: 2 ton x 100 m</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="altin-kart">
+  <div class="altin-baslik">
+    <div class="rozet">
+      <span class="rozet-icon">🔥</span>
+      ALTIN ÜRÜN — Mobidik pilot adayı
+      <span class="skor">83/100</span>
+    </div>
+    <h2>Dedar · Cobra · 00T19063</h2>
+    <div class="sub-brand">🏷️ <strong>Mediterranean Outdoor (FR + leno)</strong></div>
+  </div>
+
+  <div class="altin-icerik">
+    <div class="gorsel-kolon">
+      <div class="gorsel-grid"><img src="../gorseller/dedar/00T19063/004_main.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/dedar/00T19063/002_main.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/dedar/00T19063/main_01.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"></div>
+    </div>
+
+    <div class="spec-kolon">
+      <h3>📋 Teknik Özellikler</h3>
+      <table class="spec-tablo">
+        <tr><td>Stäubli</td><td><strong>5/5 ✅</strong></td></tr>
+        <tr><td>Üretim ülkesi</td><td>Italy</td></tr>
+        <tr><td>Kompozisyon</td><td>100% Fire-retardant Polyester</td></tr>
+        <tr><td>En</td><td>325 cm</td></tr>
+        <tr><td>Gramaj</td><td>70 g/m²</td></tr>
+        <tr><td>Dokuma</td><td>leno</td></tr>
+        <tr><td>Renk varyantı</td><td>2 renk</td></tr>
+        <tr><td>Designer</td><td>—</td></tr>
+        <tr><td>Sertifikalar</td><td>IMO MED Part. 7<br>FR Italy Class 1<br>BS5867/2/B (UK perdelik)<br>M1 (DIN 4102-1 Class B1 muadili)<br>Oekotex<br>Cfa: Yes (Cfa = ?)</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="mobidik-aksiyon">
+    <h3>🎯 MOBİDİK AKSİYON</h3>
+
+    <div class="aksiyon-bolum">
+      <h4>🔧 Stäubli Yapılabilirlik (Kapasite #7)</h4>
+      <p>Tum kriterler TAM: 325 cm &lt;= 360, LENO TAM (kapasite tablosu acik), FR PES standart iplik TAM (kapasite tablosu 'FR iplik genel TAM'). Cobra Mobidik mevcut kapasitesinde dogrudan replica edilebilir. Skor 5/5.</p>
+    </div>
+
+    <div class="aksiyon-bolum">
+      <h4>📈 Stratejik Not</h4>
+      <p>Cobra = LENO + FR + OUTDOOR uclusu, Stabli'de TAM. Acil aksiyonlar: (1) Trevira CS FR PES iplik teklif (Indorama Türkiye), (2) IMO MED + BS5867 + Italy Class 1 son urun sertifika basvurusu — B1/DIN 4102-1 muadili. Drift FR ile birlikte FR portfoyu kurulurken sertifika ortak proses, (3) Pilot: 2 notr ton x 100 m, 6-8 hafta. AB yat/gemi + hospitality kanal kanal pitch. Niket + Fil du Temps + Alpaca Leno + Cobra = leno+outdoor 4-urun hatti, ROI hesabi karli.</p>
+    </div>
+
+    <div class="aksiyon-grid">
+      <div class="aksiyon-kutu">
+        <h4>🧵 İplik Tedarikçi</h4>
+        <p>Indorama Turkiye (Trevira CS FR PES)</p>
+      </div>
+      <div class="aksiyon-kutu">
+        <h4>🏭 Fason Üretici</h4>
+        <p>Mobidik iceride (leno aparat kapasitede)</p>
+      </div>
+      <div class="aksiyon-kutu">
+        <h4>📜 Sertifika İhtiyacı</h4>
+        <p>B1 / DIN 4102-1 + BS5867 + IMO MED Part. 7 (paralel)</p>
+      </div>
+      <div class="aksiyon-kutu">
+        <h4>📅 Pilot Timeline</h4>
+        <p><strong>Ay 5-6 (paralel)</strong> · 6-8 hafta uretim + sertifika 3-12 ay<br>
+        Miktar: 2 notr ton x 100 m</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="altin-kart">
+  <div class="altin-baslik">
+    <div class="rozet">
+      <span class="rozet-icon">🌾</span>
+      ALTIN ÜRÜN — Mobidik pilot adayı
+      <span class="skor">82/100</span>
+    </div>
+    <h2>Zimmer + Rohde · Nuri · 11049</h2>
+    <div class="sub-brand">🏷️ <strong>Anatolian After Rain (core competency)</strong></div>
+  </div>
+
+  <div class="altin-icerik">
+    <div class="gorsel-kolon">
+      <div class="gorsel-grid"><img src="../gorseller/zimmer_rohde/11049/883_1.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/zimmer_rohde/11049/883_2.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/zimmer_rohde/11049/883_3.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/zimmer_rohde/11049/883_4.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/zimmer_rohde/11049/883_5.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/zimmer_rohde/11049/990_1.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"></div>
+    </div>
+
+    <div class="spec-kolon">
+      <h3>📋 Teknik Özellikler</h3>
+      <table class="spec-tablo">
+        <tr><td>Stäubli</td><td><strong>5/5 ✅</strong></td></tr>
+        <tr><td>Üretim ülkesi</td><td>Almanya</td></tr>
+        <tr><td>Kompozisyon</td><td>57% Flax (linen), 43% Cotton</td></tr>
+        <tr><td>En</td><td>315 cm</td></tr>
+        <tr><td>Gramaj</td><td>üretici beyan etmiyor</td></tr>
+        <tr><td>Dokuma</td><td>check / woven crosshatch</td></tr>
+        <tr><td>Renk varyantı</td><td>3 renk</td></tr>
+        <tr><td>Designer</td><td>—</td></tr>
+        <tr><td>Sertifikalar</td><td>—</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="mobidik-aksiyon">
+    <h3>🎯 MOBİDİK AKSİYON</h3>
+
+    <div class="aksiyon-bolum">
+      <h4>🔧 Stäubli Yapılabilirlik (Kapasite #7)</h4>
+      <p>Tum kriterler TAM: 315 cm &lt;= 360, dobby crosshatch standart, keten+pamuk Turkiye lider tedarik (Bursa+Adana). Variable thread density programlama Stabli'de yapilabilir.</p>
+    </div>
+
+    <div class="aksiyon-bolum">
+      <h4>📈 Stratejik Not</h4>
+      <p>Kapasite TAM. Pilot: 3 ton (883, 990, 991 = 3 renk) x 120 m, 4-6 hafta. Anatolian After Rain sub-brand'inde Niket + Nuri + Ishari birlikte. Variable thread density Stabli programlama pilot test.</p>
+    </div>
+
+    <div class="aksiyon-grid">
+      <div class="aksiyon-kutu">
+        <h4>🧵 İplik Tedarikçi</h4>
+        <p>Bursa keten + Adana pamuk</p>
+      </div>
+      <div class="aksiyon-kutu">
+        <h4>🏭 Fason Üretici</h4>
+        <p>Mobidik iceride (keten/pamuk dobby)</p>
+      </div>
+      <div class="aksiyon-kutu">
+        <h4>📜 Sertifika İhtiyacı</h4>
+        <p>OEKO-TEX</p>
+      </div>
+      <div class="aksiyon-kutu">
+        <h4>📅 Pilot Timeline</h4>
+        <p><strong>Ay 1-2 (paralel)</strong> · 4-6 hafta<br>
+        Miktar: 3 ton (renk 883/990/991) x 120 m</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="altin-kart">
+  <div class="altin-baslik">
+    <div class="rozet">
+      <span class="rozet-icon">⚪</span>
+      ALTIN ÜRÜN — Mobidik pilot adayı
+      <span class="skor">81/100</span>
+    </div>
+    <h2>ADO Goldkante · Pure White Pinstripe · 3301</h2>
+    <div class="sub-brand">🏷️ <strong>Color Fields (AB kurumsal kanal)</strong></div>
+  </div>
+
+  <div class="altin-icerik">
+    <div class="gorsel-kolon">
+      <div class="gorsel-grid"><img src="../gorseller/ado_goldkante/3301/110_1.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/ado_goldkante/3301/110_2.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/ado_goldkante/3301/110_3.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/ado_goldkante/3301/110_4.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/ado_goldkante/3301/110_5.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/ado_goldkante/3301/110_6.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"></div>
+    </div>
+
+    <div class="spec-kolon">
+      <h3>📋 Teknik Özellikler</h3>
+      <table class="spec-tablo">
+        <tr><td>Stäubli</td><td><strong>5/5 ✅</strong></td></tr>
+        <tr><td>Üretim ülkesi</td><td>Almanya</td></tr>
+        <tr><td>Kompozisyon</td><td>90% Polyester, 10% Cotton</td></tr>
+        <tr><td>En</td><td>320 cm</td></tr>
+        <tr><td>Gramaj</td><td>üretici beyan etmiyor</td></tr>
+        <tr><td>Dokuma</td><td>pinstripe with slubs</td></tr>
+        <tr><td>Renk varyantı</td><td>2 renk</td></tr>
+        <tr><td>Designer</td><td>—</td></tr>
+        <tr><td>Sertifikalar</td><td>—</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="mobidik-aksiyon">
+    <h3>🎯 MOBİDİK AKSİYON</h3>
+
+    <div class="aksiyon-bolum">
+      <h4>🔧 Stäubli Yapılabilirlik (Kapasite #7)</h4>
+      <p>Kapasite TAM. Sade pinstripe Stabli icin basit (2-4 cerceve). 320 cm sinir yakin ama TAM. Slub iplik ozel siparis MOQ ~500 kg (Korteks/Yunsa).</p>
+    </div>
+
+    <div class="aksiyon-bolum">
+      <h4>📈 Stratejik Not</h4>
+      <p>Kapasite TAM. Slub iplik ozel siparis (Yünsa/Korteks MOQ ~500 kg). Pilot Pure White Tape ile beraber: 2 ton x 150 m, 4-5 hafta. ADO Color Fields ankor urunu — AB kurumsal kanal pitch ozelinde sunulabilir.</p>
+    </div>
+
+    <div class="aksiyon-grid">
+      <div class="aksiyon-kutu">
+        <h4>🧵 İplik Tedarikçi</h4>
+        <p>Yunsa / Korteks (slub iplik MOQ ~500 kg)</p>
+      </div>
+      <div class="aksiyon-kutu">
+        <h4>🏭 Fason Üretici</h4>
+        <p>Mobidik iceride (320 cm warp beam test)</p>
+      </div>
+      <div class="aksiyon-kutu">
+        <h4>📜 Sertifika İhtiyacı</h4>
+        <p>OEKO-TEX</p>
+      </div>
+      <div class="aksiyon-kutu">
+        <h4>📅 Pilot Timeline</h4>
+        <p><strong>Ay 5-6</strong> · 4-5 hafta<br>
+        Miktar: 2 ton x 150 m (Pure White Tape ile birlikte)</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="altin-kart">
+  <div class="altin-baslik">
+    <div class="rozet">
+      <span class="rozet-icon">🇹🇷</span>
+      ALTIN ÜRÜN — Mobidik pilot adayı
+      <span class="skor">81/100</span>
+    </div>
+    <h2>Kvadrat · Air Line · 5539</h2>
+    <div class="sub-brand">🏷️ <strong>Anatolian Linen (BENCHMARK)</strong></div>
+  </div>
+
+  <div class="altin-icerik">
+    <div class="gorsel-kolon">
+      <div class="gorsel-grid"><img src="../gorseller/kvadrat/5539-air-line/0101_main.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/kvadrat/5539-air-line/0111_main.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/kvadrat/5539-air-line/0161_main.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/kvadrat/5539-air-line/0331_main.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/kvadrat/5539-air-line/0941_main.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/kvadrat/5539-air-line/main_01.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"></div>
+    </div>
+
+    <div class="spec-kolon">
+      <h3>📋 Teknik Özellikler</h3>
+      <table class="spec-tablo">
+        <tr><td>Stäubli</td><td><strong>5/5 ✅</strong></td></tr>
+        <tr><td>Üretim ülkesi</td><td>Turkey</td></tr>
+        <tr><td>Kompozisyon</td><td>100% Spun linen</td></tr>
+        <tr><td>En</td><td>315 cm</td></tr>
+        <tr><td>Gramaj</td><td>178 g/m²</td></tr>
+        <tr><td>Dokuma</td><td>dobby</td></tr>
+        <tr><td>Renk varyantı</td><td>5 renk</td></tr>
+        <tr><td>Designer</td><td>Kvadrat Residential (in-house studio)</td></tr>
+        <tr><td>Sertifikalar</td><td>EU Ecolabel (Kvadrat marka geneli, ürün-özel kanıt PDF)<br>Renewable resources claim (sayfa)<br>Mono material (single-fiber circular design)<br>Lightfastness ISO 105-B02 score 8<br>Retail warranty 2 years</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="mobidik-aksiyon">
+    <h3>🎯 MOBİDİK AKSİYON</h3>
+
+    <div class="aksiyon-bolum">
+      <h4>🔧 Stäubli Yapılabilirlik (Kapasite #7)</h4>
+      <p>Air Line tüm Stäubli kapasite kriterlerini geçiyor: width 315 cm (≤360 cm sınırı), dobby dokuma (kapasite TAM), %100 keten spun iplik (standart kategori TAM), repeat 6 cm vertical (dobby için kolay). 4-8 çerçeve yeterli. Stäubli için doğrudan uygun, üstelik Türkiye'de zaten üretiliyor — teknik bariyer kanıtlanmış.</p>
+    </div>
+
+    <div class="aksiyon-bolum">
+      <h4>📈 Stratejik Not</h4>
+      <p>✨ BENCHMARK ÜRÜN. Kvadrat seviyesi marka Türkiye'de fason aldırıyor = teknik bariyer aşılmış, kalite bandı kurulmuş. Mobidik 'Türk üretimi Kvadrat referansı' söylemini ihracat pitchlerinde kullanabilir ('The same manufacturing region trusted by Kvadrat'). Acil aksiyonlar: (1) Technical specs PDF talebi (en/gramaj/abrasion/Martindale değerleri), (2) Türk fason üretici tespiti (Bursa havzası — Akın, Erak, İpekiş, Karsu, vb.), (3) EU Flax + OEKOTEX 100 başvuru paralel, (4) Pilot: 3 nötr ton × 100 m, 4-6 hafta. Pazar pozisyonu: Kvadrat retail €70-110/m → Mobidik hedef €18-28/m (%25-30 fiyat). Mobidik bu ürünle 'doğrudan rakip' değil — partner/fason aday pozisyonunda.</p>
+    </div>
+
+    <div class="aksiyon-grid">
+      <div class="aksiyon-kutu">
+        <h4>🧵 İplik Tedarikçi</h4>
+        <p>Linex / Linus / Dogu Akdeniz Iplik (Bursa)</p>
+      </div>
+      <div class="aksiyon-kutu">
+        <h4>🏭 Fason Üretici</h4>
+        <p>Akin / Erak / Ipekis / Karsu (sektor networking — Kvadrat zaten TR'de fason yaptiriyor)</p>
+      </div>
+      <div class="aksiyon-kutu">
+        <h4>📜 Sertifika İhtiyacı</h4>
+        <p>EU Flax + OEKO-TEX</p>
+      </div>
+      <div class="aksiyon-kutu">
+        <h4>📅 Pilot Timeline</h4>
+        <p><strong>Ay 1-2</strong> · 4-6 hafta<br>
+        Miktar: 3 notr ton (White Linen, Light Ash, Hazel) x 100 m</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="altin-kart">
+  <div class="altin-baslik">
+    <div class="rozet">
+      <span class="rozet-icon">🌿</span>
+      ALTIN ÜRÜN — Mobidik pilot adayı
+      <span class="skor">81/100</span>
+    </div>
+    <h2>Zimmer + Rohde · Melange Linen · 10969</h2>
+    <div class="sub-brand">🏷️ <strong>Anatolian Linen</strong></div>
+  </div>
+
+  <div class="altin-icerik">
+    <div class="gorsel-kolon">
+      <div class="gorsel-grid"><img src="../gorseller/zimmer_rohde/10969/785_1.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/zimmer_rohde/10969/785_2.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/zimmer_rohde/10969/785_3.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/zimmer_rohde/10969/785_4.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/zimmer_rohde/10969/785_5.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"><img src="../gorseller/zimmer_rohde/10969/882_1.jpg" alt="" onclick="openLightbox(this)" onerror="this.style.display='none'"></div>
+    </div>
+
+    <div class="spec-kolon">
+      <h3>📋 Teknik Özellikler</h3>
+      <table class="spec-tablo">
+        <tr><td>Stäubli</td><td><strong>5/5 ✅</strong></td></tr>
+        <tr><td>Üretim ülkesi</td><td>Belçika</td></tr>
+        <tr><td>Kompozisyon</td><td>100% Flax (linen)</td></tr>
+        <tr><td>En</td><td>283 cm</td></tr>
+        <tr><td>Gramaj</td><td>üretici beyan etmiyor</td></tr>
+        <tr><td>Dokuma</td><td>plain</td></tr>
+        <tr><td>Renk varyantı</td><td>10 renk</td></tr>
+        <tr><td>Designer</td><td>—</td></tr>
+        <tr><td>Sertifikalar</td><td>—</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="mobidik-aksiyon">
+    <h3>🎯 MOBİDİK AKSİYON</h3>
+
+    <div class="aksiyon-bolum">
+      <h4>🔧 Stäubli Yapılabilirlik (Kapasite #7)</h4>
+      <p>Tum Stabli kriterleri TAM: 283 cm ≤ 360, plain sheer TAM, %100 spun keten standart iplik. Mobidik mevcut keten kapasitesinde dogrudan replica.</p>
+    </div>
+
+    <div class="aksiyon-bolum">
+      <h4>📈 Stratejik Not</h4>
+      <p>Kapasite TAM. Pilot: 3 notr ton x 100 m, 4-6 hafta. Belgian Linen yerine EU Flax + OEKO-TEX sertifika basvurusu paralel. Anatolian Linen alt hatti calismasinin temel urunu olabilir.</p>
+    </div>
+
+    <div class="aksiyon-grid">
+      <div class="aksiyon-kutu">
+        <h4>🧵 İplik Tedarikçi</h4>
+        <p>Bursa keten birligi</p>
+      </div>
+      <div class="aksiyon-kutu">
+        <h4>🏭 Fason Üretici</h4>
+        <p>Mobidik iceride (Anatolian Linen ankor urunu)</p>
+      </div>
+      <div class="aksiyon-kutu">
+        <h4>📜 Sertifika İhtiyacı</h4>
+        <p>EU Flax + Masters of Linen muadili (Anatolian soylem)</p>
+      </div>
+      <div class="aksiyon-kutu">
+        <h4>📅 Pilot Timeline</h4>
+        <p><strong>Ay 7-9</strong> · 6-8 hafta<br>
+        Miktar: 3 ton x 100 m</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+  </main>
+
+  <footer class="footer">
+    <p>📄 Detaylı plan: <code>docs/mobidik_arge_pilot_uretim_plani.md</code> · 📚 Rehber: <code>docs/altin_urunler_rehberi.md</code></p>
+    <p>Sistem: 23 ürün audited · 7 marka kayıt · 16 commit · Faz 5.14</p>
+  </footer>
+
+  <div class="lightbox" id="lightbox" onclick="this.style.display='none'">
+    <img id="lightbox-img" src="" alt="">
+  </div>
+
+  <script>
+    function openLightbox(img) {
+      document.getElementById('lightbox-img').src = img.src;
+      document.getElementById('lightbox').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
