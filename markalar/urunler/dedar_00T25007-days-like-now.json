@@ -8,7 +8,7 @@
   "product_name": "Days Like Now",
   "source_url": "https://dedar.com/days-like-now/?sku=00T2500700001",
   "scraped_at": "2026-05-25T20:45:54Z",
-  "last_updated": "2026-05-25T23:50:00Z",
+  "last_updated": "2026-05-26T00:00:00Z",
   "source_data": {
     "_description": "Dedar Days Like Now — wild silk shantung (hand-dyed artisanal), 134 cm DAR. Faz 5.4 scraper canli + Claude denetim. Scraper basari: composition (silk), country (India), weight, sertifika (BS5867/2/B+M1), 3 gorsel. Body manual: width=134, weave=plain (shantung), description, 8 varyant gozlemlendi.",
     "_provenance": {
@@ -99,7 +99,7 @@
       "fields_from_inference": [
         "weight_gsm"
       ],
-      "constitutional_violations_check": "passed_at_2026-05-25T23:50:00Z",
+      "constitutional_violations_check": "passed_at_2026-05-26T00:00:00Z",
       "audit_history": [
         {
           "audit_id": "dedar_00T25007-days-like-now_v1.0_2026-05-25",
@@ -107,6 +107,14 @@
           "version_before": "(yok — Dedar n=2 ilk insa)",
           "version_after": "v1.0 (Faz 5.4 canli test + Claude denetim)",
           "notes": "Dedar ikinci urun. Scraper iyilesme: 3 gorsel (Cobra 1'di), composition+country+sertifika OK. Body manual: width=134 cm DAR, weave=plain (shantung), 8 varyant. Kapasite #7: Ipek explicit kategoride yok ama dogal lif (yun benzeri varsayilir), plain dokuma TAM, 134 cm OK. staubli_feasibility=4/5 (Ipek tedariki Turkiye'de nis - Bursa historic ama kucuk). Wildlife: hand-dyed artisanal sureç finishing replication kismi (Andria pattern)."
+        },
+        {
+          "audit_id": "dedar_00T25007-days-like-now_v1.1_2026-05-26",
+          "audit_date": "2026-05-26",
+          "audit_doc": "docs/scraper_v1_1_sonuclari.md",
+          "version_before": "v1.0 (Faz 5.4 Claude denetim, body manual: width=134, weave=plain, description, 8 varyant)",
+          "version_after": "v1.1 (Faz 5.10 scraper v1.1 yeniden cekildi, body manual gerek YOK)",
+          "notes": "Scraper v1.1 ile DLN yeniden cekildi (test_days_like_now.py run 20260525T205940Z). Otomatik yakalananlar: width=134.0 cm, weave=plain (shantung normalize), production_model=stock (Current Stock), 8 varyant body'den (001-008). Gorsel: 3 -> 74 (BigCommerce CDN + connect.dedar.com lifestyle). Sadece eksik: lightfastness (DLN sayfasinda yok — DLN'de bu alan beyan edilmemis, Cobra'da var; bu uretici kararı, scraper hatasi degil)."
         }
       ]
     },

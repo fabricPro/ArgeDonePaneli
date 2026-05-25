@@ -8,7 +8,7 @@
   "product_name": "Cobra",
   "source_url": "https://dedar.com/cobra/?sku=00T1906300004",
   "scraped_at": "2026-05-25T20:32:27Z",
-  "last_updated": "2026-05-25T23:35:00Z",
+  "last_updated": "2026-05-26T00:00:00Z",
   "source_data": {
     "_description": "Dedar Cobra — fire-retardant outdoor sheer leno. Faz 5.3a topla.py canli test sonrasi Claude Code denetim. Scraper bazi pattern'leri yakalamadi (width, leno weave, description) — body_text_preview manuel okuma + adaptor v1.0 referansiyla duzeltildi. Scraper iyilestirmeleri docs/scraper_sapmalari_cobra.md'de listelendi.",
     "_provenance": {
@@ -114,7 +114,7 @@
       "fields_from_inference": [
         "weight_gsm (227/3.25)"
       ],
-      "constitutional_violations_check": "passed_at_2026-05-25T23:35:00Z",
+      "constitutional_violations_check": "passed_at_2026-05-26T00:00:00Z",
       "audit_history": [
         {
           "audit_id": "dedar_00T19063-cobra_v1.0_2026-05-25",
@@ -123,6 +123,14 @@
           "version_before": "(yok — Dedar n=1 ilk denetim)",
           "version_after": "v1.0 (Faz 5.3 Cobra canli test + Claude denetim)",
           "notes": "Dedar markasinin ILK denetlenmis urunu. Scraper canli calisti (Playwright + dedar.com) ama 3 alan yakalanmadi (width, weave, description — body manual). Kapasite #7 uygulandi: leno TAM, %100 PES standart iplik TAM, 325 cm <= 360. staubli_feasibility=5/5. Scraper iyilestirmeleri docs/scraper_sapmalari_cobra.md'ye not edildi (sonraki adim)."
+        },
+        {
+          "audit_id": "dedar_00T19063-cobra_v1.2_2026-05-26",
+          "audit_date": "2026-05-26",
+          "audit_doc": "docs/scraper_v1_1_sonuclari.md",
+          "version_before": "v1.1 (Faz 5.3 Claude denetim, body manual: width=325, weave=leno, description, lightfastness)",
+          "version_after": "v1.2 (Faz 5.10 scraper v1.1 yeniden cekildi, body manual gerek YOK)",
+          "notes": "Scraper v1.1 ile Cobra yeniden cekildi (test_cobra.py run 20260525T205810Z). Otomatik yakalananlar: width=325.0 cm (onceki None), weave=leno (onceki 'Single sheet'), lightfastness=6 (onceki None), description (cookie banner filtrelendi), production_model=stock (Current Stock tespit, onceki unknown), variants_raw=2 (002+004, onceki bos). Gorsel: 1 -> 36 (BigCommerce CDN + connect.dedar.com). Anayasa #9 disiplini canli dogrulandi: scraper mekanik, Claude denetim ayri. Bu rebuild sonrasi 'body manual' notlari source_data._provenance.field_metadata'da hala korunur (kanit zinciri tarihcesi), ama yeni alimlar scraper kaynakli sayilir."
         }
       ]
     },
