@@ -1,6 +1,7 @@
 gorseller/
 pdfler/
 topla/ham_cikti/
+topla/logs/
 *.pyc
 __pycache__/
 .DS_Store
