@@ -1,0 +1,144 @@
+{
+  "_schema_version": "1.1",
+  "brand": "Rubelli",
+  "brand_slug": "rubelli",
+  "country": "Italya",
+  "region": "italyan",
+  "headquarters_city": "Venedik (showroom) + Cucciago (uretim)",
+  "founded_year": 1858,
+  "website": "https://www.rubelli.com",
+  "tracked_since": "2026-05-26",
+  "last_updated": "2026-05-26T01:30:00Z",
+  "product_count_tracked": 1,
+  "_provenance": {
+    "schema_version": "1.1",
+    "created_at": "2026-05-26T01:30:00Z",
+    "last_updated": "2026-05-26T01:30:00Z",
+    "sources_used": [
+      {
+        "url": "adaptorler/rubelli.md",
+        "type": "internal_adapter_v1.0",
+        "accessed_at": "2026-05-26T01:30:00Z"
+      },
+      {
+        "url": "https://www.rubelli.com/en/textiles",
+        "type": "category_keşfi",
+        "accessed_at": "2026-05-26T01:30:00Z"
+      },
+      {
+        "url": "markalar/urunler/rubelli_30750-charles.json",
+        "type": "internal_product_record",
+        "accessed_at": "2026-05-26T01:30:00Z"
+      }
+    ],
+    "constitutional_violations_check": "passed_at_2026-05-26T01:30:00Z",
+    "audit_history": [
+      {
+        "audit_id": "rubelli_marka_v1.0_2026-05-26",
+        "audit_date": "2026-05-26",
+        "version_before": "(yok)",
+        "version_after": "v1.0 (n=1 Charles)",
+        "notes": "Rubelli marka profili ilk insa. 1858 Venedik kurulus, 557 ürün textiles. Charles tek denetim — UPHOLSTERY (Heavy use), Mobidik perdelik kapsam disi. Statik kimlik (kurucular/CEO/mill/designer roster) PENDING. Rubelli perdelik ürünleri (Curtains/Sheers filtre) icin pilot sonraki adim."
+      }
+    ]
+  },
+  "width_distribution": {
+    "min_cm": {
+      "value": null,
+      "sample_status": "insufficient_n_1",
+      "sample_size": 1,
+      "observed_at_n1": 145
+    },
+    "max_cm": {
+      "value": null,
+      "sample_status": "insufficient_n_1",
+      "sample_size": 1,
+      "observed_at_n1": 145
+    },
+    "comment": "n=1: Charles 145 cm — Rubelli'nin upholstery standart eni. Perdelik ürünleri farklı olabilir (300+ cm)."
+  },
+  "color_profile": {
+    "total_variant_count": {
+      "value": null,
+      "sample_status": "insufficient_n_1",
+      "sample_size": 1,
+      "observed_at_n1": 28
+    },
+    "average_per_product": {
+      "value": null,
+      "sample_status": "insufficient_n_1",
+      "sample_size": 1,
+      "observed_at_n1": 28.0
+    },
+    "comment": "n=1: Charles 28 İtalyanca renk varyantı — Rubelli geniş palet yönetimi."
+  },
+  "weave_distribution": {
+    "plain": {
+      "value": null,
+      "sample_status": "insufficient_n_1",
+      "sample_size": 1,
+      "observed_at_n1": 1,
+      "comment": "Charles plain (moiré)"
+    }
+  },
+  "composition_distribution": {
+    "synthetic_ratio_percent": {
+      "value": null,
+      "sample_status": "insufficient_n_1",
+      "sample_size": 1,
+      "observed_at_n1": 37
+    },
+    "natural_ratio_percent": {
+      "value": null,
+      "sample_status": "insufficient_n_1",
+      "sample_size": 1,
+      "observed_at_n1": 63
+    },
+    "blend_ratio_percent": {
+      "value": null,
+      "sample_status": "insufficient_n_1",
+      "sample_size": 1,
+      "observed_at_n1": 100
+    },
+    "comment": "n=1: Charles 3-bileşen (Cotton+Viscose+Linen) blend, natural-dominant."
+  },
+  "country_distribution": {
+    "Italy": 1
+  },
+  "mobidik_strategic_assessment": {
+    "staubli_general_feasibility": "orta",
+    "_general_feasibility_basis": "n=1: Charles 4/5 (plain TAM, moiré finishing ek). Rubelli urun yelpazesi 557 — damask/jakar/velvet agirlikli + plain + sheers + curtains var. Mobidik perdelik icin sadece Curtains/Sheers kategorisi relevant. Damask/jakar Stäubli yapamaz (kapasite YOK). Marka geneli orta tahmini.",
+    "average_feasibility_score": {
+      "value": null,
+      "sample_status": "insufficient_n_1",
+      "sample_size": 1,
+      "observed_at_n1": 4.0
+    },
+    "arge_priority_areas": [
+      "Moiré finishing tekniği (basinç+ısı kalandr) — Mobidik yatirim alani",
+      "Italyan tasarımcı işbirlikleri benchmark (Formafantasma)",
+      "Multi-fiber blend iplik (CO/VI/LI) tedariki",
+      "557 ürün katalog yönetimi (geniş palet, Rubelli scale benchmark)"
+    ],
+    "competitive_position": "Rubelli Italyan premium 1858 kurulus, Venedik — yüzyıllık damask geleneği + çağdaş tasarımcı işbirlikleri. Mobidik perspektifi: Rubelli upholstery (Charles tipi) Mobidik kapsam DIŞI. Perdelik ve sheer ürünleri için ayrı pilot gerek — Curtains/Sheers filtre.",
+    "market_opportunity": "Rubelli perdelik segmentinde (Curtains/Sheers) Mobidik nis pozisyon olabilir. Rubelli retail 80-150 EUR/m premium; Mobidik 25-40 EUR/m hedef. Italyan damask geleneği Mobidik kapasitesinde değil (jakar YOK), ama plain/sheer/leno yapilir.",
+    "benchmark_value": "Italyan premium tekstil markası benchmark. n=1 (Charles upholstery) için yetersiz — perdelik kategorisinden 2-3 ürün denetim gerek.",
+    "watch_priority": "orta"
+  },
+  "data_integrity": {
+    "verified_data_points": 0,
+    "ai_estimated_data_points": 2,
+    "verification_ratio": 0.0,
+    "reliability_label": "insufficient_sample",
+    "sample_size_tracked_products": 1,
+    "_reliability_explanation": "n=1 (Charles upholstery). Perdelik ürünleri icin n=0 — perdelik filtreli pilot acil gerek."
+  },
+  "notes": [
+    "v1.0 (2026-05-26): Rubelli marka profili ilk inşa.",
+    "Rubelli 1858 Venedik — 170 yıllık premium İtalyan tekstil (Venedik dokuma geleneği).",
+    "557 ürün textiles katalog. Upholstery + Curtains + Sheers + Wallcoverings + Outdoor.",
+    "Charles tek denetlenmiş — UPHOLSTERY (Heavy use), Mobidik perdelik kapsam DIŞI.",
+    "Sonraki adim: Rubelli textiles?use=curtains kategorisinden 2-3 perdelik üründe pilot.",
+    "Statik kimlik (Wikipedia + about) PENDING."
+  ]
+}

@@ -1,0 +1,501 @@
+{
+  "_schema_version": "1.3",
+  "urun_id": "rubelli_30750-charles",
+  "brand": "Rubelli",
+  "brand_slug": "rubelli",
+  "collection": null,
+  "product_code": "30750",
+  "product_name": "Charles",
+  "source_url": "https://www.rubelli.com/en/charles-30750",
+  "scraped_at": "2026-05-25T21:38:26.069117+00:00",
+  "last_updated": "2026-05-26T01:30:00Z",
+  "source_data": {
+    "_description": "Rubelli Charles (Formafantasma designer) — Cotton/Viscose/Linen plain moiré upholstery, 145 cm, 28 renk. Mobidik perdelik projesi icin kapsam disi (Heavy use), ancak Rubelli marka geneli izleme icin pilot.",
+    "_provenance": {
+      "schema_version": "1.1",
+      "created_at": "2026-05-26T01:30:00Z",
+      "last_updated": "2026-05-26T01:30:00Z",
+      "sources_used": [
+        {
+          "url": "https://www.rubelli.com/en/charles-30750",
+          "type": "html_product_page",
+          "accessed_at": "2026-05-25T21:38:26.069117+00:00"
+        },
+        {
+          "url": "adaptorler/rubelli.md",
+          "type": "internal_adapter_v1.0",
+          "accessed_at": "2026-05-26T01:30:00Z"
+        },
+        {
+          "url": "kapasite/staubli_uretim_kapasitesi.md",
+          "type": "user_verified_capacity_table",
+          "accessed_at": "2026-05-26T01:30:00Z"
+        }
+      ],
+      "constitutional_violations_check": "passed_at_2026-05-26T01:30:00Z",
+      "audit_history": [
+        {
+          "audit_id": "rubelli_30750-charles_v1.0_2026-05-26",
+          "audit_date": "2026-05-26",
+          "audit_doc": "topla/scripts/create_rubelli_charles.py",
+          "version_before": "(yok — Rubelli n=1 ilk)",
+          "version_after": "v1.0 (Faz 5.5 canli test + denetim)",
+          "notes": "Rubelli markasinin ILK denetlenmis urunu. Scraper v1.0 calisti. Tum field'lar dogru cekildi (CO/VI/LI composition, width 145, plain moire, Italy, CAL.TB117+BS5852). 28 varyant tespit edildi (Italyanca isimler), ama sadece 2 gorsel indirildi (default + 008 Tabacco) — ?color= URL parametresi Rubelli'de calismadi. Sonraki adim: scraper v1.1 ile color picker click-based variant fetching. Mobidik scope: upholstery_kapsam_disi (Heavy use mobilya kumaşı, perdelik projesi icin relevant degil)."
+        }
+      ]
+    },
+    "technical": {
+      "composition": [
+        {
+          "fiber_generic": "Pamuk",
+          "fiber_commercial": "Cotton",
+          "ratio_percent": 48,
+          "fr_treatment": null,
+          "_rubelli_code": "CO"
+        },
+        {
+          "fiber_generic": "Viskon",
+          "fiber_commercial": "Viscose",
+          "ratio_percent": 37,
+          "fr_treatment": null,
+          "_rubelli_code": "VI"
+        },
+        {
+          "fiber_generic": "Keten",
+          "fiber_commercial": "Linen",
+          "ratio_percent": 15,
+          "fr_treatment": null,
+          "_rubelli_code": "LI"
+        }
+      ],
+      "width_cm": 145,
+      "weight_gsm": null,
+      "weight_linear_meter_g": 460,
+      "repeat_cm": {
+        "vertical": null,
+        "horizontal": null
+      },
+      "weave_type_raw": "Moiré (plain + finishing)",
+      "weave_type_normalized": "plain",
+      "yarn_type": "spun",
+      "transparency": {
+        "value": null,
+        "_note": "Upholstery — opaque kesinlikle"
+      },
+      "usage_area": [
+        "upholstery",
+        "heavy_use"
+      ],
+      "performance": {
+        "lightfastness": null,
+        "abrasion_martindale": 20000,
+        "pilling": "4/5",
+        "shrinkage": {
+          "warp_percent": null,
+          "weft_percent": null
+        },
+        "tensile_strength_en14465": "A",
+        "tear_strength_en14465": "E",
+        "seam_slippage_en14465": "A",
+        "color_fastness_dry_clean": "A"
+      },
+      "acoustic": {
+        "alpha_s_value": null,
+        "absorption_class": null,
+        "comment": null
+      },
+      "moire_finishing": true
+    },
+    "variants": [
+      {
+        "color_code": "30750-008",
+        "color_name": "Tabacco",
+        "color_name_confidence": "exact",
+        "main_image_url_source": "https://cdn.rubelli.com/A30750_008/30750_8.840x840c.jpg",
+        "main_image_local_path": "gorseller/rubelli/30750/008_main.jpg"
+      },
+      {
+        "color_code": "30750-001",
+        "color_name": "Charles",
+        "color_name_confidence": "exact",
+        "main_image_url_source": "https://cdn.rubelli.com/A30750_001/30750_1.840x840c.jpg",
+        "main_image_local_path": "gorseller/rubelli/30750/001_main.jpg"
+      },
+      {
+        "color_code": "30750-002",
+        "color_name": "Perla",
+        "color_name_confidence": "exact",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30750-003",
+        "color_name": "Pietra",
+        "color_name_confidence": "exact",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30750-004",
+        "color_name": "Peltro",
+        "color_name_confidence": "exact",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30750-005",
+        "color_name": "Conchiglia",
+        "color_name_confidence": "exact",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30750-006",
+        "color_name": "Argilla",
+        "color_name_confidence": "exact",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30750-007",
+        "color_name": "Naturale",
+        "color_name_confidence": "exact",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30750-009",
+        "color_name": "Marrone",
+        "color_name_confidence": "exact",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30750-010",
+        "color_name": "Oro",
+        "color_name_confidence": "exact",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30750-011",
+        "color_name": null,
+        "color_name_confidence": "unknown",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30750-012",
+        "color_name": null,
+        "color_name_confidence": "unknown",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30750-013",
+        "color_name": null,
+        "color_name_confidence": "unknown",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30750-014",
+        "color_name": null,
+        "color_name_confidence": "unknown",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30750-015",
+        "color_name": null,
+        "color_name_confidence": "unknown",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30750-016",
+        "color_name": null,
+        "color_name_confidence": "unknown",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30750-017",
+        "color_name": null,
+        "color_name_confidence": "unknown",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30750-018",
+        "color_name": null,
+        "color_name_confidence": "unknown",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30750-019",
+        "color_name": null,
+        "color_name_confidence": "unknown",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30750-020",
+        "color_name": null,
+        "color_name_confidence": "unknown",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30750-021",
+        "color_name": null,
+        "color_name_confidence": "unknown",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30750-022",
+        "color_name": null,
+        "color_name_confidence": "unknown",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30750-023",
+        "color_name": null,
+        "color_name_confidence": "unknown",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30750-024",
+        "color_name": null,
+        "color_name_confidence": "unknown",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30750-025",
+        "color_name": null,
+        "color_name_confidence": "unknown",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30750-026",
+        "color_name": null,
+        "color_name_confidence": "unknown",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30750-027",
+        "color_name": null,
+        "color_name_confidence": "unknown",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "30750-028",
+        "color_name": null,
+        "color_name_confidence": "unknown",
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      }
+    ],
+    "certifications": {
+      "fire_safety": [
+        "CAL TB117:2013 (Kaliforniya yangin upholstery)",
+        "BS5852 source 0 (UK sigara/perdelik)"
+      ],
+      "sustainability": [],
+      "other": [
+        "EN 14465 Type B (upholstery durability)"
+      ],
+      "raw_text": "U.S.A. CAL.TB117:2013, UK Cigarette BS5852 source 0"
+    },
+    "commercial": {
+      "price_per_meter": null,
+      "price_currency": null,
+      "moq_meters": null,
+      "lead_time_days": null,
+      "country_of_origin": "Italy",
+      "sample_policy": "REQUEST A SAMPLE",
+      "launch_year": null,
+      "production_model": {
+        "value": "limited_stock",
+        "notes": "Sayfada 'Limited Stock' beyani"
+      }
+    },
+    "design_credit": {
+      "designer": "Formafantasma",
+      "type": "collaborator",
+      "notes": "Italyan tasarim stüdyosu — Andrea Trimarchi + Simone Farresin"
+    },
+    "description_original": {
+      "language": "en",
+      "text": "Charles is the fourth edition of this particular cotton, linen, and viscose canvas. Moiré is an ancient, artisanal technique that creates a watermark effect through a natural sheen generated by a special process — without chemicals — using pressure and temperature.",
+      "source_url": "https://www.rubelli.com/en/charles-30750",
+      "extracted_at": "2026-05-26T01:30:00Z"
+    },
+    "description_tr": {
+      "text": "Charles, bu özel pamuk-keten-viskon kanvasin dördüncü 'baskısı'. Moiré, kimyasal madde olmaksızın basınç ve sıcaklık ile filigran efekti oluşturan antik artisanal tekniği. Cotton, linen ve viskoz karışımı — Formafantasma tasarımı.",
+      "translation_method": "claude_inference",
+      "translated_at": "2026-05-26T01:30:00Z",
+      "is_official_translation": false
+    },
+    "style_note": "Italyan premium upholstery — Cotton+Linen+Viscose plain moiré 'antik tekniği'. Formafantasma designer credit. 28 renk genis palet.",
+    "_scraper_v1_sapma": {
+      "use_alani": "'Care and treatment' yanlis eslesme — sayfada Use 'Heavy use' diyor; scraper sapmalari sonraki adim duzelir",
+      "variant_imgs": "28 varyantin sadece 2'si gorsel aldi (default + selected) — ?color= URL parametresi Rubelli'de calismadi, color picker click-based gerek"
+    }
+  },
+  "ai_inferences": {
+    "weight_gsm": {
+      "estimated_value": 317,
+      "confidence": "high",
+      "method": "460 g/lin.m / 1.45 m = 317.2 g/m². Matematiksel turetim.",
+      "based_on": [
+        "weight_linear",
+        "width_cm"
+      ],
+      "model": "claude-opus-4-7",
+      "created_at": "2026-05-26T01:30:00Z",
+      "user_verified": false
+    },
+    "light_transmission": {
+      "estimated_class": "blackout",
+      "confidence": "high",
+      "method": "Heavy use upholstery, 317 g/m² + plain moiré opaque sertifikali.",
+      "based_on": [
+        "use heavy",
+        "weight_gsm 317",
+        "Martindale 20000"
+      ],
+      "model": "claude-opus-4-7",
+      "created_at": "2026-05-26T01:30:00Z",
+      "user_verified": false
+    }
+  },
+  "image_analysis": {
+    "_description": "28 varyantin sadece 2'si indirildi — Avorio (default) + Tabacco (selected). 26 varyant gorseli scraper v1.1 sonrasi.",
+    "dominant_colors": {
+      "value": null
+    },
+    "color_palette_summary": "28 italyanca renk: Avorio, Perla, Pietra, Peltro, Tabacco, Blu, Ortensia, ...",
+    "style_tags": [
+      "italian",
+      "rubelli",
+      "formafantasma",
+      "moiré",
+      "plain",
+      "upholstery",
+      "venedik"
+    ],
+    "pattern_type": "düz",
+    "pattern_density": "düşük",
+    "estimated_use_context": [
+      "mobilya",
+      "boyama-kosulu",
+      "klasik dekorasyon",
+      "premium konut"
+    ]
+  },
+  "images": {
+    "_description": "Faz 5.5 ilk Rubelli denetim. 2 gorsel indirildi (28 varyant icin) — scraper iyilesme gerek.",
+    "main": [],
+    "variants": [
+      {
+        "url": "https://cdn.rubelli.com/A30750_001/30750_1.840x840c.jpg",
+        "local_path": "gorseller/rubelli/30750/001_main.jpg",
+        "variant_code": "30750-001",
+        "variant_name": "Charles",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "scraper_v1_0_rubelli"
+        },
+        "quality_check": "passed"
+      },
+      {
+        "url": "https://cdn.rubelli.com/A30750_008/30750_8.840x840c.jpg",
+        "local_path": "gorseller/rubelli/30750/008_main.jpg",
+        "variant_code": "30750-008",
+        "variant_name": "Tabacco",
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "scraper_v1_0_rubelli"
+        },
+        "quality_check": "passed"
+      }
+    ],
+    "lifestyle": [],
+    "technical": [],
+    "_quality_notes": [
+      "Charles 28 varyant tespit edildi (Italyanca isimler ile), ama sadece 2 gorsel alindi (default Avorio + selected Tabacco). Scraper v1.1 sonra 26 ek gorsel eklenecek."
+    ]
+  },
+  "mobidik_evaluation": {
+    "_description": "Charles UPHOLSTERY (Heavy use) — Mobidik perdelik projesi icin kapsam DISI. Rubelli marka geneli icin izleme amacli pilot. Plain moiré dokuma TAM, ama moiré finishing ek sureç + 145 cm dar + Heavy use mobilya kumaşı.",
+    "staubli_feasibility": {
+      "score": 4,
+      "frame_count_estimate": "2-4",
+      "warp_compatibility": "uygun",
+      "weft_compatibility": "uygun",
+      "repeat_size_compatibility": "uygun (rapor yok)",
+      "reed_density_estimate": "18-24 dent/cm (plain dense)",
+      "sizing_requirement": "Multi-fiber CO/VI/LI hasil + moiré finishing (basinç+ısı)",
+      "comment": "Dokuma TAM: plain (moiré finishing dokuma sonrasi). 145 cm cok dar Mobidik 360 max icin israf. CO/VI/LI standart iplikler TAM. ASIL: Moiré finishing (basinç+ısı kimyasalsiz) Mobidik tezgahda yapilamaz — ayri finishing makinesi (calender / kalandr) gerek. Skor 4: dokuma yapilabilir, moiré ozel finishing yatirim ister."
+    },
+    "arge_value": {
+      "score": 50,
+      "key_learnings": [
+        "Italyan moiré finishing tekniği",
+        "Formafantasma tasarım dili",
+        "EN 14465 upholstery sertifika",
+        "28 renk yönetimi"
+      ],
+      "comment": "Mobidik için ARGE değeri kismi (moiré finishing yatırım niş)."
+    },
+    "market_gap": {
+      "score": 30,
+      "comment": "UPHOLSTERY — Mobidik perdelik projesi kapsam disi. Mobilya kumaşı yerel uretim ayri sektor.",
+      "target_markets": []
+    },
+    "portfolio_fit": {
+      "score": 20,
+      "similar_existing_products": [],
+      "comment": "Mobidik portföyüne uyumsuz (perdelik vs upholstery)."
+    },
+    "overall_score": 36,
+    "priority_level": "dusuk",
+    "strategic_note": "DUSUK ONCELIK — Charles UPHOLSTERY. Mobidik perdelik projesi icin kapsam disi. Rubelli marka geneli benchmarking icin gozlem (Italyan moiré + Formafantasma + 28 renk). Rubelli'de perdelik (Curtains/Sheers filtreli) ürünleri ayrica izlemek gerek — Charles ilgili değil. Strateji: Rubelli textiles?use=curtains kategorisinden 2-3 perdelik üründe pilot."
+  },
+  "data_quality": {
+    "missing_fields": [
+      "27 variants gorseli",
+      "lightfastness",
+      "lead_time_days"
+    ],
+    "ai_estimated_fields": [
+      "weight_gsm",
+      "light_transmission"
+    ],
+    "user_verified_fields": [
+      "country (Italy)",
+      "designer (Formafantasma)"
+    ],
+    "completeness_percent": 65,
+    "last_verified": "2026-05-26T01:30:00Z",
+    "notes": [
+      "Rubelli markasinin ilk denetlenmis urunu. Scraper v1.0 calisti.",
+      "Charles UPHOLSTERY — perdelik projesi kapsam disi (Heavy use).",
+      "28 varyant tespit + Italyanca isimler, ama sadece 2 gorsel.",
+      "Rubelli scraper'in 'Use' alan yakalama sapmasi var (sonraki iterasyon duzeltir)."
+    ]
+  }
+}

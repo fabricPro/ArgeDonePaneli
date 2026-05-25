@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 
 from topla.scrapers.kvadrat import scrape_kvadrat
 from topla.scrapers.dedar import scrape_dedar
+from topla.scrapers.rubelli import scrape_rubelli
 from topla.images import download_all
 from topla.puanlama.staubli import compute_staubli_feasibility
 from topla.puanlama.mobidik import compute_mobidik_score
@@ -22,6 +23,8 @@ def detect_brand(url: str) -> str:
         return "kvadrat"
     if "dedar" in host:
         return "dedar"
+    if "rubelli" in host:
+        return "rubelli"
     raise ValueError(f"Desteklenmeyen marka: {host}")
 
 
@@ -32,9 +35,11 @@ def scrape_and_score(url: str) -> dict:
         source_data = scrape_kvadrat(url)
     elif brand == "dedar":
         source_data = scrape_dedar(url)
+    elif brand == "rubelli":
+        source_data = scrape_rubelli(url)
     else:
         raise ValueError(
-            f"Adaptör henüz yok: {brand}. Şu anda Kvadrat ve Dedar destekleniyor."
+            f"Adaptör henüz yok: {brand}. Şu anda Kvadrat, Dedar ve Rubelli destekleniyor."
         )
 
     image_specs = source_data.pop("_image_specs", [])
