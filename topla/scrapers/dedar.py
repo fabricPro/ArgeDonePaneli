@@ -103,6 +103,17 @@ def scrape_dedar(url: str) -> dict:
         except Exception:
             body_text = ""
 
+        # === v1.2 fix: product_code fallback — URL'de ?sku= yoksa body'den cikar ===
+        # Wide Linen / Twillman gibi URL'lerde /<slug>/ formati, SKU sayfada
+        # SKU: 00T + 5-digit product + 5-digit variant = 13 chars total, 10 digit after 00T
+        if not data["product_code"]:
+            m = re.search(r"(00T\d{10})", body_text)
+            if m:
+                full_sku = m.group(1)
+                data["product_code"] = full_sku[:8]
+                data["variant_code"] = full_sku[8:]
+                data["sku_full"] = full_sku
+
         # Specifications — composition, country, usage (standart label-value)
         data["composition_text"] = _extract_label_value(body_text, "Composition")
         data["weight_raw"] = _extract_label_value(body_text, "Weight")

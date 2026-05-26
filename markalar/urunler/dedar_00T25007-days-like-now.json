@@ -8,7 +8,7 @@
   "product_name": "Days Like Now",
   "source_url": "https://dedar.com/days-like-now/?sku=00T2500700001",
   "scraped_at": "2026-05-25T20:45:54Z",
-  "last_updated": "2026-05-26T01:00:00Z",
+  "last_updated": "2026-05-26T00:30:00Z",
   "source_data": {
     "_description": "Dedar Days Like Now — wild silk shantung (hand-dyed artisanal), 134 cm DAR. Faz 5.4 scraper canli + Claude denetim. Scraper basari: composition (silk), country (India), weight, sertifika (BS5867/2/B+M1), 3 gorsel. Body manual: width=134, weave=plain (shantung), description, 8 varyant gozlemlendi.",
     "_provenance": {
@@ -139,6 +139,14 @@
           "version_before": "v1.3 (Faz 5.11.1 dar filtre, tek varyant icin galeri)",
           "version_after": "v1.4 (Faz 5.11.2 her varyant ayri page loop, Italyanca renk isimleri)",
           "notes": "Scraper v1.1.2 variants_raw page loop ile 8 varyantin her birinin yuksek cozunurluklu kendi gorseli + Italyanca renk adi alindi. variants[] color_name eski (isim yok) yerine gercek isimler (Duna, Bianco Spa / Quarzo, Sandstone, Alabastro, Luna, Ambra, Gemma, Lago, Smeraldo). images.variants[] her renk icin variant_code eslestirmeli entry."
+        },
+        {
+          "audit_id": "dedar_00T25007-days-like-now_v1.3_2026-05-26",
+          "audit_date": "2026-05-26",
+          "audit_doc": "topla/scripts/migrate_dedar_gorseller.py",
+          "version_before": "v1.2/v1.1 (Faz 5.10 scraper v1.1 audit eklendi, images.* tek varyant)",
+          "version_after": "v1.3 (Faz 5.11 images.* genisletildi, ham_cikti -> gorseller kopya)",
+          "notes": "Scraper v1.1 ham_cikti'da 19 gorsel vardi (Cobra/DLN buyuk gallery). 19 gorsel gorseller/dedar/00T25007/ konumuna kopyalandi, JSON images.* genisletildi. Eski tek-varyant images yapisi _pre_faz511_snapshot'ta arsivlendi."
         }
       ]
     },
@@ -351,181 +359,384 @@
     ]
   },
   "images": {
-    "_description": "Faz 5.11.2 (2026-05-26): Scraper v1.1.2 varyant page loop ile her renk varyantinin kendi yuksek cozunurluklu gorseli + Italyanca renk adi alindi. 8 varyant + 2 lifestyle + 1 ana.",
+    "_description": "Faz 5.11 (2026-05-26): Scraper v1.1 ham_cikti'dan 19 gorsel gorseller/dedar/00T25007/ konumuna migrate edildi. Tip dagilimi: ana=1, detay=2, lifestyle=0, varyant=16. Eski faz 5.3/5.4 images yapisi _pre_faz511_snapshot'ta korundu (audit izi).",
     "main": [
       {
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/2560w/attribute_rule_images/18821_source_1779668293.jpg",
-        "local_path": "gorseller/dedar/00T25007/main_01.jpg",
+        "local_path": "gorseller/dedar/00T25007/ana_01.jpg",
         "variant_code": null,
+        "variant_name": null,
         "layer_used": 1,
         "layer_1_attempt": {
           "success": true,
           "error": null,
-          "method": "scraper_v1_1_2_main"
+          "method": "scraper_v1_1_bigcommerce_cdn"
         },
         "downloaded_at": "2026-05-25T21:28:02.623647+00:00",
+        "file_size_kb": 881.3,
+        "dimensions": {
+          "width_px": 1693,
+          "height_px": 2000
+        },
         "quality_check": "passed"
       }
     ],
     "variants": [
       {
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/18821_source_1779668293.jpg",
-        "local_path": "gorseller/dedar/00T25007/001_main.jpg",
-        "variant_code": "00T25007-001",
-        "variant_name": "Quarzo",
+        "local_path": "gorseller/dedar/00T25007/varyant_01.jpg",
+        "variant_code": null,
+        "variant_name": null,
         "layer_used": 1,
         "layer_1_attempt": {
           "success": true,
           "error": null,
-          "method": "scraper_v1_1_2_variant_page_loop"
+          "method": "scraper_v1_1_bigcommerce_cdn"
         },
         "downloaded_at": "2026-05-25T21:28:02.623647+00:00",
-        "file_size_kb": null,
-        "dimensions": null,
+        "file_size_kb": 371.6,
+        "dimensions": {
+          "width_px": 1084,
+          "height_px": 1280
+        },
+        "quality_check": "passed"
+      },
+      {
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/634x750/attribute_rule_images/18821_source_1779668293.jpg",
+        "local_path": "gorseller/dedar/00T25007/varyant_02.jpg",
+        "variant_code": null,
+        "variant_name": null,
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "scraper_v1_1_bigcommerce_cdn"
+        },
+        "downloaded_at": "2026-05-25T21:28:02.623647+00:00",
+        "file_size_kb": 109.2,
+        "dimensions": {
+          "width_px": 634,
+          "height_px": 749
+        },
+        "quality_check": "passed"
+      },
+      {
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/80w/attribute_rule_images/18821_source_1779668293.jpg",
+        "local_path": "gorseller/dedar/00T25007/varyant_03.jpg",
+        "variant_code": null,
+        "variant_name": null,
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "scraper_v1_1_bigcommerce_cdn"
+        },
+        "downloaded_at": "2026-05-25T21:28:02.623647+00:00",
+        "file_size_kb": 1.5,
+        "dimensions": {
+          "width_px": 80,
+          "height_px": 95
+        },
+        "quality_check": "passed"
+      },
+      {
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/160w/attribute_rule_images/18821_source_1779668293.jpg",
+        "local_path": "gorseller/dedar/00T25007/varyant_04.jpg",
+        "variant_code": null,
+        "variant_name": null,
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "scraper_v1_1_bigcommerce_cdn"
+        },
+        "downloaded_at": "2026-05-25T21:28:02.623647+00:00",
+        "file_size_kb": 4.4,
+        "dimensions": {
+          "width_px": 160,
+          "height_px": 189
+        },
+        "quality_check": "passed"
+      },
+      {
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/320w/attribute_rule_images/18821_source_1779668293.jpg",
+        "local_path": "gorseller/dedar/00T25007/varyant_05.jpg",
+        "variant_code": null,
+        "variant_name": null,
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "scraper_v1_1_bigcommerce_cdn"
+        },
+        "downloaded_at": "2026-05-25T21:28:02.623647+00:00",
+        "file_size_kb": 20.1,
+        "dimensions": {
+          "width_px": 320,
+          "height_px": 378
+        },
+        "quality_check": "passed"
+      },
+      {
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/640w/attribute_rule_images/18821_source_1779668293.jpg",
+        "local_path": "gorseller/dedar/00T25007/varyant_06.jpg",
+        "variant_code": null,
+        "variant_name": null,
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "scraper_v1_1_bigcommerce_cdn"
+        },
+        "downloaded_at": "2026-05-25T21:28:02.623647+00:00",
+        "file_size_kb": 112.8,
+        "dimensions": {
+          "width_px": 640,
+          "height_px": 756
+        },
+        "quality_check": "passed"
+      },
+      {
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/960w/attribute_rule_images/18821_source_1779668293.jpg",
+        "local_path": "gorseller/dedar/00T25007/varyant_07.jpg",
+        "variant_code": null,
+        "variant_name": null,
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "scraper_v1_1_bigcommerce_cdn"
+        },
+        "downloaded_at": "2026-05-25T21:28:02.623647+00:00",
+        "file_size_kb": 289.2,
+        "dimensions": {
+          "width_px": 960,
+          "height_px": 1134
+        },
+        "quality_check": "passed"
+      },
+      {
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280w/attribute_rule_images/18821_source_1779668293.jpg",
+        "local_path": "gorseller/dedar/00T25007/varyant_08.jpg",
+        "variant_code": null,
+        "variant_name": null,
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "scraper_v1_1_bigcommerce_cdn"
+        },
+        "downloaded_at": "2026-05-25T21:28:02.623647+00:00",
+        "file_size_kb": 519.3,
+        "dimensions": {
+          "width_px": 1280,
+          "height_px": 1512
+        },
+        "quality_check": "passed"
+      },
+      {
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1920w/attribute_rule_images/18821_source_1779668293.jpg",
+        "local_path": "gorseller/dedar/00T25007/varyant_09.jpg",
+        "variant_code": null,
+        "variant_name": null,
+        "layer_used": 1,
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "scraper_v1_1_bigcommerce_cdn"
+        },
+        "downloaded_at": "2026-05-25T21:28:02.623647+00:00",
+        "file_size_kb": 881.3,
+        "dimensions": {
+          "width_px": 1693,
+          "height_px": 2000
+        },
         "quality_check": "passed"
       },
       {
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/18822_source_1779668294.jpg",
-        "local_path": "gorseller/dedar/00T25007/002_main.jpg",
-        "variant_code": "00T25007-002",
-        "variant_name": "Sandstone",
+        "local_path": "gorseller/dedar/00T25007/varyant_10.jpg",
+        "variant_code": null,
+        "variant_name": "sandstone",
         "layer_used": 1,
         "layer_1_attempt": {
           "success": true,
           "error": null,
-          "method": "scraper_v1_1_2_variant_page_loop"
+          "method": "scraper_v1_1_bigcommerce_cdn"
         },
         "downloaded_at": "2026-05-25T21:28:02.623647+00:00",
-        "file_size_kb": null,
-        "dimensions": null,
+        "file_size_kb": 417.9,
+        "dimensions": {
+          "width_px": 1084,
+          "height_px": 1280
+        },
         "quality_check": "passed"
       },
       {
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/18823_source_1779668294.jpg",
-        "local_path": "gorseller/dedar/00T25007/003_main.jpg",
-        "variant_code": "00T25007-003",
-        "variant_name": "Alabastro",
+        "local_path": "gorseller/dedar/00T25007/varyant_11.jpg",
+        "variant_code": null,
+        "variant_name": "alabastro",
         "layer_used": 1,
         "layer_1_attempt": {
           "success": true,
           "error": null,
-          "method": "scraper_v1_1_2_variant_page_loop"
+          "method": "scraper_v1_1_bigcommerce_cdn"
         },
         "downloaded_at": "2026-05-25T21:28:02.623647+00:00",
-        "file_size_kb": null,
-        "dimensions": null,
+        "file_size_kb": 335.3,
+        "dimensions": {
+          "width_px": 1084,
+          "height_px": 1280
+        },
         "quality_check": "passed"
       },
       {
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/18824_source_1779668295.jpg",
-        "local_path": "gorseller/dedar/00T25007/004_main.jpg",
-        "variant_code": "00T25007-004",
-        "variant_name": "Luna",
+        "local_path": "gorseller/dedar/00T25007/varyant_12.jpg",
+        "variant_code": null,
+        "variant_name": "luna",
         "layer_used": 1,
         "layer_1_attempt": {
           "success": true,
           "error": null,
-          "method": "scraper_v1_1_2_variant_page_loop"
+          "method": "scraper_v1_1_bigcommerce_cdn"
         },
         "downloaded_at": "2026-05-25T21:28:02.623647+00:00",
-        "file_size_kb": null,
-        "dimensions": null,
+        "file_size_kb": 299.9,
+        "dimensions": {
+          "width_px": 1084,
+          "height_px": 1280
+        },
         "quality_check": "passed"
       },
       {
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/18825_source_1779668295.jpg",
-        "local_path": "gorseller/dedar/00T25007/005_main.jpg",
-        "variant_code": "00T25007-005",
-        "variant_name": "Ambra",
+        "local_path": "gorseller/dedar/00T25007/varyant_13.jpg",
+        "variant_code": null,
+        "variant_name": "ambra",
         "layer_used": 1,
         "layer_1_attempt": {
           "success": true,
           "error": null,
-          "method": "scraper_v1_1_2_variant_page_loop"
+          "method": "scraper_v1_1_bigcommerce_cdn"
         },
         "downloaded_at": "2026-05-25T21:28:02.623647+00:00",
-        "file_size_kb": null,
-        "dimensions": null,
+        "file_size_kb": 358.4,
+        "dimensions": {
+          "width_px": 1084,
+          "height_px": 1280
+        },
         "quality_check": "passed"
       },
       {
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/18828_source_1779668296.jpg",
-        "local_path": "gorseller/dedar/00T25007/006_main.jpg",
-        "variant_code": "00T25007-006",
-        "variant_name": "Gemma",
+        "local_path": "gorseller/dedar/00T25007/varyant_14.jpg",
+        "variant_code": null,
+        "variant_name": "gemma",
         "layer_used": 1,
         "layer_1_attempt": {
           "success": true,
           "error": null,
-          "method": "scraper_v1_1_2_variant_page_loop"
+          "method": "scraper_v1_1_bigcommerce_cdn"
         },
         "downloaded_at": "2026-05-25T21:28:02.623647+00:00",
-        "file_size_kb": null,
-        "dimensions": null,
+        "file_size_kb": 382.2,
+        "dimensions": {
+          "width_px": 1084,
+          "height_px": 1280
+        },
         "quality_check": "passed"
       },
       {
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/18830_source_1779668296.jpg",
-        "local_path": "gorseller/dedar/00T25007/007_main.jpg",
-        "variant_code": "00T25007-007",
-        "variant_name": "Lago",
+        "local_path": "gorseller/dedar/00T25007/varyant_15.jpg",
+        "variant_code": null,
+        "variant_name": "lago",
         "layer_used": 1,
         "layer_1_attempt": {
           "success": true,
           "error": null,
-          "method": "scraper_v1_1_2_variant_page_loop"
+          "method": "scraper_v1_1_bigcommerce_cdn"
         },
         "downloaded_at": "2026-05-25T21:28:02.623647+00:00",
-        "file_size_kb": null,
-        "dimensions": null,
+        "file_size_kb": 368.8,
+        "dimensions": {
+          "width_px": 1084,
+          "height_px": 1280
+        },
         "quality_check": "passed"
       },
       {
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/18832_source_1779668296.jpg",
-        "local_path": "gorseller/dedar/00T25007/008_main.jpg",
-        "variant_code": "00T25007-008",
-        "variant_name": "Smeraldo",
+        "local_path": "gorseller/dedar/00T25007/varyant_16.jpg",
+        "variant_code": null,
+        "variant_name": "smeraldo",
         "layer_used": 1,
         "layer_1_attempt": {
           "success": true,
           "error": null,
-          "method": "scraper_v1_1_2_variant_page_loop"
+          "method": "scraper_v1_1_bigcommerce_cdn"
         },
         "downloaded_at": "2026-05-25T21:28:02.623647+00:00",
-        "file_size_kb": null,
-        "dimensions": null,
+        "file_size_kb": 452.5,
+        "dimensions": {
+          "width_px": 1084,
+          "height_px": 1280
+        },
         "quality_check": "passed"
       }
     ],
-    "lifestyle": [
+    "lifestyle": [],
+    "technical": [
       {
         "url": "https://connect.dedar.com/inspirations/1112/images/fabric-covered-screen-emmemobili-milan.jpg",
-        "local_path": "gorseller/dedar/00T25007/lifestyle_01.jpg",
+        "local_path": "gorseller/dedar/00T25007/detay_01.jpg",
+        "variant_code": null,
+        "variant_name": null,
         "layer_used": 1,
         "layer_1_attempt": {
           "success": true,
           "error": null,
-          "method": "scraper_v1_1_2_connect_dedar"
+          "method": "scraper_v1_1_bigcommerce_cdn"
         },
         "downloaded_at": "2026-05-25T21:28:02.623647+00:00",
+        "file_size_kb": 147.5,
+        "dimensions": {
+          "width_px": 613,
+          "height_px": 920
+        },
         "quality_check": "passed"
       },
       {
         "url": "https://connect.dedar.com/inspirations/751/images/dedar-campaign-2025.jpg",
-        "local_path": "gorseller/dedar/00T25007/lifestyle_02.jpg",
+        "local_path": "gorseller/dedar/00T25007/detay_02.jpg",
+        "variant_code": null,
+        "variant_name": null,
         "layer_used": 1,
         "layer_1_attempt": {
           "success": true,
           "error": null,
-          "method": "scraper_v1_1_2_connect_dedar"
+          "method": "scraper_v1_1_bigcommerce_cdn"
         },
         "downloaded_at": "2026-05-25T21:28:02.623647+00:00",
+        "file_size_kb": 148.0,
+        "dimensions": {
+          "width_px": 613,
+          "height_px": 920
+        },
         "quality_check": "passed"
       }
     ],
-    "technical": [],
+    "_pre_faz511_snapshot": {
+      "description_old": "Faz 5.11.2 (2026-05-26): Scraper v1.1.2 varyant page loop ile her renk varyantinin kendi yuksek cozunurluklu gorseli + Italyanca renk adi alindi. 8 varyant + 2 lifestyle + 1 ana.",
+      "main_count": 1,
+      "variants_count": 8,
+      "lifestyle_count": 2,
+      "technical_count": 0
+    },
     "_quality_notes": [
-      "Scraper v1.1.2: her varyanta ayri Playwright navigate -> her renk icin main_image_url alindi. variants_raw isim+SKU+url eslestirmesi exact."
+      "Faz 5.11 migration: 19 gorsel kopyalandi (ana=1, detay=2, lifestyle=0, varyant=16). Scraper v1.1 ham_cikti'dan."
     ]
   },
   "mobidik_evaluation": {
@@ -584,7 +795,7 @@
       "country (India)",
       "weave normalize"
     ],
-    "completeness_percent": 90,
+    "completeness_percent": 85,
     "last_verified": "2026-05-25T23:50:00Z",
     "notes": [
       "Scraper iyilesme: 3 gorsel + sertifika + composition + country OK.",
