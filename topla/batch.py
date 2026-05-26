@@ -313,26 +313,46 @@ def _normalize_to_path(href: str) -> str | None:
 
 
 def _find_thumbnail_near_href(html: str, href: str) -> str | None:
-    """HTML'de href'in yakınındaki img src'i bul (kategori card thumbnail)."""
-    # Pattern: <a href="HREF"...><img src="THUMB"...>  veya tersi
-    # Çok büyük HTML için sadece href'in etrafındaki 800 char penceresi ara
+    """HTML'de href'in yakınındaki img src'i bul (kategori card thumbnail).
+
+    Strateji: href'in etrafında 2000 char pencere — Kvadrat'ta img target'tan
+    önce, Dedar'da sonra olabilir. Çoklu pattern dene (src, data-src, ng-src,
+    srcset). URL formatı esnek (uzantı zorunlu değil, query parametreli olabilir).
+    """
     idx = html.find(href)
     if idx < 0:
         return None
 
-    window = html[max(0, idx - 800):idx + 800]
-    # img src + data-src
-    img_pats = [
-        r'<img[^>]+(?:data-src|data-original|srcset)=["\']([^"\']+\.(?:jpg|jpeg|png|webp)[^"\']*)["\']',
-        r'<img[^>]+src=["\']([^"\']+\.(?:jpg|jpeg|png|webp)[^"\']*)["\']',
+    # 1500 öncesi + 500 sonrası (Kvadrat img target'tan önce gelir genelde)
+    window = html[max(0, idx - 1500):idx + 500]
+
+    # Çoklu img attribute pattern (öncelik: srcset > data-src > ng-src > src)
+    # URL: http(s) veya // başlangıçlı, içinde jpg|png|webp|imageresizer geçer
+    patterns = [
+        # srcset (responsive images) — birinci URL'i al
+        r'srcset=["\']([^"\',\s]+(?:jpg|jpeg|png|webp|imageresizer|stencil|attribute|products|cdn)[^"\',\s]*)',
+        # data-src (lazy loading)
+        r'data-src=["\']([^"\']+(?:jpg|jpeg|png|webp|imageresizer|stencil|cdn)[^"\']*)["\']',
+        # ng-src (AngularJS — Kvadrat)
+        r'ng-src=["\']([^"\']+(?:jpg|jpeg|png|webp|imageresizer|stencil|cdn)[^"\']*)["\']',
+        # data-image, data-original
+        r'(?:data-image|data-original)=["\']([^"\']+(?:jpg|jpeg|png|webp|imageresizer|stencil|cdn)[^"\']*)["\']',
+        # src (normal)
+        r'<img[^>]+src=["\']([^"\']+(?:jpg|jpeg|png|webp|imageresizer|stencil|cdn|products/)[^"\']*)["\']',
     ]
-    for pat in img_pats:
+
+    for pat in patterns:
         m = re.search(pat, window, re.IGNORECASE)
         if m:
-            thumb = m.group(1)
-            # srcset birden fazla URL içerir, ilkini al
+            thumb = m.group(1).strip()
+            # srcset birden fazla URL: ilkini al
             if "," in thumb:
                 thumb = thumb.split(",")[0].strip().split(" ")[0]
+            # HTML entity decode
+            thumb = thumb.replace("&amp;", "&").replace("&#x2F;", "/")
+            # Logo ve cookie banner filtresi
+            if any(t in thumb.lower() for t in ("logo", "cookie", "icon", "banner-flag")):
+                continue
             return thumb
     return None
 
