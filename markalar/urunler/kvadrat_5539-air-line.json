@@ -1,5 +1,5 @@
 {
-  "_schema_version": "1.3",
+  "_schema_version": "1.4",
   "urun_id": "kvadrat_5539-air-line",
   "brand": "Kvadrat",
   "brand_slug": "kvadrat",
@@ -8,7 +8,7 @@
   "product_name": "Air Line",
   "source_url": "https://www.kvadrat.dk/en/products/curtains/5539-air-line",
   "scraped_at": "2026-05-14T17:41:20Z",
-  "last_updated": "2026-05-25T22:00:00Z",
+  "last_updated": "2026-05-26T11:00:00Z",
   "source_data": {
     "_description": "Üretici sitesinden gelen veri (topla.py 2026-05-14 çekti). Documents/01_raporlar/kvadrat_parti01_2026-05-25.md kullanıcı doğrulamalı kayıt olarak ikinci kaynak.",
     "_provenance": {
@@ -20,19 +20,41 @@
           "url": "https://www.kvadrat.dk/en/products/curtains/5539-air-line",
           "type": "html_product_page",
           "accessed_at": "2026-05-14T17:41:20Z",
-          "fields_supported": ["product_code", "product_name", "composition", "width_cm", "weight_raw", "weave_type", "repeat_cm.vertical", "performance.lightfastness", "variants[].color_code", "description_original", "style_note"]
+          "fields_supported": [
+            "product_code",
+            "product_name",
+            "composition",
+            "width_cm",
+            "weight_raw",
+            "weave_type",
+            "repeat_cm.vertical",
+            "performance.lightfastness",
+            "variants[].color_code",
+            "description_original",
+            "style_note"
+          ]
         },
         {
           "url": "01_raporlar/kvadrat_parti01_2026-05-25.md",
           "type": "user_verified_report",
           "accessed_at": "2026-05-25T22:00:00Z",
-          "fields_supported": ["collection (Frequency)", "yarn_type (spun)", "country_of_origin (Turkey)", "variants[].color_name", "rulo_uzunlugu (~35 m)", "uretim_suresi (14 days)", "transparency (yarı-şeffaf)"]
+          "fields_supported": [
+            "collection (Frequency)",
+            "yarn_type (spun)",
+            "country_of_origin (Turkey)",
+            "variants[].color_name",
+            "rulo_uzunlugu (~35 m)",
+            "uretim_suresi (14 days)",
+            "transparency (yarı-şeffaf)"
+          ]
         },
         {
           "url": "markalar/kvadrat.json",
           "type": "internal_brand_profile",
           "accessed_at": "2026-05-25T22:00:00Z",
-          "fields_supported": ["country (Denmark for brand HQ), but ürün üretimi Turkey - mill_ownership.partner_countries[Turkey]"]
+          "fields_supported": [
+            "country (Denmark for brand HQ), but ürün üretimi Turkey - mill_ownership.partner_countries[Turkey]"
+          ]
         }
       ],
       "field_metadata": {
@@ -93,9 +115,27 @@
           "extraction_notes": "Sayfada 'LIGHTFASTNESS: 8 (ISO 1-8) — ISO 105-B02'. ISO ölçeği 1-8, 8 maksimum."
         }
       },
-      "fields_from_html": ["product_code", "product_name", "composition", "width_cm", "weight_linear_meter_g", "weave_type_normalized", "repeat_cm.vertical", "performance.lightfastness", "variants[].color_code"],
-      "fields_from_user_report": ["collection", "yarn_type", "country_of_origin", "variants[].color_name", "transparency"],
-      "fields_from_inference": ["weight_gsm"],
+      "fields_from_html": [
+        "product_code",
+        "product_name",
+        "composition",
+        "width_cm",
+        "weight_linear_meter_g",
+        "weave_type_normalized",
+        "repeat_cm.vertical",
+        "performance.lightfastness",
+        "variants[].color_code"
+      ],
+      "fields_from_user_report": [
+        "collection",
+        "yarn_type",
+        "country_of_origin",
+        "variants[].color_name",
+        "transparency"
+      ],
+      "fields_from_inference": [
+        "weight_gsm"
+      ],
       "constitutional_violations_check": "passed_at_2026-05-25T22:00:00Z",
       "audit_history": [
         {
@@ -105,6 +145,13 @@
           "version_before": "(yok — sıfırdan inşa)",
           "version_after": "v1.0 — şema v1.3'e uyumlu, Documents iterasyonundan Migrate edildi",
           "notes": "İlk JSON. Kaynak: ham_cikti/kvadrat_air-line_20260514T174120Z.json + Documents/01_raporlar/kvadrat_parti01_2026-05-25.md + markalar/kvadrat.json. Mobidik kapasite tablosuna göre staubli_feasibility=5/5 doğrulandı."
+        },
+        {
+          "audit_id": "kvadrat_5539-air-line_v14_schema_migrate_2026-05-26",
+          "audit_date": "2026-05-26",
+          "version_before": "v1.3 (approval_status alani yok)",
+          "version_after": "v1.4 (approval_status=approved, ml_score placeholder)",
+          "notes": "Faz 7.1 schema migration. Pozitif training ornegi olarak ML eğitiminde kullanilacak."
         }
       ]
     },
@@ -131,7 +178,9 @@
         "value": null,
         "_note": "Sayfa açık olarak transparency beyan etmiyor. Documents raporu 'Yarı-şeffaf' demiş (ai_inferences.light_transmission için adayidir, ama source_data'ya yazılmaz — kural #3)."
       },
-      "usage_area": ["curtains"],
+      "usage_area": [
+        "curtains"
+      ],
       "performance": {
         "lightfastness": 8,
         "lightfastness_scale": "ISO 1-8 (ISO 105-B02)",
@@ -194,8 +243,15 @@
     ],
     "certifications": {
       "fire_safety": [],
-      "sustainability": ["EU Ecolabel (Kvadrat marka geneli, ürün-özel kanıt PDF)", "Renewable resources claim (sayfa)", "Mono material (single-fiber circular design)"],
-      "other": ["Lightfastness ISO 105-B02 score 8", "Retail warranty 2 years"],
+      "sustainability": [
+        "EU Ecolabel (Kvadrat marka geneli, ürün-özel kanıt PDF)",
+        "Renewable resources claim (sayfa)",
+        "Mono material (single-fiber circular design)"
+      ],
+      "other": [
+        "Lightfastness ISO 105-B02 score 8",
+        "Retail warranty 2 years"
+      ],
       "raw_text": "Sayfada açık sertifika listesi yok. 'Performance: Lightfastness 8 ISO 105-B02, garanti 2 yıl, renewable resources, mono material.' Yangın güvenliği sertifikası YOK (kanıt yok). FR treatment yok."
     },
     "commercial": {
@@ -240,7 +296,10 @@
       "estimated_value": 178,
       "confidence": "high",
       "method": "Linear meter weight / width — 560 g/lin.m / 3.15 m = 177.78 g/m². Bu hesap exact (matematiksel türetim), tahmin değil. source_data._provenance.field_metadata.weight_gsm'de detay.",
-      "based_on": ["source_data.technical.weight_linear_meter_g (560)", "source_data.technical.width_cm (315)"],
+      "based_on": [
+        "source_data.technical.weight_linear_meter_g (560)",
+        "source_data.technical.width_cm (315)"
+      ],
       "model": "claude-opus-4-7",
       "created_at": "2026-05-25T22:00:00Z",
       "user_verified": false,
@@ -250,7 +309,11 @@
       "estimated_class": "semi_sheer",
       "confidence": "medium",
       "method": "Documents raporundaki 'Yarı-şeffaf' beyan + Kvadrat lifestyle görseli (transparent vertical lines of light) + 178 g/m² düşük gramaj + mono-keten dobby. Sayfa açık transparency beyan etmediği için ai_inferences alanı.",
-      "based_on": ["source_data.description_original (transparent vertical lines of light)", "source_data.technical.weight_gsm (178)", "Documents raporu 'Yarı-şeffaf'"],
+      "based_on": [
+        "source_data.description_original (transparent vertical lines of light)",
+        "source_data.technical.weight_gsm (178)",
+        "Documents raporu 'Yarı-şeffaf'"
+      ],
       "model": "claude-opus-4-7",
       "created_at": "2026-05-25T22:00:00Z",
       "user_verified": false,
@@ -267,15 +330,31 @@
     "transparency_visual": null,
     "transparency_visual_matches_source": null,
     "color_palette_summary": "5 organik mélange tonu: doğal beyaz-keten → açık kül → fındık → moss yeşili → kuzey çamı koyu yeşili. 'Airy notes to full-bodied colours' (Kvadrat).",
-    "style_tags": ["scandinavian", "minimalist", "dobby", "vertical-stripe", "monomaterial", "natural-fiber"],
+    "style_tags": [
+      "scandinavian",
+      "minimalist",
+      "dobby",
+      "vertical-stripe",
+      "monomaterial",
+      "natural-fiber"
+    ],
     "pattern_type": "dokulu",
     "pattern_density": "düşük",
-    "estimated_use_context": ["ofis", "otel", "konut", "müze", "kamusal alan"],
+    "estimated_use_context": [
+      "ofis",
+      "otel",
+      "konut",
+      "müze",
+      "kamusal alan"
+    ],
     "_provenance_inference": {
       "method": "claude_visual_analysis",
       "model": "claude-opus-4-7",
       "confidence": "medium",
-      "based_on": ["description_original", "Documents raporu"],
+      "based_on": [
+        "description_original",
+        "Documents raporu"
+      ],
       "analyzed_at": "2026-05-25T22:00:00Z",
       "notes": "Görseller henüz açılıp piksel düzeyinde analiz edilmedi — Faz 2'de eklenecek. Şu anki style_tags/pattern_type tag'leri açıklamadan + adaptör notlarından çıkarıldı."
     }
@@ -289,10 +368,17 @@
         "variant_code": null,
         "variant_name": "Ana hero görsel",
         "layer_used": 1,
-        "layer_1_attempt": {"success": true, "error": null, "method": "direct_http_fetch"},
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "direct_http_fetch"
+        },
         "downloaded_at": "2026-05-14T17:41:20Z",
         "file_size_kb": 385.4,
-        "dimensions": {"width_px": 2400, "height_px": 1600},
+        "dimensions": {
+          "width_px": 2400,
+          "height_px": 1600
+        },
         "quality_check": "passed"
       }
     ],
@@ -303,10 +389,17 @@
         "variant_code": "5539-0101",
         "variant_name": "White Linen",
         "layer_used": 1,
-        "layer_1_attempt": {"success": true, "error": null, "method": "direct_http_fetch"},
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "direct_http_fetch"
+        },
         "downloaded_at": "2026-05-14T17:41:20Z",
         "file_size_kb": 650.2,
-        "dimensions": {"width_px": 2400, "height_px": 2400},
+        "dimensions": {
+          "width_px": 2400,
+          "height_px": 2400
+        },
         "quality_check": "passed"
       },
       {
@@ -315,10 +408,17 @@
         "variant_code": "5539-0111",
         "variant_name": "Light Ash",
         "layer_used": 1,
-        "layer_1_attempt": {"success": true, "error": null, "method": "direct_http_fetch"},
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "direct_http_fetch"
+        },
         "downloaded_at": "2026-05-14T17:41:20Z",
         "file_size_kb": 877.9,
-        "dimensions": {"width_px": 2400, "height_px": 2400},
+        "dimensions": {
+          "width_px": 2400,
+          "height_px": 2400
+        },
         "quality_check": "passed"
       },
       {
@@ -327,10 +427,17 @@
         "variant_code": "5539-0161",
         "variant_name": "Hazel",
         "layer_used": 1,
-        "layer_1_attempt": {"success": true, "error": null, "method": "direct_http_fetch"},
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "direct_http_fetch"
+        },
         "downloaded_at": "2026-05-14T17:41:20Z",
         "file_size_kb": 1142.9,
-        "dimensions": {"width_px": 2400, "height_px": 2400},
+        "dimensions": {
+          "width_px": 2400,
+          "height_px": 2400
+        },
         "quality_check": "passed"
       },
       {
@@ -339,10 +446,17 @@
         "variant_code": "5539-0331",
         "variant_name": "Mosswood",
         "layer_used": 1,
-        "layer_1_attempt": {"success": true, "error": null, "method": "direct_http_fetch"},
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "direct_http_fetch"
+        },
         "downloaded_at": "2026-05-14T17:41:20Z",
         "file_size_kb": 980.9,
-        "dimensions": {"width_px": 2400, "height_px": 2400},
+        "dimensions": {
+          "width_px": 2400,
+          "height_px": 2400
+        },
         "quality_check": "passed"
       },
       {
@@ -351,10 +465,17 @@
         "variant_code": "5539-0941",
         "variant_name": "Northern Pine",
         "layer_used": 1,
-        "layer_1_attempt": {"success": true, "error": null, "method": "direct_http_fetch"},
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "direct_http_fetch"
+        },
         "downloaded_at": "2026-05-14T17:41:20Z",
         "file_size_kb": 1379.6,
-        "dimensions": {"width_px": 2400, "height_px": 2400},
+        "dimensions": {
+          "width_px": 2400,
+          "height_px": 2400
+        },
         "quality_check": "passed"
       }
     ],
@@ -363,10 +484,17 @@
         "url": "https://kvadrat-imageresizer.azureedge.net/iri/65D2ACD3-D6F8-4586-B23CC8A5BAFF52D3?cachebust=0&width=2400&format=jpg&scale=both&quality=85",
         "local_path": "gorseller/kvadrat/5539-air-line/lifestyle_01.jpg",
         "layer_used": 1,
-        "layer_1_attempt": {"success": true, "error": null, "method": "direct_http_fetch"},
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "direct_http_fetch"
+        },
         "downloaded_at": "2026-05-14T17:41:20Z",
         "file_size_kb": 527.1,
-        "dimensions": {"width_px": 2400, "height_px": 1350},
+        "dimensions": {
+          "width_px": 2400,
+          "height_px": 1350
+        },
         "quality_check": "passed"
       }
     ],
@@ -375,15 +503,24 @@
         "url": "https://kvadrat-imageresizer.azureedge.net/iri/47CF8F45-60F6-445E-BE15211C41109A7A?width=2400&format=jpg&scale=both&quality=85",
         "local_path": "gorseller/kvadrat/5539-air-line/detail_02.jpg",
         "layer_used": 1,
-        "layer_1_attempt": {"success": true, "error": null, "method": "direct_http_fetch"},
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "direct_http_fetch"
+        },
         "downloaded_at": "2026-05-14T17:41:20Z",
         "file_size_kb": 933.7,
-        "dimensions": {"width_px": 2400, "height_px": 2400},
+        "dimensions": {
+          "width_px": 2400,
+          "height_px": 2400
+        },
         "quality_check": "passed",
         "_note": "Close-up doku görseli — iplik analizine uygun"
       }
     ],
-    "_quality_notes": ["12 görsel toplam (1 ana + 5 varyant + 1 lifestyle + 4 detay + 1 logo). Migration: ham_cikti/gorseller/kvadrat/air-line/ → gorseller/kvadrat/5539-air-line/ (Faz 2 sonu)."]
+    "_quality_notes": [
+      "12 görsel toplam (1 ana + 5 varyant + 1 lifestyle + 4 detay + 1 logo). Migration: ham_cikti/gorseller/kvadrat/air-line/ → gorseller/kvadrat/5539-air-line/ (Faz 2 sonu)."
+    ]
   },
   "mobidik_evaluation": {
     "_description": "Mobidik perspektifinden Stäubli yapılabilirlik + ARGE değeri + pazar boşluğu + portföy uyumu. Kapasite tablosu (kapasite/staubli_uretim_kapasitesi.md) bağlayıcı (anayasa kural #7).",
@@ -410,11 +547,18 @@
     "market_gap": {
       "score": 80,
       "comment": "Türkiye yerel pazarda 'Kvadrat tarzı' sade-sürdürülebilir-sertifikalı mono-keten dobby perde üreten yok (sektör araştırması doğrulamalı). AB pazarında Kvadrat retail €70-110/m; Mobidik €18-28/m hedef = -%70-80 fiyat avantajı.",
-      "target_markets": ["TR", "EU (DK/NL/DE Nordik öncelikli)", "GCC (premium mimari pazar)"]
+      "target_markets": [
+        "TR",
+        "EU (DK/NL/DE Nordik öncelikli)",
+        "GCC (premium mimari pazar)"
+      ]
     },
     "portfolio_fit": {
       "score": 85,
-      "similar_existing_products": ["Z+R Niket (sheer keten benzeri, ama leno)", "Z+R Nuri crosshatch (dobby keten)"],
+      "similar_existing_products": [
+        "Z+R Niket (sheer keten benzeri, ama leno)",
+        "Z+R Nuri crosshatch (dobby keten)"
+      ],
       "comment": "Mobidik'in mevcut keten + dobby + sheer portföyüne çok iyi uyuyor. 'Anatolian Linen' core hattının kalıp ürünü olabilir."
     },
     "overall_score": 81,
@@ -422,9 +566,24 @@
     "strategic_note": "✨ BENCHMARK ÜRÜN. Kvadrat seviyesi marka Türkiye'de fason aldırıyor = teknik bariyer aşılmış, kalite bandı kurulmuş. Mobidik 'Türk üretimi Kvadrat referansı' söylemini ihracat pitchlerinde kullanabilir ('The same manufacturing region trusted by Kvadrat'). Acil aksiyonlar: (1) Technical specs PDF talebi (en/gramaj/abrasion/Martindale değerleri), (2) Türk fason üretici tespiti (Bursa havzası — Akın, Erak, İpekiş, Karsu, vb.), (3) EU Flax + OEKOTEX 100 başvuru paralel, (4) Pilot: 3 nötr ton × 100 m, 4-6 hafta. Pazar pozisyonu: Kvadrat retail €70-110/m → Mobidik hedef €18-28/m (%25-30 fiyat). Mobidik bu ürünle 'doğrudan rakip' değil — partner/fason aday pozisyonunda."
   },
   "data_quality": {
-    "missing_fields": ["technical.performance.abrasion_martindale", "technical.performance.pilling", "technical.performance.shrinkage.warp_percent", "technical.performance.shrinkage.weft_percent", "commercial.price_per_meter", "commercial.moq_meters", "certifications.fire_safety[]"],
-    "ai_estimated_fields": ["technical.weight_gsm (matematiksel türetim, exact)", "ai_inferences.light_transmission"],
-    "user_verified_fields": ["commercial.country_of_origin (Türkiye)", "source_data.style_note", "variants[].color_name"],
+    "missing_fields": [
+      "technical.performance.abrasion_martindale",
+      "technical.performance.pilling",
+      "technical.performance.shrinkage.warp_percent",
+      "technical.performance.shrinkage.weft_percent",
+      "commercial.price_per_meter",
+      "commercial.moq_meters",
+      "certifications.fire_safety[]"
+    ],
+    "ai_estimated_fields": [
+      "technical.weight_gsm (matematiksel türetim, exact)",
+      "ai_inferences.light_transmission"
+    ],
+    "user_verified_fields": [
+      "commercial.country_of_origin (Türkiye)",
+      "source_data.style_note",
+      "variants[].color_name"
+    ],
     "completeness_percent": 78,
     "last_verified": "2026-05-25T22:00:00Z",
     "notes": [
@@ -432,5 +591,26 @@
       "FR sertifikası YOK doğrulayıcı (Kvadrat Air Line yangın güvenliği sertifikası yayınlamıyor). Mobidik için: bu ürün FR pazar değil; sustainability hattı.",
       "Görsel migrasyonu: ham_cikti'dan gorseller/kvadrat/5539-air-line/ yeni konvansiyonuna kopyalama Faz 2 sonunda."
     ]
+  },
+  "approval_status": {
+    "value": "approved",
+    "_history": "Faz 7.1 migrate (2026-05-26): Mevcut 27 urun retroaktif 'approved'. Anayasa #6 disiplini ile zaten manuel denetlendiler — ML icin pozitif training ornegi."
+  },
+  "admin_decision": {
+    "status": "approved",
+    "decision_date": "2026-05-26T11:00:00Z",
+    "decision_by": "admin (retroaktif Faz 7.1 migrate)",
+    "notes": "Faz 7 oncesi denetim akisinda manuel Claude denetimi ile onaylandi. Web UI Faz 7.3 hazirlandiktan sonra yeni adaylar 'pending' olarak baslayacak.",
+    "rejection_reasons": []
+  },
+  "ml_score": {
+    "predicted_approval_prob": null,
+    "confidence": null,
+    "similar_approved_products": [],
+    "similar_rejected_products": [],
+    "model_version": null,
+    "predicted_at": null,
+    "embedding_source": "dinov2_vitb14",
+    "_note": "Faz 7.2'de DINOv2 embedding + sklearn ile doldurulacak. Su an placeholder."
   }
 }

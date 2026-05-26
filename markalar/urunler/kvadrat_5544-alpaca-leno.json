@@ -1,5 +1,5 @@
 {
-  "_schema_version": "1.3",
+  "_schema_version": "1.4",
   "urun_id": "kvadrat_5544-alpaca-leno",
   "brand": "Kvadrat",
   "brand_slug": "kvadrat",
@@ -8,7 +8,7 @@
   "product_name": "Alpaca Leno",
   "source_url": "https://www.kvadrat.dk/en/products/curtains/5544-alpaca-leno",
   "scraped_at": "2026-05-14T17:42:13Z",
-  "last_updated": "2026-05-25T22:00:00Z",
+  "last_updated": "2026-05-26T11:00:00Z",
   "source_data": {
     "_description": "Üretici sitesinden gelen veri (topla.py 2026-05-14 çekti). Documents/01_raporlar/kvadrat_parti01_2026-05-25.md kullanıcı doğrulamalı kayıt; ÇELİŞKİ vakası — bkz audit_history.",
     "_provenance": {
@@ -20,19 +20,38 @@
           "url": "https://www.kvadrat.dk/en/products/curtains/5544-alpaca-leno",
           "type": "html_product_page",
           "accessed_at": "2026-05-14T17:42:13Z",
-          "fields_supported": ["product_code", "product_name", "composition (4-lif tam)", "width_cm", "weight_linear_meter_g", "weave_type", "performance.lightfastness", "variants[].color_code"]
+          "fields_supported": [
+            "product_code",
+            "product_name",
+            "composition (4-lif tam)",
+            "width_cm",
+            "weight_linear_meter_g",
+            "weave_type",
+            "performance.lightfastness",
+            "variants[].color_code"
+          ]
         },
         {
           "url": "01_raporlar/kvadrat_parti01_2026-05-25.md",
           "type": "user_verified_report",
           "accessed_at": "2026-05-25T22:00:00Z",
-          "fields_supported": ["collection (Frequency)", "country_of_origin (Italy)", "variants[].color_name (4 ad)", "shrinkage.warp_percent (~4)", "shrinkage.weft_percent (~3)", "production_model (make_to_order, lead 51 gün)", "rulo_uzunlugu (~60 m)"]
+          "fields_supported": [
+            "collection (Frequency)",
+            "country_of_origin (Italy)",
+            "variants[].color_name (4 ad)",
+            "shrinkage.warp_percent (~4)",
+            "shrinkage.weft_percent (~3)",
+            "production_model (make_to_order, lead 51 gün)",
+            "rulo_uzunlugu (~60 m)"
+          ]
         },
         {
           "url": "kapasite/staubli_uretim_kapasitesi.md",
           "type": "user_verified_capacity_table",
           "accessed_at": "2026-05-25T22:00:00Z",
-          "fields_supported": ["mobidik_evaluation.staubli_feasibility (leno TAM, anayasa kural #7 bağlayıcı)"]
+          "fields_supported": [
+            "mobidik_evaluation.staubli_feasibility (leno TAM, anayasa kural #7 bağlayıcı)"
+          ]
         }
       ],
       "field_metadata": {
@@ -101,9 +120,27 @@
           "extraction_notes": "Documents raporu '~%4 / ~%3' demiş; Kvadrat sayfasında shrinkage beyanı body_text_preview'da görünmüyor — büyük olasılıkla PDF technical spec'te. Kullanıcı doğrulamalı kayıttan alındı, kanıt zinciri kullanıcı raporu."
         }
       },
-      "fields_from_html": ["product_code", "product_name", "composition", "width_cm", "weight_linear_meter_g", "weave_type_normalized", "performance.lightfastness", "variants[].color_code"],
-      "fields_from_user_report": ["collection", "country_of_origin", "variants[].color_name", "technical.performance.shrinkage", "commercial.production_model", "commercial.lead_time_days"],
-      "fields_from_inference": ["weight_gsm"],
+      "fields_from_html": [
+        "product_code",
+        "product_name",
+        "composition",
+        "width_cm",
+        "weight_linear_meter_g",
+        "weave_type_normalized",
+        "performance.lightfastness",
+        "variants[].color_code"
+      ],
+      "fields_from_user_report": [
+        "collection",
+        "country_of_origin",
+        "variants[].color_name",
+        "technical.performance.shrinkage",
+        "commercial.production_model",
+        "commercial.lead_time_days"
+      ],
+      "fields_from_inference": [
+        "weight_gsm"
+      ],
       "constitutional_violations_check": "passed_at_2026-05-25T22:00:00Z",
       "audit_history": [
         {
@@ -113,20 +150,50 @@
           "version_before": "(yok — sıfırdan inşa)",
           "version_after": "v1.0 — şema v1.3'e uyumlu, Documents iterasyonundan migrate edildi",
           "notes": "ÇELİŞKİ VAKASI: Documents/01_raporlar/kvadrat_parti01_2026-05-25.md Mobidik Notu der 'Zorluk: ZOR ⛔ — Stäubli leno yapamaz (Z+R Niket'le aynı engel)' — bu YANLIŞTI. kapasite/staubli_uretim_kapasitesi.md (kullanıcı doğrulamalı): 'Leno (giz) | TAM | Aparat var + aktif üretim var'. Anayasa kural #7 (kapasite tablosu bağlayıcı) + kural #8 (denetlenmiş veri önceliği) uyarınca kapasite kazandı. staubli_feasibility 1/5 (Documents) → 4/5 (kapasite-uyumlu) olarak yeniden hesaplandı. KOMPOZİSYON ÇELİŞKİSİ: Documents raporu 'Alpaca + Lyocell + Wool' (3 lif) demişti; ham_cikti HTML 'wool 58% alpaca 17% lyocell 14% viscose 11%' (4 lif) — sayfa kanıtı kazandı, viscose %11 eklendi."
+        },
+        {
+          "audit_id": "kvadrat_5544-alpaca-leno_v14_schema_migrate_2026-05-26",
+          "audit_date": "2026-05-26",
+          "version_before": "v1.3 (approval_status alani yok)",
+          "version_after": "v1.4 (approval_status=approved, ml_score placeholder)",
+          "notes": "Faz 7.1 schema migration. Pozitif training ornegi olarak ML eğitiminde kullanilacak."
         }
       ]
     },
     "technical": {
       "composition": [
-        {"fiber_generic": "Yün", "fiber_commercial": "Wool", "ratio_percent": 58, "fr_treatment": null},
-        {"fiber_generic": "Alpaka", "fiber_commercial": "Alpaca", "ratio_percent": 17, "fr_treatment": null},
-        {"fiber_generic": "Lyocell", "fiber_commercial": "Lyocell (TENCEL benzeri)", "ratio_percent": 14, "fr_treatment": null},
-        {"fiber_generic": "Viskon", "fiber_commercial": "Viscose", "ratio_percent": 11, "fr_treatment": null}
+        {
+          "fiber_generic": "Yün",
+          "fiber_commercial": "Wool",
+          "ratio_percent": 58,
+          "fr_treatment": null
+        },
+        {
+          "fiber_generic": "Alpaka",
+          "fiber_commercial": "Alpaca",
+          "ratio_percent": 17,
+          "fr_treatment": null
+        },
+        {
+          "fiber_generic": "Lyocell",
+          "fiber_commercial": "Lyocell (TENCEL benzeri)",
+          "ratio_percent": 14,
+          "fr_treatment": null
+        },
+        {
+          "fiber_generic": "Viskon",
+          "fiber_commercial": "Viscose",
+          "ratio_percent": 11,
+          "fr_treatment": null
+        }
       ],
       "width_cm": 315,
       "weight_gsm": 105,
       "weight_linear_meter_g": 330,
-      "repeat_cm": {"vertical": 0, "horizontal": 0},
+      "repeat_cm": {
+        "vertical": 0,
+        "horizontal": 0
+      },
       "weave_type_raw": "Leno weave",
       "weave_type_normalized": "leno",
       "yarn_type": "staple",
@@ -134,7 +201,9 @@
         "value": null,
         "_note": "Sayfa beyan etmiyor. Documents raporu 'Yarı-şeffaf' ai_inferences.light_transmission adayı."
       },
-      "usage_area": ["curtains"],
+      "usage_area": [
+        "curtains"
+      ],
       "performance": {
         "lightfastness": 8,
         "lightfastness_scale": "ISO 1-8 (ISO 105-B02)",
@@ -204,8 +273,13 @@
     ],
     "certifications": {
       "fire_safety": [],
-      "sustainability": ["Renewable resources claim (sayfa)", "Lightfastness ISO 105-B02 score 8"],
-      "other": ["Retail warranty 2 years"],
+      "sustainability": [
+        "Renewable resources claim (sayfa)",
+        "Lightfastness ISO 105-B02 score 8"
+      ],
+      "other": [
+        "Retail warranty 2 years"
+      ],
       "raw_text": "Sayfada açık sertifika listesi yok. Mono material claim YOK (4 lifli). Yangın güvenliği sertifikası YOK."
     },
     "commercial": {
@@ -251,7 +325,10 @@
       "estimated_value": 105,
       "confidence": "high",
       "method": "Linear meter weight / width — 330 g/lin.m / 3.15 m = 104.76 g/m². Matematiksel türetim, tahmin değil.",
-      "based_on": ["source_data.technical.weight_linear_meter_g (330)", "source_data.technical.width_cm (315)"],
+      "based_on": [
+        "source_data.technical.weight_linear_meter_g (330)",
+        "source_data.technical.width_cm (315)"
+      ],
       "model": "claude-opus-4-7",
       "created_at": "2026-05-25T22:00:00Z",
       "user_verified": false
@@ -260,7 +337,11 @@
       "estimated_class": "sheer",
       "confidence": "medium",
       "method": "Documents 'Yarı-şeffaf' beyan + leno açık doku + 105 g/m² çok düşük gramaj + 'intricate, open structure' + 'comes alive as it drapes in the light'. Leno yapısı en şeffaf dokuma kategorilerinden.",
-      "based_on": ["source_data.description_original (intricate open structure)", "source_data.technical.weight_gsm (105)", "source_data.technical.weave_type_normalized (leno)"],
+      "based_on": [
+        "source_data.description_original (intricate open structure)",
+        "source_data.technical.weight_gsm (105)",
+        "source_data.technical.weave_type_normalized (leno)"
+      ],
       "model": "claude-opus-4-7",
       "created_at": "2026-05-25T22:00:00Z",
       "user_verified": false
@@ -268,20 +349,38 @@
   },
   "image_analysis": {
     "_description": "Visual analiz pending — Faz 2 doğrulama sonrası eklenecek.",
-    "dominant_colors": {"value": null, "_note": "5 varyantın her biri için ayrı palet pending"},
+    "dominant_colors": {
+      "value": null,
+      "_note": "5 varyantın her biri için ayrı palet pending"
+    },
     "texture_classification": null,
     "transparency_visual": null,
     "transparency_visual_matches_source": null,
     "color_palette_summary": "5 tonlu doğal palet: Soft Wool (krem yün), Almond Bark (badem kabuğu), Redwood (kırmızı odun), Cool Cedar (serin sedir yeşili) + 1 bilinmeyen (0931, muhtemel atmospheric green/orman). 'Natural wool notes → atmospheric greens → smoky red-wood' (Kvadrat).",
-    "style_tags": ["italian-artisanal", "leno", "multi-fiber-staple", "wool-alpaca", "natural-fiber-blend", "atmospheric-tones"],
+    "style_tags": [
+      "italian-artisanal",
+      "leno",
+      "multi-fiber-staple",
+      "wool-alpaca",
+      "natural-fiber-blend",
+      "atmospheric-tones"
+    ],
     "pattern_type": "düz",
     "pattern_density": "düşük",
-    "estimated_use_context": ["konut", "otel", "butik mağaza", "restoran"],
+    "estimated_use_context": [
+      "konut",
+      "otel",
+      "butik mağaza",
+      "restoran"
+    ],
     "_provenance_inference": {
       "method": "claude_visual_analysis",
       "model": "claude-opus-4-7",
       "confidence": "medium",
-      "based_on": ["description_original", "Documents raporu"],
+      "based_on": [
+        "description_original",
+        "Documents raporu"
+      ],
       "analyzed_at": "2026-05-25T22:00:00Z",
       "notes": "Pending pixel-level analiz."
     }
@@ -295,10 +394,17 @@
         "variant_code": null,
         "variant_name": "Ana hero görsel",
         "layer_used": 1,
-        "layer_1_attempt": {"success": true, "error": null, "method": "direct_http_fetch"},
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "direct_http_fetch"
+        },
         "downloaded_at": "2026-05-14T17:42:13Z",
         "file_size_kb": 764.5,
-        "dimensions": {"width_px": 2400, "height_px": 1600},
+        "dimensions": {
+          "width_px": 2400,
+          "height_px": 1600
+        },
         "quality_check": "passed"
       }
     ],
@@ -309,10 +415,17 @@
         "variant_code": "5544-0101",
         "variant_name": "Soft Wool",
         "layer_used": 1,
-        "layer_1_attempt": {"success": true, "error": null, "method": "direct_http_fetch"},
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "direct_http_fetch"
+        },
         "downloaded_at": "2026-05-14T17:42:13Z",
         "file_size_kb": 670.6,
-        "dimensions": {"width_px": 2400, "height_px": 2400},
+        "dimensions": {
+          "width_px": 2400,
+          "height_px": 2400
+        },
         "quality_check": "passed"
       },
       {
@@ -321,10 +434,17 @@
         "variant_code": "5544-0141",
         "variant_name": "Almond Bark",
         "layer_used": 1,
-        "layer_1_attempt": {"success": true, "error": null, "method": "direct_http_fetch"},
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "direct_http_fetch"
+        },
         "downloaded_at": "2026-05-14T17:42:13Z",
         "file_size_kb": 1063.9,
-        "dimensions": {"width_px": 2400, "height_px": 2400},
+        "dimensions": {
+          "width_px": 2400,
+          "height_px": 2400
+        },
         "quality_check": "passed"
       },
       {
@@ -333,10 +453,17 @@
         "variant_code": "5544-0221",
         "variant_name": "Redwood",
         "layer_used": 1,
-        "layer_1_attempt": {"success": true, "error": null, "method": "direct_http_fetch"},
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "direct_http_fetch"
+        },
         "downloaded_at": "2026-05-14T17:42:13Z",
         "file_size_kb": 912.9,
-        "dimensions": {"width_px": 2400, "height_px": 2400},
+        "dimensions": {
+          "width_px": 2400,
+          "height_px": 2400
+        },
         "quality_check": "passed"
       },
       {
@@ -345,10 +472,17 @@
         "variant_code": "5544-0631",
         "variant_name": "Cool Cedar",
         "layer_used": 1,
-        "layer_1_attempt": {"success": true, "error": null, "method": "direct_http_fetch"},
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "direct_http_fetch"
+        },
         "downloaded_at": "2026-05-14T17:42:13Z",
         "file_size_kb": 893.2,
-        "dimensions": {"width_px": 2400, "height_px": 2400},
+        "dimensions": {
+          "width_px": 2400,
+          "height_px": 2400
+        },
         "quality_check": "passed"
       },
       {
@@ -357,10 +491,17 @@
         "variant_code": "5544-0931",
         "variant_name": null,
         "layer_used": 1,
-        "layer_1_attempt": {"success": true, "error": null, "method": "direct_http_fetch"},
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "direct_http_fetch"
+        },
         "downloaded_at": "2026-05-14T17:42:13Z",
         "file_size_kb": 1027.4,
-        "dimensions": {"width_px": 2400, "height_px": 2400},
+        "dimensions": {
+          "width_px": 2400,
+          "height_px": 2400
+        },
         "quality_check": "passed",
         "_note": "5. renk — variant_name bilinmiyor (data_quality.missing_fields)"
       }
@@ -370,10 +511,17 @@
         "url": "https://kvadrat-imageresizer.azureedge.net/iri/65D2ACD3-D6F8-4586-B23CC8A5BAFF52D3?cachebust=0&width=2400&format=jpg&scale=both&quality=85",
         "local_path": "gorseller/kvadrat/5544-alpaca-leno/lifestyle_01.jpg",
         "layer_used": 1,
-        "layer_1_attempt": {"success": true, "error": null, "method": "direct_http_fetch"},
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "direct_http_fetch"
+        },
         "downloaded_at": "2026-05-14T17:42:13Z",
         "file_size_kb": 527.1,
-        "dimensions": {"width_px": 2400, "height_px": 1350},
+        "dimensions": {
+          "width_px": 2400,
+          "height_px": 1350
+        },
         "quality_check": "passed",
         "_note": "Lifestyle görsel Air Line ile aynı URL — Kvadrat aynı çekimi iki ürün için kullanıyor olabilir veya scraper aynı hero'yu yakalamış. Doğrulama gerek."
       }
@@ -383,15 +531,24 @@
         "url": "https://kvadrat-imageresizer.azureedge.net/iri/6AC7911D-384F-40CB-A7D010BE668DD7DF?width=2400&format=jpg&scale=both&quality=85",
         "local_path": "gorseller/kvadrat/5544-alpaca-leno/detail_02.jpg",
         "layer_used": 1,
-        "layer_1_attempt": {"success": true, "error": null, "method": "direct_http_fetch"},
+        "layer_1_attempt": {
+          "success": true,
+          "error": null,
+          "method": "direct_http_fetch"
+        },
         "downloaded_at": "2026-05-14T17:42:13Z",
         "file_size_kb": 735.2,
-        "dimensions": {"width_px": 2400, "height_px": 2400},
+        "dimensions": {
+          "width_px": 2400,
+          "height_px": 2400
+        },
         "quality_check": "passed",
         "_note": "Close-up — leno open structure görseli, iplik dokuma analizine uygun"
       }
     ],
-    "_quality_notes": ["12 görsel toplam, hepsi Layer 1 başarılı. Migration pending: ham_cikti → gorseller/kvadrat/5544-alpaca-leno/."]
+    "_quality_notes": [
+      "12 görsel toplam, hepsi Layer 1 başarılı. Migration pending: ham_cikti → gorseller/kvadrat/5544-alpaca-leno/."
+    ]
   },
   "mobidik_evaluation": {
     "_description": "ÇELİŞKİ TESTİ: Documents raporu 'Stäubli leno yapamaz' YANLIŞTI. Kapasite tablosu Leno TAM. Kapasite kazandı (anayasa #7).",
@@ -418,11 +575,19 @@
     "market_gap": {
       "score": 70,
       "comment": "Türkiye'de yün+alpaka leno yerel üretim yok. AB pazarı (özellikle DACH bölgesi, premium yün/alpaka segment) Kvadrat retail €100-150/m; Mobidik €30-45/m hedef = %30 fiyat. Niş ama premium.",
-      "target_markets": ["DACH (DE/AT/CH)", "Nordik", "İtalya (kafa kafaya rekabet, dikkatli)", "TR konut premium"]
+      "target_markets": [
+        "DACH (DE/AT/CH)",
+        "Nordik",
+        "İtalya (kafa kafaya rekabet, dikkatli)",
+        "TR konut premium"
+      ]
     },
     "portfolio_fit": {
       "score": 70,
-      "similar_existing_products": ["Z+R Niket (leno keten — Mobidik'in mevcut benchmark)", "Etamine Fil du Temps (outdoor leno)"],
+      "similar_existing_products": [
+        "Z+R Niket (leno keten — Mobidik'in mevcut benchmark)",
+        "Etamine Fil du Temps (outdoor leno)"
+      ],
       "comment": "Leno portföyüne uyumlu, ama alpaka/yün multi-staple Mobidik portföyünden uzak. ARGE yatırımı (iplik tedariki + leno aparat) gerek."
     },
     "overall_score": 73,
@@ -430,9 +595,24 @@
     "strategic_note": "ÇELİŞKİ DÜZELTİLDİ: Documents raporu 'Stäubli leno yapamaz' demişti — anayasa kural #7'ye göre kapasite tablosu bağlayıcı, leno TAM. Yeniden değerlendirildi: Stäubli leno için engel YOK, yatırım gerekmiyor. Asıl darboğaz multi-staple yün/alpaka iplik tedariki (Yünsa/Polaron MOQ müzakeresi). Replication 3 yol: (1) Mock-leno dobby (8-16 çerçeve) %60 görsel yakınlık, mevcut altyapı ile pilot — eski Documents önerisi hâlâ geçerli alternatif yol; (2) Doğrudan leno (Mobidik kapasitesinde olduğundan ESAS yol), İtalyan premium iplik ithal + Türkiye dokuma; (3) Yünsa/Polaron Türk yün+alpaka MOQ — Loops dosyası ile birleştir. Pilot: 4 nötr ton × 50 m, 8-10 hafta. Acil aksiyon: (a) Yünsa yün+alpaka teklif al, (b) Lyocell TENCEL Türk ithalatçı (Adana/İzmir), (c) 5. renk adı (5544-0931) tespiti — Kvadrat sayfası tam çekimi veya PDF."
   },
   "data_quality": {
-    "missing_fields": ["variants[4].color_name (5544-0931)", "technical.performance.abrasion_martindale", "technical.performance.pilling", "commercial.price_per_meter", "commercial.moq_meters", "certifications.fire_safety[]", "design_credit.designer"],
-    "ai_estimated_fields": ["technical.weight_gsm (matematiksel türetim)", "ai_inferences.light_transmission"],
-    "user_verified_fields": ["commercial.country_of_origin (İtalya)", "commercial.lead_time_days (51 gün)", "technical.performance.shrinkage"],
+    "missing_fields": [
+      "variants[4].color_name (5544-0931)",
+      "technical.performance.abrasion_martindale",
+      "technical.performance.pilling",
+      "commercial.price_per_meter",
+      "commercial.moq_meters",
+      "certifications.fire_safety[]",
+      "design_credit.designer"
+    ],
+    "ai_estimated_fields": [
+      "technical.weight_gsm (matematiksel türetim)",
+      "ai_inferences.light_transmission"
+    ],
+    "user_verified_fields": [
+      "commercial.country_of_origin (İtalya)",
+      "commercial.lead_time_days (51 gün)",
+      "technical.performance.shrinkage"
+    ],
     "completeness_percent": 72,
     "last_verified": "2026-05-25T22:00:00Z",
     "notes": [
@@ -442,5 +622,26 @@
       "Lifestyle görsel URL'i Air Line ile aynı — doğrulama gerek (scraper hatası mı, Kvadrat aynı hero'yu paylaşıyor mu?).",
       "Documents/02_gorseller/kvadrat/55440001_1.jpg ... _4.jpg legacy placeholder dosyalar — Faz 3'te terk edilecek (yeni gerçek kodlu görseller ham_cikti'da)."
     ]
+  },
+  "approval_status": {
+    "value": "approved",
+    "_history": "Faz 7.1 migrate (2026-05-26): Mevcut 27 urun retroaktif 'approved'. Anayasa #6 disiplini ile zaten manuel denetlendiler — ML icin pozitif training ornegi."
+  },
+  "admin_decision": {
+    "status": "approved",
+    "decision_date": "2026-05-26T11:00:00Z",
+    "decision_by": "admin (retroaktif Faz 7.1 migrate)",
+    "notes": "Faz 7 oncesi denetim akisinda manuel Claude denetimi ile onaylandi. Web UI Faz 7.3 hazirlandiktan sonra yeni adaylar 'pending' olarak baslayacak.",
+    "rejection_reasons": []
+  },
+  "ml_score": {
+    "predicted_approval_prob": null,
+    "confidence": null,
+    "similar_approved_products": [],
+    "similar_rejected_products": [],
+    "model_version": null,
+    "predicted_at": null,
+    "embedding_source": "dinov2_vitb14",
+    "_note": "Faz 7.2'de DINOv2 embedding + sklearn ile doldurulacak. Su an placeholder."
   }
 }

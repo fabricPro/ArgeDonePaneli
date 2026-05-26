@@ -1,6 +1,6 @@
 {
-  "_schema_version": "1.3",
-  "_schema_description": "Kanonik ürün şeması v1.1. Tüm ürün JSON'ları bu yapıya uymalıdır. Yeni alan ekleme — eksik veriyi null bırak.",
+  "_schema_version": "1.4",
+  "_schema_description": "Kanonik ürün şeması v1.4. Tüm ürün JSON'ları bu yapıya uymalıdır. Yeni alan ekleme — eksik veriyi null bırak.",
   "_schema_changelog": [
     {
       "version": "1.0",
@@ -21,6 +21,11 @@
       "version": "1.3",
       "date": "2026-05-13",
       "note": "Görsel indirme katman testi sonrası: images array elemanları layer_*_attempt yapısı kazandı (Katman 1/2/3 deneme zinciri kaydı), image_analysis bloğu visual analiz alanları (dominant_colors hex array, texture_classification, transparency_visual + matches_source bool) ile genişletildi."
+    },
+    {
+      "version": "1.4",
+      "date": "2026-05-26",
+      "note": "Faz 7 — Ön onay + ML entegrasyonu. Yeni 3 alan: approval_status (pending|approved|rejected admin onay durumu), admin_decision (karar tarihi + reddetme sebepleri taxonomy ML için etiket), ml_score (DINOv2+sklearn predicted_approval_prob + similar_approved + similar_rejected ürünler + model_version). Mevcut 27 ürün retroaktif approval_status=approved migrate edildi (pozitif training örneği). Yeni adaylar approval_status=pending olarak başlar, admin web UI'dan onay/red verir."
     }
   ],
   "urun_id": "<marka_slug>_<urun_kodu>",
@@ -331,5 +336,31 @@
     "completeness_percent": 0,
     "last_verified": null,
     "notes": []
+  },
+  "approval_status": {
+    "_description": "Faz 7: Otomasyonun bulduğu ürünler önce 'pending' olur, admin web UI'da onaylar/reddeder. Onaylananlar ana dashboard'a, reddedilenler ML feedback_log'a düşer.",
+    "_values": "pending | approved | rejected",
+    "_default": "pending (yeni adaylar), approved (Faz 7.1 migrate öncesi 27 ürün retroaktif)",
+    "value": "pending"
+  },
+  "admin_decision": {
+    "_description": "Faz 7: Admin onay/red kararının kaydı.",
+    "status": "approved | rejected | null (henüz karar yok)",
+    "decision_date": "ISO 8601 (null = pending)",
+    "decision_by": "admin (single user şu an, ileride multi-user)",
+    "notes": "string — admin yorumu",
+    "rejection_reasons": [
+      "ML için sabit etiket taxonomy: jakar | metallic | en_sinir_disi | uygun_iplik_yok | sertifika_imkansiz | fiyat_disi | tasarim_uyumsuz | tekrar (mevcut benzeri var) | diger"
+    ]
+  },
+  "ml_score": {
+    "_description": "Faz 7: AI tahmini — admin'in bu ürünü onaylayacak/reddedecek olasılığı + benzer ürünler.",
+    "predicted_approval_prob": "0.0-1.0 (1=kesin onay, 0=kesin red)",
+    "confidence": "high | medium | low (model belirsizliği)",
+    "similar_approved_products": ["urun_id list — cosine similarity ile en yakın 3"],
+    "similar_rejected_products": ["urun_id list — varsa öğren"],
+    "model_version": "v1 | v2 | ... (her retrain'de artar)",
+    "predicted_at": "ISO 8601",
+    "embedding_source": "dinov2_vitb14 (varsayilan)"
   }
 }

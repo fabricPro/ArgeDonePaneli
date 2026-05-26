@@ -1,5 +1,5 @@
 {
-  "_schema_version": "1.3",
+  "_schema_version": "1.4",
   "urun_id": "etamine_19621-andria",
   "brand": "Etamine",
   "brand_slug": "etamine",
@@ -8,7 +8,7 @@
   "product_name": "Andria",
   "source_url": "https://www.zimmer-rohde.com/en/product-finder/details/andria-19621-883",
   "scraped_at": "2026-05-11T00:00:00Z",
-  "last_updated": "2026-05-25T23:15:00Z",
+  "last_updated": "2026-05-26T11:00:00Z",
   "source_data": {
     "_description": "Documents iterasyonundan migrate edildi (Faz 3.4). Birincil kaynak: 03_html_dashboard/index.html JS array; ikincil: 01_raporlar/<marka>_parti<NN>_<tarih>.md (varsa).",
     "_provenance": {
@@ -64,6 +64,13 @@
           "version_before": "v1.0 (Faz 3.4 batch migrate, mobidik_evaluation PENDING)",
           "version_after": "v1.1 (Faz 3.4 detay denetim, mobidik_evaluation tam)",
           "notes": "Maltinto artisanal el-boyama dokuma sonrasi finishing — Stabli'de dokuma TAM, finishing replication kismi. Dusuk oncelik."
+        },
+        {
+          "audit_id": "etamine_19621-andria_v14_schema_migrate_2026-05-26",
+          "audit_date": "2026-05-26",
+          "version_before": "v1.3 (approval_status alani yok)",
+          "version_after": "v1.4 (approval_status=approved, ml_score placeholder)",
+          "notes": "Faz 7.1 schema migration. Pozitif training ornegi olarak ML eğitiminde kullanilacak."
         }
       ]
     },
@@ -563,5 +570,26 @@
       "mobidik_evaluation + ai_inferences PENDING — Claude Code denetim sonra dolduracak.",
       "Gorsel yollari yeni konvansiyona (gorseller/etamine/19621) uyarlandi."
     ]
+  },
+  "approval_status": {
+    "value": "approved",
+    "_history": "Faz 7.1 migrate (2026-05-26): Mevcut 27 urun retroaktif 'approved'. Anayasa #6 disiplini ile zaten manuel denetlendiler — ML icin pozitif training ornegi."
+  },
+  "admin_decision": {
+    "status": "approved",
+    "decision_date": "2026-05-26T11:00:00Z",
+    "decision_by": "admin (retroaktif Faz 7.1 migrate)",
+    "notes": "Faz 7 oncesi denetim akisinda manuel Claude denetimi ile onaylandi. Web UI Faz 7.3 hazirlandiktan sonra yeni adaylar 'pending' olarak baslayacak.",
+    "rejection_reasons": []
+  },
+  "ml_score": {
+    "predicted_approval_prob": null,
+    "confidence": null,
+    "similar_approved_products": [],
+    "similar_rejected_products": [],
+    "model_version": null,
+    "predicted_at": null,
+    "embedding_source": "dinov2_vitb14",
+    "_note": "Faz 7.2'de DINOv2 embedding + sklearn ile doldurulacak. Su an placeholder."
   }
 }
