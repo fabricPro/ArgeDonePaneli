@@ -454,14 +454,31 @@ def api_scrape():
         log_f.write(f"# PLAYWRIGHT_BROWSERS_PATH: {env.get('PLAYWRIGHT_BROWSERS_PATH')}\n\n")
         log_f.flush()
 
-        subprocess.Popen(
-            [str(python_exe), "-m", "topla.cli", url],
-            cwd=str(PROJECT_ROOT),
-            stdout=log_f,
-            stderr=subprocess.STDOUT,
-            env=env,
-            creationflags=(subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0),
-        )
+        # Faz 7.10f fix: subprocess KALDIRILDI — sandbox context sorununa yol acti
+        # (Playwright Chromium executable visible degil subprocess child'a)
+        # Cozum: scrape_and_score'u Flask thread'inde DOGRUDAN cagir (ayni process,
+        # ayni context). UX bloklamaz cunku daemon thread'inde.
+        import threading
+        def _run_inline():
+            try:
+                sys.path.insert(0, str(PROJECT_ROOT))
+                from topla.topla import scrape_and_score
+                result = scrape_and_score(url)
+                log_f.write(f"\n=== SCRAPE TAMAM ===\n")
+                log_f.write(json.dumps(result, ensure_ascii=False, indent=2))
+                log_f.write("\n")
+            except Exception as e:
+                import traceback
+                log_f.write(f"\n=== HATA ===\n")
+                log_f.write(f"{type(e).__name__}: {e}\n")
+                log_f.write(traceback.format_exc())
+            finally:
+                try:
+                    log_f.close()
+                except Exception:
+                    pass
+        t = threading.Thread(target=_run_inline, daemon=True)
+        t.start()
         return jsonify({
             "ok": True,
             "message": f"Scrape başladı: {url}",
@@ -645,4 +662,6 @@ if __name__ == "__main__":
     print(f"Ön onay:        http://localhost:5000/pending")
     print(f"Geçmiş:         http://localhost:5000/history")
     print(f"\nCTRL+C ile durdurabilirsiniz.\n")
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    # debug=False — auto-reload daemon thread'i oldurur, scrape yarida kalir
+    # Code degisikligi sonrasi Flask manuel restart gerekir (Ctrl+C, yeniden basla)
+    app.run(host="0.0.0.0", port=5000, debug=False, threaded=True)
