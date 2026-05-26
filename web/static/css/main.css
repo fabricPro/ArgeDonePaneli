@@ -427,10 +427,15 @@ main { padding: 24px 32px; max-width: 1600px; margin: 0 auto; }
 .lightbox-overlay img {
     max-width: 90vw;
     max-height: 80vh;
+    min-width: 60vw;      /* küçük thumbnail'leri (Z+R) zorla büyült */
+    min-height: 60vh;
+    width: auto;
+    height: auto;
     object-fit: contain;
     border-radius: 4px;
     box-shadow: 0 8px 40px rgba(0,0,0,0.8);
     background: var(--bg-card);
+    image-rendering: -webkit-optimize-contrast;  /* küçük → büyük scaling daha iyi */
 }
 
 .lightbox-close {
@@ -456,6 +461,13 @@ main { padding: 24px 32px; max-width: 1600px; margin: 0 auto; }
     background: rgba(255,255,255,0.25);
 }
 
+.lightbox-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
 .lightbox-caption {
     color: #fff;
     font-size: 14px;
@@ -464,6 +476,20 @@ main { padding: 24px 32px; max-width: 1600px; margin: 0 auto; }
     padding: 8px 16px;
     border-radius: 4px;
     max-width: 80vw;
+}
+
+.lightbox-source-btn {
+    background: var(--accent);
+    color: #fff;
+    padding: 8px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background 0.15s;
+}
+.lightbox-source-btn:hover {
+    background: #4a90e2;
 }
 
 /* === Pending grid (main) === */

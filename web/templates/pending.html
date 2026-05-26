@@ -211,7 +211,10 @@
 <div id="image-lightbox" class="lightbox-overlay" hidden>
     <button class="lightbox-close" id="lightbox-close-btn" title="Kapat (ESC)">×</button>
     <img id="lightbox-img" src="" alt="" referrerpolicy="no-referrer">
-    <div id="lightbox-caption" class="lightbox-caption"></div>
+    <div class="lightbox-actions">
+        <div id="lightbox-caption" class="lightbox-caption"></div>
+        <a id="lightbox-source-link" href="#" target="_blank" class="lightbox-source-btn">🔗 Marka sayfasında aç (orijinal görseller)</a>
+    </div>
 </div>
 
 <!-- Reject modal (hem detaylı hem hızlı red için ortak) -->
@@ -252,7 +255,7 @@ const lightbox = document.getElementById('image-lightbox');
 const lightboxImg = document.getElementById('lightbox-img');
 const lightboxCaption = document.getElementById('lightbox-caption');
 
-function openLightbox(src, caption) {
+function openLightbox(src, caption, sourceUrl) {
     // URL'i daha yüksek çözünürlüğe çevir (500 → 1200)
     let bigSrc = src
         .replace(/width=\d+/g, 'width=1200')
@@ -262,6 +265,14 @@ function openLightbox(src, caption) {
     lightboxImg.src = bigSrc;
     lightboxImg.alt = caption || '';
     lightboxCaption.textContent = caption || '';
+    // Source URL link
+    const srcLink = document.getElementById('lightbox-source-link');
+    if (sourceUrl) {
+        srcLink.href = sourceUrl;
+        srcLink.style.display = '';
+    } else {
+        srcLink.style.display = 'none';
+    }
     lightbox.hidden = false;
     document.body.style.overflow = 'hidden';
 }
@@ -288,7 +299,8 @@ document.querySelectorAll('.aday-thumb').forEach(thumb => {
         const adayItem = thumb.closest('.aday-item');
         const key = adayItem ? adayItem.dataset.key : '';
         const brand = adayItem ? adayItem.dataset.brand : '';
-        openLightbox(img.src, `${brand} · ${key}`);
+        const sourceUrl = adayItem ? adayItem.dataset.url : '';
+        openLightbox(img.src, `${brand} · ${key}`, sourceUrl);
     });
 });
 
