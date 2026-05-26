@@ -200,13 +200,17 @@
     </div>
 </div>
 
-<!-- Reject modal -->
+<!-- Reject modal (hem detaylı hem hızlı red için ortak) -->
 <div id="reject-modal" class="modal-overlay" hidden>
     <div class="modal-content">
-        <h3>Reddetme Sebebi</h3>
-        <p>Bu adayı neden reddediyorsun? (ML öğrenmesi için)</p>
+        <h3 id="reject-modal-title">Reddetme Sebebi</h3>
+        <p id="reject-modal-subtitle">Bu adayı neden reddediyorsun? (ML öğrenmesi için)</p>
         <form id="reject-form">
             <input type="hidden" name="urun_id">
+            <input type="hidden" name="action_type" value="reject">
+            <input type="hidden" name="url">
+            <input type="hidden" name="brand_slug">
+            <input type="hidden" name="key">
             <div class="reason-checks">
                 <label><input type="checkbox" name="reason" value="jakar"> 🚫 Jakar yapı (Stäubli yapamaz)</label>
                 <label><input type="checkbox" name="reason" value="metallic"> 🚫 Metallic iplik</label>
@@ -266,54 +270,34 @@ document.querySelectorAll('.btn-scrape').forEach(btn => {
     });
 });
 
-// === Aday hızlı red handlers ===
+// === Aday hızlı red handlers (modal ile) ===
 document.querySelectorAll('.btn-quick-reject').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
+    btn.addEventListener('click', () => {
         const url = btn.dataset.url;
         const key = btn.dataset.key;
         const brand = btn.dataset.brand;
-        // Slug'dan kısa sebep çıkar
-        let suggestedReason = 'diger';
+        // Slug'dan suggested reason
         const slug = (key || '').toLowerCase();
-        if (slug.includes('jacquard') || slug.includes('jakar')) suggestedReason = 'jakar';
-        else if (slug.includes('metallic') || slug.includes('gold') || slug.includes('lurex')) suggestedReason = 'metallic';
-        else if (slug.includes('velvet') || slug.includes('kadife')) suggestedReason = 'tasarim_uyumsuz';
+        let suggested = null;
+        if (slug.includes('jacquard') || slug.includes('jakar')) suggested = 'jakar';
+        else if (slug.includes('metallic') || slug.includes('gold') || slug.includes('lurex')) suggested = 'metallic';
+        else if (slug.includes('velvet') || slug.includes('kadife')) suggested = 'tasarim_uyumsuz';
 
-        const reason = prompt(
-            `"${key}" adayını neden hızlı red ediyorsun?\n\nSebepler:\njakar | metallic | en_sinir_disi | uygun_iplik_yok | sertifika_imkansiz | fiyat_disi | tasarim_uyumsuz | tekrar | diger`,
-            suggestedReason
-        );
-        if (!reason) return;
-
-        btn.disabled = true;
-        btn.textContent = '⏳';
-        try {
-            const res = await fetch('/api/quick-reject', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    url, brand_slug: brand, key,
-                    reasons: [reason],
-                    notes: `Aday seviyesinde hızlı red (slug: ${key})`,
-                }),
-            });
-            const data = await res.json();
-            if (data.ok) {
-                const item = btn.closest('.aday-item');
-                if (item) {
-                    item.style.opacity = '0.3';
-                    item.style.textDecoration = 'line-through';
-                    setTimeout(() => item.remove(), 500);
-                }
-            } else {
-                btn.disabled = false;
-                btn.textContent = '🚫 Hızlı Red';
-                alert('Hata: ' + (data.error || 'bilinmeyen'));
-            }
-        } catch (e) {
-            btn.disabled = false;
-            btn.textContent = '🚫 Hızlı Red';
-        }
+        // Modal'i quick-reject moduna ayarla
+        document.getElementById('reject-modal-title').textContent = `🚫 Hızlı Red: ${key}`;
+        document.getElementById('reject-modal-subtitle').textContent =
+            'Slug\'a bakarak direkt red — scrape edilmez, hafızaya alınır.';
+        rejectForm.action_type.value = 'quick_reject';
+        rejectForm.url.value = url;
+        rejectForm.brand_slug.value = brand;
+        rejectForm.key.value = key;
+        rejectForm.urun_id.value = '';
+        // Suggested checkbox işaretle
+        rejectForm.querySelectorAll('input[name="reason"]').forEach(c => {
+            c.checked = (suggested && c.value === suggested);
+        });
+        rejectForm.notes.value = '';
+        modal.hidden = false;
     });
 });
 
@@ -415,7 +399,15 @@ document.querySelectorAll('.btn-reject:not(#modal-cancel)').forEach(btn => {
     btn.addEventListener('click', () => {
         if (btn.dataset.urunId) {
             currentRejectUrun = btn.dataset.urunId;
+            document.getElementById('reject-modal-title').textContent =
+                `🔍 Detaylı Red: ${currentRejectUrun}`;
+            document.getElementById('reject-modal-subtitle').textContent =
+                'Bu adayı neden reddediyorsun? (ML öğrenmesi için)';
+            rejectForm.action_type.value = 'reject';
             rejectForm.urun_id.value = currentRejectUrun;
+            rejectForm.url.value = '';
+            rejectForm.brand_slug.value = '';
+            rejectForm.key.value = '';
             // Clear checkboxes
             rejectForm.querySelectorAll('input[name="reason"]').forEach(c => c.checked = false);
             rejectForm.notes.value = '';
@@ -437,26 +429,52 @@ rejectForm.addEventListener('submit', async (e) => {
         alert('En az bir reddetme sebebi seç (ML öğrenmesi için kritik).');
         return;
     }
-    const res = await fetch('/api/reject', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
+
+    const actionType = rejectForm.action_type.value;
+    const notes = rejectForm.notes.value;
+
+    let endpoint, body, removeSelector;
+    if (actionType === 'quick_reject') {
+        endpoint = '/api/quick-reject';
+        body = {
+            url: rejectForm.url.value,
+            brand_slug: rejectForm.brand_slug.value,
+            key: rejectForm.key.value,
+            reasons: reasons,
+            notes: notes || `Aday seviyesinde hızlı red (slug: ${rejectForm.key.value})`,
+        };
+        removeSelector = `.aday-item[data-url="${rejectForm.url.value}"]`;
+    } else {
+        endpoint = '/api/reject';
+        body = {
             urun_id: currentRejectUrun,
             reasons: reasons,
-            notes: rejectForm.notes.value,
-        }),
-    });
-    const data = await res.json();
-    if (data.ok) {
-        modal.hidden = true;
-        const card = document.querySelector(`.pending-card[data-urun-id="${currentRejectUrun}"]`);
-        if (card) {
-            card.style.opacity = '0.3';
-            setTimeout(() => card.remove(), 500);
+            notes: notes,
+        };
+        removeSelector = `.pending-card[data-urun-id="${currentRejectUrun}"]`;
+    }
+
+    try {
+        const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body),
+        });
+        const data = await res.json();
+        if (data.ok) {
+            modal.hidden = true;
+            const target = document.querySelector(removeSelector);
+            if (target) {
+                target.style.opacity = '0.3';
+                target.style.textDecoration = 'line-through';
+                setTimeout(() => target.remove(), 500);
+            }
+            currentRejectUrun = null;
+        } else {
+            alert('Hata: ' + (data.error || 'bilinmeyen'));
         }
-        currentRejectUrun = null;
-    } else {
-        alert('Hata: ' + (data.error || 'bilinmeyen'));
+    } catch (e) {
+        alert('Bağlantı hatası: ' + e.message);
     }
 });
 </script>
