@@ -118,6 +118,36 @@
           "version_before": "v1.2: variants[].color_name=null, swatch+named karisik",
           "version_after": "v1.3: 8 renk adi (Italyan/Fransiz) eslestirildi, 7 variant gorseli renge link'lendi, 9 main-page swatch atlandi (low-res).",
           "notes": "Faz 6.10 (kullanici talep 2026-05-26): Dashboard variant cards renk basina high-res gorsel + renk adi. Swatch'ler (varyant_adi=None) JSON'a girmedi."
+        },
+        {
+          "audit_id": "dedar_00T22044-wide-linen-baobab_v1.3_2026-05-26",
+          "audit_date": "2026-05-26",
+          "audit_doc": "topla/scripts/migrate_dedar_gorseller.py",
+          "version_before": "v1.2/v1.1 (Faz 5.10 scraper v1.1 audit eklendi, images.* tek varyant)",
+          "version_after": "v1.3 (Faz 5.11 images.* genisletildi, ham_cikti -> gorseller kopya)",
+          "notes": "Scraper v1.1 ham_cikti'da 33 gorsel vardi (Cobra/DLN buyuk gallery). 33 gorsel gorseller/dedar/00T22044/ konumuna kopyalandi, JSON images.* genisletildi. Eski tek-varyant images yapisi _pre_faz511_snapshot'ta arsivlendi."
+        },
+        {
+          "audit_id": "dedar_00T22044-wide-linen-baobab_v1.3_2026-05-26_color_link",
+          "audit_date": "2026-05-26",
+          "version_before": "v1.2: variants[].color_name=null, swatch+named karisik",
+          "version_after": "v1.3: 8 renk adi (Italyan/Fransiz) eslestirildi, 23 variant gorseli renge link'lendi, 9 main-page swatch atlandi (low-res).",
+          "notes": "Faz 6.10 (kullanici talep 2026-05-26): Dashboard variant cards renk basina high-res gorsel + renk adi. Swatch'ler (varyant_adi=None) JSON'a girmedi."
+        },
+        {
+          "audit_id": "dedar_00T22044-wide-linen-baobab_v1.3_2026-05-26",
+          "audit_date": "2026-05-26",
+          "audit_doc": "topla/scripts/migrate_dedar_gorseller.py",
+          "version_before": "v1.2/v1.1 (Faz 5.10 scraper v1.1 audit eklendi, images.* tek varyant)",
+          "version_after": "v1.3 (Faz 5.11 images.* genisletildi, ham_cikti -> gorseller kopya)",
+          "notes": "Scraper v1.1 ham_cikti'da 33 gorsel vardi (Cobra/DLN buyuk gallery). 33 gorsel gorseller/dedar/00T22044/ konumuna kopyalandi, JSON images.* genisletildi. Eski tek-varyant images yapisi _pre_faz511_snapshot'ta arsivlendi."
+        },
+        {
+          "audit_id": "dedar_00T22044-wide-linen-baobab_v1.3_2026-05-26_color_link",
+          "audit_date": "2026-05-26",
+          "version_before": "v1.2: variants[].color_name=null, swatch+named karisik",
+          "version_after": "v1.3: 8 renk adi (Italyan/Fransiz) eslestirildi, 23 variant gorseli renge link'lendi, 9 main-page swatch atlandi (low-res).",
+          "notes": "Faz 6.10 (kullanici talep 2026-05-26): Dashboard variant cards renk basina high-res gorsel + renk adi. Swatch'ler (varyant_adi=None) JSON'a girmedi."
         }
       ]
     },
@@ -173,49 +203,49 @@
         "color_code": "00T22044-006",
         "color_name": "senape",
         "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17494_source_1779667985.jpg",
-        "main_image_local_path": "gorseller/dedar/00T22044/ana_01.jpg"
+        "main_image_local_path": "gorseller/dedar/00T22044/varyant_11.jpg"
       },
       {
         "color_code": "00T22044-001",
         "color_name": "bianco",
         "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17488_source_1779667983.jpg",
-        "main_image_local_path": "gorseller/dedar/00T22044/varyant_10.jpg"
+        "main_image_local_path": "gorseller/dedar/00T22044/varyant_14.jpg"
       },
       {
         "color_code": "00T22044-002",
         "color_name": "avorio",
         "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17489_source_1779667983.jpg",
-        "main_image_local_path": "gorseller/dedar/00T22044/varyant_11.jpg"
+        "main_image_local_path": "gorseller/dedar/00T22044/varyant_17.jpg"
       },
       {
         "color_code": "00T22044-003",
         "color_name": "mastice",
         "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17490_source_1779667984.jpg",
-        "main_image_local_path": "gorseller/dedar/00T22044/varyant_12.jpg"
+        "main_image_local_path": "gorseller/dedar/00T22044/varyant_20.jpg"
       },
       {
         "color_code": "00T22044-004",
         "color_name": "perla",
         "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17491_source_1779667984.jpg",
-        "main_image_local_path": "gorseller/dedar/00T22044/varyant_13.jpg"
+        "main_image_local_path": "gorseller/dedar/00T22044/varyant_23.jpg"
       },
       {
         "color_code": "00T22044-005",
         "color_name": "taupe",
         "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17492_source_1779667985.jpg",
-        "main_image_local_path": "gorseller/dedar/00T22044/varyant_14.jpg"
+        "main_image_local_path": "gorseller/dedar/00T22044/varyant_26.jpg"
       },
       {
         "color_code": "00T22044-007",
         "color_name": "canyon",
         "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17496_source_1779667986.jpg",
-        "main_image_local_path": "gorseller/dedar/00T22044/varyant_15.jpg"
+        "main_image_local_path": "gorseller/dedar/00T22044/varyant_29.jpg"
       },
       {
         "color_code": "00T22044-008",
         "color_name": "bottiglia",
         "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17499_source_1779667986.jpg",
-        "main_image_local_path": "gorseller/dedar/00T22044/varyant_16.jpg"
+        "main_image_local_path": "gorseller/dedar/00T22044/varyant_32.jpg"
       }
     ],
     "description_original": {
@@ -259,7 +289,7 @@
     "strategic_note": "Anatolian Linen sub-brand için pilot adayı (Air Line/Melange Linen/Nuri 81-82 ALTIN ailesi). Mobidik avantajı: 360 cm warp beam → 300 cm en kolay, Türk keten + naylon tedariki yerli (SASA + Bursa). M1 sertifika prosesi mevcut OEKO-TEX'i tamamlar. ARGE pilot: 3 nötr ton × 100 m, 4-6 hafta. EU Flax sertifikası 'Anatolian Linen' söylem için ek değer (3-6 ay başvuru)."
   },
   "images": {
-    "_description": "Faz 5.11 (2026-05-26): Scraper v1.1 ham_cikti'dan 17 gorsel gorseller/dedar/00T22044/ konumuna migrate edildi. Tip dagilimi: ana=1, detay=0, lifestyle=0, varyant=16. Eski faz 5.3/5.4 images yapisi _pre_faz511_snapshot'ta korundu (audit izi).",
+    "_description": "Faz 5.11 (2026-05-26): Scraper v1.1 ham_cikti'dan 33 gorsel gorseller/dedar/00T22044/ konumuna migrate edildi. Tip dagilimi: ana=1, detay=0, lifestyle=0, varyant=32. Eski faz 5.3/5.4 images yapisi _pre_faz511_snapshot'ta korundu (audit izi).",
     "main": [
       {
         "url": null,
@@ -269,11 +299,43 @@
     ],
     "variants": [
       {
+        "variant_code": "00T22044-006",
+        "color_code": "006",
+        "color_name": "senape",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2160/778771/1__26543.1779669275.jpg?c=1",
+        "local_path": "gorseller/dedar/00T22044/varyant_10.jpg",
+        "alt": "wide-linen-baobab - senape"
+      },
+      {
+        "variant_code": "00T22044-006",
+        "color_code": "006",
+        "color_name": "senape",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2160/778772/2__59775.1779669275.jpg?c=1",
+        "local_path": "gorseller/dedar/00T22044/varyant_11.jpg",
+        "alt": "wide-linen-baobab - senape"
+      },
+      {
         "variant_code": "00T22044-001",
         "color_code": "001",
         "color_name": "bianco",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17488_source_1779667983.jpg",
-        "local_path": "gorseller/dedar/00T22044/varyant_10.jpg",
+        "local_path": "gorseller/dedar/00T22044/varyant_12.jpg",
+        "alt": "wide-linen-baobab - bianco"
+      },
+      {
+        "variant_code": "00T22044-001",
+        "color_code": "001",
+        "color_name": "bianco",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2160/778773/1__31820.1779669275.jpg?c=1",
+        "local_path": "gorseller/dedar/00T22044/varyant_13.jpg",
+        "alt": "wide-linen-baobab - bianco"
+      },
+      {
+        "variant_code": "00T22044-001",
+        "color_code": "001",
+        "color_name": "bianco",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2160/778774/2__18636.1779669275.jpg?c=1",
+        "local_path": "gorseller/dedar/00T22044/varyant_14.jpg",
         "alt": "wide-linen-baobab - bianco"
       },
       {
@@ -281,7 +343,23 @@
         "color_code": "002",
         "color_name": "avorio",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17489_source_1779667983.jpg",
-        "local_path": "gorseller/dedar/00T22044/varyant_11.jpg",
+        "local_path": "gorseller/dedar/00T22044/varyant_15.jpg",
+        "alt": "wide-linen-baobab - avorio"
+      },
+      {
+        "variant_code": "00T22044-002",
+        "color_code": "002",
+        "color_name": "avorio",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2160/778775/1__34494.1779669274.jpg?c=1",
+        "local_path": "gorseller/dedar/00T22044/varyant_16.jpg",
+        "alt": "wide-linen-baobab - avorio"
+      },
+      {
+        "variant_code": "00T22044-002",
+        "color_code": "002",
+        "color_name": "avorio",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2160/778776/2__12631.1779669274.jpg?c=1",
+        "local_path": "gorseller/dedar/00T22044/varyant_17.jpg",
         "alt": "wide-linen-baobab - avorio"
       },
       {
@@ -289,7 +367,23 @@
         "color_code": "003",
         "color_name": "mastice",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17490_source_1779667984.jpg",
-        "local_path": "gorseller/dedar/00T22044/varyant_12.jpg",
+        "local_path": "gorseller/dedar/00T22044/varyant_18.jpg",
+        "alt": "wide-linen-baobab - mastice"
+      },
+      {
+        "variant_code": "00T22044-003",
+        "color_code": "003",
+        "color_name": "mastice",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2160/778777/1__06388.1779669274.jpg?c=1",
+        "local_path": "gorseller/dedar/00T22044/varyant_19.jpg",
+        "alt": "wide-linen-baobab - mastice"
+      },
+      {
+        "variant_code": "00T22044-003",
+        "color_code": "003",
+        "color_name": "mastice",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2160/778778/2__56735.1779669274.jpg?c=1",
+        "local_path": "gorseller/dedar/00T22044/varyant_20.jpg",
         "alt": "wide-linen-baobab - mastice"
       },
       {
@@ -297,7 +391,23 @@
         "color_code": "004",
         "color_name": "perla",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17491_source_1779667984.jpg",
-        "local_path": "gorseller/dedar/00T22044/varyant_13.jpg",
+        "local_path": "gorseller/dedar/00T22044/varyant_21.jpg",
+        "alt": "wide-linen-baobab - perla"
+      },
+      {
+        "variant_code": "00T22044-004",
+        "color_code": "004",
+        "color_name": "perla",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2160/778779/1__42651.1779669273.jpg?c=1",
+        "local_path": "gorseller/dedar/00T22044/varyant_22.jpg",
+        "alt": "wide-linen-baobab - perla"
+      },
+      {
+        "variant_code": "00T22044-004",
+        "color_code": "004",
+        "color_name": "perla",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2160/778780/2__87075.1779669273.jpg?c=1",
+        "local_path": "gorseller/dedar/00T22044/varyant_23.jpg",
         "alt": "wide-linen-baobab - perla"
       },
       {
@@ -305,7 +415,23 @@
         "color_code": "005",
         "color_name": "taupe",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17492_source_1779667985.jpg",
-        "local_path": "gorseller/dedar/00T22044/varyant_14.jpg",
+        "local_path": "gorseller/dedar/00T22044/varyant_24.jpg",
+        "alt": "wide-linen-baobab - taupe"
+      },
+      {
+        "variant_code": "00T22044-005",
+        "color_code": "005",
+        "color_name": "taupe",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2160/778781/1__93565.1779669273.jpg?c=1",
+        "local_path": "gorseller/dedar/00T22044/varyant_25.jpg",
+        "alt": "wide-linen-baobab - taupe"
+      },
+      {
+        "variant_code": "00T22044-005",
+        "color_code": "005",
+        "color_name": "taupe",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2160/778782/2__56182.1779669273.jpg?c=1",
+        "local_path": "gorseller/dedar/00T22044/varyant_26.jpg",
         "alt": "wide-linen-baobab - taupe"
       },
       {
@@ -313,7 +439,23 @@
         "color_code": "007",
         "color_name": "canyon",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17496_source_1779667986.jpg",
-        "local_path": "gorseller/dedar/00T22044/varyant_15.jpg",
+        "local_path": "gorseller/dedar/00T22044/varyant_27.jpg",
+        "alt": "wide-linen-baobab - canyon"
+      },
+      {
+        "variant_code": "00T22044-007",
+        "color_code": "007",
+        "color_name": "canyon",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2160/778783/1__75995.1779669272.jpg?c=1",
+        "local_path": "gorseller/dedar/00T22044/varyant_28.jpg",
+        "alt": "wide-linen-baobab - canyon"
+      },
+      {
+        "variant_code": "00T22044-007",
+        "color_code": "007",
+        "color_name": "canyon",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2160/778784/2__63371.1779669272.jpg?c=1",
+        "local_path": "gorseller/dedar/00T22044/varyant_29.jpg",
         "alt": "wide-linen-baobab - canyon"
       },
       {
@@ -321,21 +463,37 @@
         "color_code": "008",
         "color_name": "bottiglia",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17499_source_1779667986.jpg",
-        "local_path": "gorseller/dedar/00T22044/varyant_16.jpg",
+        "local_path": "gorseller/dedar/00T22044/varyant_30.jpg",
+        "alt": "wide-linen-baobab - bottiglia"
+      },
+      {
+        "variant_code": "00T22044-008",
+        "color_code": "008",
+        "color_name": "bottiglia",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2160/778785/1__26183.1779669272.jpg?c=1",
+        "local_path": "gorseller/dedar/00T22044/varyant_31.jpg",
+        "alt": "wide-linen-baobab - bottiglia"
+      },
+      {
+        "variant_code": "00T22044-008",
+        "color_code": "008",
+        "color_name": "bottiglia",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2160/778786/2__62660.1779669272.jpg?c=1",
+        "local_path": "gorseller/dedar/00T22044/varyant_32.jpg",
         "alt": "wide-linen-baobab - bottiglia"
       }
     ],
     "lifestyle": [],
     "technical": [],
     "_pre_faz511_snapshot": {
-      "description_old": null,
+      "description_old": "Faz 5.11 (2026-05-26): Scraper v1.1 ham_cikti'dan 33 gorsel gorseller/dedar/00T22044/ konumuna migrate edildi. Tip dagilimi: ana=1, detay=0, lifestyle=0, varyant=32. Eski faz 5.3/5.4 images yapisi _pre_faz511_snapshot'ta korundu (audit izi).",
       "main_count": 1,
-      "variants_count": 8,
+      "variants_count": 23,
       "lifestyle_count": 0,
       "technical_count": 0
     },
     "_quality_notes": [
-      "Faz 5.11 migration: 17 gorsel kopyalandi (ana=1, detay=0, lifestyle=0, varyant=16). Scraper v1.1 ham_cikti'dan."
+      "Faz 5.11 migration: 33 gorsel kopyalandi (ana=1, detay=0, lifestyle=0, varyant=32). Scraper v1.1 ham_cikti'dan."
     ]
   },
   "data_quality": {
@@ -346,6 +504,6 @@
       "image_analysis (dominant_colors, texture, transparency)"
     ],
     "notes": "Görseller ham_cikti/gorseller/ altında 10-11 dosya/ürün; Faz 6.8c'de gorseller/dedar/<code>/ altına migrate edilecek. image_analysis ve renk isimleri ileride manuel denetim ile eklenecek.",
-    "completeness_percent": 70
+    "completeness_percent": 85
   }
 }

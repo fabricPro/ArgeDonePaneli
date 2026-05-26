@@ -123,6 +123,36 @@
           "version_before": "v1.2: variants[].color_name=null, swatch+named karisik",
           "version_after": "v1.3: 3 renk adi (Italyan/Fransiz) eslestirildi, 2 variant gorseli renge link'lendi, 9 main-page swatch atlandi (low-res).",
           "notes": "Faz 6.10 (kullanici talep 2026-05-26): Dashboard variant cards renk basina high-res gorsel + renk adi. Swatch'ler (varyant_adi=None) JSON'a girmedi."
+        },
+        {
+          "audit_id": "dedar_00T23046-twillman_v1.3_2026-05-26",
+          "audit_date": "2026-05-26",
+          "audit_doc": "topla/scripts/migrate_dedar_gorseller.py",
+          "version_before": "v1.2/v1.1 (Faz 5.10 scraper v1.1 audit eklendi, images.* tek varyant)",
+          "version_after": "v1.3 (Faz 5.11 images.* genisletildi, ham_cikti -> gorseller kopya)",
+          "notes": "Scraper v1.1 ham_cikti'da 13 gorsel vardi (Cobra/DLN buyuk gallery). 13 gorsel gorseller/dedar/00T23046/ konumuna kopyalandi, JSON images.* genisletildi. Eski tek-varyant images yapisi _pre_faz511_snapshot'ta arsivlendi."
+        },
+        {
+          "audit_id": "dedar_00T23046-twillman_v1.3_2026-05-26_color_link",
+          "audit_date": "2026-05-26",
+          "version_before": "v1.2: variants[].color_name=null, swatch+named karisik",
+          "version_after": "v1.3: 3 renk adi (Italyan/Fransiz) eslestirildi, 2 variant gorseli renge link'lendi, 9 main-page swatch atlandi (low-res).",
+          "notes": "Faz 6.10 (kullanici talep 2026-05-26): Dashboard variant cards renk basina high-res gorsel + renk adi. Swatch'ler (varyant_adi=None) JSON'a girmedi."
+        },
+        {
+          "audit_id": "dedar_00T23046-twillman_v1.3_2026-05-26",
+          "audit_date": "2026-05-26",
+          "audit_doc": "topla/scripts/migrate_dedar_gorseller.py",
+          "version_before": "v1.2/v1.1 (Faz 5.10 scraper v1.1 audit eklendi, images.* tek varyant)",
+          "version_after": "v1.3 (Faz 5.11 images.* genisletildi, ham_cikti -> gorseller kopya)",
+          "notes": "Scraper v1.1 ham_cikti'da 17 gorsel vardi (Cobra/DLN buyuk gallery). 17 gorsel gorseller/dedar/00T23046/ konumuna kopyalandi, JSON images.* genisletildi. Eski tek-varyant images yapisi _pre_faz511_snapshot'ta arsivlendi."
+        },
+        {
+          "audit_id": "dedar_00T23046-twillman_v1.3_2026-05-26_color_link",
+          "audit_date": "2026-05-26",
+          "version_before": "v1.2: variants[].color_name=null, swatch+named karisik",
+          "version_after": "v1.3: 3 renk adi (Italyan/Fransiz) eslestirildi, 6 variant gorseli renge link'lendi, 9 main-page swatch atlandi (low-res).",
+          "notes": "Faz 6.10 (kullanici talep 2026-05-26): Dashboard variant cards renk basina high-res gorsel + renk adi. Swatch'ler (varyant_adi=None) JSON'a girmedi."
         }
       ]
     },
@@ -190,19 +220,19 @@
         "color_code": "00T23046-002",
         "color_name": "avorio",
         "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17675_source_1779668035.jpg",
-        "main_image_local_path": "gorseller/dedar/00T23046/ana_01.jpg"
+        "main_image_local_path": "gorseller/dedar/00T23046/varyant_10.jpg"
       },
       {
         "color_code": "00T23046-001",
         "color_name": "perla",
         "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17674_source_1779668034.jpg",
-        "main_image_local_path": "gorseller/dedar/00T23046/varyant_10.jpg"
+        "main_image_local_path": "gorseller/dedar/00T23046/varyant_12.jpg"
       },
       {
         "color_code": "00T23046-003",
         "color_name": "rafia",
         "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17677_source_1779668035.jpg",
-        "main_image_local_path": "gorseller/dedar/00T23046/varyant_11.jpg"
+        "main_image_local_path": "gorseller/dedar/00T23046/varyant_15.jpg"
       }
     ],
     "description_original": {
@@ -246,7 +276,7 @@
     "strategic_note": "Cobra ailesi'ne kardeş ürün — FR dobby twill. Mobidik için yeni FR perdelik hattı (Cobra leno sheer + Twillman twill upholstery/curtain). 6 sertifika seti Mobidik için yol haritası: IMO MED (denizyolu), BS5867 (UK), NFPA 701 (US), M1 (FR), OEKO-TEX (mevcut). 3-12 ay sertifika süreçleri paralel başlat. Türk iplik: Indorama Türkiye (Trevira CS FR), SASA solution-dyed FR PES. Recycled PES → GRS başvurusu (Harry RE ailesi ile birlikte hızlandırma). ARGE pilot: 3 nötr ton × 100 m, 5-6 hafta + sertifika 3-12 ay paralel."
   },
   "images": {
-    "_description": "Faz 5.11 (2026-05-26): Scraper v1.1 ham_cikti'dan 13 gorsel gorseller/dedar/00T23046/ konumuna migrate edildi. Tip dagilimi: ana=1, detay=1, lifestyle=0, varyant=11. Eski faz 5.3/5.4 images yapisi _pre_faz511_snapshot'ta korundu (audit izi).",
+    "_description": "Faz 5.11 (2026-05-26): Scraper v1.1 ham_cikti'dan 17 gorsel gorseller/dedar/00T23046/ konumuna migrate edildi. Tip dagilimi: ana=1, detay=1, lifestyle=0, varyant=15. Eski faz 5.3/5.4 images yapisi _pre_faz511_snapshot'ta korundu (audit izi).",
     "main": [
       {
         "url": null,
@@ -256,11 +286,27 @@
     ],
     "variants": [
       {
+        "variant_code": "00T23046-002",
+        "color_code": "002",
+        "color_name": "avorio",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2209/778967/1__64917.1779669470.jpg?c=1",
+        "local_path": "gorseller/dedar/00T23046/varyant_10.jpg",
+        "alt": "twillman - avorio"
+      },
+      {
         "variant_code": "00T23046-001",
         "color_code": "001",
         "color_name": "perla",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17674_source_1779668034.jpg",
-        "local_path": "gorseller/dedar/00T23046/varyant_10.jpg",
+        "local_path": "gorseller/dedar/00T23046/varyant_11.jpg",
+        "alt": "twillman - perla"
+      },
+      {
+        "variant_code": "00T23046-001",
+        "color_code": "001",
+        "color_name": "perla",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2209/778968/1__92280.1779669469.jpg?c=1",
+        "local_path": "gorseller/dedar/00T23046/varyant_12.jpg",
         "alt": "twillman - perla"
       },
       {
@@ -268,7 +314,23 @@
         "color_code": "003",
         "color_name": "rafia",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17677_source_1779668035.jpg",
-        "local_path": "gorseller/dedar/00T23046/varyant_11.jpg",
+        "local_path": "gorseller/dedar/00T23046/varyant_13.jpg",
+        "alt": "twillman - rafia"
+      },
+      {
+        "variant_code": "00T23046-003",
+        "color_code": "003",
+        "color_name": "rafia",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2209/778969/1__57793.1779669469.jpg?c=1",
+        "local_path": "gorseller/dedar/00T23046/varyant_14.jpg",
+        "alt": "twillman - rafia"
+      },
+      {
+        "variant_code": "00T23046-003",
+        "color_code": "003",
+        "color_name": "rafia",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2209/780352/2__47923.1779669469.jpg?c=1",
+        "local_path": "gorseller/dedar/00T23046/varyant_15.jpg",
         "alt": "twillman - rafia"
       }
     ],
@@ -285,7 +347,7 @@
           "error": null,
           "method": "scraper_v1_1_bigcommerce_cdn"
         },
-        "downloaded_at": "2026-05-26T09:37:14.542062+00:00",
+        "downloaded_at": "2026-05-26T10:07:08.029266+00:00",
         "file_size_kb": 92.0,
         "dimensions": {
           "width_px": 720,
@@ -295,14 +357,14 @@
       }
     ],
     "_pre_faz511_snapshot": {
-      "description_old": null,
+      "description_old": "Faz 5.11 (2026-05-26): Scraper v1.1 ham_cikti'dan 13 gorsel gorseller/dedar/00T23046/ konumuna migrate edildi. Tip dagilimi: ana=1, detay=1, lifestyle=0, varyant=11. Eski faz 5.3/5.4 images yapisi _pre_faz511_snapshot'ta korundu (audit izi).",
       "main_count": 1,
-      "variants_count": 3,
+      "variants_count": 2,
       "lifestyle_count": 0,
       "technical_count": 1
     },
     "_quality_notes": [
-      "Faz 5.11 migration: 13 gorsel kopyalandi (ana=1, detay=1, lifestyle=0, varyant=11). Scraper v1.1 ham_cikti'dan."
+      "Faz 5.11 migration: 17 gorsel kopyalandi (ana=1, detay=1, lifestyle=0, varyant=15). Scraper v1.1 ham_cikti'dan."
     ]
   },
   "data_quality": {
@@ -313,6 +375,6 @@
       "image_analysis (dominant_colors, texture, transparency)"
     ],
     "notes": "Görseller ham_cikti/gorseller/ altında 10-11 dosya/ürün; Faz 6.8c'de gorseller/dedar/<code>/ altına migrate edilecek. image_analysis ve renk isimleri ileride manuel denetim ile eklenecek.",
-    "completeness_percent": 70
+    "completeness_percent": 85
   }
 }

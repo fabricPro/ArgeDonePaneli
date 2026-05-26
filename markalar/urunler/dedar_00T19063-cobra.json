@@ -177,6 +177,36 @@
           "version_before": "v1.2: variants[].color_name=null, swatch+named karisik",
           "version_after": "v1.3: 2 renk adi (Italyan/Fransiz) eslestirildi, 1 variant gorseli renge link'lendi, 9 main-page swatch atlandi (low-res).",
           "notes": "Faz 6.10 (kullanici talep 2026-05-26): Dashboard variant cards renk basina high-res gorsel + renk adi. Swatch'ler (varyant_adi=None) JSON'a girmedi."
+        },
+        {
+          "audit_id": "dedar_00T19063-cobra_v1.3_2026-05-26",
+          "audit_date": "2026-05-26",
+          "audit_doc": "topla/scripts/migrate_dedar_gorseller.py",
+          "version_before": "v1.2/v1.1 (Faz 5.10 scraper v1.1 audit eklendi, images.* tek varyant)",
+          "version_after": "v1.3 (Faz 5.11 images.* genisletildi, ham_cikti -> gorseller kopya)",
+          "notes": "Scraper v1.1 ham_cikti'da 11 gorsel vardi (Cobra/DLN buyuk gallery). 11 gorsel gorseller/dedar/00T19063/ konumuna kopyalandi, JSON images.* genisletildi. Eski tek-varyant images yapisi _pre_faz511_snapshot'ta arsivlendi."
+        },
+        {
+          "audit_id": "dedar_00T19063-cobra_v1.3_2026-05-26_color_link",
+          "audit_date": "2026-05-26",
+          "version_before": "v1.2: variants[].color_name=null, swatch+named karisik",
+          "version_after": "v1.3: 2 renk adi (Italyan/Fransiz) eslestirildi, 1 variant gorseli renge link'lendi, 9 main-page swatch atlandi (low-res).",
+          "notes": "Faz 6.10 (kullanici talep 2026-05-26): Dashboard variant cards renk basina high-res gorsel + renk adi. Swatch'ler (varyant_adi=None) JSON'a girmedi."
+        },
+        {
+          "audit_id": "dedar_00T19063-cobra_v1.3_2026-05-26",
+          "audit_date": "2026-05-26",
+          "audit_doc": "topla/scripts/migrate_dedar_gorseller.py",
+          "version_before": "v1.2/v1.1 (Faz 5.10 scraper v1.1 audit eklendi, images.* tek varyant)",
+          "version_after": "v1.3 (Faz 5.11 images.* genisletildi, ham_cikti -> gorseller kopya)",
+          "notes": "Scraper v1.1 ham_cikti'da 11 gorsel vardi (Cobra/DLN buyuk gallery). 11 gorsel gorseller/dedar/00T19063/ konumuna kopyalandi, JSON images.* genisletildi. Eski tek-varyant images yapisi _pre_faz511_snapshot'ta arsivlendi."
+        },
+        {
+          "audit_id": "dedar_00T19063-cobra_v1.3_2026-05-26_color_link",
+          "audit_date": "2026-05-26",
+          "version_before": "v1.2: variants[].color_name=null, swatch+named karisik",
+          "version_after": "v1.3: 2 renk adi (Italyan/Fransiz) eslestirildi, 1 variant gorseli renge link'lendi, 9 main-page swatch atlandi (low-res).",
+          "notes": "Faz 6.10 (kullanici talep 2026-05-26): Dashboard variant cards renk basina high-res gorsel + renk adi. Swatch'ler (varyant_adi=None) JSON'a girmedi."
         }
       ]
     },
@@ -382,9 +412,9 @@
     "lifestyle": [],
     "technical": [],
     "_pre_faz511_snapshot": {
-      "description_old": "Faz 5.11.2 (2026-05-26): Scraper v1.1.2 varyant page loop ile her renk varyantinin kendi yuksek cozunurluklu gorseli + Italyanca renk adi alindi. 2 varyant + 0 lifestyle + 1 ana.",
+      "description_old": "Faz 5.11 (2026-05-26): Scraper v1.1 ham_cikti'dan 11 gorsel gorseller/dedar/00T19063/ konumuna migrate edildi. Tip dagilimi: ana=1, detay=0, lifestyle=0, varyant=10. Eski faz 5.3/5.4 images yapisi _pre_faz511_snapshot'ta korundu (audit izi).",
       "main_count": 1,
-      "variants_count": 2,
+      "variants_count": 1,
       "lifestyle_count": 0,
       "technical_count": 0
     },

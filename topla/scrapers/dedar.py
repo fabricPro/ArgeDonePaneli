@@ -186,15 +186,25 @@ def scrape_dedar(url: str) -> dict:
         variants_enriched = _scrape_variant_pages(page, url, data["variants_raw"])
         data["variants_raw"] = variants_enriched
 
-        # Her varyantin ana gorseli base_images'a "varyant" tipinde eklenir
+        # Her varyantin TUM gallery'si base_images'a "varyant" tipinde eklenir
+        # v1.3: main attribute_rule_images + 2-3 productView gallery thumbnail (1280x1280)
         for v in variants_enriched:
+            urls_for_variant: list[str] = []
             if v.get("main_image_url"):
+                urls_for_variant.append(v["main_image_url"])
+            for g_url in v.get("gallery_urls") or []:
+                if g_url not in urls_for_variant:
+                    urls_for_variant.append(g_url)
+
+            for idx, url in enumerate(urls_for_variant, start=1):
                 extra_images.append({
                     "tip": "varyant",
-                    "kaynak_url": v["main_image_url"],
+                    "kaynak_url": url,
                     "varyant_adi": v.get("name") or v.get("sku"),
                     "_variant_sku": v.get("sku"),
                     "_variant_code": v.get("color_suffix"),
+                    "_variant_image_idx": idx,
+                    "_variant_image_role": "main" if idx == 1 else "gallery",
                 })
 
         # Dedupe + birlestir
@@ -260,11 +270,36 @@ def _scrape_variant_pages(page, base_url: str, variants_raw: list) -> list:
             )
             main_image_url = m_img.group(0) if m_img else None
 
+            # v1.3: Variant gallery — [data-image-gallery-item] selector'unden tum thumbnail'lar
+            # Her variant'in 2-3 gerceğe ait gallery image'i var (kumas flat + lifestyle perde)
+            # alt attribute'u "<color_suffix>|<color_family>" formatinda — variant dogrulama
+            gallery_urls: list[str] = []
+            try:
+                items = page.eval_on_selector_all(
+                    "[data-image-gallery-item] img",
+                    "els => els.map(e => ({src: e.src, alt: e.alt}))",
+                )
+                for it in items or []:
+                    src = it.get("src", "") or ""
+                    alt = it.get("alt", "") or ""
+                    if not src or "cdn11.bigcommerce.com" not in src:
+                        continue
+                    # alt baslangici color_suffix mi kontrol (sahte image filter)
+                    if color_suffix and alt and not alt.startswith(color_suffix):
+                        continue
+                    # 50x50 (thumbnail) -> 1280x1280 (high-res)
+                    big_src = re.sub(r"/stencil/\d+x?\d*[wh]?/", "/stencil/1280x1280/", src)
+                    if big_src not in gallery_urls:
+                        gallery_urls.append(big_src)
+            except Exception:
+                pass
+
             enriched.append({
                 "sku": sku,
                 "color_suffix": color_suffix,
                 "name": name,
                 "main_image_url": main_image_url,
+                "gallery_urls": gallery_urls,  # v1.3: full per-variant gallery
                 "url": variant_url,
             })
         except Exception as e:
@@ -273,6 +308,7 @@ def _scrape_variant_pages(page, base_url: str, variants_raw: list) -> list:
                 "color_suffix": color_suffix,
                 "name": None,
                 "main_image_url": None,
+                "gallery_urls": [],
                 "_error": str(e)[:200],
             })
 

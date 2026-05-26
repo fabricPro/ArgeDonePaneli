@@ -119,6 +119,36 @@
           "version_before": "v1.2: variants[].color_name=null, swatch+named karisik",
           "version_after": "v1.3: 11 renk adi (Italyan/Fransiz) eslestirildi, 10 variant gorseli renge link'lendi, 9 main-page swatch atlandi (low-res).",
           "notes": "Faz 6.10 (kullanici talep 2026-05-26): Dashboard variant cards renk basina high-res gorsel + renk adi. Swatch'ler (varyant_adi=None) JSON'a girmedi."
+        },
+        {
+          "audit_id": "dedar_00T19031-wide-linen-signor-darcy_v1.3_2026-05-26",
+          "audit_date": "2026-05-26",
+          "audit_doc": "topla/scripts/migrate_dedar_gorseller.py",
+          "version_before": "v1.2/v1.1 (Faz 5.10 scraper v1.1 audit eklendi, images.* tek varyant)",
+          "version_after": "v1.3 (Faz 5.11 images.* genisletildi, ham_cikti -> gorseller kopya)",
+          "notes": "Scraper v1.1 ham_cikti'da 20 gorsel vardi (Cobra/DLN buyuk gallery). 20 gorsel gorseller/dedar/00T19031/ konumuna kopyalandi, JSON images.* genisletildi. Eski tek-varyant images yapisi _pre_faz511_snapshot'ta arsivlendi."
+        },
+        {
+          "audit_id": "dedar_00T19031-wide-linen-signor-darcy_v1.3_2026-05-26_color_link",
+          "audit_date": "2026-05-26",
+          "version_before": "v1.2: variants[].color_name=null, swatch+named karisik",
+          "version_after": "v1.3: 11 renk adi (Italyan/Fransiz) eslestirildi, 10 variant gorseli renge link'lendi, 9 main-page swatch atlandi (low-res).",
+          "notes": "Faz 6.10 (kullanici talep 2026-05-26): Dashboard variant cards renk basina high-res gorsel + renk adi. Swatch'ler (varyant_adi=None) JSON'a girmedi."
+        },
+        {
+          "audit_id": "dedar_00T19031-wide-linen-signor-darcy_v1.3_2026-05-26",
+          "audit_date": "2026-05-26",
+          "audit_doc": "topla/scripts/migrate_dedar_gorseller.py",
+          "version_before": "v1.2/v1.1 (Faz 5.10 scraper v1.1 audit eklendi, images.* tek varyant)",
+          "version_after": "v1.3 (Faz 5.11 images.* genisletildi, ham_cikti -> gorseller kopya)",
+          "notes": "Scraper v1.1 ham_cikti'da 42 gorsel vardi (Cobra/DLN buyuk gallery). 42 gorsel gorseller/dedar/00T19031/ konumuna kopyalandi, JSON images.* genisletildi. Eski tek-varyant images yapisi _pre_faz511_snapshot'ta arsivlendi."
+        },
+        {
+          "audit_id": "dedar_00T19031-wide-linen-signor-darcy_v1.3_2026-05-26_color_link",
+          "audit_date": "2026-05-26",
+          "version_before": "v1.2: variants[].color_name=null, swatch+named karisik",
+          "version_after": "v1.3: 11 renk adi (Italyan/Fransiz) eslestirildi, 32 variant gorseli renge link'lendi, 9 main-page swatch atlandi (low-res).",
+          "notes": "Faz 6.10 (kullanici talep 2026-05-26): Dashboard variant cards renk basina high-res gorsel + renk adi. Swatch'ler (varyant_adi=None) JSON'a girmedi."
         }
       ]
     },
@@ -171,67 +201,67 @@
         "color_code": "00T19031-009",
         "color_name": "perle",
         "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/16503_source_1779667723.jpg",
-        "main_image_local_path": "gorseller/dedar/00T19031/ana_01.jpg"
+        "main_image_local_path": "gorseller/dedar/00T19031/varyant_12.jpg"
       },
       {
         "color_code": "00T19031-001",
         "color_name": "bianco",
         "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/16485_source_1779667720.jpg",
-        "main_image_local_path": "gorseller/dedar/00T19031/varyant_10.jpg"
+        "main_image_local_path": "gorseller/dedar/00T19031/varyant_15.jpg"
       },
       {
         "color_code": "00T19031-002",
         "color_name": "avorio",
         "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/16487_source_1779667720.jpg",
-        "main_image_local_path": "gorseller/dedar/00T19031/varyant_11.jpg"
+        "main_image_local_path": "gorseller/dedar/00T19031/varyant_17.jpg"
       },
       {
         "color_code": "00T19031-003",
         "color_name": "ardoise",
         "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/16489_source_1779667720.jpg",
-        "main_image_local_path": "gorseller/dedar/00T19031/varyant_12.jpg"
+        "main_image_local_path": "gorseller/dedar/00T19031/varyant_20.jpg"
       },
       {
         "color_code": "00T19031-004",
         "color_name": "sable",
         "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/16491_source_1779667721.jpg",
-        "main_image_local_path": "gorseller/dedar/00T19031/varyant_13.jpg"
+        "main_image_local_path": "gorseller/dedar/00T19031/varyant_22.jpg"
       },
       {
         "color_code": "00T19031-005",
         "color_name": "rose poudré",
         "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/16494_source_1779667721.jpg",
-        "main_image_local_path": "gorseller/dedar/00T19031/varyant_14.jpg"
+        "main_image_local_path": "gorseller/dedar/00T19031/varyant_25.jpg"
       },
       {
         "color_code": "00T19031-006",
         "color_name": "glacier",
         "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/16498_source_1779667722.jpg",
-        "main_image_local_path": "gorseller/dedar/00T19031/varyant_15.jpg"
+        "main_image_local_path": "gorseller/dedar/00T19031/varyant_27.jpg"
       },
       {
         "color_code": "00T19031-007",
         "color_name": "jonc",
         "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/16501_source_1779667722.jpg",
-        "main_image_local_path": "gorseller/dedar/00T19031/varyant_16.jpg"
+        "main_image_local_path": "gorseller/dedar/00T19031/varyant_32.jpg"
       },
       {
         "color_code": "00T19031-010",
         "color_name": "charbon",
         "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/16506_source_1779667723.jpg",
-        "main_image_local_path": "gorseller/dedar/00T19031/varyant_17.jpg"
+        "main_image_local_path": "gorseller/dedar/00T19031/varyant_35.jpg"
       },
       {
         "color_code": "00T19031-011",
         "color_name": "mastic",
         "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/16508_source_1779667724.jpg",
-        "main_image_local_path": "gorseller/dedar/00T19031/varyant_18.jpg"
+        "main_image_local_path": "gorseller/dedar/00T19031/varyant_37.jpg"
       },
       {
         "color_code": "00T19031-012",
         "color_name": "daim",
         "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/16509_source_1779667724.jpg",
-        "main_image_local_path": "gorseller/dedar/00T19031/varyant_19.jpg"
+        "main_image_local_path": "gorseller/dedar/00T19031/varyant_41.jpg"
       }
     ],
     "description_original": {
@@ -275,7 +305,7 @@
     "strategic_note": "⭐ ALTIN — Anatolian Linen sub-brand'ın PREMİUM uçta pilot adayı. 100% saf keten chevron + 11 renk = Air Line (81)/Melange Linen (81)/Nuri (82) ailesine yeni hat olarak eklenebilir. Mobidik avantajı: Bursa keten + dobby chevron = İtalyan yarn-dyed Avrupa keten muadili 'Anatolian Linen Chevron'. Sertifika: OEKO-TEX zaten var, M1 başvuru (3-6 ay), EU Flax muadili 'Anatolian Linen' söylem (Masters of Linen ekipman gerek). ARGE pilot: 5 nötr+toprak ton × 150 m, 6 hafta. Designer: Dedar in-house (Mobidik için Türk tasarımcı işbirliği fırsatı)."
   },
   "images": {
-    "_description": "Faz 5.11 (2026-05-26): Scraper v1.1 ham_cikti'dan 20 gorsel gorseller/dedar/00T19031/ konumuna migrate edildi. Tip dagilimi: ana=1, detay=0, lifestyle=0, varyant=19. Eski faz 5.3/5.4 images yapisi _pre_faz511_snapshot'ta korundu (audit izi).",
+    "_description": "Faz 5.11 (2026-05-26): Scraper v1.1 ham_cikti'dan 42 gorsel gorseller/dedar/00T19031/ konumuna migrate edildi. Tip dagilimi: ana=1, detay=0, lifestyle=0, varyant=41. Eski faz 5.3/5.4 images yapisi _pre_faz511_snapshot'ta korundu (audit izi).",
     "main": [
       {
         "url": null,
@@ -285,11 +315,51 @@
     ],
     "variants": [
       {
+        "variant_code": "00T19031-009",
+        "color_code": "009",
+        "color_name": "perle",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2018/777154/1__17959.1779668593.jpg?c=1",
+        "local_path": "gorseller/dedar/00T19031/varyant_10.jpg",
+        "alt": "wide-linen-signor-darcy - perle"
+      },
+      {
+        "variant_code": "00T19031-009",
+        "color_code": "009",
+        "color_name": "perle",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2018/777155/2__56252.1779668592.jpg?c=1",
+        "local_path": "gorseller/dedar/00T19031/varyant_11.jpg",
+        "alt": "wide-linen-signor-darcy - perle"
+      },
+      {
+        "variant_code": "00T19031-009",
+        "color_code": "009",
+        "color_name": "perle",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2018/777156/3__41384.1779668592.jpg?c=1",
+        "local_path": "gorseller/dedar/00T19031/varyant_12.jpg",
+        "alt": "wide-linen-signor-darcy - perle"
+      },
+      {
         "variant_code": "00T19031-001",
         "color_code": "001",
         "color_name": "bianco",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/16485_source_1779667720.jpg",
-        "local_path": "gorseller/dedar/00T19031/varyant_10.jpg",
+        "local_path": "gorseller/dedar/00T19031/varyant_13.jpg",
+        "alt": "wide-linen-signor-darcy - bianco"
+      },
+      {
+        "variant_code": "00T19031-001",
+        "color_code": "001",
+        "color_name": "bianco",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2018/777157/1__72812.1779668592.jpg?c=1",
+        "local_path": "gorseller/dedar/00T19031/varyant_14.jpg",
+        "alt": "wide-linen-signor-darcy - bianco"
+      },
+      {
+        "variant_code": "00T19031-001",
+        "color_code": "001",
+        "color_name": "bianco",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2018/777158/2__32739.1779668591.jpg?c=1",
+        "local_path": "gorseller/dedar/00T19031/varyant_15.jpg",
         "alt": "wide-linen-signor-darcy - bianco"
       },
       {
@@ -297,7 +367,15 @@
         "color_code": "002",
         "color_name": "avorio",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/16487_source_1779667720.jpg",
-        "local_path": "gorseller/dedar/00T19031/varyant_11.jpg",
+        "local_path": "gorseller/dedar/00T19031/varyant_16.jpg",
+        "alt": "wide-linen-signor-darcy - avorio"
+      },
+      {
+        "variant_code": "00T19031-002",
+        "color_code": "002",
+        "color_name": "avorio",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2018/777159/1__28048.1779668591.jpg?c=1",
+        "local_path": "gorseller/dedar/00T19031/varyant_17.jpg",
         "alt": "wide-linen-signor-darcy - avorio"
       },
       {
@@ -305,7 +383,23 @@
         "color_code": "003",
         "color_name": "ardoise",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/16489_source_1779667720.jpg",
-        "local_path": "gorseller/dedar/00T19031/varyant_12.jpg",
+        "local_path": "gorseller/dedar/00T19031/varyant_18.jpg",
+        "alt": "wide-linen-signor-darcy - ardoise"
+      },
+      {
+        "variant_code": "00T19031-003",
+        "color_code": "003",
+        "color_name": "ardoise",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2018/777160/1__56511.1779668590.jpg?c=1",
+        "local_path": "gorseller/dedar/00T19031/varyant_19.jpg",
+        "alt": "wide-linen-signor-darcy - ardoise"
+      },
+      {
+        "variant_code": "00T19031-003",
+        "color_code": "003",
+        "color_name": "ardoise",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2018/777161/2__73271.1779668590.jpg?c=1",
+        "local_path": "gorseller/dedar/00T19031/varyant_20.jpg",
         "alt": "wide-linen-signor-darcy - ardoise"
       },
       {
@@ -313,7 +407,15 @@
         "color_code": "004",
         "color_name": "sable",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/16491_source_1779667721.jpg",
-        "local_path": "gorseller/dedar/00T19031/varyant_13.jpg",
+        "local_path": "gorseller/dedar/00T19031/varyant_21.jpg",
+        "alt": "wide-linen-signor-darcy - sable"
+      },
+      {
+        "variant_code": "00T19031-004",
+        "color_code": "004",
+        "color_name": "sable",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2018/777162/1__78205.1779668590.jpg?c=1",
+        "local_path": "gorseller/dedar/00T19031/varyant_22.jpg",
         "alt": "wide-linen-signor-darcy - sable"
       },
       {
@@ -321,7 +423,23 @@
         "color_code": "005",
         "color_name": "rose poudré",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/16494_source_1779667721.jpg",
-        "local_path": "gorseller/dedar/00T19031/varyant_14.jpg",
+        "local_path": "gorseller/dedar/00T19031/varyant_23.jpg",
+        "alt": "wide-linen-signor-darcy - rose poudré"
+      },
+      {
+        "variant_code": "00T19031-005",
+        "color_code": "005",
+        "color_name": "rose poudré",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2018/777163/1__59933.1779668590.jpg?c=1",
+        "local_path": "gorseller/dedar/00T19031/varyant_24.jpg",
+        "alt": "wide-linen-signor-darcy - rose poudré"
+      },
+      {
+        "variant_code": "00T19031-005",
+        "color_code": "005",
+        "color_name": "rose poudré",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2018/777164/2__89421.1779668589.jpg?c=1",
+        "local_path": "gorseller/dedar/00T19031/varyant_25.jpg",
         "alt": "wide-linen-signor-darcy - rose poudré"
       },
       {
@@ -329,7 +447,15 @@
         "color_code": "006",
         "color_name": "glacier",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/16498_source_1779667722.jpg",
-        "local_path": "gorseller/dedar/00T19031/varyant_15.jpg",
+        "local_path": "gorseller/dedar/00T19031/varyant_26.jpg",
+        "alt": "wide-linen-signor-darcy - glacier"
+      },
+      {
+        "variant_code": "00T19031-006",
+        "color_code": "006",
+        "color_name": "glacier",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2018/777165/1__50628.1779668589.jpg?c=1",
+        "local_path": "gorseller/dedar/00T19031/varyant_27.jpg",
         "alt": "wide-linen-signor-darcy - glacier"
       },
       {
@@ -337,7 +463,39 @@
         "color_code": "007",
         "color_name": "jonc",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/16501_source_1779667722.jpg",
-        "local_path": "gorseller/dedar/00T19031/varyant_16.jpg",
+        "local_path": "gorseller/dedar/00T19031/varyant_28.jpg",
+        "alt": "wide-linen-signor-darcy - jonc"
+      },
+      {
+        "variant_code": "00T19031-007",
+        "color_code": "007",
+        "color_name": "jonc",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2018/777166/1__80672.1779668589.jpg?c=1",
+        "local_path": "gorseller/dedar/00T19031/varyant_29.jpg",
+        "alt": "wide-linen-signor-darcy - jonc"
+      },
+      {
+        "variant_code": "00T19031-007",
+        "color_code": "007",
+        "color_name": "jonc",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2018/777167/2__92796.1779668589.jpg?c=1",
+        "local_path": "gorseller/dedar/00T19031/varyant_30.jpg",
+        "alt": "wide-linen-signor-darcy - jonc"
+      },
+      {
+        "variant_code": "00T19031-007",
+        "color_code": "007",
+        "color_name": "jonc",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2018/777168/3__42828.1779668588.jpg?c=1",
+        "local_path": "gorseller/dedar/00T19031/varyant_31.jpg",
+        "alt": "wide-linen-signor-darcy - jonc"
+      },
+      {
+        "variant_code": "00T19031-007",
+        "color_code": "007",
+        "color_name": "jonc",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2018/777169/4__37905.1779668588.jpg?c=1",
+        "local_path": "gorseller/dedar/00T19031/varyant_32.jpg",
         "alt": "wide-linen-signor-darcy - jonc"
       },
       {
@@ -345,7 +503,23 @@
         "color_code": "010",
         "color_name": "charbon",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/16506_source_1779667723.jpg",
-        "local_path": "gorseller/dedar/00T19031/varyant_17.jpg",
+        "local_path": "gorseller/dedar/00T19031/varyant_33.jpg",
+        "alt": "wide-linen-signor-darcy - charbon"
+      },
+      {
+        "variant_code": "00T19031-010",
+        "color_code": "010",
+        "color_name": "charbon",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2018/777170/1__94325.1779668588.jpg?c=1",
+        "local_path": "gorseller/dedar/00T19031/varyant_34.jpg",
+        "alt": "wide-linen-signor-darcy - charbon"
+      },
+      {
+        "variant_code": "00T19031-010",
+        "color_code": "010",
+        "color_name": "charbon",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2018/777171/2__55871.1779668588.jpg?c=1",
+        "local_path": "gorseller/dedar/00T19031/varyant_35.jpg",
         "alt": "wide-linen-signor-darcy - charbon"
       },
       {
@@ -353,7 +527,15 @@
         "color_code": "011",
         "color_name": "mastic",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/16508_source_1779667724.jpg",
-        "local_path": "gorseller/dedar/00T19031/varyant_18.jpg",
+        "local_path": "gorseller/dedar/00T19031/varyant_36.jpg",
+        "alt": "wide-linen-signor-darcy - mastic"
+      },
+      {
+        "variant_code": "00T19031-011",
+        "color_code": "011",
+        "color_name": "mastic",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2018/777172/1__32606.1779668588.jpg?c=1",
+        "local_path": "gorseller/dedar/00T19031/varyant_37.jpg",
         "alt": "wide-linen-signor-darcy - mastic"
       },
       {
@@ -361,21 +543,45 @@
         "color_code": "012",
         "color_name": "daim",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/16509_source_1779667724.jpg",
-        "local_path": "gorseller/dedar/00T19031/varyant_19.jpg",
+        "local_path": "gorseller/dedar/00T19031/varyant_38.jpg",
+        "alt": "wide-linen-signor-darcy - daim"
+      },
+      {
+        "variant_code": "00T19031-012",
+        "color_code": "012",
+        "color_name": "daim",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2018/777173/1__95936.1779668587.jpg?c=1",
+        "local_path": "gorseller/dedar/00T19031/varyant_39.jpg",
+        "alt": "wide-linen-signor-darcy - daim"
+      },
+      {
+        "variant_code": "00T19031-012",
+        "color_code": "012",
+        "color_name": "daim",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2018/777174/2__99085.1779668587.jpg?c=1",
+        "local_path": "gorseller/dedar/00T19031/varyant_40.jpg",
+        "alt": "wide-linen-signor-darcy - daim"
+      },
+      {
+        "variant_code": "00T19031-012",
+        "color_code": "012",
+        "color_name": "daim",
+        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/products/2018/777175/3__22718.1779668586.jpg?c=1",
+        "local_path": "gorseller/dedar/00T19031/varyant_41.jpg",
         "alt": "wide-linen-signor-darcy - daim"
       }
     ],
     "lifestyle": [],
     "technical": [],
     "_pre_faz511_snapshot": {
-      "description_old": null,
+      "description_old": "Faz 5.11 (2026-05-26): Scraper v1.1 ham_cikti'dan 20 gorsel gorseller/dedar/00T19031/ konumuna migrate edildi. Tip dagilimi: ana=1, detay=0, lifestyle=0, varyant=19. Eski faz 5.3/5.4 images yapisi _pre_faz511_snapshot'ta korundu (audit izi).",
       "main_count": 1,
-      "variants_count": 9,
+      "variants_count": 10,
       "lifestyle_count": 0,
       "technical_count": 0
     },
     "_quality_notes": [
-      "Faz 5.11 migration: 20 gorsel kopyalandi (ana=1, detay=0, lifestyle=0, varyant=19). Scraper v1.1 ham_cikti'dan."
+      "Faz 5.11 migration: 42 gorsel kopyalandi (ana=1, detay=0, lifestyle=0, varyant=41). Scraper v1.1 ham_cikti'dan."
     ]
   },
   "data_quality": {
@@ -386,6 +592,6 @@
       "image_analysis (dominant_colors, texture, transparency)"
     ],
     "notes": "Görseller ham_cikti/gorseller/ altında 10-11 dosya/ürün; Faz 6.8c'de gorseller/dedar/<code>/ altına migrate edilecek. image_analysis ve renk isimleri ileride manuel denetim ile eklenecek.",
-    "completeness_percent": 70
+    "completeness_percent": 85
   }
 }
