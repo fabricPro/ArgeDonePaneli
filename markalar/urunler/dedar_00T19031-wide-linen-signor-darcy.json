@@ -1,0 +1,341 @@
+{
+  "_schema_version": "1.3",
+  "urun_id": "dedar_00T19031-wide-linen-signor-darcy",
+  "brand": "Dedar",
+  "brand_slug": "dedar",
+  "collection": "Wide Sheers — Linen",
+  "product_code": "00T19031",
+  "product_name": "Wide Linen Signor Darcy",
+  "source_url": "https://dedar.com/wide-linen-signor-darcy/",
+  "scraped_at": "2026-05-26T09:02:05.543885+00:00",
+  "last_updated": "2026-05-26T09:30:00Z",
+  "source_data": {
+    "_description": "Dedar Wide Linen Signor Darcy — Faz 6.8 Tier 1 ALTIN aday denetim. topla --batch italyan tarafından discover edildi, kullanıcı onayıyla topla.cli ile scrape edildi, Claude denetim (mobidik_evaluation, strategic_note, kapasite #7 uygulaması) sonrası markalar/urunler/'e geçti.",
+    "_provenance": {
+      "schema_version": "1.1",
+      "created_at": "2026-05-26T09:30:00Z",
+      "last_updated": "2026-05-26T09:30:00Z",
+      "sources_used": [
+        {
+          "url": "https://dedar.com/wide-linen-signor-darcy/",
+          "type": "html_product_page",
+          "accessed_at": "2026-05-26T09:02:05.543885+00:00",
+          "fields_supported": [
+            "product_code",
+            "product_name",
+            "composition",
+            "width_cm",
+            "country_of_origin",
+            "certifications",
+            "description_original"
+          ]
+        },
+        {
+          "url": "topla/batch.py",
+          "type": "scheduled_batch_discovery",
+          "accessed_at": "2026-05-26T02:38:32Z",
+          "fields_supported": [
+            "discovered_via=italyan_batch"
+          ]
+        },
+        {
+          "url": "kapasite/staubli_uretim_kapasitesi.md",
+          "type": "user_verified_capacity_table",
+          "accessed_at": "2026-05-26T09:30:00Z",
+          "fields_supported": [
+            "mobidik_evaluation.staubli_feasibility"
+          ]
+        }
+      ],
+      "field_metadata": {
+        "weave_type_normalized": {
+          "value": "dobby_chevron",
+          "source": "html_body_description + Claude denetim",
+          "extraction_confidence": "exact",
+          "extraction_notes": "Body: 'extra-wide Chevron, yarn-dyed, woven in Italy with fine, long linen fibres from France and Belgium'. Chevron = dobby tekniği (zig-zag twill varyantı). Yarn-dyed = renkli iplikten dokuma (Mobidik için TAM uyum)."
+        },
+        "country_of_origin": {
+          "value": "Italy",
+          "source": "html_scraper",
+          "extraction_confidence": "exact"
+        },
+        "certifications_other": {
+          "value": [
+            "M1 (DIN 4102-1 Class B1 muadili)",
+            "OEKO-TEX Standard 100"
+          ],
+          "source": "html_scraper",
+          "extraction_confidence": "exact",
+          "extraction_notes": "Scraper yakalama: ['M1', 'Oekotex', 'Oeko-Tex', 'OEKO-TEX']. Claude denetim ile tam ad/standart normalize edildi."
+        }
+      },
+      "fields_from_html_scraper": [
+        "product_name",
+        "composition",
+        "width_cm",
+        "country",
+        "certifications",
+        "description_original"
+      ],
+      "fields_from_body_manual": [
+        "weave_type_normalized",
+        "product_code (SKU)"
+      ],
+      "fields_from_inference": [],
+      "constitutional_violations_check": "passed_at_2026-05-26T09:30:00Z",
+      "audit_history": [
+        {
+          "audit_id": "dedar_00T19031-wide-linen-signor-darcy_v1.0_2026-05-26",
+          "audit_date": "2026-05-26",
+          "version_before": "(yok — yeni keşfedilen ürün)",
+          "version_after": "v1.0: topla --batch italyan ile keşif, topla.cli ile scrape, Claude denetim ile mobidik_evaluation + strategic_note + field_metadata.",
+          "notes": "Faz 6.8 Tier 1 ALTIN aday denetimi. Stäubli=5/5, Overall=86/100, Priority=kritik. Görseller ham_cikti/gorseller/ altında, migrate Faz 6.8c'de."
+        },
+        {
+          "audit_id": "dedar_00T19031-wide-linen-signor-darcy_v1.1_2026-05-26_image_migrate",
+          "audit_date": "2026-05-26",
+          "version_before": "v1.0: images bos, gorseller ham_cikti'da",
+          "version_after": "v1.1: 1 main + 9 variant + 0 technical gorseli gorseller/dedar/00T19031/'a kopyalandi.",
+          "notes": "Faz 6.8c gorsel migrasyonu (Python mekanik, Anayasa #9)."
+        }
+      ]
+    },
+    "commercial": {
+      "country_of_origin": "Italy",
+      "production_model": "Dedar koleksiyon (stok + üretim)",
+      "price": null,
+      "moq_meters": null,
+      "lead_time_weeks": null
+    },
+    "technical": {
+      "composition": [
+        {
+          "fiber_commercial": "Linen",
+          "fiber_generic": "linen",
+          "ratio_percent": 100
+        }
+      ],
+      "width_cm": 310,
+      "weight_gsm": null,
+      "weight_linear_meter_g": null,
+      "repeat_cm": {
+        "vertical": null,
+        "horizontal": null
+      },
+      "weave_type_raw": "chevron yarn-dyed",
+      "weave_type_normalized": "dobby_chevron",
+      "thread_count": null,
+      "stretch_percent": null
+    },
+    "certifications": {
+      "fire_safety": [
+        "M1 (DIN 4102-1 Class B1 muadili)"
+      ],
+      "sustainability": [
+        "OEKO-TEX Standard 100"
+      ],
+      "other": []
+    },
+    "usage": {
+      "category": [
+        "Sheer fabrics",
+        "Wide curtains"
+      ],
+      "lightfastness_iso_105_b02": null,
+      "martindale": null
+    },
+    "variants": [
+      {
+        "color_code": "00T19031-009",
+        "color_name": null,
+        "main_image_url_source": null,
+        "main_image_local_path": "gorseller/dedar/00T19031/variant_009_1.jpg"
+      },
+      {
+        "color_code": "00T19031-001",
+        "color_name": null,
+        "main_image_url_source": null,
+        "main_image_local_path": "gorseller/dedar/00T19031/variant_001_1.jpg"
+      },
+      {
+        "color_code": "00T19031-002",
+        "color_name": null,
+        "main_image_url_source": null,
+        "main_image_local_path": "gorseller/dedar/00T19031/variant_002_1.jpg"
+      },
+      {
+        "color_code": "00T19031-003",
+        "color_name": null,
+        "main_image_url_source": null,
+        "main_image_local_path": "gorseller/dedar/00T19031/variant_003_1.jpg"
+      },
+      {
+        "color_code": "00T19031-004",
+        "color_name": null,
+        "main_image_url_source": null,
+        "main_image_local_path": "gorseller/dedar/00T19031/variant_004_1.jpg"
+      },
+      {
+        "color_code": "00T19031-005",
+        "color_name": null,
+        "main_image_url_source": null,
+        "main_image_local_path": "gorseller/dedar/00T19031/variant_005_1.jpg"
+      },
+      {
+        "color_code": "00T19031-006",
+        "color_name": null,
+        "main_image_url_source": null,
+        "main_image_local_path": "gorseller/dedar/00T19031/variant_006_1.jpg"
+      },
+      {
+        "color_code": "00T19031-007",
+        "color_name": null,
+        "main_image_url_source": null,
+        "main_image_local_path": "gorseller/dedar/00T19031/variant_007_1.jpg"
+      },
+      {
+        "color_code": "00T19031-010",
+        "color_name": null,
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "00T19031-011",
+        "color_name": null,
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      },
+      {
+        "color_code": "00T19031-012",
+        "color_name": null,
+        "main_image_url_source": null,
+        "main_image_local_path": null
+      }
+    ],
+    "description_original": {
+      "lang": "en",
+      "text": "This light and elegant extra-wide Chevron, yarn-dyed, was woven in Italy with fine, long linen fibres from France and Belgium. Both soft and resistant. NOTE: The fabric is shown railroaded.",
+      "source": "html_product_page"
+    },
+    "description_tr": {
+      "lang": "tr",
+      "text": "Bu hafif ve zarif ekstra-geniş Chevron deseni, ipliği boyalı olarak, Fransa ve Belçika'dan ince, uzun keten lifleriyle İtalya'da dokunmuştur. Hem yumuşak hem dayanıklı. NOT: Kumaş yana çevrilmiş gösterilmektedir.",
+      "translation_method": "claude_code_manual",
+      "translated_at": "2026-05-26T09:30:00Z"
+    },
+    "style_note": "⭐ EN GÜÇLÜ ALTIN aday — 100% saf keten + dobby chevron pattern + 310 cm en + EU Flax (Fransa/Belçika lif) + 11 renk varyantı. 'Signor Darcy' İngiliz aristokrat ismi (Pride & Prejudice referansı). Mobidik için Anatolian Linen premium uçta.",
+    "designer": null
+  },
+  "ai_inferences": {
+    "weave_normalization": {
+      "value": "dobby_chevron",
+      "confidence": "high",
+      "method": "html_body_description_inference",
+      "based_on": "Body: 'extra-wide Chevron, yarn-dyed, woven in Italy with fine, long linen fibres from France and Belgium'. Chevron = dobby tekniği (zig-zag twill varyantı). Yarn-dyed = renkli iplikten dokuma (Mobidik için TAM uyum)."
+    }
+  },
+  "mobidik_evaluation": {
+    "priority_level": "kritik",
+    "staubli_feasibility": {
+      "score": 5,
+      "frame_count_estimate": "16-24 cerceve (chevron desen 8-16 frame, ek varyasyon icin)",
+      "comment": "Stäubli dobby + 100% keten + chevron (zig-zag twill) yarn-dyed = TAM uyum. Mobidik 360 cm warp beam ile 310 cm sorunsuz. EU Flax dış kaynak (Avrupa keten) vs Anadolu keten karşılaştırması: kompozisyon aynı, hikaye farklı. Mobidik için: Bursa keten birliği + Adana pamuk (Nuri ailesi) iplik kaynağı."
+    },
+    "overall_score": 86,
+    "components": {
+      "staubli_feasibility": 5,
+      "yarn_supply": 5,
+      "certification_path": 4,
+      "market_fit": 5,
+      "sub_brand_alignment": 5,
+      "design_uniqueness": 4
+    },
+    "strategic_note": "⭐ ALTIN — Anatolian Linen sub-brand'ın PREMİUM uçta pilot adayı. 100% saf keten chevron + 11 renk = Air Line (81)/Melange Linen (81)/Nuri (82) ailesine yeni hat olarak eklenebilir. Mobidik avantajı: Bursa keten + dobby chevron = İtalyan yarn-dyed Avrupa keten muadili 'Anatolian Linen Chevron'. Sertifika: OEKO-TEX zaten var, M1 başvuru (3-6 ay), EU Flax muadili 'Anatolian Linen' söylem (Masters of Linen ekipman gerek). ARGE pilot: 5 nötr+toprak ton × 150 m, 6 hafta. Designer: Dedar in-house (Mobidik için Türk tasarımcı işbirliği fırsatı)."
+  },
+  "images": {
+    "main": [
+      {
+        "url": null,
+        "local_path": "gorseller/dedar/00T19031/main_01.jpg",
+        "alt": "wide-linen-signor-darcy - main 1"
+      }
+    ],
+    "technical": [],
+    "lifestyle": [],
+    "variants": [
+      {
+        "variant_code": "00T19031-009",
+        "color_code": "009",
+        "url": null,
+        "local_path": "gorseller/dedar/00T19031/variant_009_1.jpg",
+        "alt": "wide-linen-signor-darcy - 009"
+      },
+      {
+        "variant_code": "00T19031-001",
+        "color_code": "001",
+        "url": null,
+        "local_path": "gorseller/dedar/00T19031/variant_001_1.jpg",
+        "alt": "wide-linen-signor-darcy - 001"
+      },
+      {
+        "variant_code": "00T19031-002",
+        "color_code": "002",
+        "url": null,
+        "local_path": "gorseller/dedar/00T19031/variant_002_1.jpg",
+        "alt": "wide-linen-signor-darcy - 002"
+      },
+      {
+        "variant_code": "00T19031-003",
+        "color_code": "003",
+        "url": null,
+        "local_path": "gorseller/dedar/00T19031/variant_003_1.jpg",
+        "alt": "wide-linen-signor-darcy - 003"
+      },
+      {
+        "variant_code": "00T19031-004",
+        "color_code": "004",
+        "url": null,
+        "local_path": "gorseller/dedar/00T19031/variant_004_1.jpg",
+        "alt": "wide-linen-signor-darcy - 004"
+      },
+      {
+        "variant_code": "00T19031-005",
+        "color_code": "005",
+        "url": null,
+        "local_path": "gorseller/dedar/00T19031/variant_005_1.jpg",
+        "alt": "wide-linen-signor-darcy - 005"
+      },
+      {
+        "variant_code": "00T19031-006",
+        "color_code": "006",
+        "url": null,
+        "local_path": "gorseller/dedar/00T19031/variant_006_1.jpg",
+        "alt": "wide-linen-signor-darcy - 006"
+      },
+      {
+        "variant_code": "00T19031-007",
+        "color_code": "007",
+        "url": null,
+        "local_path": "gorseller/dedar/00T19031/variant_007_1.jpg",
+        "alt": "wide-linen-signor-darcy - 007"
+      },
+      {
+        "variant_code": "00T19031-008",
+        "color_code": "008",
+        "url": null,
+        "local_path": "gorseller/dedar/00T19031/variant_008_1.jpg",
+        "alt": "wide-linen-signor-darcy - 008"
+      }
+    ],
+    "_note": "Faz 6.8c migrate edildi (ham_cikti/gorseller -> gorseller/dedar/<code>/)."
+  },
+  "data_quality": {
+    "missing_fields": [
+      "weight_gsm",
+      "lightfastness",
+      "color_names (varyant renk isimleri)",
+      "image_analysis (dominant_colors, texture, transparency)"
+    ],
+    "notes": "Görseller ham_cikti/gorseller/ altında 10-11 dosya/ürün; Faz 6.8c'de gorseller/dedar/<code>/ altına migrate edilecek. image_analysis ve renk isimleri ileride manuel denetim ile eklenecek."
+  }
+}

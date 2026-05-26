@@ -1,0 +1,318 @@
+{
+  "_schema_version": "1.3",
+  "urun_id": "dedar_00T22044-wide-linen-baobab",
+  "brand": "Dedar",
+  "brand_slug": "dedar",
+  "collection": "Wide Sheers — Linen",
+  "product_code": "00T22044",
+  "product_name": "Wide Linen Baobab",
+  "source_url": "https://dedar.com/wide-linen-baobab/",
+  "scraped_at": "2026-05-26T09:00:48.339829+00:00",
+  "last_updated": "2026-05-26T09:30:00Z",
+  "source_data": {
+    "_description": "Dedar Wide Linen Baobab — Faz 6.8 Tier 1 ALTIN aday denetim. topla --batch italyan tarafından discover edildi, kullanıcı onayıyla topla.cli ile scrape edildi, Claude denetim (mobidik_evaluation, strategic_note, kapasite #7 uygulaması) sonrası markalar/urunler/'e geçti.",
+    "_provenance": {
+      "schema_version": "1.1",
+      "created_at": "2026-05-26T09:30:00Z",
+      "last_updated": "2026-05-26T09:30:00Z",
+      "sources_used": [
+        {
+          "url": "https://dedar.com/wide-linen-baobab/",
+          "type": "html_product_page",
+          "accessed_at": "2026-05-26T09:00:48.339829+00:00",
+          "fields_supported": [
+            "product_code",
+            "product_name",
+            "composition",
+            "width_cm",
+            "country_of_origin",
+            "certifications",
+            "description_original"
+          ]
+        },
+        {
+          "url": "topla/batch.py",
+          "type": "scheduled_batch_discovery",
+          "accessed_at": "2026-05-26T02:38:32Z",
+          "fields_supported": [
+            "discovered_via=italyan_batch"
+          ]
+        },
+        {
+          "url": "kapasite/staubli_uretim_kapasitesi.md",
+          "type": "user_verified_capacity_table",
+          "accessed_at": "2026-05-26T09:30:00Z",
+          "fields_supported": [
+            "mobidik_evaluation.staubli_feasibility"
+          ]
+        }
+      ],
+      "field_metadata": {
+        "weave_type_normalized": {
+          "value": "open_weave_dobby",
+          "source": "html_body_description + Claude denetim",
+          "extraction_confidence": "exact",
+          "extraction_notes": "Body description: 'open weave that allows light to filter through'. Bulky linen yarn + polyamide karışım, dokuma 'open weave' = sheer açık dokuma. Stäubli dobby ile uyumlu (kural #7)."
+        },
+        "country_of_origin": {
+          "value": "Italy",
+          "source": "html_scraper",
+          "extraction_confidence": "exact"
+        },
+        "certifications_other": {
+          "value": [
+            "M1 (DIN 4102-1 Class B1 muadili)"
+          ],
+          "source": "html_scraper",
+          "extraction_confidence": "exact",
+          "extraction_notes": "Scraper yakalama: ['M1']. Claude denetim ile tam ad/standart normalize edildi."
+        }
+      },
+      "fields_from_html_scraper": [
+        "product_name",
+        "composition",
+        "width_cm",
+        "country",
+        "certifications",
+        "description_original"
+      ],
+      "fields_from_body_manual": [
+        "weave_type_normalized",
+        "product_code (SKU)"
+      ],
+      "fields_from_inference": [],
+      "constitutional_violations_check": "passed_at_2026-05-26T09:30:00Z",
+      "audit_history": [
+        {
+          "audit_id": "dedar_00T22044-wide-linen-baobab_v1.0_2026-05-26",
+          "audit_date": "2026-05-26",
+          "version_before": "(yok — yeni keşfedilen ürün)",
+          "version_after": "v1.0: topla --batch italyan ile keşif, topla.cli ile scrape, Claude denetim ile mobidik_evaluation + strategic_note + field_metadata.",
+          "notes": "Faz 6.8 Tier 1 ALTIN aday denetimi. Stäubli=5/5, Overall=80/100, Priority=yüksek. Görseller ham_cikti/gorseller/ altında, migrate Faz 6.8c'de."
+        },
+        {
+          "audit_id": "dedar_00T22044-wide-linen-baobab_v1.1_2026-05-26_image_migrate",
+          "audit_date": "2026-05-26",
+          "version_before": "v1.0: images bos, gorseller ham_cikti'da",
+          "version_after": "v1.1: 1 main + 8 variant + 0 technical gorseli gorseller/dedar/00T22044/'a kopyalandi.",
+          "notes": "Faz 6.8c gorsel migrasyonu (Python mekanik, Anayasa #9)."
+        }
+      ]
+    },
+    "commercial": {
+      "country_of_origin": "Italy",
+      "production_model": "Dedar koleksiyon (stok + üretim)",
+      "price": null,
+      "moq_meters": null,
+      "lead_time_weeks": null
+    },
+    "technical": {
+      "composition": [
+        {
+          "fiber_commercial": "Linen",
+          "fiber_generic": "linen",
+          "ratio_percent": 90
+        },
+        {
+          "fiber_commercial": "Polyamide",
+          "fiber_generic": "polyamide",
+          "ratio_percent": 10
+        }
+      ],
+      "width_cm": 300,
+      "weight_gsm": null,
+      "weight_linear_meter_g": null,
+      "repeat_cm": {
+        "vertical": null,
+        "horizontal": null
+      },
+      "weave_type_raw": "open weave",
+      "weave_type_normalized": "open_weave_dobby",
+      "thread_count": null,
+      "stretch_percent": null
+    },
+    "certifications": {
+      "fire_safety": [
+        "M1 (DIN 4102-1 Class B1 muadili)"
+      ],
+      "sustainability": [],
+      "other": []
+    },
+    "usage": {
+      "category": [
+        "Sheer fabrics",
+        "Wide curtains"
+      ],
+      "lightfastness_iso_105_b02": null,
+      "martindale": null
+    },
+    "variants": [
+      {
+        "color_code": "00T22044-006",
+        "color_name": null,
+        "main_image_url_source": null,
+        "main_image_local_path": "gorseller/dedar/00T22044/variant_006_1.jpg"
+      },
+      {
+        "color_code": "00T22044-001",
+        "color_name": null,
+        "main_image_url_source": null,
+        "main_image_local_path": "gorseller/dedar/00T22044/variant_001_1.jpg"
+      },
+      {
+        "color_code": "00T22044-002",
+        "color_name": null,
+        "main_image_url_source": null,
+        "main_image_local_path": "gorseller/dedar/00T22044/variant_002_1.jpg"
+      },
+      {
+        "color_code": "00T22044-003",
+        "color_name": null,
+        "main_image_url_source": null,
+        "main_image_local_path": "gorseller/dedar/00T22044/variant_003_1.jpg"
+      },
+      {
+        "color_code": "00T22044-004",
+        "color_name": null,
+        "main_image_url_source": null,
+        "main_image_local_path": "gorseller/dedar/00T22044/variant_004_1.jpg"
+      },
+      {
+        "color_code": "00T22044-005",
+        "color_name": null,
+        "main_image_url_source": null,
+        "main_image_local_path": "gorseller/dedar/00T22044/variant_005_1.jpg"
+      },
+      {
+        "color_code": "00T22044-007",
+        "color_name": null,
+        "main_image_url_source": null,
+        "main_image_local_path": "gorseller/dedar/00T22044/variant_007_1.jpg"
+      },
+      {
+        "color_code": "00T22044-008",
+        "color_name": null,
+        "main_image_url_source": null,
+        "main_image_local_path": "gorseller/dedar/00T22044/variant_008_1.jpg"
+      }
+    ],
+    "description_original": {
+      "lang": "en",
+      "text": "An extra-width linen poised harmoniously between a textural effect and transparency: intertwined with bulky linen yarn to create an open weave that allows the light to filter through.",
+      "source": "html_product_page"
+    },
+    "description_tr": {
+      "lang": "tr",
+      "text": "Doku etkisi ile şeffaflık arasında uyumla konumlanmış ekstra-geniş keten: iri keten ipliklerle örülerek ışığın süzülmesine izin veren açık dokuma.",
+      "translation_method": "claude_code_manual",
+      "translated_at": "2026-05-26T09:30:00Z"
+    },
+    "style_note": "Anatolian Linen sub-brand muadili — 90% keten + 10% naylon (sağlamlık), açık dokuma sheer, 300 cm en (Mobidik 360 cm avantajı içinde), 8 nötr ton. M1 sertifika var → Mobidik için M1 (Fransa) B1'e eşdeğer.",
+    "designer": null
+  },
+  "ai_inferences": {
+    "weave_normalization": {
+      "value": "open_weave_dobby",
+      "confidence": "high",
+      "method": "html_body_description_inference",
+      "based_on": "Body description: 'open weave that allows light to filter through'. Bulky linen yarn + polyamide karışım, dokuma 'open weave' = sheer açık dokuma. Stäubli dobby ile uyumlu (kural #7)."
+    }
+  },
+  "mobidik_evaluation": {
+    "priority_level": "yüksek",
+    "staubli_feasibility": {
+      "score": 5,
+      "frame_count_estimate": "12-16 cerceve (open weave dobby — basit yapı)",
+      "comment": "Stäubli dobby + 90% keten + 10% naylon (standart iplik) = TAM uyum. Open weave (sheer) Stäubli ana fonksiyonu. 300 cm en Mobidik 360 cm sınırı içinde. Mevcut Türk fason: SASA naylon, Bursa keten birliği."
+    },
+    "overall_score": 80,
+    "components": {
+      "staubli_feasibility": 5,
+      "yarn_supply": 4,
+      "certification_path": 3,
+      "market_fit": 5,
+      "sub_brand_alignment": 5,
+      "design_uniqueness": 3
+    },
+    "strategic_note": "Anatolian Linen sub-brand için pilot adayı (Air Line/Melange Linen/Nuri 81-82 ALTIN ailesi). Mobidik avantajı: 360 cm warp beam → 300 cm en kolay, Türk keten + naylon tedariki yerli (SASA + Bursa). M1 sertifika prosesi mevcut OEKO-TEX'i tamamlar. ARGE pilot: 3 nötr ton × 100 m, 4-6 hafta. EU Flax sertifikası 'Anatolian Linen' söylem için ek değer (3-6 ay başvuru)."
+  },
+  "images": {
+    "main": [
+      {
+        "url": null,
+        "local_path": "gorseller/dedar/00T22044/main_01.jpg",
+        "alt": "wide-linen-baobab - main 1"
+      }
+    ],
+    "technical": [],
+    "lifestyle": [],
+    "variants": [
+      {
+        "variant_code": "00T22044-006",
+        "color_code": "006",
+        "url": null,
+        "local_path": "gorseller/dedar/00T22044/variant_006_1.jpg",
+        "alt": "wide-linen-baobab - 006"
+      },
+      {
+        "variant_code": "00T22044-001",
+        "color_code": "001",
+        "url": null,
+        "local_path": "gorseller/dedar/00T22044/variant_001_1.jpg",
+        "alt": "wide-linen-baobab - 001"
+      },
+      {
+        "variant_code": "00T22044-002",
+        "color_code": "002",
+        "url": null,
+        "local_path": "gorseller/dedar/00T22044/variant_002_1.jpg",
+        "alt": "wide-linen-baobab - 002"
+      },
+      {
+        "variant_code": "00T22044-003",
+        "color_code": "003",
+        "url": null,
+        "local_path": "gorseller/dedar/00T22044/variant_003_1.jpg",
+        "alt": "wide-linen-baobab - 003"
+      },
+      {
+        "variant_code": "00T22044-004",
+        "color_code": "004",
+        "url": null,
+        "local_path": "gorseller/dedar/00T22044/variant_004_1.jpg",
+        "alt": "wide-linen-baobab - 004"
+      },
+      {
+        "variant_code": "00T22044-005",
+        "color_code": "005",
+        "url": null,
+        "local_path": "gorseller/dedar/00T22044/variant_005_1.jpg",
+        "alt": "wide-linen-baobab - 005"
+      },
+      {
+        "variant_code": "00T22044-007",
+        "color_code": "007",
+        "url": null,
+        "local_path": "gorseller/dedar/00T22044/variant_007_1.jpg",
+        "alt": "wide-linen-baobab - 007"
+      },
+      {
+        "variant_code": "00T22044-008",
+        "color_code": "008",
+        "url": null,
+        "local_path": "gorseller/dedar/00T22044/variant_008_1.jpg",
+        "alt": "wide-linen-baobab - 008"
+      }
+    ],
+    "_note": "Faz 6.8c migrate edildi (ham_cikti/gorseller -> gorseller/dedar/<code>/)."
+  },
+  "data_quality": {
+    "missing_fields": [
+      "weight_gsm",
+      "lightfastness",
+      "color_names (varyant renk isimleri)",
+      "image_analysis (dominant_colors, texture, transparency)"
+    ],
+    "notes": "Görseller ham_cikti/gorseller/ altında 10-11 dosya/ürün; Faz 6.8c'de gorseller/dedar/<code>/ altına migrate edilecek. image_analysis ve renk isimleri ileride manuel denetim ile eklenecek."
+  }
+}

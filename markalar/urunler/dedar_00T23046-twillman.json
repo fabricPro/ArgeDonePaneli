@@ -1,0 +1,276 @@
+{
+  "_schema_version": "1.3",
+  "urun_id": "dedar_00T23046-twillman",
+  "brand": "Dedar",
+  "brand_slug": "dedar",
+  "collection": "Indoor/outdoor fabrics — FR Twill",
+  "product_code": "00T23046",
+  "product_name": "Twillman",
+  "source_url": "https://dedar.com/twillman/",
+  "scraped_at": "2026-05-26T09:04:34.313700+00:00",
+  "last_updated": "2026-05-26T09:30:00Z",
+  "source_data": {
+    "_description": "Dedar Twillman — Faz 6.8 Tier 1 ALTIN aday denetim. topla --batch italyan tarafından discover edildi, kullanıcı onayıyla topla.cli ile scrape edildi, Claude denetim (mobidik_evaluation, strategic_note, kapasite #7 uygulaması) sonrası markalar/urunler/'e geçti.",
+    "_provenance": {
+      "schema_version": "1.1",
+      "created_at": "2026-05-26T09:30:00Z",
+      "last_updated": "2026-05-26T09:30:00Z",
+      "sources_used": [
+        {
+          "url": "https://dedar.com/twillman/",
+          "type": "html_product_page",
+          "accessed_at": "2026-05-26T09:04:34.313700+00:00",
+          "fields_supported": [
+            "product_code",
+            "product_name",
+            "composition",
+            "width_cm",
+            "country_of_origin",
+            "certifications",
+            "description_original"
+          ]
+        },
+        {
+          "url": "topla/batch.py",
+          "type": "scheduled_batch_discovery",
+          "accessed_at": "2026-05-26T02:38:32Z",
+          "fields_supported": [
+            "discovered_via=italyan_batch"
+          ]
+        },
+        {
+          "url": "kapasite/staubli_uretim_kapasitesi.md",
+          "type": "user_verified_capacity_table",
+          "accessed_at": "2026-05-26T09:30:00Z",
+          "fields_supported": [
+            "mobidik_evaluation.staubli_feasibility"
+          ]
+        }
+      ],
+      "field_metadata": {
+        "weave_type_normalized": {
+          "value": "dobby_twill",
+          "source": "html_body_description + Claude denetim",
+          "extraction_confidence": "exact",
+          "extraction_notes": "Body: 'textured and bulky twill brings exuberance of material and yarns to fore. Fireproof, washable, abrasion-resistant, weather-conditions, sunlight, mold-resistant'. Twill = dobby ile yapılabilir (Stäubli TAM)."
+        },
+        "country_of_origin": {
+          "value": "Italy",
+          "source": "html_scraper",
+          "extraction_confidence": "exact"
+        },
+        "certifications_other": {
+          "value": [
+            "IMO MED Part. 7",
+            "FR Italy Class 1",
+            "BS5867/2/B (UK)",
+            "NFPA 701 (US)",
+            "M1 (DIN 4102-1 Class B1 muadili)",
+            "OEKO-TEX Standard 100"
+          ],
+          "source": "html_scraper",
+          "extraction_confidence": "exact",
+          "extraction_notes": "Scraper yakalama: ['IMO MED', 'Italy Class 1', 'BS5867/2/B', 'BS5867', 'NFPA 701', 'M1', 'Oekotex']. Claude denetim ile tam ad/standart normalize edildi."
+        }
+      },
+      "fields_from_html_scraper": [
+        "product_name",
+        "composition",
+        "width_cm",
+        "country",
+        "certifications",
+        "description_original"
+      ],
+      "fields_from_body_manual": [
+        "weave_type_normalized",
+        "product_code (SKU)"
+      ],
+      "fields_from_inference": [],
+      "constitutional_violations_check": "passed_at_2026-05-26T09:30:00Z",
+      "audit_history": [
+        {
+          "audit_id": "dedar_00T23046-twillman_v1.0_2026-05-26",
+          "audit_date": "2026-05-26",
+          "version_before": "(yok — yeni keşfedilen ürün)",
+          "version_after": "v1.0: topla --batch italyan ile keşif, topla.cli ile scrape, Claude denetim ile mobidik_evaluation + strategic_note + field_metadata.",
+          "notes": "Faz 6.8 Tier 1 ALTIN aday denetimi. Stäubli=5/5, Overall=82/100, Priority=yüksek. Görseller ham_cikti/gorseller/ altında, migrate Faz 6.8c'de."
+        },
+        {
+          "audit_id": "dedar_00T23046-twillman_v1.1_2026-05-26_image_migrate",
+          "audit_date": "2026-05-26",
+          "version_before": "v1.0: images bos, gorseller ham_cikti'da",
+          "version_after": "v1.1: 1 main + 3 variant + 1 technical gorseli gorseller/dedar/00T23046/'a kopyalandi.",
+          "notes": "Faz 6.8c gorsel migrasyonu (Python mekanik, Anayasa #9)."
+        }
+      ]
+    },
+    "commercial": {
+      "country_of_origin": "Italy",
+      "production_model": "Dedar koleksiyon (stok + üretim)",
+      "price": null,
+      "moq_meters": null,
+      "lead_time_weeks": null
+    },
+    "technical": {
+      "composition": [
+        {
+          "fiber_commercial": "Fire-retardant Polyester",
+          "fiber_generic": "polyester",
+          "ratio_percent": 69
+        },
+        {
+          "fiber_commercial": "Fire-retardant Recycled Polyester",
+          "fiber_generic": "polyester_recycled",
+          "ratio_percent": 17
+        },
+        {
+          "fiber_commercial": "Recycled Trevira CS Polyester",
+          "fiber_generic": "polyester_recycled",
+          "ratio_percent": 14
+        }
+      ],
+      "width_cm": 140,
+      "weight_gsm": null,
+      "weight_linear_meter_g": null,
+      "repeat_cm": {
+        "vertical": null,
+        "horizontal": null
+      },
+      "weave_type_raw": "twill",
+      "weave_type_normalized": "dobby_twill",
+      "thread_count": null,
+      "stretch_percent": null
+    },
+    "certifications": {
+      "fire_safety": [
+        "IMO MED Part. 7",
+        "FR Italy Class 1",
+        "BS5867/2/B (UK)",
+        "NFPA 701 (US)",
+        "M1 (DIN 4102-1 Class B1 muadili)"
+      ],
+      "sustainability": [
+        "OEKO-TEX Standard 100"
+      ],
+      "other": []
+    },
+    "usage": {
+      "category": [
+        "Upholstery fabrics",
+        "Indoor/outdoor",
+        "FR fabrics"
+      ],
+      "lightfastness_iso_105_b02": null,
+      "martindale": null
+    },
+    "variants": [
+      {
+        "color_code": "00T23046-002",
+        "color_name": null,
+        "main_image_url_source": null,
+        "main_image_local_path": "gorseller/dedar/00T23046/variant_002_1.jpg"
+      },
+      {
+        "color_code": "00T23046-001",
+        "color_name": null,
+        "main_image_url_source": null,
+        "main_image_local_path": "gorseller/dedar/00T23046/variant_001_1.jpg"
+      },
+      {
+        "color_code": "00T23046-003",
+        "color_name": null,
+        "main_image_url_source": null,
+        "main_image_local_path": "gorseller/dedar/00T23046/variant_003_1.jpg"
+      }
+    ],
+    "description_original": {
+      "lang": "en",
+      "text": "A textured and bulky twill brings the exuberance of the material and yarns to the fore. Fireproof, washable, and resistant to abrasion, weather conditions, sunlight, and mold, easily adaptable to all indoor and outdoor spaces.",
+      "source": "html_product_page"
+    },
+    "description_tr": {
+      "lang": "tr",
+      "text": "Dokulu ve hacimli bir dimi, malzeme ve ipliklerin canlılığını ön plana çıkarır. Yangına dayanıklı, yıkanabilir; sürtünme, hava koşulları, güneş ışığı ve küfe karşı dirençli; tüm iç ve dış mekan ortamlarına kolayca uyum sağlar.",
+      "translation_method": "claude_code_manual",
+      "translated_at": "2026-05-26T09:30:00Z"
+    },
+    "style_note": "Cobra (00T19063) ailesi muadili — fire-retardant indoor/outdoor + dobby twill. Farkı: Cobra leno + extra-wide sheer; Twillman dobby twill + 140 cm dar + %100 FR PES geri dönüşümlü karışım. 6 ÇOK GÜÇLÜ sertifika seti (IMO+BS+NFPA+M1+OEKO).",
+    "designer": null
+  },
+  "ai_inferences": {
+    "weave_normalization": {
+      "value": "dobby_twill",
+      "confidence": "high",
+      "method": "html_body_description_inference",
+      "based_on": "Body: 'textured and bulky twill brings exuberance of material and yarns to fore. Fireproof, washable, abrasion-resistant, weather-conditions, sunlight, mold-resistant'. Twill = dobby ile yapılabilir (Stäubli TAM)."
+    }
+  },
+  "mobidik_evaluation": {
+    "priority_level": "yüksek",
+    "staubli_feasibility": {
+      "score": 5,
+      "frame_count_estimate": "8-12 cerceve (basit twill dobby)",
+      "comment": "Stäubli dobby + FR PES (Trevira CS varyantları) twill = TAM. Mobidik FR iplik deneyimi mevcut (Cobra denetim doğruladı). 140 cm en sorunsuz (360 cm sınırın çok altında). Recycled Trevira CS = GRS sertifika fırsatı."
+    },
+    "overall_score": 82,
+    "components": {
+      "staubli_feasibility": 5,
+      "yarn_supply": 4,
+      "certification_path": 3,
+      "market_fit": 5,
+      "sub_brand_alignment": 4,
+      "design_uniqueness": 4
+    },
+    "strategic_note": "Cobra ailesi'ne kardeş ürün — FR dobby twill. Mobidik için yeni FR perdelik hattı (Cobra leno sheer + Twillman twill upholstery/curtain). 6 sertifika seti Mobidik için yol haritası: IMO MED (denizyolu), BS5867 (UK), NFPA 701 (US), M1 (FR), OEKO-TEX (mevcut). 3-12 ay sertifika süreçleri paralel başlat. Türk iplik: Indorama Türkiye (Trevira CS FR), SASA solution-dyed FR PES. Recycled PES → GRS başvurusu (Harry RE ailesi ile birlikte hızlandırma). ARGE pilot: 3 nötr ton × 100 m, 5-6 hafta + sertifika 3-12 ay paralel."
+  },
+  "images": {
+    "main": [
+      {
+        "url": null,
+        "local_path": "gorseller/dedar/00T23046/main_01.jpg",
+        "alt": "twillman - main 1"
+      }
+    ],
+    "technical": [
+      {
+        "url": null,
+        "local_path": "gorseller/dedar/00T23046/technical_02.jpg",
+        "alt": "twillman - technical 2"
+      }
+    ],
+    "lifestyle": [],
+    "variants": [
+      {
+        "variant_code": "00T23046-002",
+        "color_code": "002",
+        "url": null,
+        "local_path": "gorseller/dedar/00T23046/variant_002_1.jpg",
+        "alt": "twillman - 002"
+      },
+      {
+        "variant_code": "00T23046-001",
+        "color_code": "001",
+        "url": null,
+        "local_path": "gorseller/dedar/00T23046/variant_001_1.jpg",
+        "alt": "twillman - 001"
+      },
+      {
+        "variant_code": "00T23046-003",
+        "color_code": "003",
+        "url": null,
+        "local_path": "gorseller/dedar/00T23046/variant_003_1.jpg",
+        "alt": "twillman - 003"
+      }
+    ],
+    "_note": "Faz 6.8c migrate edildi (ham_cikti/gorseller -> gorseller/dedar/<code>/)."
+  },
+  "data_quality": {
+    "missing_fields": [
+      "weight_gsm",
+      "lightfastness",
+      "color_names (varyant renk isimleri)",
+      "image_analysis (dominant_colors, texture, transparency)"
+    ],
+    "notes": "Görseller ham_cikti/gorseller/ altında 10-11 dosya/ürün; Faz 6.8c'de gorseller/dedar/<code>/ altına migrate edilecek. image_analysis ve renk isimleri ileride manuel denetim ile eklenecek."
+  }
+}

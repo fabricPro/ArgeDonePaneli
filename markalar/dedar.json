@@ -8,17 +8,17 @@
   "founded_year": 1976,
   "website": "https://dedar.com",
   "tracked_since": "2026-05-25",
-  "last_updated": "2026-05-25T23:55:00Z",
-  "product_count_tracked": 2,
+  "last_updated": "2026-05-26T09:35:00Z",
+  "product_count_tracked": 6,
   "_provenance": {
     "schema_version": "1.1",
     "created_at": "2026-05-25T23:35:00Z",
-    "last_updated": "2026-05-25T23:55:00Z",
+    "last_updated": "2026-05-26T09:35:00Z",
     "sources_used": [
       {
         "url": "adaptorler/dedar.md",
         "type": "internal_adapter_v1.0",
-        "accessed_at": "2026-05-25T23:35:00Z",
+        "accessed_at": "2026-05-26T09:35:00Z",
         "fields_supported": [
           "country",
           "headquarters_city",
@@ -27,16 +27,16 @@
         ]
       },
       {
-        "url": "markalar/urunler/dedar_00T19063-cobra.json",
-        "type": "internal_product_record",
-        "accessed_at": "2026-05-25T23:35:00Z",
+        "url": "markalar/urunler/dedar_*.json",
+        "type": "internal_product_records",
+        "accessed_at": "2026-05-26T09:35:00Z",
         "fields_supported": [
           "product_count_tracked",
-          "all distribution observed_at_n1"
+          "all distribution mostly_estimated"
         ]
       }
     ],
-    "constitutional_violations_check": "passed_at_2026-05-25T23:55:00Z",
+    "constitutional_violations_check": "passed_at_2026-05-26T09:35:00Z",
     "audit_history": [
       {
         "audit_id": "dedar_marka_v1.0_2026-05-25",
@@ -51,118 +51,131 @@
         "version_before": "v1.0 (n=1, sadece Cobra)",
         "version_after": "v1.1 (n=2, Days Like Now eklendi)",
         "notes": "Days Like Now (wild silk shantung Hindistan) eklendi. n=1 -> n=2. Cobra (leno+FR Italya) ile yuksek cesitlilik gozlendi: en 134-325 cm, sentetik+dogal, Italya+Hindistan. avg_staubli 5.0 -> 4.5 (DLN 4/5 ipek tedariki nis). Statik kimlik (kurucular/CEO/mill/designer) PENDING."
+      },
+      {
+        "audit_id": "dedar_marka_v1.2_2026-05-26",
+        "audit_date": "2026-05-26",
+        "version_before": "v1.1 (n=2: Cobra+DLN)",
+        "version_after": "v1.2 (n=6: +Wide Linen Baobab+Atelier 1930+Signor Darcy+Twillman, Faz 6.8 ALTIN aday denetimi)",
+        "notes": "4 yeni ALTIN aday eklendi (Faz 6.8 Tier 1 — topla --batch italyan ile keşif, topla.cli ile scrape, Claude denetim). 3'u ALTIN (overall>=80). avg_staubli=4.83. Anatolian Linen sub-brand uyumlu 3 urun (Baobab+Atelier+Signor Darcy linen sheers) + Cobra ailesi muadili 1 urun (Twillman FR twill). n>=3 esiklerini gectik — istatistikler 'mostly_estimated'."
       }
     ]
   },
   "width_distribution": {
     "min_cm": {
-      "value": null,
-      "sample_status": "insufficient_n_2",
-      "sample_size": 2,
-      "observed_at_n1": 325,
-      "observed_at_n2": 134
+      "value": 134,
+      "sample_status": "mostly_estimated",
+      "sample_size": 6,
+      "comment": "n=6: min=134 (DLN dar), max=325 (Cobra extra-wide)"
     },
     "max_cm": {
-      "value": null,
-      "sample_status": "insufficient_n_2",
-      "sample_size": 2,
-      "observed_at_n1": 325,
-      "observed_at_n2": 325
+      "value": 325,
+      "sample_status": "mostly_estimated",
+      "sample_size": 6
     },
-    "comment": "n=2: Cobra 325 cm extra-wide + Days Like Now 134 cm dar. Dedar urun cesitliliği geniş — bir tek 'standart en' yok."
+    "avg_cm": {
+      "value": 252.3,
+      "sample_status": "mostly_estimated",
+      "sample_size": 6
+    },
+    "comment": "n=6: 134-325 cm aralik, ortalama 252 cm."
   },
   "color_profile": {
     "total_variant_count": {
-      "value": null,
-      "sample_status": "insufficient_n_1",
-      "sample_size": 2,
-      "observed_at_n1": 2,
-      "observed_at_n2": 10
+      "value": 35,
+      "sample_status": "mostly_estimated",
+      "sample_size": 6
     },
     "average_per_product": {
-      "value": null,
-      "sample_status": "insufficient_n_1",
-      "sample_size": 2,
-      "observed_at_n1": 2.0,
-      "observed_at_n2": 5.0
+      "value": 5.8,
+      "sample_status": "mostly_estimated",
+      "sample_size": 6
     },
-    "comment": "n=2: Cobra 2 ton + DLN 8 ton = 10 varyant, ortalama 5.0/urun."
+    "comment": "n=6: 35 varyant toplam, ortalama 5.8/urun."
   },
   "weave_distribution": {
+    "dobby_chevron": {
+      "value": 1,
+      "sample_status": "mostly_estimated",
+      "sample_size": 6,
+      "ratio_percent": 16.7
+    },
     "leno": {
-      "value": null,
-      "sample_status": "insufficient_n_1",
-      "sample_size": 2,
-      "observed_at_n1": 1,
-      "comment": "1 leno (Cobra)",
-      "observed_at_n2": 1
+      "value": 1,
+      "sample_status": "mostly_estimated",
+      "sample_size": 6,
+      "ratio_percent": 16.7
+    },
+    "open_weave_dobby": {
+      "value": 2,
+      "sample_status": "mostly_estimated",
+      "sample_size": 6,
+      "ratio_percent": 33.3
+    },
+    "dobby_twill": {
+      "value": 1,
+      "sample_status": "mostly_estimated",
+      "sample_size": 6,
+      "ratio_percent": 16.7
     },
     "plain": {
-      "value": null,
-      "sample_status": "insufficient_n_2",
-      "sample_size": 2,
-      "observed_at_n2": 1,
-      "comment": "1 plain (DLN shantung)"
-    }
+      "value": 1,
+      "sample_status": "mostly_estimated",
+      "sample_size": 6,
+      "ratio_percent": 16.7
+    },
+    "comment": "n=6: {'dobby_chevron': 1, 'leno': 1, 'open_weave_dobby': 2, 'dobby_twill': 1, 'plain': 1}. Anatolian Linen 3 urun (open_weave_dobby/dobby_chevron), Cobra leno, Twillman dobby_twill, DLN plain."
   },
   "composition_distribution": {
     "synthetic_ratio_percent": {
-      "value": null,
-      "sample_status": "insufficient_n_1",
-      "sample_size": 2,
-      "observed_at_n1": 100,
-      "observed_at_n2": 50.0
+      "value": 33.3,
+      "sample_status": "mostly_estimated",
+      "sample_size": 6
     },
     "natural_ratio_percent": {
-      "value": null,
-      "sample_status": "insufficient_n_1",
-      "sample_size": 2,
-      "observed_at_n1": 0,
-      "observed_at_n2": 50.0
+      "value": 16.7,
+      "sample_status": "mostly_estimated",
+      "sample_size": 6
     },
     "blend_ratio_percent": {
-      "value": null,
-      "sample_status": "insufficient_n_1",
-      "sample_size": 2,
-      "observed_at_n1": 0,
-      "observed_at_n2": 0.0
+      "value": 33.3,
+      "sample_status": "mostly_estimated",
+      "sample_size": 6
     },
-    "comment": "n=2: 1 mono sentetik (Cobra %100 FR PES) + 1 mono dogal (DLN %100 ipek). Cesitlilik max — Dedar urun yelpazesi premium nis."
+    "comment": "n=6: sentetik=2 (Cobra+Twillman FR PES), dogal=1 (DLN ipek + Signor Darcy 100% keten), blend=2 (Baobab+Atelier 90/10 keten/PA)."
   },
   "country_distribution": {
-    "Italy": 1,
+    "Italy": 5,
     "India": 1
   },
   "mobidik_strategic_assessment": {
     "staubli_general_feasibility": "yuksek",
-    "_general_feasibility_basis": "n=2: Cobra 5/5 (leno+FR+PES, Stabli TAM) + DLN 4/5 (plain ipek, Mobidik egzotik kategori). Ortalama 4.5. Dedar urun cesitligi premium nis: extra-wide outdoor leno (Cobra) vs dar artisanal ipek (DLN). Global fason agi: Cobra Italya, DLN Hindistan.",
+    "_general_feasibility_basis": "n=6: avg_staubli=4.83/5. 5 urunde 5/5 (Cobra leno, Wide Linen x3 dobby/chevron, Twillman dobby twill), 1 urunde 4/5 (DLN plain ipek). Anatolian Linen sub-brand 3 urun TAM uyumlu (Mobidik yeni hat: 80-86 puanli ALTIN adaylar).",
     "average_feasibility_score": {
-      "value": null,
-      "sample_status": "insufficient_n_1",
-      "sample_size": 2,
-      "observed_at_n1": 5.0,
-      "observed_at_n2": 4.5
+      "value": 4.83,
+      "sample_status": "mostly_estimated",
+      "sample_size": 6
     },
     "arge_priority_areas": [
-      "Extra-wide leno (325 cm) warp beam yonetimi",
-      "FR PES iplik tedariki + son urun sertifika (IMO MED, BS5867)",
-      "Indoor/outdoor dual-use konumlandirma",
-      "Italian premium leno benchmark",
-      "Wild silk shantung tedariki — Bursa ipekciligi cagrismi (uzun vade ARGE projesi)",
-      "Dedar global fason modeli — Italyan brand + Hindistan/Italya uretim cesitliligi"
+      "⭐ Anatolian Linen sub-brand: Signor Darcy muadili 100% saf keten chevron (86 ALTIN)",
+      "Wide Linen serisi: Baobab + Atelier 1930 muadili keten/naylon sheer (80-81 ALTIN)",
+      "Twillman muadili FR PES twill (Cobra ailesi yan-hat, 82 ALTIN)",
+      "Extra-wide warp beam yonetimi (Cobra 325 cm, Wide Linen 300-310 cm)",
+      "EU Flax sertifikasyon vs 'Anatolian Linen' söylem (Masters of Linen muadili)",
+      "Indorama + SASA FR PES tedarik (Twillman + Cobra ortak)"
     ],
     "competitive_position": "Dedar Italyan premium 1976 kurulus, Como merkez. Mobidik perspektifi: jakar/damask Dedar'in guclu alanlari (Mobidik jakar YOK), ama leno + sheer + FR Mobidik kapasitesinde TAM. Cobra ilk pilot icin uygun.",
     "market_opportunity": "AB yat/gemi + hospitality FR pazarinda Dedar Cobra retail 80-130 EUR/m. Mobidik 25-40 EUR/m hedef. Niket + Fil du Temps + Alpaca Leno + Cobra leno 4'lusu birlikte ROI.",
-    "benchmark_value": "n=1: Cobra benchmark olarak yuksek. Marka geneli icin 5+ urun gerek.",
+    "benchmark_value": "n=6: Dedar Italya premium 1976. Mobidik 4 ALTIN aday discover etti. 3 Anatolian Linen + 1 FR twill = Mobidik için pilot yol haritası tam.",
     "watch_priority": "yuksek"
   },
   "data_integrity": {
-    "verified_data_points": 1,
-    "ai_estimated_data_points": 2,
+    "verified_data_points": 4,
+    "ai_estimated_data_points": 8,
     "verification_ratio": 0.33,
-    "reliability_label": "insufficient_sample",
-    "sample_size_tracked_products": 2,
-    "_reliability_explanation": "n=2 (Cobra + Days Like Now). Threshold n>=3 dolana kadar dagilim istatistikleri null. Iki urun arasinda yuksek cesitlilik (en, kompozisyon, ulke) - Dedar premium nis marka."
+    "reliability_label": "mostly_estimated",
+    "sample_size_tracked_products": 6,
+    "_reliability_explanation": "n=6 (Cobra + DLN + 4 Faz 6.8 ALTIN aday). Anayasa n>=3 esigi gecildi. Dagilim istatistikleri mostly_estimated (gercek sayim, küçük örnek). Yüksek çesitlilik korunuyor: en 134-325, FR PES + ipek + keten + keten/PA, Italya + Hindistan."
   },
   "notes": [
     "v1.0 (2026-05-25): Faz 5.3 Cobra canli test sonrasi Dedar marka profili ilk insa.",
@@ -171,6 +184,8 @@
     "Cobra: ilk denetlenmis urun. staubli=5/5, overall=83, yuksek oncelik.",
     "Statik kimlik PENDING — Wikipedia + dedar.com about + designer collaborations denetimi sonraki adim.",
     "v1.1 (2026-05-25): Days Like Now eklendi (n=2). avg_staubli 4.5 (Cobra 5 + DLN 4).",
-    "Dedar profili gozlemi: extra-wide outdoor leno (Cobra Italya) + dar artisanal silk (DLN Hindistan) = premium nis cesitliligi. Global fason agi (Italya/Hindistan)."
+    "Dedar profili gozlemi: extra-wide outdoor leno (Cobra Italya) + dar artisanal silk (DLN Hindistan) = premium nis cesitliligi. Global fason agi (Italya/Hindistan).",
+    "v1.2 (2026-05-26): Faz 6.8 Tier 1 ALTIN aday denetimi sonrasi 4 yeni urun (+Wide Linen Baobab/Atelier 1930/Signor Darcy/Twillman). n=2 -> n=6. avg_staubli=4.83. 3 ALTIN aday (Atelier 81, Twillman 82, Signor Darcy 86).",
+    "Dedar yelpazesi gozlemi: extra-wide outdoor (Cobra 325 cm) + Wide Linen sheer (300-310 cm Anatolian Linen muadili) + artisanal silk (DLN 134 cm) + FR PES twill (Twillman 140 cm). Tum kategorilerde Mobidik kapasitesi yerinde."
   ]
 }
