@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -369,13 +370,20 @@ def api_aday():
                     if estimated_urun_id in existing_keys:
                         continue
                     seen_urls.add(url)
+                    # Thumbnail upscale (250→500 daha kaliteli preview)
+                    thumb = prod.get("thumbnail")
+                    if thumb:
+                        thumb = re.sub(r"width=\d+", "width=500", thumb)
+                        thumb = re.sub(r"height=\d+", "height=500", thumb)
+                        thumb = re.sub(r"/stencil/\d+w/", "/stencil/500w/", thumb)
+                        thumb = re.sub(r"/stencil/\d+x\d+/", "/stencil/500x500/", thumb)
                     aday_urls.append({
                         "url": url,
                         "brand_slug": brand_slug,
                         "code": prod.get("code"),
                         "slug": prod.get("slug"),
                         "key": key,
-                        "thumbnail": prod.get("thumbnail"),
+                        "thumbnail": thumb,
                         "region": region,
                         "discovered_in": aday_file.name,
                     })

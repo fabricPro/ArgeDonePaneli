@@ -353,8 +353,26 @@ def _find_thumbnail_near_href(html: str, href: str) -> str | None:
             # Logo ve cookie banner filtresi
             if any(t in thumb.lower() for t in ("logo", "cookie", "icon", "banner-flag")):
                 continue
+            # Boyut parametresi büyült (250→500 daha kaliteli preview)
+            thumb = _upscale_thumbnail_url(thumb)
             return thumb
     return None
+
+
+def _upscale_thumbnail_url(url: str) -> str:
+    """Thumbnail URL'inde width/height parametrelerini 500 olarak ayarla.
+
+    Kvadrat: width=250&height=250 → width=500&height=500
+    BigCommerce: /stencil/250w/ → /stencil/500w/
+    BigCommerce: /stencil/250x250/ → /stencil/500x500/
+    """
+    # Query param: width=N & height=N
+    url = re.sub(r"width=\d+", "width=500", url)
+    url = re.sub(r"height=\d+", "height=500", url)
+    # BigCommerce stencil path
+    url = re.sub(r"/stencil/\d+w/", "/stencil/500w/", url)
+    url = re.sub(r"/stencil/\d+x\d+/", "/stencil/500x500/", url)
+    return url
 
 
 def extract_product_urls(brand_slug: str, html: str) -> list[dict]:
