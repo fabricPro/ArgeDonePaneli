@@ -186,6 +186,7 @@ CLAUDE.md kısa tutulmuştur. Detay gerektiğinde:
 - **Cowork engelinin tarihçesi (neden Python)**: `docs/neden_python_script.md`
 - **Şema referansı**: `sema/urun.json` (v1.3) + `sema/marka_profili.json` (v1.1)
 - **Referans marka profili (n=1 örneği)**: `markalar/kvadrat.json`
+- **⭐ Dedar scraping öğrenilen dersler (HER YENİ DEDAR ÜRÜN DENETİMİNDE OKU)**: `docs/dedar_scraping_lessons_learned.md` — 4-aşamalı akış (scrape → migrate → link → dashboard), swatch vs named variant ayrımı, v1.2 product_code fallback, çözülen çelişki örnekleri
 
 ---
 

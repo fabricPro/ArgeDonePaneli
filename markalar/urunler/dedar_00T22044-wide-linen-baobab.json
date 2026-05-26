@@ -8,7 +8,7 @@
   "product_name": "Wide Linen Baobab",
   "source_url": "https://dedar.com/wide-linen-baobab/",
   "scraped_at": "2026-05-26T09:00:48.339829+00:00",
-  "last_updated": "2026-05-26T00:30:00Z",
+  "last_updated": "2026-05-26T10:45:00Z",
   "source_data": {
     "_description": "Dedar Wide Linen Baobab — Faz 6.8 Tier 1 ALTIN aday denetim. topla --batch italyan tarafından discover edildi, kullanıcı onayıyla topla.cli ile scrape edildi, Claude denetim (mobidik_evaluation, strategic_note, kapasite #7 uygulaması) sonrası markalar/urunler/'e geçti.",
     "_provenance": {
@@ -104,6 +104,20 @@
           "version_before": "v1.2/v1.1 (Faz 5.10 scraper v1.1 audit eklendi, images.* tek varyant)",
           "version_after": "v1.3 (Faz 5.11 images.* genisletildi, ham_cikti -> gorseller kopya)",
           "notes": "Scraper v1.1 ham_cikti'da 17 gorsel vardi (Cobra/DLN buyuk gallery). 17 gorsel gorseller/dedar/00T22044/ konumuna kopyalandi, JSON images.* genisletildi. Eski tek-varyant images yapisi _pre_faz511_snapshot'ta arsivlendi."
+        },
+        {
+          "audit_id": "dedar_00T22044-wide-linen-baobab_v1.2_2026-05-26_color_link",
+          "audit_date": "2026-05-26",
+          "version_before": "v1.1: variants[].color_name=null, images.variants[].variant_code=null",
+          "version_after": "v1.2: variants_raw'dan 8 renk adi eslestirildi (Italyan renk: bianco/avorio/mastice/...). images.variants[] 0 entry ile variant_code etiketli.",
+          "notes": "Faz 6.10 renk-gorsel eslestirme. Dashboard variant cards renk basina ayri gorsel + renk adi gosterimi icin (kullanici 2026-05-26 talep)."
+        },
+        {
+          "audit_id": "dedar_00T22044-wide-linen-baobab_v1.3_2026-05-26_color_link",
+          "audit_date": "2026-05-26",
+          "version_before": "v1.2: variants[].color_name=null, swatch+named karisik",
+          "version_after": "v1.3: 8 renk adi (Italyan/Fransiz) eslestirildi, 7 variant gorseli renge link'lendi, 9 main-page swatch atlandi (low-res).",
+          "notes": "Faz 6.10 (kullanici talep 2026-05-26): Dashboard variant cards renk basina high-res gorsel + renk adi. Swatch'ler (varyant_adi=None) JSON'a girmedi."
         }
       ]
     },
@@ -157,51 +171,51 @@
     "variants": [
       {
         "color_code": "00T22044-006",
-        "color_name": null,
-        "main_image_url_source": null,
-        "main_image_local_path": "gorseller/dedar/00T22044/variant_006_1.jpg"
+        "color_name": "senape",
+        "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17494_source_1779667985.jpg",
+        "main_image_local_path": "gorseller/dedar/00T22044/ana_01.jpg"
       },
       {
         "color_code": "00T22044-001",
-        "color_name": null,
-        "main_image_url_source": null,
-        "main_image_local_path": "gorseller/dedar/00T22044/variant_001_1.jpg"
+        "color_name": "bianco",
+        "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17488_source_1779667983.jpg",
+        "main_image_local_path": "gorseller/dedar/00T22044/varyant_10.jpg"
       },
       {
         "color_code": "00T22044-002",
-        "color_name": null,
-        "main_image_url_source": null,
-        "main_image_local_path": "gorseller/dedar/00T22044/variant_002_1.jpg"
+        "color_name": "avorio",
+        "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17489_source_1779667983.jpg",
+        "main_image_local_path": "gorseller/dedar/00T22044/varyant_11.jpg"
       },
       {
         "color_code": "00T22044-003",
-        "color_name": null,
-        "main_image_url_source": null,
-        "main_image_local_path": "gorseller/dedar/00T22044/variant_003_1.jpg"
+        "color_name": "mastice",
+        "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17490_source_1779667984.jpg",
+        "main_image_local_path": "gorseller/dedar/00T22044/varyant_12.jpg"
       },
       {
         "color_code": "00T22044-004",
-        "color_name": null,
-        "main_image_url_source": null,
-        "main_image_local_path": "gorseller/dedar/00T22044/variant_004_1.jpg"
+        "color_name": "perla",
+        "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17491_source_1779667984.jpg",
+        "main_image_local_path": "gorseller/dedar/00T22044/varyant_13.jpg"
       },
       {
         "color_code": "00T22044-005",
-        "color_name": null,
-        "main_image_url_source": null,
-        "main_image_local_path": "gorseller/dedar/00T22044/variant_005_1.jpg"
+        "color_name": "taupe",
+        "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17492_source_1779667985.jpg",
+        "main_image_local_path": "gorseller/dedar/00T22044/varyant_14.jpg"
       },
       {
         "color_code": "00T22044-007",
-        "color_name": null,
-        "main_image_url_source": null,
-        "main_image_local_path": "gorseller/dedar/00T22044/variant_007_1.jpg"
+        "color_name": "canyon",
+        "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17496_source_1779667986.jpg",
+        "main_image_local_path": "gorseller/dedar/00T22044/varyant_15.jpg"
       },
       {
         "color_code": "00T22044-008",
-        "color_name": null,
-        "main_image_url_source": null,
-        "main_image_local_path": "gorseller/dedar/00T22044/variant_008_1.jpg"
+        "color_name": "bottiglia",
+        "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17499_source_1779667986.jpg",
+        "main_image_local_path": "gorseller/dedar/00T22044/varyant_16.jpg"
       }
     ],
     "description_original": {
@@ -248,329 +262,67 @@
     "_description": "Faz 5.11 (2026-05-26): Scraper v1.1 ham_cikti'dan 17 gorsel gorseller/dedar/00T22044/ konumuna migrate edildi. Tip dagilimi: ana=1, detay=0, lifestyle=0, varyant=16. Eski faz 5.3/5.4 images yapisi _pre_faz511_snapshot'ta korundu (audit izi).",
     "main": [
       {
-        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/2560w/attribute_rule_images/17494_source_1779667985.jpg",
+        "url": null,
         "local_path": "gorseller/dedar/00T22044/ana_01.jpg",
-        "variant_code": null,
-        "variant_name": null,
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:32:43.804213+00:00",
-        "file_size_kb": 768.6,
-        "dimensions": {
-          "width_px": 1693,
-          "height_px": 2000
-        },
-        "quality_check": "cached"
+        "alt": "wide-linen-baobab - main (default variant: 006 senape)"
       }
     ],
     "variants": [
       {
-        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17494_source_1779667985.jpg",
-        "local_path": "gorseller/dedar/00T22044/varyant_01.jpg",
-        "variant_code": null,
-        "variant_name": null,
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:32:43.804213+00:00",
-        "file_size_kb": 357.3,
-        "dimensions": {
-          "width_px": 1084,
-          "height_px": 1280
-        },
-        "quality_check": "cached"
-      },
-      {
-        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/634x750/attribute_rule_images/17494_source_1779667985.jpg",
-        "local_path": "gorseller/dedar/00T22044/varyant_02.jpg",
-        "variant_code": null,
-        "variant_name": null,
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:32:43.804213+00:00",
-        "file_size_kb": 122.6,
-        "dimensions": {
-          "width_px": 634,
-          "height_px": 749
-        },
-        "quality_check": "cached"
-      },
-      {
-        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/80w/attribute_rule_images/17494_source_1779667985.jpg",
-        "local_path": "gorseller/dedar/00T22044/varyant_03.jpg",
-        "variant_code": null,
-        "variant_name": null,
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:32:43.804213+00:00",
-        "file_size_kb": 1.8,
-        "dimensions": {
-          "width_px": 80,
-          "height_px": 95
-        },
-        "quality_check": "cached"
-      },
-      {
-        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/160w/attribute_rule_images/17494_source_1779667985.jpg",
-        "local_path": "gorseller/dedar/00T22044/varyant_04.jpg",
-        "variant_code": null,
-        "variant_name": null,
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:32:43.804213+00:00",
-        "file_size_kb": 5.0,
-        "dimensions": {
-          "width_px": 160,
-          "height_px": 189
-        },
-        "quality_check": "cached"
-      },
-      {
-        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/320w/attribute_rule_images/17494_source_1779667985.jpg",
-        "local_path": "gorseller/dedar/00T22044/varyant_05.jpg",
-        "variant_code": null,
-        "variant_name": null,
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:32:43.804213+00:00",
-        "file_size_kb": 23.9,
-        "dimensions": {
-          "width_px": 320,
-          "height_px": 378
-        },
-        "quality_check": "cached"
-      },
-      {
-        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/640w/attribute_rule_images/17494_source_1779667985.jpg",
-        "local_path": "gorseller/dedar/00T22044/varyant_06.jpg",
-        "variant_code": null,
-        "variant_name": null,
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:32:43.804213+00:00",
-        "file_size_kb": 112.7,
-        "dimensions": {
-          "width_px": 640,
-          "height_px": 756
-        },
-        "quality_check": "cached"
-      },
-      {
-        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/960w/attribute_rule_images/17494_source_1779667985.jpg",
-        "local_path": "gorseller/dedar/00T22044/varyant_07.jpg",
-        "variant_code": null,
-        "variant_name": null,
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:32:43.804213+00:00",
-        "file_size_kb": 287.2,
-        "dimensions": {
-          "width_px": 960,
-          "height_px": 1134
-        },
-        "quality_check": "cached"
-      },
-      {
-        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280w/attribute_rule_images/17494_source_1779667985.jpg",
-        "local_path": "gorseller/dedar/00T22044/varyant_08.jpg",
-        "variant_code": null,
-        "variant_name": null,
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:32:43.804213+00:00",
-        "file_size_kb": 478.6,
-        "dimensions": {
-          "width_px": 1280,
-          "height_px": 1512
-        },
-        "quality_check": "cached"
-      },
-      {
-        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1920w/attribute_rule_images/17494_source_1779667985.jpg",
-        "local_path": "gorseller/dedar/00T22044/varyant_09.jpg",
-        "variant_code": null,
-        "variant_name": null,
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:32:43.804213+00:00",
-        "file_size_kb": 768.6,
-        "dimensions": {
-          "width_px": 1693,
-          "height_px": 2000
-        },
-        "quality_check": "cached"
-      },
-      {
+        "variant_code": "00T22044-001",
+        "color_code": "001",
+        "color_name": "bianco",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17488_source_1779667983.jpg",
         "local_path": "gorseller/dedar/00T22044/varyant_10.jpg",
-        "variant_code": null,
-        "variant_name": "bianco",
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:32:43.804213+00:00",
-        "file_size_kb": 222.0,
-        "dimensions": {
-          "width_px": 1084,
-          "height_px": 1280
-        },
-        "quality_check": "passed"
+        "alt": "wide-linen-baobab - bianco"
       },
       {
+        "variant_code": "00T22044-002",
+        "color_code": "002",
+        "color_name": "avorio",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17489_source_1779667983.jpg",
         "local_path": "gorseller/dedar/00T22044/varyant_11.jpg",
-        "variant_code": null,
-        "variant_name": "avorio",
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:32:43.804213+00:00",
-        "file_size_kb": 272.1,
-        "dimensions": {
-          "width_px": 1084,
-          "height_px": 1280
-        },
-        "quality_check": "passed"
+        "alt": "wide-linen-baobab - avorio"
       },
       {
+        "variant_code": "00T22044-003",
+        "color_code": "003",
+        "color_name": "mastice",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17490_source_1779667984.jpg",
         "local_path": "gorseller/dedar/00T22044/varyant_12.jpg",
-        "variant_code": null,
-        "variant_name": "mastice",
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:32:43.804213+00:00",
-        "file_size_kb": 308.2,
-        "dimensions": {
-          "width_px": 1084,
-          "height_px": 1280
-        },
-        "quality_check": "passed"
+        "alt": "wide-linen-baobab - mastice"
       },
       {
+        "variant_code": "00T22044-004",
+        "color_code": "004",
+        "color_name": "perla",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17491_source_1779667984.jpg",
         "local_path": "gorseller/dedar/00T22044/varyant_13.jpg",
-        "variant_code": null,
-        "variant_name": "perla",
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:32:43.804213+00:00",
-        "file_size_kb": 289.3,
-        "dimensions": {
-          "width_px": 1084,
-          "height_px": 1280
-        },
-        "quality_check": "passed"
+        "alt": "wide-linen-baobab - perla"
       },
       {
+        "variant_code": "00T22044-005",
+        "color_code": "005",
+        "color_name": "taupe",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17492_source_1779667985.jpg",
         "local_path": "gorseller/dedar/00T22044/varyant_14.jpg",
-        "variant_code": null,
-        "variant_name": "taupe",
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:32:43.804213+00:00",
-        "file_size_kb": 327.5,
-        "dimensions": {
-          "width_px": 1084,
-          "height_px": 1280
-        },
-        "quality_check": "passed"
+        "alt": "wide-linen-baobab - taupe"
       },
       {
+        "variant_code": "00T22044-007",
+        "color_code": "007",
+        "color_name": "canyon",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17496_source_1779667986.jpg",
         "local_path": "gorseller/dedar/00T22044/varyant_15.jpg",
-        "variant_code": null,
-        "variant_name": "canyon",
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:32:43.804213+00:00",
-        "file_size_kb": 369.2,
-        "dimensions": {
-          "width_px": 1084,
-          "height_px": 1280
-        },
-        "quality_check": "passed"
+        "alt": "wide-linen-baobab - canyon"
       },
       {
+        "variant_code": "00T22044-008",
+        "color_code": "008",
+        "color_name": "bottiglia",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17499_source_1779667986.jpg",
         "local_path": "gorseller/dedar/00T22044/varyant_16.jpg",
-        "variant_code": null,
-        "variant_name": "bottiglia",
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:32:43.804213+00:00",
-        "file_size_kb": 333.4,
-        "dimensions": {
-          "width_px": 1084,
-          "height_px": 1280
-        },
-        "quality_check": "passed"
+        "alt": "wide-linen-baobab - bottiglia"
       }
     ],
     "lifestyle": [],

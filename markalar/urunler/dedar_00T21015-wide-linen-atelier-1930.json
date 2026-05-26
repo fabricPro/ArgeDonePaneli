@@ -8,7 +8,7 @@
   "product_name": "Wide Linen Atelier 1930",
   "source_url": "https://dedar.com/wide-linen-atelier-1930/",
   "scraped_at": "2026-05-26T09:01:27.161480+00:00",
-  "last_updated": "2026-05-26T00:30:00Z",
+  "last_updated": "2026-05-26T10:45:00Z",
   "source_data": {
     "_description": "Dedar Wide Linen Atelier 1930 — Faz 6.8 Tier 1 ALTIN aday denetim. topla --batch italyan tarafından discover edildi, kullanıcı onayıyla topla.cli ile scrape edildi, Claude denetim (mobidik_evaluation, strategic_note, kapasite #7 uygulaması) sonrası markalar/urunler/'e geçti.",
     "_provenance": {
@@ -105,6 +105,20 @@
           "version_before": "v1.2/v1.1 (Faz 5.10 scraper v1.1 audit eklendi, images.* tek varyant)",
           "version_after": "v1.3 (Faz 5.11 images.* genisletildi, ham_cikti -> gorseller kopya)",
           "notes": "Scraper v1.1 ham_cikti'da 12 gorsel vardi (Cobra/DLN buyuk gallery). 12 gorsel gorseller/dedar/00T21015/ konumuna kopyalandi, JSON images.* genisletildi. Eski tek-varyant images yapisi _pre_faz511_snapshot'ta arsivlendi."
+        },
+        {
+          "audit_id": "dedar_00T21015-wide-linen-atelier-1930_v1.2_2026-05-26_color_link",
+          "audit_date": "2026-05-26",
+          "version_before": "v1.1: variants[].color_name=null, images.variants[].variant_code=null",
+          "version_after": "v1.2: variants_raw'dan 3 renk adi eslestirildi (Italyan renk: bianco/avorio/mastice/...). images.variants[] 0 entry ile variant_code etiketli.",
+          "notes": "Faz 6.10 renk-gorsel eslestirme. Dashboard variant cards renk basina ayri gorsel + renk adi gosterimi icin (kullanici 2026-05-26 talep)."
+        },
+        {
+          "audit_id": "dedar_00T21015-wide-linen-atelier-1930_v1.3_2026-05-26_color_link",
+          "audit_date": "2026-05-26",
+          "version_before": "v1.2: variants[].color_name=null, swatch+named karisik",
+          "version_after": "v1.3: 3 renk adi (Italyan/Fransiz) eslestirildi, 2 variant gorseli renge link'lendi, 9 main-page swatch atlandi (low-res).",
+          "notes": "Faz 6.10 (kullanici talep 2026-05-26): Dashboard variant cards renk basina high-res gorsel + renk adi. Swatch'ler (varyant_adi=None) JSON'a girmedi."
         }
       ]
     },
@@ -160,21 +174,21 @@
     "variants": [
       {
         "color_code": "00T21015-001",
-        "color_name": null,
-        "main_image_url_source": null,
-        "main_image_local_path": "gorseller/dedar/00T21015/variant_001_1.jpg"
+        "color_name": "bianco",
+        "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/16996_source_1779667859.jpg",
+        "main_image_local_path": "gorseller/dedar/00T21015/ana_01.jpg"
       },
       {
         "color_code": "00T21015-002",
-        "color_name": null,
-        "main_image_url_source": null,
-        "main_image_local_path": "gorseller/dedar/00T21015/variant_002_1.jpg"
+        "color_name": "metis",
+        "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/16999_source_1779667860.jpg",
+        "main_image_local_path": "gorseller/dedar/00T21015/varyant_10.jpg"
       },
       {
         "color_code": "00T21015-003",
-        "color_name": null,
-        "main_image_url_source": null,
-        "main_image_local_path": "gorseller/dedar/00T21015/variant_003_1.jpg"
+        "color_name": "lino",
+        "main_image_url_source": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17002_source_1779667860.jpg",
+        "main_image_local_path": "gorseller/dedar/00T21015/varyant_11.jpg"
       }
     ],
     "description_original": {
@@ -221,234 +235,27 @@
     "_description": "Faz 5.11 (2026-05-26): Scraper v1.1 ham_cikti'dan 12 gorsel gorseller/dedar/00T21015/ konumuna migrate edildi. Tip dagilimi: ana=1, detay=0, lifestyle=0, varyant=11. Eski faz 5.3/5.4 images yapisi _pre_faz511_snapshot'ta korundu (audit izi).",
     "main": [
       {
-        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/2560w/attribute_rule_images/16996_source_1779667859.jpg",
+        "url": null,
         "local_path": "gorseller/dedar/00T21015/ana_01.jpg",
-        "variant_code": null,
-        "variant_name": null,
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:33:46.325288+00:00",
-        "file_size_kb": 639.0,
-        "dimensions": {
-          "width_px": 1693,
-          "height_px": 2000
-        },
-        "quality_check": "cached"
+        "alt": "wide-linen-atelier-1930 - main (default variant: 001 bianco)"
       }
     ],
     "variants": [
       {
-        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/16996_source_1779667859.jpg",
-        "local_path": "gorseller/dedar/00T21015/varyant_01.jpg",
-        "variant_code": null,
-        "variant_name": null,
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:33:46.325288+00:00",
-        "file_size_kb": 235.2,
-        "dimensions": {
-          "width_px": 1084,
-          "height_px": 1280
-        },
-        "quality_check": "cached"
-      },
-      {
-        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/634x750/attribute_rule_images/16996_source_1779667859.jpg",
-        "local_path": "gorseller/dedar/00T21015/varyant_02.jpg",
-        "variant_code": null,
-        "variant_name": null,
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:33:46.325288+00:00",
-        "file_size_kb": 80.5,
-        "dimensions": {
-          "width_px": 634,
-          "height_px": 749
-        },
-        "quality_check": "cached"
-      },
-      {
-        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/80w/attribute_rule_images/16996_source_1779667859.jpg",
-        "local_path": "gorseller/dedar/00T21015/varyant_03.jpg",
-        "variant_code": null,
-        "variant_name": null,
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:33:46.325288+00:00",
-        "file_size_kb": 1.2,
-        "dimensions": {
-          "width_px": 80,
-          "height_px": 95
-        },
-        "quality_check": "cached"
-      },
-      {
-        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/160w/attribute_rule_images/16996_source_1779667859.jpg",
-        "local_path": "gorseller/dedar/00T21015/varyant_04.jpg",
-        "variant_code": null,
-        "variant_name": null,
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:33:46.325288+00:00",
-        "file_size_kb": 3.2,
-        "dimensions": {
-          "width_px": 160,
-          "height_px": 189
-        },
-        "quality_check": "cached"
-      },
-      {
-        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/320w/attribute_rule_images/16996_source_1779667859.jpg",
-        "local_path": "gorseller/dedar/00T21015/varyant_05.jpg",
-        "variant_code": null,
-        "variant_name": null,
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:33:46.325288+00:00",
-        "file_size_kb": 14.6,
-        "dimensions": {
-          "width_px": 320,
-          "height_px": 378
-        },
-        "quality_check": "cached"
-      },
-      {
-        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/640w/attribute_rule_images/16996_source_1779667859.jpg",
-        "local_path": "gorseller/dedar/00T21015/varyant_06.jpg",
-        "variant_code": null,
-        "variant_name": null,
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:33:46.325288+00:00",
-        "file_size_kb": 76.3,
-        "dimensions": {
-          "width_px": 640,
-          "height_px": 756
-        },
-        "quality_check": "cached"
-      },
-      {
-        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/960w/attribute_rule_images/16996_source_1779667859.jpg",
-        "local_path": "gorseller/dedar/00T21015/varyant_07.jpg",
-        "variant_code": null,
-        "variant_name": null,
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:33:46.325288+00:00",
-        "file_size_kb": 184.4,
-        "dimensions": {
-          "width_px": 960,
-          "height_px": 1134
-        },
-        "quality_check": "cached"
-      },
-      {
-        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280w/attribute_rule_images/16996_source_1779667859.jpg",
-        "local_path": "gorseller/dedar/00T21015/varyant_08.jpg",
-        "variant_code": null,
-        "variant_name": null,
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:33:46.325288+00:00",
-        "file_size_kb": 326.8,
-        "dimensions": {
-          "width_px": 1280,
-          "height_px": 1512
-        },
-        "quality_check": "cached"
-      },
-      {
-        "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1920w/attribute_rule_images/16996_source_1779667859.jpg",
-        "local_path": "gorseller/dedar/00T21015/varyant_09.jpg",
-        "variant_code": null,
-        "variant_name": null,
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:33:46.325288+00:00",
-        "file_size_kb": 639.0,
-        "dimensions": {
-          "width_px": 1693,
-          "height_px": 2000
-        },
-        "quality_check": "cached"
-      },
-      {
+        "variant_code": "00T21015-002",
+        "color_code": "002",
+        "color_name": "metis",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/16999_source_1779667860.jpg",
         "local_path": "gorseller/dedar/00T21015/varyant_10.jpg",
-        "variant_code": null,
-        "variant_name": "metis",
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:33:46.325288+00:00",
-        "file_size_kb": 371.5,
-        "dimensions": {
-          "width_px": 1084,
-          "height_px": 1280
-        },
-        "quality_check": "passed"
+        "alt": "wide-linen-atelier-1930 - metis"
       },
       {
+        "variant_code": "00T21015-003",
+        "color_code": "003",
+        "color_name": "lino",
         "url": "https://cdn11.bigcommerce.com/s-td9auqdllx/images/stencil/1280x1280/attribute_rule_images/17002_source_1779667860.jpg",
         "local_path": "gorseller/dedar/00T21015/varyant_11.jpg",
-        "variant_code": null,
-        "variant_name": "lino",
-        "layer_used": 1,
-        "layer_1_attempt": {
-          "success": true,
-          "error": null,
-          "method": "scraper_v1_1_bigcommerce_cdn"
-        },
-        "downloaded_at": "2026-05-26T09:33:46.325288+00:00",
-        "file_size_kb": 399.5,
-        "dimensions": {
-          "width_px": 1084,
-          "height_px": 1280
-        },
-        "quality_check": "passed"
+        "alt": "wide-linen-atelier-1930 - lino"
       }
     ],
     "lifestyle": [],
