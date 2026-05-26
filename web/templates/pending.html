@@ -85,6 +85,13 @@
             <div class="aday-list">
                 {% for a in adaylar[:30] %}
                 <div class="aday-item" data-url="{{ a.url }}" data-key="{{ a.key }}" data-brand="{{ a.brand_slug }}">
+                    <div class="aday-thumb">
+                        {% if a.thumbnail %}
+                        <img src="{{ a.thumbnail }}" alt="{{ a.key }}" loading="lazy" referrerpolicy="no-referrer">
+                        {% else %}
+                        <div class="aday-thumb-placeholder">—</div>
+                        {% endif %}
+                    </div>
                     <div class="aday-info">
                         <span class="aday-region">{{ a.region }}</span>
                         <span class="aday-brand">{{ a.brand_slug }}</span>

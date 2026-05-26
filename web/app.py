@@ -375,6 +375,7 @@ def api_aday():
                         "code": prod.get("code"),
                         "slug": prod.get("slug"),
                         "key": key,
+                        "thumbnail": prod.get("thumbnail"),
                         "region": region,
                         "discovered_in": aday_file.name,
                     })

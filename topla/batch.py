@@ -312,6 +312,31 @@ def _normalize_to_path(href: str) -> str | None:
     return None  # relative path veya javascript:, mailto: vs.
 
 
+def _find_thumbnail_near_href(html: str, href: str) -> str | None:
+    """HTML'de href'in yakınındaki img src'i bul (kategori card thumbnail)."""
+    # Pattern: <a href="HREF"...><img src="THUMB"...>  veya tersi
+    # Çok büyük HTML için sadece href'in etrafındaki 800 char penceresi ara
+    idx = html.find(href)
+    if idx < 0:
+        return None
+
+    window = html[max(0, idx - 800):idx + 800]
+    # img src + data-src
+    img_pats = [
+        r'<img[^>]+(?:data-src|data-original|srcset)=["\']([^"\']+\.(?:jpg|jpeg|png|webp)[^"\']*)["\']',
+        r'<img[^>]+src=["\']([^"\']+\.(?:jpg|jpeg|png|webp)[^"\']*)["\']',
+    ]
+    for pat in img_pats:
+        m = re.search(pat, window, re.IGNORECASE)
+        if m:
+            thumb = m.group(1)
+            # srcset birden fazla URL içerir, ilkini al
+            if "," in thumb:
+                thumb = thumb.split(",")[0].strip().split(" ")[0]
+            return thumb
+    return None
+
+
 def extract_product_urls(brand_slug: str, html: str) -> list[dict]:
     """HTML'den href'leri extract et, her birini brand pattern'i ile test et."""
     spec = BRANDS[brand_slug]
@@ -361,11 +386,21 @@ def extract_product_urls(brand_slug: str, html: str) -> list[dict]:
         base_urls = _resolve_category_urls(brand_slug)
         base = base_urls[0] if base_urls else f"https://{domain}"
         full_url = urljoin(base, path)
+
+        # Thumbnail extract (kategori sayfasından)
+        thumb = _find_thumbnail_near_href(html, raw)
+        if thumb:
+            if thumb.startswith("//"):
+                thumb = "https:" + thumb
+            elif thumb.startswith("/"):
+                thumb = urljoin(base, thumb)
+
         products.append({
             "url": full_url,
             "code": code or None,
             "slug": slug,
             "key": key,
+            "thumbnail": thumb,
         })
     return products
 

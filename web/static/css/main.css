@@ -304,6 +304,31 @@ main { padding: 24px 32px; max-width: 1600px; margin: 0 auto; }
     padding: 8px 12px;
     border-radius: 4px;
     font-size: 13px;
+    gap: 12px;
+}
+
+.aday-thumb {
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    overflow: hidden;
+    border-radius: 4px;
+    background: var(--bg-elev);
+}
+.aday-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.aday-thumb-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+    font-size: 18px;
 }
 
 .aday-info { display: flex; gap: 10px; align-items: center; flex: 1; }
