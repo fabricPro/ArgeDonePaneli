@@ -604,13 +604,16 @@
     "rejection_reasons": []
   },
   "ml_score": {
-    "predicted_approval_prob": null,
-    "confidence": null,
-    "similar_approved_products": [],
+    "predicted_approval_prob": 0.95,
+    "confidence": "high",
+    "similar_approved_products": [
+      "kvadrat_5539-air-line",
+      "dedar_00T23046-twillman",
+      "kvadrat_5544-alpaca-leno"
+    ],
     "similar_rejected_products": [],
-    "model_version": null,
-    "predicted_at": null,
-    "embedding_source": "dinov2_vitb14",
-    "_note": "Faz 7.2'de DINOv2 embedding + sklearn ile doldurulacak. Su an placeholder."
+    "model_version": "v1",
+    "predicted_at": "2026-05-26T10:29:02.556143+00:00",
+    "embedding_source": "tabular_only"
   }
 }

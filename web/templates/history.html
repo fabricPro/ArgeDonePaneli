@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Geçmiş — {{ approved|length + rejected|length }} karar{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Geçmiş Kararlar</h1>
+    <p class="page-subtitle">
+        ✅ {{ approved|length }} onaylı · ❌ {{ rejected|length }} reddedildi
+    </p>
+</div>
+
+<div class="history-tabs">
+    <button class="tab-btn active" data-tab="approved">✅ Onaylı ({{ approved|length }})</button>
+    <button class="tab-btn" data-tab="rejected">❌ Reddedilen ({{ rejected|length }})</button>
+</div>
+
+<section class="tab-content tab-approved active">
+    <table class="history-table">
+        <thead>
+            <tr>
+                <th>Ürün</th>
+                <th>Skor</th>
+                <th>Stäubli</th>
+                <th>Karar Tarihi</th>
+                <th>Notlar</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for p in approved %}
+            <tr>
+                <td>
+                    <strong>{{ p.brand }}</strong> · {{ p.product_name }}
+                    <br><small>{{ p.urun_id }}</small>
+                </td>
+                <td>
+                    <span class="score-mini {% if p.overall_score >= 80 %}altin{% endif %}">{{ p.overall_score or '—' }}</span>
+                </td>
+                <td>{{ p.staubli_score or '—' }}/5</td>
+                <td>{{ (p.admin_decision or {}).get('decision_date', '')[:10] or '—' }}</td>
+                <td>{{ ((p.admin_decision or {}).get('notes') or '')[:80] }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<section class="tab-content tab-rejected" hidden>
+    {% if rejected %}
+    <table class="history-table">
+        <thead>
+            <tr>
+                <th>Ürün</th>
+                <th>Sebep(ler)</th>
+                <th>Karar Tarihi</th>
+                <th>Notlar</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for p in rejected %}
+            <tr>
+                <td>
+                    <strong>{{ p.brand }}</strong> · {{ p.product_name }}
+                    <br><small>{{ p.urun_id }}</small>
+                </td>
+                <td>
+                    {% for r in (p.admin_decision or {}).get('rejection_reasons', []) %}
+                    <span class="chip chip-reject">{{ r }}</span>
+                    {% endfor %}
+                </td>
+                <td>{{ (p.admin_decision or {}).get('decision_date', '')[:10] or '—' }}</td>
+                <td>{{ ((p.admin_decision or {}).get('notes') or '')[:80] }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <p>Henüz reddedilen ürün yok.</p>
+        <p class="hint">İlk red karardan sonra ML model bu pattern'i öğrenecek.</p>
+    </div>
+    {% endif %}
+</section>
+
+{% block scripts %}
+<script>
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(t => t.hidden = true);
+        btn.classList.add('active');
+        const target = btn.dataset.tab;
+        document.querySelector('.tab-' + target).hidden = false;
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

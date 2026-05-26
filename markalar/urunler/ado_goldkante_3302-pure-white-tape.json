@@ -470,13 +470,16 @@
     "rejection_reasons": []
   },
   "ml_score": {
-    "predicted_approval_prob": null,
-    "confidence": null,
-    "similar_approved_products": [],
+    "predicted_approval_prob": 1.0,
+    "confidence": "high",
+    "similar_approved_products": [
+      "ado_goldkante_3302-pure-white-tape",
+      "ado_goldkante_3018-ora",
+      "ado_goldkante_3150-capri-plus"
+    ],
     "similar_rejected_products": [],
-    "model_version": null,
-    "predicted_at": null,
-    "embedding_source": "dinov2_vitb14",
-    "_note": "Faz 7.2'de DINOv2 embedding + sklearn ile doldurulacak. Su an placeholder."
+    "model_version": "v1",
+    "predicted_at": "2026-05-26T10:29:02.172198+00:00",
+    "embedding_source": "tabular_only"
   }
 }

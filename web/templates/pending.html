@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+{% block title %}Onay Bekleyen — {{ products|length }}{% endblock %}
+
+{% block content %}
+<div class="pending-layout">
+    <aside class="pending-sidebar">
+        <h2 class="sidebar-title">🤖 AI Önerileri</h2>
+        <div class="ai-stats">
+            <div class="ai-stat-item ai-stat-high">
+                <span class="num">{{ ai_stats.high }}</span>
+                <span class="label">Yüksek olasılık<br><small>(≥ 75%)</small></span>
+            </div>
+            <div class="ai-stat-item ai-stat-med">
+                <span class="num">{{ ai_stats.med }}</span>
+                <span class="label">Orta<br><small>(50-75%)</small></span>
+            </div>
+            <div class="ai-stat-item ai-stat-low">
+                <span class="num">{{ ai_stats.low }}</span>
+                <span class="label">Düşük<br><small>(&lt; 50%)</small></span>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <h3>🔍 Manuel Tarama</h3>
+            <form method="post" action="{{ url_for('trigger') }}" class="trigger-form">
+                <select name="region" class="region-select">
+                    <option value="nordik">Nordik (Kvadrat, Sahco)</option>
+                    <option value="italyan">İtalyan (Dedar, Rubelli)</option>
+                    <option value="alman">Alman (Z+R Group, Nya, CB)</option>
+                    <option value="all">🌍 Tümü (3 bölge sıralı)</option>
+                </select>
+                <button type="submit" class="btn-trigger">🔍 Şimdi Tara</button>
+            </form>
+            <p class="sidebar-note">
+                Tarama arka planda çalışır (5-10 dk). Yeni adaylar bu listeye düşer.
+            </p>
+        </div>
+
+        <div class="sidebar-section">
+            <h3>📋 Red Sebepleri (taxonomy)</h3>
+            <ul class="reason-list">
+                <li>🚫 jakar (Stäubli yapmaz)</li>
+                <li>🚫 metallic (iplik yetkinliği yok)</li>
+                <li>📏 en_sinir_disi (&gt;360cm)</li>
+                <li>🧵 uygun_iplik_yok</li>
+                <li>📑 sertifika_imkansiz</li>
+                <li>💰 fiyat_disi</li>
+                <li>🎨 tasarim_uyumsuz</li>
+                <li>♻️ tekrar (benzer mevcut)</li>
+            </ul>
+        </div>
+    </aside>
+
+    <div class="pending-main">
+        <div class="page-header">
+            <h1>🔍 Onay Bekleyen Adaylar</h1>
+            <p class="page-subtitle">{{ products|length }} ürün admin kararı bekliyor</p>
+        </div>
+
+        {% if not products %}
+        <div class="empty-state">
+            <p>Şu an onay bekleyen aday yok.</p>
+            <p class="hint">Sol panelden "🔍 Şimdi Tara" ile yeni aday keşfi başlat.</p>
+        </div>
+        {% endif %}
+
+        <div class="pending-grid">
+        {% for p in products %}
+        {% set prob = (p.ml_score or {}).get('predicted_approval_prob') or 0 %}
+        <article class="pending-card" data-urun-id="{{ p.urun_id }}">
+            <div class="pending-card-img">
+                {% if p.main_image %}
+                <img src="{{ url_for('serve_gorsel', relpath=p.main_image.replace('gorseller/', '')) }}"
+                     alt="{{ p.product_name }}" loading="lazy">
+                {% else %}
+                <div class="img-placeholder">Görsel yok</div>
+                {% endif %}
+            </div>
+
+            <div class="pending-card-body">
+                <div class="pending-card-header">
+                    <div>
+                        <div class="card-brand">{{ p.brand }}</div>
+                        <h3 class="card-title">{{ p.product_name }}</h3>
+                        <div class="card-meta">
+                            {{ p.product_code or '—' }}
+                            {% if p.collection %}· {{ p.collection }}{% endif %}
+                        </div>
+                    </div>
+                    <a href="{{ p.source_url }}" target="_blank" class="ext-link">↗ Site</a>
+                </div>
+
+                <div class="ai-recommendation
+                    {% if prob >= 0.75 %}ai-high
+                    {% elif prob >= 0.5 %}ai-med
+                    {% else %}ai-low{% endif %}">
+                    <div class="ai-score-big">
+                        {% if prob > 0 %}{{ (prob * 100)|int }}{% else %}—{% endif %}
+                        <span class="ai-score-unit">/100</span>
+                    </div>
+                    <div class="ai-score-label">AI öneri olasılığı</div>
+                </div>
+
+                <div class="spec-grid">
+                    <div><span class="lbl">En:</span> {% if p.width_cm %}{{ p.width_cm|int }} cm{% else %}—{% endif %}</div>
+                    <div><span class="lbl">Dokuma:</span> {{ p.weave or '—' }}</div>
+                    <div><span class="lbl">Ülke:</span> {{ p.country or '—' }}</div>
+                    <div><span class="lbl">Stäubli:</span> {{ p.staubli_score or '—' }}/5</div>
+                    <div><span class="lbl">Renk:</span> {{ p.variant_count }} varyant</div>
+                    <div><span class="lbl">Mobidik:</span> {{ p.overall_score or '—' }}/100</div>
+                </div>
+
+                {% if p.ml_score and p.ml_score.similar_approved_products %}
+                <div class="similar-block">
+                    <strong>✅ Benzer onaylı:</strong>
+                    {% for sim_id in p.ml_score.similar_approved_products[:2] %}
+                        <span class="sim-chip">{{ sim_id.split('_', 1)[-1] }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if p.ml_score and p.ml_score.similar_rejected_products %}
+                <div class="similar-block similar-reject">
+                    <strong>❌ Benzer red:</strong>
+                    {% for sim_id in p.ml_score.similar_rejected_products[:2] %}
+                        <span class="sim-chip sim-chip-red">{{ sim_id.split('_', 1)[-1] }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if p.strategic_note %}
+                <details class="strategic-note-block">
+                    <summary>💡 Mobidik stratejik not</summary>
+                    <p>{{ p.strategic_note }}</p>
+                </details>
+                {% endif %}
+
+                <div class="action-bar">
+                    <button class="btn btn-approve" data-action="approve" data-urun-id="{{ p.urun_id }}">
+                        ✅ Onayla
+                    </button>
+                    <button class="btn btn-reject" data-action="reject" data-urun-id="{{ p.urun_id }}">
+                        ❌ Reddet
+                    </button>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Reject modal -->
+<div id="reject-modal" class="modal-overlay" hidden>
+    <div class="modal-content">
+        <h3>Reddetme Sebebi</h3>
+        <p>Bu adayı neden reddediyorsun? (ML öğrenmesi için)</p>
+        <form id="reject-form">
+            <input type="hidden" name="urun_id">
+            <div class="reason-checks">
+                <label><input type="checkbox" name="reason" value="jakar"> 🚫 Jakar yapı (Stäubli yapamaz)</label>
+                <label><input type="checkbox" name="reason" value="metallic"> 🚫 Metallic iplik</label>
+                <label><input type="checkbox" name="reason" value="en_sinir_disi"> 📏 En &gt; 360 cm</label>
+                <label><input type="checkbox" name="reason" value="uygun_iplik_yok"> 🧵 İplik tedariki yok</label>
+                <label><input type="checkbox" name="reason" value="sertifika_imkansiz"> 📑 Sertifika imkansız</label>
+                <label><input type="checkbox" name="reason" value="fiyat_disi"> 💰 Fiyat noktası uyumsuz</label>
+                <label><input type="checkbox" name="reason" value="tasarim_uyumsuz"> 🎨 Tasarım uyumsuz</label>
+                <label><input type="checkbox" name="reason" value="tekrar"> ♻️ Mevcut benzeri var</label>
+                <label><input type="checkbox" name="reason" value="diger"> ❓ Diğer</label>
+            </div>
+            <textarea name="notes" placeholder="Notlar (opsiyonel)..." rows="3"></textarea>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-cancel" id="modal-cancel">İptal</button>
+                <button type="submit" class="btn btn-reject">Reddet</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+// Onayla/Reddet handlers
+document.querySelectorAll('.btn-approve').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+        const urunId = btn.dataset.urunId;
+        if (!confirm(`"${urunId}" onaylansın mı?`)) return;
+        const res = await fetch('/api/approve', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({urun_id: urunId}),
+        });
+        const data = await res.json();
+        if (data.ok) {
+            // Kart fade out
+            const card = document.querySelector(`.pending-card[data-urun-id="${urunId}"]`);
+            if (card) {
+                card.style.opacity = '0.3';
+                card.style.transition = 'opacity 0.5s';
+                setTimeout(() => card.remove(), 500);
+            }
+        } else {
+            alert('Hata: ' + (data.error || 'bilinmeyen'));
+        }
+    });
+});
+
+const modal = document.getElementById('reject-modal');
+const rejectForm = document.getElementById('reject-form');
+let currentRejectUrun = null;
+
+document.querySelectorAll('.btn-reject:not(#modal-cancel)').forEach(btn => {
+    btn.addEventListener('click', () => {
+        if (btn.dataset.urunId) {
+            currentRejectUrun = btn.dataset.urunId;
+            rejectForm.urun_id.value = currentRejectUrun;
+            // Clear checkboxes
+            rejectForm.querySelectorAll('input[name="reason"]').forEach(c => c.checked = false);
+            rejectForm.notes.value = '';
+            modal.hidden = false;
+        }
+    });
+});
+
+document.getElementById('modal-cancel').addEventListener('click', () => {
+    modal.hidden = true;
+    currentRejectUrun = null;
+});
+
+rejectForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const reasons = Array.from(rejectForm.querySelectorAll('input[name="reason"]:checked'))
+        .map(c => c.value);
+    if (reasons.length === 0) {
+        alert('En az bir reddetme sebebi seç (ML öğrenmesi için kritik).');
+        return;
+    }
+    const res = await fetch('/api/reject', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            urun_id: currentRejectUrun,
+            reasons: reasons,
+            notes: rejectForm.notes.value,
+        }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+        modal.hidden = true;
+        const card = document.querySelector(`.pending-card[data-urun-id="${currentRejectUrun}"]`);
+        if (card) {
+            card.style.opacity = '0.3';
+            setTimeout(() => card.remove(), 500);
+        }
+        currentRejectUrun = null;
+    } else {
+        alert('Hata: ' + (data.error || 'bilinmeyen'));
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}
