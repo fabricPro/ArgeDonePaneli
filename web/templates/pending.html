@@ -207,6 +207,13 @@
     </div>
 </div>
 
+<!-- Image lightbox (thumbnail → tam ekran) -->
+<div id="image-lightbox" class="lightbox-overlay" hidden>
+    <button class="lightbox-close" id="lightbox-close-btn" title="Kapat (ESC)">×</button>
+    <img id="lightbox-img" src="" alt="" referrerpolicy="no-referrer">
+    <div id="lightbox-caption" class="lightbox-caption"></div>
+</div>
+
 <!-- Reject modal (hem detaylı hem hızlı red için ortak) -->
 <div id="reject-modal" class="modal-overlay" hidden>
     <div class="modal-content">
@@ -240,6 +247,51 @@
 
 {% block scripts %}
 <script>
+// === Image lightbox (thumbnail click → tam ekran) ===
+const lightbox = document.getElementById('image-lightbox');
+const lightboxImg = document.getElementById('lightbox-img');
+const lightboxCaption = document.getElementById('lightbox-caption');
+
+function openLightbox(src, caption) {
+    // URL'i daha yüksek çözünürlüğe çevir (500 → 1200)
+    let bigSrc = src
+        .replace(/width=\d+/g, 'width=1200')
+        .replace(/height=\d+/g, 'height=1200')
+        .replace(/\/stencil\/\d+w\//g, '/stencil/1200w/')
+        .replace(/\/stencil\/\d+x\d+\//g, '/stencil/1200x1200/');
+    lightboxImg.src = bigSrc;
+    lightboxImg.alt = caption || '';
+    lightboxCaption.textContent = caption || '';
+    lightbox.hidden = false;
+    document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+    lightbox.hidden = true;
+    lightboxImg.src = '';
+    document.body.style.overflow = '';
+}
+
+document.getElementById('lightbox-close-btn').addEventListener('click', closeLightbox);
+lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) closeLightbox();
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !lightbox.hidden) closeLightbox();
+});
+
+// Aday thumb click → lightbox
+document.querySelectorAll('.aday-thumb').forEach(thumb => {
+    const img = thumb.querySelector('img');
+    if (!img) return;
+    thumb.addEventListener('click', () => {
+        const adayItem = thumb.closest('.aday-item');
+        const key = adayItem ? adayItem.dataset.key : '';
+        const brand = adayItem ? adayItem.dataset.brand : '';
+        openLightbox(img.src, `${brand} · ${key}`);
+    });
+});
+
 // === Aday scrape handlers ===
 document.querySelectorAll('.btn-scrape').forEach(btn => {
     btn.addEventListener('click', async (e) => {
