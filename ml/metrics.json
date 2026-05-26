@@ -1,0 +1,45 @@
+{
+  "latest_version": "v1",
+  "history": [
+    {
+      "version": "v1",
+      "training_mode": "cold_start_synthetic",
+      "n_positive": 27,
+      "n_negative_synthetic": 27,
+      "in_sample_precision": 1.0,
+      "in_sample_recall": 1.0,
+      "in_sample_f1": 1.0,
+      "trained_at": "2026-05-26T10:21:28.908705+00:00",
+      "positive_product_ids": [
+        "ado_goldkante_3009-harry-re",
+        "ado_goldkante_3018-ora",
+        "ado_goldkante_3150-capri-plus",
+        "ado_goldkante_3301-pure-white-pinstripe",
+        "ado_goldkante_3302-pure-white-tape",
+        "ado_goldkante_3610-drift-fr",
+        "dedar_00T19031-wide-linen-signor-darcy",
+        "dedar_00T19063-cobra",
+        "dedar_00T21015-wide-linen-atelier-1930",
+        "dedar_00T22044-wide-linen-baobab",
+        "dedar_00T23046-twillman",
+        "dedar_00T25007-days-like-now",
+        "etamine_19621-andria",
+        "etamine_19635-blanc-de-lin-re",
+        "etamine_19649-fil-du-temps",
+        "etamine_19650-heure-bleue",
+        "kvadrat_5539-air-line",
+        "kvadrat_5544-alpaca-leno",
+        "rubelli_30750-charles",
+        "rubelli_30764-filicudi",
+        "travers_44187-garden-stripe",
+        "zimmer_rohde_10918-softgrid",
+        "zimmer_rohde_10969-melange-linen",
+        "zimmer_rohde_10971-loops",
+        "zimmer_rohde_11047-ishari",
+        "zimmer_rohde_11049-nuri",
+        "zimmer_rohde_11051-niket"
+      ],
+      "negative_product_ids": []
+    }
+  ]
+}
