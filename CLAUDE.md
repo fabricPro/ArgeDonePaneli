@@ -187,6 +187,7 @@ CLAUDE.md kısa tutulmuştur. Detay gerektiğinde:
 - **Şema referansı**: `sema/urun.json` (v1.3) + `sema/marka_profili.json` (v1.1)
 - **Referans marka profili (n=1 örneği)**: `markalar/kvadrat.json`
 - **⭐ Dedar scraping öğrenilen dersler (HER YENİ DEDAR ÜRÜN DENETİMİNDE OKU)**: `docs/dedar_scraping_lessons_learned.md` — 4-aşamalı akış (scrape → migrate → link → dashboard), swatch vs named variant ayrımı, v1.2 product_code fallback, çözülen çelişki örnekleri
+- **⭐ Faz 7 Ön Onay + ML + Web UI yapılanması (HER YENİ OTURUM OKU)**: `docs/preonay_ml_yapilanma.md` — 4 aşamalı akış (keşif → scrape → AI tahmin/ön onay → öğrenme), Flask web UI rotaları, ML model (sklearn RandomForest, DINOv2 ileride), admin onay/red feedback loop. Anayasa #6 disiplini artık otomatik (pending durumdaki ürünler admin onayı bekler)
 
 ---
 
