@@ -18,6 +18,7 @@ Kullanim:
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -34,6 +35,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 URUNLER_DIR = PROJECT_ROOT / "markalar" / "urunler"
 GORSELLER_DIR = PROJECT_ROOT / "gorseller"
 HAM_CIKTI_DIR = PROJECT_ROOT / "topla" / "ham_cikti"
+LOGS_DIR = PROJECT_ROOT / "topla" / "logs"
 ML_DIR = PROJECT_ROOT / "ml"
 FEEDBACK_LOG = ML_DIR / "feedback_log.jsonl"
 
@@ -140,7 +142,7 @@ def index():
 
 @app.route("/pending")
 def pending():
-    """Ön onay sayfası — pending ürünler."""
+    """Ön onay sayfası — pending ürünler + yeni aday URL'ler."""
     products = load_products_by_status("pending")
 
     # ML score sort: yüksekten düşüğe
@@ -154,10 +156,17 @@ def pending():
     med = sum(1 for p in products if 0.5 <= ((p.get("ml_score") or {}).get("predicted_approval_prob") or 0) < 0.75)
     low = sum(1 for p in products if ((p.get("ml_score") or {}).get("predicted_approval_prob") or 0) < 0.5)
 
+    # Aday URL'ler — henüz scrape edilmemiş
+    with app.test_request_context():
+        aday_res = api_aday()
+    aday_data = aday_res.get_json() if hasattr(aday_res, "get_json") else json.loads(aday_res.data)
+
     return render_template(
         "pending.html",
         products=products,
         ai_stats={"high": high, "med": med, "low": low, "total": len(products)},
+        adaylar=aday_data.get("adaylar", []),
+        aday_count=aday_data.get("count", 0),
     )
 
 
@@ -297,6 +306,249 @@ def api_pending():
     return jsonify({"count": len(products), "products": products})
 
 
+@app.route("/api/aday")
+def api_aday():
+    """Aday URL'leri listele (henüz scrape edilmedi).
+
+    aday_*.json dosyalarındaki yeni_adaylar[] içeriğini topla.
+    Zaten markalar/urunler/'de olanları + reddedilmişleri çıkar.
+    """
+    # Mevcut markalar/urunler/ slug/code listesi
+    existing_keys: set[str] = set()
+    rejected_urls: set[str] = set()
+    for jp in URUNLER_DIR.glob("*.json"):
+        d = json.loads(jp.read_text(encoding="utf-8"))
+        # urun_id formatı: <brand>_<code>-<slug> veya <brand>_<slug>
+        stem = jp.stem
+        existing_keys.add(stem)
+        approval = d.get("approval_status", {})
+        status = approval.get("value") if isinstance(approval, dict) else approval
+        if status == "rejected":
+            url = d.get("source_url")
+            if url:
+                rejected_urls.add(url)
+
+    # Aday-seviyesi hızlı red URL'leri
+    rejected_urls_file = ML_DIR / "rejected_urls.jsonl"
+    if rejected_urls_file.exists():
+        for line in rejected_urls_file.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entry = json.loads(line)
+                if entry.get("url"):
+                    rejected_urls.add(entry["url"])
+            except Exception:
+                continue
+
+    # Aday JSON dosyalarından URL topla
+    aday_urls: list[dict] = []
+    seen_urls: set[str] = set()
+
+    if HAM_CIKTI_DIR.exists():
+        # Bugünün adaylarını öncelikle göster
+        for aday_file in sorted(HAM_CIKTI_DIR.glob("aday_*.json"),
+                                 key=lambda p: -p.stat().st_mtime):
+            try:
+                aday_data = json.loads(aday_file.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            region = aday_data.get("region")
+            marka_sonuclari = aday_data.get("marka_sonuclari", {})
+            for brand_slug, brand_data in marka_sonuclari.items():
+                if brand_data.get("status") != "ok":
+                    continue
+                for prod in brand_data.get("yeni_adaylar") or []:
+                    url = prod.get("url", "")
+                    if not url or url in seen_urls or url in rejected_urls:
+                        continue
+                    # Var olanı atla — urun_id tahmini
+                    key = prod.get("key", "")
+                    estimated_urun_id = f"{brand_slug}_{key}"
+                    if estimated_urun_id in existing_keys:
+                        continue
+                    seen_urls.add(url)
+                    aday_urls.append({
+                        "url": url,
+                        "brand_slug": brand_slug,
+                        "code": prod.get("code"),
+                        "slug": prod.get("slug"),
+                        "key": key,
+                        "region": region,
+                        "discovered_in": aday_file.name,
+                    })
+
+    return jsonify({"count": len(aday_urls), "adaylar": aday_urls})
+
+
+@app.route("/api/scrape", methods=["POST"])
+def api_scrape():
+    """Bir aday URL için detaylı scrape başlat (subprocess).
+
+    Background olarak topla.cli <url> çalıştırır. stdout/stderr log dosyasına
+    yönlenir (topla/logs/scrape_<timestamp>.log). Tamamlanınca
+    markalar/urunler/<urun>.json oluşur (approval_status=pending).
+    """
+    data = request.get_json(force=True)
+    url = data.get("url")
+    if not url:
+        return jsonify({"ok": False, "error": "url eksik"}), 400
+
+    # Log dosyası (terminale değil dosyaya yaz)
+    LOGS_DIR.mkdir(parents=True, exist_ok=True)
+    ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    safe_slug = url.rstrip("/").rsplit("/", 1)[-1].split("?")[0][:30]
+    log_path = LOGS_DIR / f"scrape_{safe_slug}_{ts}.log"
+
+    python_exe = PROJECT_ROOT / ".venv" / "Scripts" / "python.exe"
+    if not python_exe.exists():
+        return jsonify({"ok": False, "error": f".venv yok: {python_exe}"}), 500
+
+    # Playwright env — Flask context'inde LOCALAPPDATA eksik olabilir
+    env = os.environ.copy()
+    if "LOCALAPPDATA" not in env or "ms-playwright" not in (env.get("PLAYWRIGHT_BROWSERS_PATH", "")):
+        # Explicit Windows user path
+        user_localappdata = os.environ.get("LOCALAPPDATA") or f"C:\\Users\\{os.environ.get('USERNAME', 'PC')}\\AppData\\Local"
+        env["LOCALAPPDATA"] = user_localappdata
+        env["PLAYWRIGHT_BROWSERS_PATH"] = os.path.join(user_localappdata, "ms-playwright")
+
+    try:
+        log_f = log_path.open("w", encoding="utf-8")
+        log_f.write(f"# Scrape başlangıç: {ts}\n# URL: {url}\n# CMD: python -m topla.cli {url}\n")
+        log_f.write(f"# PLAYWRIGHT_BROWSERS_PATH: {env.get('PLAYWRIGHT_BROWSERS_PATH')}\n\n")
+        log_f.flush()
+
+        subprocess.Popen(
+            [str(python_exe), "-m", "topla.cli", url],
+            cwd=str(PROJECT_ROOT),
+            stdout=log_f,
+            stderr=subprocess.STDOUT,
+            env=env,
+            creationflags=(subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0),
+        )
+        return jsonify({
+            "ok": True,
+            "message": f"Scrape başladı: {url}",
+            "log_file": log_path.name,
+            "log_path": str(log_path.relative_to(PROJECT_ROOT)),
+        })
+    except Exception as e:
+        import traceback
+        return jsonify({"ok": False, "error": str(e), "trace": traceback.format_exc()[:500]}), 500
+
+
+@app.route("/api/quick-reject", methods=["POST"])
+def api_quick_reject():
+    """Aday seviyesinde hızlı red — URL'i feedback_log'a yaz, markalar/urunler/'e gitmesin.
+
+    Kullanım: aday slug'ında "jacquard"/"metallic" gibi açıkça kötü pattern
+    görüldüğünde, scrape etmeden direkt reddet.
+    """
+    data = request.get_json(force=True)
+    url = data.get("url")
+    reasons = data.get("reasons") or ["aday_seviyesinde_red"]
+    notes = data.get("notes", "")
+
+    if not url:
+        return jsonify({"ok": False, "error": "url eksik"}), 400
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    append_feedback({
+        "timestamp": now_iso,
+        "action": "quick_reject",
+        "url": url,
+        "brand_slug": data.get("brand_slug"),
+        "key": data.get("key"),
+        "reasons": reasons,
+        "notes": notes,
+        "_note": "Aday seviyesinde red — scrape edilmedi. Tekrar aynı URL gelirse filtreyle.",
+    })
+
+    # Reddedilen URL'leri ayrı dosyada da tut (aday taramasında filtrelensin)
+    rejected_urls_file = ML_DIR / "rejected_urls.jsonl"
+    ML_DIR.mkdir(parents=True, exist_ok=True)
+    with rejected_urls_file.open("a", encoding="utf-8") as f:
+        f.write(json.dumps({
+            "url": url,
+            "reasons": reasons,
+            "timestamp": now_iso,
+            "brand_slug": data.get("brand_slug"),
+            "key": data.get("key"),
+        }, ensure_ascii=False) + "\n")
+
+    return jsonify({"ok": True, "url": url})
+
+
+@app.route("/api/scan-status")
+def api_scan_status():
+    """Arka planda çalışan tarama durumu — son log dosyalarından çıkar.
+
+    Bir tarama "aktif" sayılır eğer:
+      - log dosyası son 5 dakikada modify edildi
+      - log içinde "Batch run BASARILI" veya "HATA" görünmedi
+    """
+    import time
+
+    now = time.time()
+    active_threshold = 300  # 5 dk
+
+    scans = []
+    if LOGS_DIR.exists():
+        for log_file in sorted(LOGS_DIR.glob("task_scheduler_*.log"), key=lambda p: -p.stat().st_mtime):
+            # Sadece bugünün dosyaları
+            today_str = datetime.now(timezone.utc).strftime("%Y%m%d")
+            if today_str not in log_file.name:
+                continue
+
+            mtime = log_file.stat().st_mtime
+            age_sec = now - mtime
+
+            # Region çıkar
+            # task_scheduler_<region>_<date>.log
+            parts = log_file.stem.split("_")
+            region = parts[2] if len(parts) >= 3 else "unknown"
+
+            # Log son 30 satır
+            try:
+                lines = log_file.read_text(encoding="utf-8", errors="replace").splitlines()
+                last_lines = lines[-30:]
+                tail = "\n".join(last_lines)
+            except Exception:
+                tail = ""
+
+            # Durum: success / error / running
+            success = "Batch run BASARILI" in tail or "Weekly review BASARILI" in tail
+            error = "HATA:" in tail or "EXCEPTION:" in tail
+            is_running = (age_sec < active_threshold) and not success and not error
+
+            # Output JSON kompakt (son 10 satır)
+            tail_short = "\n".join(last_lines[-10:])
+
+            # Aday JSON oluştu mu?
+            aday_path = HAM_CIKTI_DIR / f"aday_{region}_{today_str}.json"
+            aday_count = None
+            if aday_path.exists():
+                try:
+                    aday_data = json.loads(aday_path.read_text(encoding="utf-8"))
+                    aday_count = aday_data.get("toplam_yeni_aday", 0)
+                except Exception:
+                    pass
+
+            scans.append({
+                "region": region,
+                "log_file": log_file.name,
+                "modified_at": datetime.fromtimestamp(mtime, tz=timezone.utc).isoformat(),
+                "age_seconds": int(age_sec),
+                "status": "running" if is_running else ("success" if success else ("error" if error else "stale")),
+                "new_candidates": aday_count,
+                "log_tail": tail_short,
+            })
+
+    active_count = sum(1 for s in scans if s["status"] == "running")
+    return jsonify({"active_count": active_count, "scans": scans})
+
+
 @app.route("/trigger", methods=["POST"])
 def trigger():
     """Manuel tarama: subprocess ile topla.cli --batch çağrı."""
@@ -308,12 +560,22 @@ def trigger():
     regions = ["nordik", "italyan", "alman"] if region == "all" else [region]
 
     # Background tetikle (asenkron — kullanıcı beklemesin)
+    # Log dosyasına yaz, env=parent (Playwright PATH için)
+    LOGS_DIR.mkdir(parents=True, exist_ok=True)
+    today = datetime.now(timezone.utc).strftime("%Y%m%d")
     for r in regions:
+        log_path = LOGS_DIR / f"task_scheduler_{r}_{today}.log"
+        log_f = log_path.open("a", encoding="utf-8")
+        log_f.write(f"\n[{datetime.now(timezone.utc).isoformat()}] === Web UI trigger ===\n")
+        log_f.flush()
         subprocess.Popen(
             [str(PROJECT_ROOT / ".venv" / "Scripts" / "python.exe"),
              "-m", "topla.cli", "--batch", r],
             cwd=str(PROJECT_ROOT),
-            creationflags=subprocess.CREATE_NEW_CONSOLE if sys.platform == "win32" else 0,
+            stdout=log_f,
+            stderr=subprocess.STDOUT,
+            env=os.environ.copy(),
+            creationflags=(subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0),
         )
 
     flash(

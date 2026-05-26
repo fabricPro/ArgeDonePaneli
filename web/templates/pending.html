@@ -32,8 +32,19 @@
                 <button type="submit" class="btn-trigger">🔍 Şimdi Tara</button>
             </form>
             <p class="sidebar-note">
-                Tarama arka planda çalışır (5-10 dk). Yeni adaylar bu listeye düşer.
+                Tarama arka planda çalışır (5-10 dk). Aşağıda canlı durum görünür.
             </p>
+        </div>
+
+        <div class="sidebar-section">
+            <h3>⚡ Aktif Taramalar</h3>
+            <div id="scan-status-list">
+                <p class="sidebar-note" id="scan-status-empty">Şu an aktif tarama yok.</p>
+            </div>
+            <details id="scan-log-details" style="margin-top:10px;display:none;">
+                <summary style="cursor:pointer;color:var(--text-dim);font-size:12px;">📜 Son log satırları</summary>
+                <pre id="scan-log-content" style="background:var(--bg);padding:8px;border-radius:4px;font-size:11px;max-height:200px;overflow:auto;color:var(--text-dim);margin-top:6px;"></pre>
+            </details>
         </div>
 
         <div class="sidebar-section">
@@ -54,14 +65,53 @@
     <div class="pending-main">
         <div class="page-header">
             <h1>🔍 Onay Bekleyen Adaylar</h1>
-            <p class="page-subtitle">{{ products|length }} ürün admin kararı bekliyor</p>
+            <p class="page-subtitle">
+                {{ aday_count }} yeni URL (scrape gerek) ·
+                {{ products|length }} detaylı ürün (admin kararı bekler)
+            </p>
         </div>
 
-        {% if not products %}
+        {% if aday_count > 0 %}
+        <section class="aday-section">
+            <div class="aday-header">
+                <h2>🆕 Yeni Aday URL'ler ({{ aday_count }})</h2>
+                <p>
+                    Otomasyon keşfetti — henüz detaylı veri yok, sadece URL.
+                    <strong>2 seçenek:</strong>
+                    <span class="action-hint hint-scrape">📥 <strong>Detaylı Çek</strong></span> (5-10 dk, sonra alttaki "Detaylı Onay Bekleyen" bölümünde admin kararı verirsin) ·
+                    <span class="action-hint hint-quick-reject">🚫 <strong>Hızlı Red</strong></span> (slug'a bakarak direkt elemek için — örn. "jacquard" görüyorsan, scrape etmek zaman kaybı)
+                </p>
+            </div>
+            <div class="aday-list">
+                {% for a in adaylar[:30] %}
+                <div class="aday-item" data-url="{{ a.url }}" data-key="{{ a.key }}" data-brand="{{ a.brand_slug }}">
+                    <div class="aday-info">
+                        <span class="aday-region">{{ a.region }}</span>
+                        <span class="aday-brand">{{ a.brand_slug }}</span>
+                        <a href="{{ a.url }}" target="_blank" class="aday-link">{{ a.key or a.slug }} ↗</a>
+                    </div>
+                    <div class="aday-actions">
+                        <button class="btn-quick-reject" data-url="{{ a.url }}" data-key="{{ a.key }}" data-brand="{{ a.brand_slug }}" title="Slug'a bakarak direkt reddet (jakar/metallic/vs)">🚫 Hızlı Red</button>
+                        <button class="btn-scrape" data-url="{{ a.url }}">📥 Detaylı Çek</button>
+                    </div>
+                </div>
+                {% endfor %}
+                {% if aday_count > 30 %}
+                <p class="aday-more">... {{ aday_count - 30 }} aday daha. Onayla/reddet aldıkça liste güncellenir.</p>
+                {% endif %}
+            </div>
+        </section>
+        {% endif %}
+
+        {% if not products and aday_count == 0 %}
         <div class="empty-state">
             <p>Şu an onay bekleyen aday yok.</p>
             <p class="hint">Sol panelden "🔍 Şimdi Tara" ile yeni aday keşfi başlat.</p>
         </div>
+        {% endif %}
+
+        {% if products %}
+        <h2 style="margin:24px 0 12px;color:var(--text);">🔍 Detaylı Onay Bekleyen</h2>
         {% endif %}
 
         <div class="pending-grid">
@@ -179,6 +229,159 @@
 
 {% block scripts %}
 <script>
+// === Aday scrape handlers ===
+document.querySelectorAll('.btn-scrape').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+        const url = btn.dataset.url;
+        btn.disabled = true;
+        btn.textContent = '⏳ Başlatılıyor...';
+        try {
+            const res = await fetch('/api/scrape', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({url}),
+            });
+            const data = await res.json();
+            if (data.ok) {
+                btn.textContent = '✅ Çekiliyor (5-10 dk)';
+                btn.style.background = 'var(--green)';
+                // Log dosyası bağlantısı varsa göster
+                const item = btn.closest('.aday-item');
+                if (item && data.log_file) {
+                    const logInfo = document.createElement('span');
+                    logInfo.className = 'aday-log-info';
+                    logInfo.innerHTML = ` · Log: <code>${data.log_file}</code>`;
+                    item.querySelector('.aday-info').appendChild(logInfo);
+                }
+            } else {
+                btn.disabled = false;
+                btn.textContent = '❌ Hata — Tekrar Dene';
+                alert('Hata: ' + (data.error || 'bilinmeyen'));
+            }
+        } catch (e) {
+            btn.disabled = false;
+            btn.textContent = '❌ Tekrar Dene';
+            alert('Bağlantı hatası: ' + e.message);
+        }
+    });
+});
+
+// === Aday hızlı red handlers ===
+document.querySelectorAll('.btn-quick-reject').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+        const url = btn.dataset.url;
+        const key = btn.dataset.key;
+        const brand = btn.dataset.brand;
+        // Slug'dan kısa sebep çıkar
+        let suggestedReason = 'diger';
+        const slug = (key || '').toLowerCase();
+        if (slug.includes('jacquard') || slug.includes('jakar')) suggestedReason = 'jakar';
+        else if (slug.includes('metallic') || slug.includes('gold') || slug.includes('lurex')) suggestedReason = 'metallic';
+        else if (slug.includes('velvet') || slug.includes('kadife')) suggestedReason = 'tasarim_uyumsuz';
+
+        const reason = prompt(
+            `"${key}" adayını neden hızlı red ediyorsun?\n\nSebepler:\njakar | metallic | en_sinir_disi | uygun_iplik_yok | sertifika_imkansiz | fiyat_disi | tasarim_uyumsuz | tekrar | diger`,
+            suggestedReason
+        );
+        if (!reason) return;
+
+        btn.disabled = true;
+        btn.textContent = '⏳';
+        try {
+            const res = await fetch('/api/quick-reject', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    url, brand_slug: brand, key,
+                    reasons: [reason],
+                    notes: `Aday seviyesinde hızlı red (slug: ${key})`,
+                }),
+            });
+            const data = await res.json();
+            if (data.ok) {
+                const item = btn.closest('.aday-item');
+                if (item) {
+                    item.style.opacity = '0.3';
+                    item.style.textDecoration = 'line-through';
+                    setTimeout(() => item.remove(), 500);
+                }
+            } else {
+                btn.disabled = false;
+                btn.textContent = '🚫 Hızlı Red';
+                alert('Hata: ' + (data.error || 'bilinmeyen'));
+            }
+        } catch (e) {
+            btn.disabled = false;
+            btn.textContent = '🚫 Hızlı Red';
+        }
+    });
+});
+
+// === Scan status polling (her 5 sn) ===
+async function refreshScanStatus() {
+    try {
+        const res = await fetch('/api/scan-status');
+        const data = await res.json();
+        const list = document.getElementById('scan-status-list');
+        const empty = document.getElementById('scan-status-empty');
+        const logDetails = document.getElementById('scan-log-details');
+        const logContent = document.getElementById('scan-log-content');
+
+        if (!data.scans || data.scans.length === 0) {
+            empty.style.display = '';
+            list.querySelectorAll('.scan-item').forEach(el => el.remove());
+            logDetails.style.display = 'none';
+            return;
+        }
+        empty.style.display = 'none';
+
+        // Sadece bugünün aktif/biten son taramalarını göster
+        const recent = data.scans.slice(0, 5);
+
+        // Mevcut item'ları temizle
+        list.querySelectorAll('.scan-item').forEach(el => el.remove());
+
+        let runningCount = 0;
+        let combinedLog = '';
+        recent.forEach(scan => {
+            const item = document.createElement('div');
+            item.className = 'scan-item scan-' + scan.status;
+            const statusIcon = scan.status === 'running' ? '⏳' : (scan.status === 'success' ? '✅' : (scan.status === 'error' ? '❌' : '⚪'));
+            const statusText = scan.status === 'running' ? 'çalışıyor' : (scan.status === 'success' ? 'tamamlandı' : (scan.status === 'error' ? 'hata' : 'eski'));
+            const ageStr = scan.age_seconds < 60 ? scan.age_seconds + ' sn' : Math.floor(scan.age_seconds / 60) + ' dk';
+            const candStr = scan.new_candidates !== null ? ` · ${scan.new_candidates} yeni aday` : '';
+            item.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:var(--bg);border-radius:4px;margin:4px 0;font-size:12px;">
+                    <span><strong>${statusIcon} ${scan.region}</strong> · ${statusText}${candStr}</span>
+                    <span style="color:var(--text-dim);">${ageStr}</span>
+                </div>
+            `;
+            list.appendChild(item);
+
+            if (scan.status === 'running') runningCount++;
+            combinedLog += `--- ${scan.region} ---\n${scan.log_tail}\n\n`;
+        });
+
+        if (combinedLog.trim()) {
+            logDetails.style.display = '';
+            logContent.textContent = combinedLog;
+        } else {
+            logDetails.style.display = 'none';
+        }
+
+        // Active count badge
+        document.title = runningCount > 0
+            ? `[${runningCount} aktif] Onay Bekleyen — Mobidik`
+            : 'Onay Bekleyen — Mobidik';
+    } catch (e) {
+        console.error('Scan status hatası:', e);
+    }
+}
+
+// İlk çağrı + 5 sn'de bir
+refreshScanStatus();
+setInterval(refreshScanStatus, 5000);
+
 // Onayla/Reddet handlers
 document.querySelectorAll('.btn-approve').forEach(btn => {
     btn.addEventListener('click', async (e) => {
