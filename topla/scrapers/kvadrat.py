@@ -18,8 +18,9 @@ USER_AGENT = (
 
 
 def scrape_kvadrat(url: str) -> dict:
+    from topla.scrapers._browser import launch_chromium
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = launch_chromium(p, headless=True)
         context = browser.new_context(user_agent=USER_AGENT)
         page = context.new_page()
         page.goto(url, wait_until="domcontentloaded", timeout=60000)
