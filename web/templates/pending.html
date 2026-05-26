@@ -99,7 +99,11 @@
                     </div>
                     <div class="aday-actions">
                         <button class="btn-quick-reject" data-url="{{ a.url }}" data-key="{{ a.key }}" data-brand="{{ a.brand_slug }}" title="Slug'a bakarak direkt reddet (jakar/metallic/vs)">🚫 Hızlı Red</button>
+                        {% if a.brand_slug in ('kvadrat', 'dedar', 'rubelli') %}
                         <button class="btn-scrape" data-url="{{ a.url }}">📥 Detaylı Çek</button>
+                        {% else %}
+                        <button class="btn-scrape" disabled title="Bu marka için scraper henüz yazılmadı (Faz 7.11)">🚧 Scraper Yok</button>
+                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}

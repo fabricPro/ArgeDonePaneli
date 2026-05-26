@@ -391,6 +391,15 @@ def api_aday():
     return jsonify({"count": len(aday_urls), "adaylar": aday_urls})
 
 
+SUPPORTED_SCRAPE_DOMAINS = {"kvadrat.dk", "dedar.com", "rubelli.com"}
+UNSUPPORTED_BRANDS = {
+    "zimmer-rohde.com": "Z+R Group (Z+R/ADO/Etamine/Travers) scraper henüz yazılmadı (Faz 7.11). Adaptör hazır — referans `adaptorler/zimmer_rohde.md`. Mevcut görsel indirme: `topla/scripts/download_zr_variants.py`.",
+    "sahco.com": "Sahco scraper henüz yok (Faz 7.x).",
+    "nya-nordiska.com": "Nya Nordiska scraper henüz yok (Faz 7.x).",
+    "creationbaumann.com": "Création Baumann scraper henüz yok (Faz 7.x).",
+}
+
+
 @app.route("/api/scrape", methods=["POST"])
 def api_scrape():
     """Bir aday URL için detaylı scrape başlat (subprocess).
@@ -403,6 +412,23 @@ def api_scrape():
     url = data.get("url")
     if not url:
         return jsonify({"ok": False, "error": "url eksik"}), 400
+
+    # Brand pre-check (subprocess başlatmadan önce)
+    from urllib.parse import urlparse
+    host = urlparse(url).netloc.lower().replace("www.", "")
+    if host in UNSUPPORTED_BRANDS:
+        return jsonify({
+            "ok": False,
+            "error": f"Scraper yok: {host}",
+            "message": UNSUPPORTED_BRANDS[host],
+            "scraper_missing": True,
+        }), 400
+    if not any(d in host for d in SUPPORTED_SCRAPE_DOMAINS):
+        return jsonify({
+            "ok": False,
+            "error": f"Bilinmeyen marka: {host}",
+            "message": "Bu domain'e ait scraper yok. Mevcut: Kvadrat, Dedar, Rubelli.",
+        }), 400
 
     # Log dosyası (terminale değil dosyaya yaz)
     LOGS_DIR.mkdir(parents=True, exist_ok=True)
