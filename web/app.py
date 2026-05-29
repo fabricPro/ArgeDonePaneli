@@ -239,10 +239,12 @@ def urun_detail(urun_id: str):
             display_items.append({"type": "header", "label": label or "Genel", "count": len(imgs)})
         for im in imgs:
             display_items.append({"type": "image", **im})
+    pinned_items = [im for im in images if im.get("is_pinned")]
     return render_template(
         "urun.html", product=d, urun_id=urun_id,
         cover_image=store.public_url(cover_path(d)),
         display_items=display_items,
+        pinned_items=pinned_items,
         countries=country_list(),
         country_suggestions=COUNTRY_SUGGESTIONS, weave_suggestions=WEAVE_SUGGESTIONS,
     )
@@ -386,6 +388,27 @@ def api_set_label(urun_id: str):
     for im in d.get("images") or []:
         if im.get("path") == target:
             im["variant_label"] = clean(data.get("variant_label"))
+            found = True
+            break
+    if not found:
+        return jsonify({"ok": False, "error": "Görsel bulunamadı"}), 400
+    d["updated_at"] = now_iso()
+    store.upsert(d)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/urun/<urun_id>/sabitle", methods=["POST"])
+def api_set_pin(urun_id: str):
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    data = request.get_json(force=True) or {}
+    target = data.get("path")
+    pin = bool(data.get("pin"))
+    found = False
+    for im in d.get("images") or []:
+        if im.get("path") == target:
+            im["is_pinned"] = pin
             found = True
             break
     if not found:

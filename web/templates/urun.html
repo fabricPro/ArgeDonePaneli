@@ -38,6 +38,18 @@
 </div>
 {% endif %}
 
+{% if pinned_items %}
+<div class="pinned-strip" id="pinned-strip" aria-label="Sabitlenmiş görseller">
+    {% for im in pinned_items %}
+    <div class="pinned-card" data-path="{{ im.path }}">
+        <img src="{{ im.url }}" alt="{{ im.variant_label or '' }}" loading="lazy">
+        {% if im.variant_label %}<span class="pinned-label">{{ im.variant_label }}</span>{% endif %}
+        <button class="btn-pin-remove" data-path="{{ im.path }}" title="Sabitlemeyi kaldır">×</button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
 <details class="meta-edit">
     <summary>✎ Bilgileri düzenle</summary>
     <div class="form-grid">
@@ -94,6 +106,7 @@
             {% else %}
             <button class="btn-mini btn-set-cover" data-path="{{ item.path }}">⭐ Kapak Yap</button>
             {% endif %}
+            <button class="btn-mini btn-pin {% if item.is_pinned %}is-pinned{% endif %}" data-path="{{ item.path }}" data-pin="{{ 'false' if item.is_pinned else 'true' }}" title="{% if item.is_pinned %}Sabitlemeyi kaldır{% else %}Sabitle{% endif %}">📌</button>
             <button class="btn-mini btn-del-img" data-path="{{ item.path }}">🗑</button>
         </div>
     </div>
@@ -167,6 +180,24 @@ document.querySelectorAll('.btn-del-img').forEach(btn => {
     btn.addEventListener('click', async () => {
         if (!confirm('Bu görseli silmek istediğine emin misin? (Dosya diskten de silinir)')) return;
         const data = await postJson(`/api/urun/${URUN_ID}/gorsel-sil`, { path: btn.dataset.path });
+        if (data.ok) location.reload(); else alert(data.error || 'Hata');
+    });
+});
+
+// --- Sabitle / kaldır ---
+function pinAction(path, pin) {
+    return postJson(`/api/urun/${URUN_ID}/sabitle`, { path, pin });
+}
+document.querySelectorAll('.btn-pin').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const pin = btn.dataset.pin === 'true';
+        const data = await pinAction(btn.dataset.path, pin);
+        if (data.ok) location.reload(); else alert(data.error || 'Hata');
+    });
+});
+document.querySelectorAll('.btn-pin-remove').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const data = await pinAction(btn.dataset.path, false);
         if (data.ok) location.reload(); else alert(data.error || 'Hata');
     });
 });
