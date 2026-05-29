@@ -151,7 +151,7 @@ def product_summary(d: dict) -> dict:
 
 @app.before_request
 def require_login():
-    if request.endpoint in ("login", "static"):
+    if request.endpoint in ("login", "static", "health"):
         return
     if not APP_PASSWORD:
         return  # sifre tanimli degil -> acik (yerel gelistirme)
