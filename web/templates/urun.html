@@ -8,21 +8,16 @@
     <a href="{{ url_for('index') }}" class="btn btn-secondary">← Galeriye dön</a>
 </div>
 {% else %}
+{% if cover_image %}
+<div class="hero-image">
+    <img src="{{ cover_image }}" alt="{{ product.product_name }}" loading="eager">
+</div>
+{% endif %}
 <div class="detail-header">
-    <div>
+    <div class="detail-header-text">
         <div class="card-brand">{{ product.brand }}{% if product.country %} · {{ product.country }}{% endif %}</div>
         <h1>{{ product.product_name }}</h1>
-        <div class="card-meta">
-            {% if product.product_code %}Kod: {{ product.product_code }}{% endif %}
-            {% if product.collection %} · {{ product.collection }}{% endif %}
-            {% if product.width_cm %} · En {{ product.width_cm }}cm{% endif %}
-            {% if product.weight_gsm %} · {{ product.weight_gsm }} g/m²{% endif %}
-            {% if product.weave_type %} · {{ product.weave_type }}{% endif %}
-            {% if product.composition %} · {{ product.composition }}{% endif %}
-            {% if product.repeat_vertical_cm is not none or product.repeat_horizontal_cm is not none %}
-             · Rapor (boy×en): {{ product.repeat_vertical_cm if product.repeat_vertical_cm is not none else '–' }} × {{ product.repeat_horizontal_cm if product.repeat_horizontal_cm is not none else '–' }} cm
-            {% endif %}
-        </div>
+        {% if product.collection %}<div class="card-meta">{{ product.collection }}</div>{% endif %}
     </div>
     <div class="detail-header-actions">
         {% if product.source_url %}
@@ -31,6 +26,20 @@
         <button class="btn btn-danger" id="delete-product-btn"><svg class="icon"><use href="#ic-trash"/></svg> Ürünü Sil</button>
     </div>
 </div>
+
+{% set has_meta = product.product_code or product.width_cm or product.weight_gsm or product.weave_type or product.composition or (product.repeat_vertical_cm is not none) or (product.repeat_horizontal_cm is not none) %}
+{% if has_meta %}
+<dl class="meta-list">
+    {% if product.product_code %}<div><dt>Kod</dt><dd>{{ product.product_code }}</dd></div>{% endif %}
+    {% if product.width_cm %}<div><dt>En</dt><dd>{{ product.width_cm }} cm</dd></div>{% endif %}
+    {% if product.weight_gsm %}<div><dt>Gramaj</dt><dd>{{ product.weight_gsm }} g/m²</dd></div>{% endif %}
+    {% if product.weave_type %}<div><dt>Dokuma</dt><dd>{{ product.weave_type }}</dd></div>{% endif %}
+    {% if product.composition %}<div><dt>Kompozisyon</dt><dd>{{ product.composition }}</dd></div>{% endif %}
+    {% if product.repeat_vertical_cm is not none or product.repeat_horizontal_cm is not none %}
+    <div><dt>Rapor (boy × en)</dt><dd>{{ product.repeat_vertical_cm if product.repeat_vertical_cm is not none else '–' }} × {{ product.repeat_horizontal_cm if product.repeat_horizontal_cm is not none else '–' }} cm</dd></div>
+    {% endif %}
+</dl>
+{% endif %}
 
 {% if product.arge_notu %}
 <div class="arge-note">

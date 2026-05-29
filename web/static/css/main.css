@@ -1045,24 +1045,85 @@ main { padding: 24px 32px; max-width: 1600px; margin: 0 auto; }
 .form-msg.ok { color: var(--green); }
 
 /* === Detay sayfası === */
+.hero-image {
+    position: relative;
+    width: 100%;
+    max-height: 480px;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-6);
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+}
+.hero-image img {
+    width: 100%;
+    height: auto;
+    max-height: 480px;
+    object-fit: cover;
+    display: block;
+}
+.hero-image::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 25%;
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,0.35));
+    pointer-events: none;
+}
+
 .detail-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 16px;
-    margin-bottom: 16px;
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
     flex-wrap: wrap;
 }
-.detail-header h1 { font-size: 26px; margin: 4px 0; }
-.detail-header-actions { display: flex; gap: 10px; flex-shrink: 0; }
+.detail-header-text { flex: 1; min-width: 0; }
+.detail-header .card-brand { margin-bottom: var(--space-1); }
+.detail-header h1 {
+    font-size: var(--type-display);
+    font-weight: 700;
+    margin: 0 0 var(--space-2);
+    line-height: 1.15;
+}
+.detail-header .card-meta { font-size: var(--type-body); color: var(--text-dim); }
+.detail-header-actions { display: flex; gap: var(--space-2); flex-shrink: 0; }
+
+/* Metadata as definition list */
+.meta-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-8);
+    padding: var(--space-4) var(--space-6);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+}
+.meta-list > div { display: flex; flex-direction: column; }
+.meta-list dt {
+    font-size: var(--type-caption);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+.meta-list dd {
+    font-size: var(--type-body);
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+}
 
 .arge-note {
-    background: rgba(251, 191, 36, 0.08);
+    background: rgba(200, 160, 98, 0.07);
     border-left: 3px solid var(--altin);
-    padding: 12px 16px;
-    border-radius: 6px;
-    font-size: 14px;
-    margin-bottom: 20px;
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius);
+    font-size: var(--type-body);
+    line-height: 1.6;
+    margin-bottom: var(--space-6);
 }
 
 .meta-edit {
@@ -1151,67 +1212,69 @@ main { padding: 24px 32px; max-width: 1600px; margin: 0 auto; }
 .img-add-card:hover { border-color: var(--green); color: var(--green); }
 .img-add-plus { font-size: 40px; line-height: 1; }
 
-/* === Sabitleme (pin) stik şerit + kart === */
+/* === Sabitleme (pin) stik şerit + kart — kompakt === */
 .pinned-strip {
     position: sticky;
-    top: 56px;          /* topbar yuksekligi kadar offset */
+    top: 56px;
     z-index: 60;
-    background: var(--bg);
+    background: rgba(10,11,13,0.92);
+    backdrop-filter: blur(8px) saturate(180%);
+    -webkit-backdrop-filter: blur(8px) saturate(180%);
     border-bottom: 1px solid var(--border);
-    margin: 0 -32px 16px;
-    padding: 10px 32px;
+    margin: 0 -32px var(--space-4);
+    padding: var(--space-2) var(--space-8);
     display: flex;
-    gap: 8px;
+    gap: var(--space-2);
     overflow-x: auto;
-    scrollbar-width: thin;
+    scrollbar-width: none;
+    align-items: center;
 }
+.pinned-strip::-webkit-scrollbar { display: none; }
 .pinned-strip::before {
-    content: "📌";
+    content: "Sabit";
     color: var(--altin);
-    align-self: center;
-    font-size: 16px;
+    font-size: var(--type-caption);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     flex: 0 0 auto;
+    padding-right: var(--space-2);
+    border-right: 1px solid var(--border);
+    margin-right: var(--space-2);
 }
 .pinned-card {
     flex: 0 0 auto;
     position: relative;
-    width: 88px;
-    height: 88px;
-    border-radius: 8px;
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius);
     overflow: hidden;
     border: 1px solid var(--altin);
     background: var(--bg-card);
 }
 .pinned-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.pinned-label {
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    background: rgba(0,0,0,0.7);
-    color: #fff;
-    font-size: 10px;
-    padding: 2px 6px;
-    text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
+.pinned-label { display: none; }  /* kompakt strip'te etiket gizli, hover'da tooltip yeterli */
 .btn-pin-remove {
     position: absolute;
-    top: 4px; right: 4px;
-    background: rgba(0,0,0,0.65);
+    top: 2px; right: 2px;
+    background: rgba(0,0,0,0.7);
     color: #fff;
     border: none;
-    width: 22px;
-    height: 22px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
-    font-size: 14px;
     cursor: pointer;
     line-height: 1;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 0;
+    opacity: 0;
+    transition: opacity var(--t-base) var(--ease);
 }
+.pinned-card:hover .btn-pin-remove { opacity: 1; }
 .btn-pin-remove:hover { background: var(--red); }
+.btn-pin-remove svg { width: 11px; height: 11px; }
 
 /* === Varyant grup ayraci (image-manage-grid icinde, masaustu) === */
 .variant-separator {
@@ -1615,12 +1678,12 @@ body.design-on .product-card:active { cursor: grabbing; }
 
     /* Sabitleme şeridi mobilde kompakt */
     .pinned-strip {
-        top: 50px;
+        top: 48px;
         margin: 0 -12px 12px;
-        padding: 8px 12px;
+        padding: var(--space-2) var(--space-3);
     }
-    .pinned-card { width: 72px; height: 72px; }
-    .pinned-label { font-size: 9px; padding: 2px 4px; }
+    .pinned-card { width: 48px; height: 48px; }
+    .pinned-strip::before { font-size: 10px; padding-right: var(--space-1); margin-right: var(--space-1); }
     .meta-edit { padding: 12px 14px; margin-bottom: 14px; }
     .meta-edit summary { font-size: 14px; padding: 4px 0; }
     .meta-edit input,
