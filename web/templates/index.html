@@ -8,7 +8,10 @@
 </div>
 
 <div class="filter-bar">
-    <input type="text" id="search-input" placeholder="🔍 Marka, ürün, ülke..." class="search-input">
+    <div class="search-wrap">
+        <svg class="icon search-icon"><use href="#ic-search"/></svg>
+        <input type="text" id="search-input" placeholder="Marka, ürün veya ülke ara…" class="search-input">
+    </div>
     <select id="filter-brand" class="filter-select">
         <option value="">Tüm markalar</option>
         {% for b in brands %}
@@ -16,14 +19,14 @@
         {% endfor %}
     </select>
     <div class="view-toggle" role="group" aria-label="Görüntüleme modu">
-        <button class="view-btn" data-mode="grid" title="Kart grid">🎴</button>
-        <button class="view-btn" data-mode="list" title="Liste">☰</button>
+        <button class="view-btn" data-mode="grid" title="Kart grid"><svg class="icon"><use href="#ic-grid"/></svg></button>
+        <button class="view-btn" data-mode="list" title="Liste"><svg class="icon"><use href="#ic-list"/></svg></button>
     </div>
     <div class="design-controls" id="design-controls">
         <span id="design-hint" class="design-hint" hidden>↔ Başlıkları veya kartları sürükleyip bırakarak sırala</span>
-        <button id="design-save" class="btn btn-primary" hidden>💾 Kaydet</button>
+        <button id="design-save" class="btn btn-primary" hidden>Kaydet</button>
         <button id="design-cancel" class="btn btn-secondary" hidden>İptal</button>
-        <button id="design-toggle" class="btn btn-secondary">✎ Tasarım Modu</button>
+        <button id="design-toggle" class="btn btn-secondary"><svg class="icon"><use href="#ic-pencil"/></svg> Tasarım Modu</button>
     </div>
 </div>
 

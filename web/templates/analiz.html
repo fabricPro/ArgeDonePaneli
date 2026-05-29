@@ -3,24 +3,28 @@
 
 {% block content %}
 <div class="page-header">
-    <h1>📊 Veri Analizi</h1>
+    <h1><svg class="icon icon-xl"><use href="#ic-bar-chart"/></svg> Veri Analizi</h1>
     <p class="page-subtitle">Ülke karşılaştırma + eğilim raporu</p>
 </div>
 
 <div class="stat-cards">
     <div class="stat-card">
+        <svg class="icon icon-lg stat-icon"><use href="#ic-grid"/></svg>
         <div class="stat-value">{{ stats.total_products }}</div>
         <div class="stat-label">Toplam ürün</div>
     </div>
     <div class="stat-card">
+        <svg class="icon icon-lg stat-icon"><use href="#ic-pin"/></svg>
         <div class="stat-value">{{ stats.total_countries }}</div>
         <div class="stat-label">Ülke</div>
     </div>
     <div class="stat-card">
+        <svg class="icon icon-lg stat-icon"><use href="#ic-star"/></svg>
         <div class="stat-value">{{ stats.total_distinct_labels }}</div>
         <div class="stat-label">Farklı renk</div>
     </div>
     <div class="stat-card">
+        <svg class="icon icon-lg stat-icon"><use href="#ic-image"/></svg>
         <div class="stat-value">{{ stats.total_images }}</div>
         <div class="stat-label">Görsel</div>
     </div>

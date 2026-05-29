@@ -26,9 +26,9 @@
     </div>
     <div class="detail-header-actions">
         {% if product.source_url %}
-        <a href="{{ product.source_url }}" target="_blank" rel="noopener" class="btn btn-secondary">↗ Kaynak</a>
+        <a href="{{ product.source_url }}" target="_blank" rel="noopener" class="btn btn-secondary"><svg class="icon"><use href="#ic-external-link"/></svg> Kaynak</a>
         {% endif %}
-        <button class="btn btn-danger" id="delete-product-btn">🗑 Ürünü Sil</button>
+        <button class="btn btn-danger" id="delete-product-btn"><svg class="icon"><use href="#ic-trash"/></svg> Ürünü Sil</button>
     </div>
 </div>
 
@@ -44,14 +44,14 @@
     <div class="pinned-card" data-path="{{ im.path }}">
         <img src="{{ im.url }}" alt="{{ im.variant_label or '' }}" loading="lazy">
         {% if im.variant_label %}<span class="pinned-label">{{ im.variant_label }}</span>{% endif %}
-        <button class="btn-pin-remove" data-path="{{ im.path }}" title="Sabitlemeyi kaldır">×</button>
+        <button class="btn-pin-remove" data-path="{{ im.path }}" title="Sabitlemeyi kaldır"><svg class="icon"><use href="#ic-x"/></svg></button>
     </div>
     {% endfor %}
 </div>
 {% endif %}
 
 <details class="meta-edit">
-    <summary>✎ Bilgileri düzenle</summary>
+    <summary><svg class="icon"><use href="#ic-pencil"/></svg> Bilgileri düzenle</summary>
     <div class="form-grid">
         <div class="form-row"><label>Marka</label><input data-key="brand" value="{{ product.brand or '' }}"></div>
         <div class="form-row"><label>Ülke</label><input data-key="country" list="country-list" value="{{ product.country or '' }}">
@@ -78,13 +78,13 @@
     <h2 class="section-title">Görseller ({{ product.images|length }})</h2>
     <div class="design-controls">
         <div class="view-toggle" role="group" aria-label="Görüntüleme modu">
-            <button class="view-btn" data-mode="grid" title="Kart grid">🎴</button>
-            <button class="view-btn" data-mode="list" title="Liste">☰</button>
+            <button class="view-btn" data-mode="grid" title="Kart grid"><svg class="icon"><use href="#ic-grid"/></svg></button>
+            <button class="view-btn" data-mode="list" title="Liste"><svg class="icon"><use href="#ic-list"/></svg></button>
         </div>
         <span id="design-hint" class="design-hint" hidden>↔ Kartları sürükleyip bırakarak sırala</span>
-        <button id="design-save" class="btn btn-primary" hidden>💾 Sıralamayı Kaydet</button>
+        <button id="design-save" class="btn btn-primary" hidden>Sıralamayı Kaydet</button>
         <button id="design-cancel" class="btn btn-secondary" hidden>İptal</button>
-        <button id="design-toggle" class="btn btn-secondary">✎ Tasarım Modu (sırala)</button>
+        <button id="design-toggle" class="btn btn-secondary"><svg class="icon"><use href="#ic-pencil"/></svg> Tasarım Modu</button>
     </div>
 </div>
 <div class="image-manage-grid" id="image-grid">
@@ -96,7 +96,7 @@
     </div>
         {% else %}
     <div class="img-manage-card {% if item.is_cover %}is-cover{% endif %}" data-path="{{ item.path }}" data-label="{{ item.variant_label or '' }}">
-        {% if item.is_cover %}<div class="cover-badge">⭐ Kapak</div>{% endif %}
+        {% if item.is_cover %}<div class="cover-badge"><svg class="icon"><use href="#ic-star"/></svg> Kapak</div>{% endif %}
         <img src="{{ item.url }}"
              alt="{{ item.variant_label or '' }}" loading="lazy" draggable="false"
              class="manage-img"
@@ -106,19 +106,19 @@
                placeholder="Varyant/renk adı" data-path="{{ item.path }}">
         <div class="img-manage-actions">
             {% if item.is_cover %}
-            <button class="btn-mini btn-mini-cover" disabled>✓ Kapak</button>
+            <button class="btn-mini btn-mini-cover" disabled><svg class="icon"><use href="#ic-check"/></svg> Kapak</button>
             {% else %}
-            <button class="btn-mini btn-set-cover" data-path="{{ item.path }}">⭐ Kapak Yap</button>
+            <button class="btn-mini btn-set-cover" data-path="{{ item.path }}" title="Kapak yap"><svg class="icon"><use href="#ic-star"/></svg></button>
             {% endif %}
-            <button class="btn-mini btn-pin {% if item.is_pinned %}is-pinned{% endif %}" data-path="{{ item.path }}" data-pin="{{ 'false' if item.is_pinned else 'true' }}" title="{% if item.is_pinned %}Sabitlemeyi kaldır{% else %}Sabitle{% endif %}">📌</button>
-            <button class="btn-mini btn-del-img" data-path="{{ item.path }}">🗑</button>
+            <button class="btn-mini btn-pin {% if item.is_pinned %}is-pinned{% endif %}" data-path="{{ item.path }}" data-pin="{{ 'false' if item.is_pinned else 'true' }}" title="{% if item.is_pinned %}Sabitlemeyi kaldır{% else %}Sabitle{% endif %}"><svg class="icon"><use href="#ic-pin"/></svg></button>
+            <button class="btn-mini btn-del-img" data-path="{{ item.path }}" title="Sil"><svg class="icon"><use href="#ic-trash"/></svg></button>
         </div>
     </div>
         {% endif %}
     {% endfor %}
 
     <label class="img-add-card">
-        <span class="img-add-plus">＋</span>
+        <svg class="icon icon-2xl"><use href="#ic-plus"/></svg>
         <span>Görsel Ekle</span>
         <input type="file" id="add-img-input" accept="image/*" capture="environment" multiple hidden>
     </label>
@@ -129,12 +129,12 @@
 
 <!-- Lightbox -->
 <div class="lightbox-overlay" id="lightbox" hidden>
-    <button class="lightbox-close" id="lightbox-close">×</button>
+    <button class="lightbox-close" id="lightbox-close" title="Kapat"><svg class="icon icon-lg"><use href="#ic-x"/></svg></button>
     <img id="lightbox-img" src="" alt="">
     <div class="lightbox-caption" id="lightbox-caption"></div>
     <div class="lightbox-zoom-controls" id="lightbox-zoom-controls">
         <button class="lb-zoom-btn" id="lb-zoom-out" aria-label="Uzaklaştır" title="Uzaklaştır">−</button>
-        <button class="lb-zoom-btn" id="lb-zoom-reset" aria-label="Sıfırla" title="Sıfırla">⌖</button>
+        <button class="lb-zoom-btn" id="lb-zoom-reset" aria-label="Sıfırla" title="Sıfırla"><svg class="icon"><use href="#ic-target"/></svg></button>
         <button class="lb-zoom-btn" id="lb-zoom-in" aria-label="Yakınlaştır" title="Yakınlaştır">+</button>
     </div>
 </div>

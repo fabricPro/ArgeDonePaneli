@@ -12,6 +12,7 @@
     {% block extra_head %}{% endblock %}
 </head>
 <body>
+    {% include "_icons.html" %}
     <nav class="topbar">
         <a href="{{ url_for('index') }}" class="topbar-brand">
             <span class="brand-mark">MOBİDİK</span>
@@ -22,12 +23,14 @@
                 Galeri
             </a>
             <a href="{{ url_for('ekle') }}" class="nav-link nav-add {% if request.endpoint == 'ekle' %}active{% endif %}">
-                ➕ Yeni Ürün
+                <svg class="icon"><use href="#ic-plus"/></svg> Yeni Ürün
             </a>
             <a href="{{ url_for('analiz') }}" class="nav-link {% if request.endpoint == 'analiz' %}active{% endif %}">
-                📊 Analiz
+                <svg class="icon"><use href="#ic-bar-chart"/></svg> Analiz
             </a>
-            <a href="{{ url_for('logout') }}" class="nav-link nav-logout">Çıkış</a>
+            <a href="{{ url_for('logout') }}" class="nav-link nav-logout">
+                <svg class="icon"><use href="#ic-log-out"/></svg> Çıkış
+            </a>
         </div>
     </nav>
 
@@ -48,16 +51,21 @@
     <nav class="mobile-tabbar" aria-label="Mobil ana menü">
         <a href="{{ url_for('index') }}"
            class="tab-item {% if request.endpoint in ('index', 'urun_detail') %}is-active{% endif %}">
-            <span class="tab-icon" aria-hidden="true">▦</span>
+            <span class="tab-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="#ic-grid"/></svg></span>
             <span class="tab-label">Galeri</span>
+        </a>
+        <a href="{{ url_for('analiz') }}"
+           class="tab-item {% if request.endpoint == 'analiz' %}is-active{% endif %}">
+            <span class="tab-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="#ic-bar-chart"/></svg></span>
+            <span class="tab-label">Analiz</span>
         </a>
         <a href="{{ url_for('ekle') }}"
            class="tab-item tab-item-center {% if request.endpoint == 'ekle' %}is-active{% endif %}">
-            <span class="tab-icon" aria-hidden="true">＋</span>
+            <span class="tab-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="#ic-plus"/></svg></span>
             <span class="tab-label">Ekle</span>
         </a>
         <a href="{{ url_for('logout') }}" class="tab-item tab-item-logout">
-            <span class="tab-icon" aria-hidden="true">⏻</span>
+            <span class="tab-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="#ic-log-out"/></svg></span>
             <span class="tab-label">Çıkış</span>
         </a>
     </nav>
