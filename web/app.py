@@ -213,9 +213,22 @@ def urun_detail(urun_id: str):
     for im in images:
         im["url"] = store.public_url(im.get("path"))
     d["images"] = images
+    # Gorselleri varyant etiketine gore grupla (ayni varyantlar bitisik).
+    # Grup sirasi: ilk gorulus sirasi (orders korur), grup ici sirasi: order.
+    groups: dict[str, list[dict]] = {}
+    for im in images:
+        groups.setdefault(im.get("variant_label") or "", []).append(im)
+    display_items: list[dict] = []
+    multi_group = len(groups) > 1
+    for label, imgs in groups.items():
+        if multi_group:
+            display_items.append({"type": "header", "label": label or "Genel", "count": len(imgs)})
+        for im in imgs:
+            display_items.append({"type": "image", **im})
     return render_template(
         "urun.html", product=d, urun_id=urun_id,
         cover_image=store.public_url(cover_path(d)),
+        display_items=display_items,
         country_suggestions=COUNTRY_SUGGESTIONS, weave_suggestions=WEAVE_SUGGESTIONS,
     )
 

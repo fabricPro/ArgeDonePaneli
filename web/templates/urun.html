@@ -70,25 +70,32 @@
     </div>
 </div>
 <div class="image-manage-grid" id="image-grid">
-    {% for im in product.images %}
-    <div class="img-manage-card {% if im.is_cover %}is-cover{% endif %}" data-path="{{ im.path }}" data-label="{{ im.variant_label or '' }}">
-        {% if im.is_cover %}<div class="cover-badge">⭐ Kapak</div>{% endif %}
-        <img src="{{ im.url }}"
-             alt="{{ im.variant_label or '' }}" loading="lazy" draggable="false"
+    {% for item in display_items %}
+        {% if item.type == 'header' %}
+    <div class="variant-separator">
+        <span class="vs-label">{{ item.label }}</span>
+        <span class="vs-count">{{ item.count }}</span>
+    </div>
+        {% else %}
+    <div class="img-manage-card {% if item.is_cover %}is-cover{% endif %}" data-path="{{ item.path }}" data-label="{{ item.variant_label or '' }}">
+        {% if item.is_cover %}<div class="cover-badge">⭐ Kapak</div>{% endif %}
+        <img src="{{ item.url }}"
+             alt="{{ item.variant_label or '' }}" loading="lazy" draggable="false"
              class="manage-img"
-             data-full="{{ im.url }}"
-             data-caption="{{ im.variant_label or product.product_name }}">
-        <input type="text" class="variant-label-input" value="{{ im.variant_label or '' }}"
-               placeholder="Varyant/renk adı" data-path="{{ im.path }}">
+             data-full="{{ item.url }}"
+             data-caption="{{ item.variant_label or product.product_name }}">
+        <input type="text" class="variant-label-input" value="{{ item.variant_label or '' }}"
+               placeholder="Varyant/renk adı" data-path="{{ item.path }}">
         <div class="img-manage-actions">
-            {% if im.is_cover %}
+            {% if item.is_cover %}
             <button class="btn-mini btn-mini-cover" disabled>✓ Kapak</button>
             {% else %}
-            <button class="btn-mini btn-set-cover" data-path="{{ im.path }}">⭐ Kapak Yap</button>
+            <button class="btn-mini btn-set-cover" data-path="{{ item.path }}">⭐ Kapak Yap</button>
             {% endif %}
-            <button class="btn-mini btn-del-img" data-path="{{ im.path }}">🗑</button>
+            <button class="btn-mini btn-del-img" data-path="{{ item.path }}">🗑</button>
         </div>
     </div>
+        {% endif %}
     {% endfor %}
 
     <label class="img-add-card">

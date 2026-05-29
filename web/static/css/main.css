@@ -979,6 +979,34 @@ main { padding: 24px 32px; max-width: 1600px; margin: 0 auto; }
 .img-add-card:hover { border-color: var(--green); color: var(--green); }
 .img-add-plus { font-size: 40px; line-height: 1; }
 
+/* === Varyant grup ayraci (image-manage-grid icinde, masaustu) === */
+.variant-separator {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 0 6px;
+    margin-top: 8px;
+    border-top: 1px solid var(--border);
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 700;
+}
+.variant-separator:first-child { border-top: none; margin-top: 0; padding-top: 4px; }
+.variant-separator .vs-label::before {
+    content: "🎨 ";
+    font-size: 13px;
+    opacity: 0.85;
+}
+.variant-separator .vs-count {
+    background: var(--bg-elev);
+    color: var(--text-dim);
+    font-size: 12px;
+    padding: 2px 9px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
 /* === Tasarim modu (surukle-birak siralama) === */
 .images-header {
     display: flex;
@@ -1192,6 +1220,9 @@ main { padding: 24px 32px; max-width: 1600px; margin: 0 auto; }
 
     .images-header { margin: 4px 0 8px; }
     .images-header .section-title { font-size: 14px; }
+
+    /* Mobilde varyant ayracleri gizli — her slide'in yuzen etiketi zaten varyanti soyler */
+    .variant-separator { display: none; }
 
     /* === Gorsel carousel (image-manage-grid mobil-transform) === */
     .image-manage-grid {
