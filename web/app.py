@@ -12,6 +12,7 @@ import io
 import re
 import unicodedata
 import uuid
+from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -523,6 +524,85 @@ def api_urunler():
 @app.route("/health")
 def health():
     return jsonify({"ok": True})
+
+
+# ============================================================
+# Analiz
+# ============================================================
+
+def _compute_stats() -> dict:
+    products = store.get_all()
+    total_products = len(products)
+    all_labels: set = set()
+    total_images = 0
+    for p in products:
+        for im in p.get("images") or []:
+            lab = (im.get("variant_label") or "").strip().lower()
+            if lab:
+                all_labels.add(lab)
+            total_images += 1
+
+    by_country: dict[str, list] = {}
+    for p in products:
+        c = p.get("country") or "Belirtilmemiş"
+        by_country.setdefault(c, []).append(p)
+
+    country_stats: list[dict] = []
+    for country, items in by_country.items():
+        widths = [p["width_cm"] for p in items if p.get("width_cm")]
+        weights = [p["weight_gsm"] for p in items if p.get("weight_gsm")]
+        weave = Counter(p.get("weave_type") for p in items if p.get("weave_type"))
+        comp = Counter(p.get("composition") for p in items if p.get("composition"))
+        variant_counts = [len(p.get("images") or []) for p in items]
+        labels: set = set()
+        for p in items:
+            for im in p.get("images") or []:
+                lab = (im.get("variant_label") or "").strip().lower()
+                if lab:
+                    labels.add(lab)
+        country_stats.append({
+            "country": country,
+            "count": len(items),
+            "avg_width": (sum(widths) / len(widths)) if widths else None,
+            "avg_weight": (sum(weights) / len(weights)) if weights else None,
+            "weave_dist": weave.most_common(),
+            "top_compositions": comp.most_common(3),
+            "avg_variants": (sum(variant_counts) / len(variant_counts)) if variant_counts else 0.0,
+            "distinct_labels": len(labels),
+        })
+    country_stats.sort(key=lambda s: -s["count"])
+
+    return {
+        "total_products": total_products,
+        "total_countries": len(by_country),
+        "total_distinct_labels": len(all_labels),
+        "total_images": total_images,
+        "by_country": country_stats,
+    }
+
+
+def _generate_insight(s: dict) -> str:
+    parts = [f"<strong>{s['country']}</strong>: {s['count']} ürün"]
+    if s["avg_width"]:
+        parts.append(f"ortalama {int(round(s['avg_width']))} cm en")
+    if s["avg_weight"]:
+        parts.append(f"~{int(round(s['avg_weight']))} g/m² gramaj")
+    if s["weave_dist"]:
+        parts.append(f"ağırlıklı {s['weave_dist'][0][0]} dokuma")
+    if s["top_compositions"]:
+        parts.append(f"yaygın kompozisyon: {s['top_compositions'][0][0]}")
+    parts.append(f"ortalama {s['avg_variants']:.1f} görsel/varyant")
+    if s["distinct_labels"]:
+        parts.append(f"{s['distinct_labels']} farklı renk")
+    return ", ".join(parts) + "."
+
+
+@app.route("/analiz")
+def analiz():
+    stats = _compute_stats()
+    for s in stats["by_country"]:
+        s["insight"] = _generate_insight(s)
+    return render_template("analiz.html", stats=stats)
 
 
 if __name__ == "__main__":

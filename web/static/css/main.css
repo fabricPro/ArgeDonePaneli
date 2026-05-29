@@ -1205,6 +1205,92 @@ body.design-on .product-card:active { cursor: grabbing; }
 .country-group.dragging,
 .product-card.dragging { opacity: 0.4; outline: 2px solid var(--accent) !important; }
 
+/* === Analiz sayfası === */
+.stat-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+.stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    text-align: center;
+}
+.stat-card .stat-value {
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+}
+.stat-card .stat-label {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 6px;
+}
+
+.analiz-table-wrap {
+    overflow-x: auto;
+    margin-bottom: 28px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+.analiz-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 720px;
+}
+.analiz-table th,
+.analiz-table td {
+    padding: 11px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    vertical-align: middle;
+}
+.analiz-table th {
+    background: var(--bg-elev);
+    color: var(--text-dim);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.analiz-table tbody tr:last-child td { border-bottom: none; }
+.analiz-table .chip {
+    display: inline-block;
+    background: var(--bg-elev);
+    color: var(--text);
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin: 2px 4px 2px 0;
+}
+.analiz-table .chip small { color: var(--text-dim); margin-left: 2px; }
+.analiz-table .muted { color: var(--text-dim); }
+
+.insight-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+    margin-bottom: 32px;
+}
+.insight-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--altin);
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+.insight-flag { font-size: 18px; flex: 0 0 auto; line-height: 1.4; }
+.insight-body { font-size: 14px; line-height: 1.55; }
+
 /* === Mobil-only bileşenler — desktop'ta gizli === */
 .mobile-tabbar { display: none; }
 .carousel-dots { display: none; }
@@ -1373,6 +1459,15 @@ body.design-on .product-card:active { cursor: grabbing; }
         font-size: 14px;
     }
     .arge-note { font-size: 13px; padding: 10px 12px; margin-bottom: 14px; }
+
+    /* Analiz mobile kompakt */
+    .stat-cards { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .stat-card { padding: 12px 10px; }
+    .stat-card .stat-value { font-size: 24px; }
+    .stat-card .stat-label { font-size: 11px; }
+    .analiz-table { min-width: 600px; font-size: 12px; }
+    .insight-card { padding: 10px 12px; }
+    .insight-body { font-size: 13px; }
 
     /* Sabitleme şeridi mobilde kompakt */
     .pinned-strip {

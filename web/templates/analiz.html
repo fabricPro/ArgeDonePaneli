@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Veri Analizi{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>📊 Veri Analizi</h1>
+    <p class="page-subtitle">Ülke karşılaştırma + eğilim raporu</p>
+</div>
+
+<div class="stat-cards">
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.total_products }}</div>
+        <div class="stat-label">Toplam ürün</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.total_countries }}</div>
+        <div class="stat-label">Ülke</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.total_distinct_labels }}</div>
+        <div class="stat-label">Farklı renk</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.total_images }}</div>
+        <div class="stat-label">Görsel</div>
+    </div>
+</div>
+
+<h2 class="section-title">Ülkeye göre karşılaştırma</h2>
+<div class="analiz-table-wrap">
+<table class="analiz-table">
+    <thead>
+        <tr>
+            <th>Ülke</th>
+            <th>Ürün</th>
+            <th>Ort. En</th>
+            <th>Ort. Gramaj</th>
+            <th>Dokuma dağılımı</th>
+            <th>Sık kompozisyon</th>
+            <th>Ort. renk / Toplam</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for s in stats.by_country %}
+        <tr>
+            <td><strong>{{ s.country }}</strong></td>
+            <td>{{ s.count }}</td>
+            <td>{% if s.avg_width is not none %}{{ s.avg_width|round|int }} cm{% else %}–{% endif %}</td>
+            <td>{% if s.avg_weight is not none %}{{ s.avg_weight|round|int }} g/m²{% else %}–{% endif %}</td>
+            <td>
+                {% for w, n in s.weave_dist[:4] %}<span class="chip">{{ w }} <small>({{ n }})</small></span>{% endfor %}
+                {% if not s.weave_dist %}<span class="muted">–</span>{% endif %}
+            </td>
+            <td>
+                {% for c, n in s.top_compositions %}<span class="chip">{{ c }} <small>({{ n }})</small></span>{% endfor %}
+                {% if not s.top_compositions %}<span class="muted">–</span>{% endif %}
+            </td>
+            <td>{{ "%.1f"|format(s.avg_variants) }} <small class="muted">({{ s.distinct_labels }} renk)</small></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<h2 class="section-title">Ülke içgörüleri</h2>
+<div class="insight-list">
+    {% for s in stats.by_country %}
+    <div class="insight-card">
+        <div class="insight-flag">📍</div>
+        <div class="insight-body">{{ s.insight | safe }}</div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

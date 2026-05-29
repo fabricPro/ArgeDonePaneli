@@ -20,6 +20,9 @@
             <a href="{{ url_for('ekle') }}" class="nav-link nav-add {% if request.endpoint == 'ekle' %}active{% endif %}">
                 ➕ Yeni Ürün
             </a>
+            <a href="{{ url_for('analiz') }}" class="nav-link {% if request.endpoint == 'analiz' %}active{% endif %}">
+                📊 Analiz
+            </a>
             <a href="{{ url_for('logout') }}" class="nav-link nav-logout">Çıkış</a>
         </div>
     </nav>
