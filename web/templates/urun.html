@@ -71,7 +71,7 @@
 </div>
 <div class="image-manage-grid" id="image-grid">
     {% for im in product.images %}
-    <div class="img-manage-card {% if im.is_cover %}is-cover{% endif %}" data-path="{{ im.path }}">
+    <div class="img-manage-card {% if im.is_cover %}is-cover{% endif %}" data-path="{{ im.path }}" data-label="{{ im.variant_label or '' }}">
         {% if im.is_cover %}<div class="cover-badge">⭐ Kapak</div>{% endif %}
         <img src="{{ im.url }}"
              alt="{{ im.variant_label or '' }}" loading="lazy" draggable="false"
@@ -97,6 +97,8 @@
         <input type="file" id="add-img-input" accept="image/*" capture="environment" multiple hidden>
     </label>
 </div>
+
+<div class="carousel-dots" id="carousel-dots" aria-hidden="true"></div>
 
 <!-- Lightbox -->
 <div class="lightbox-overlay" id="lightbox" hidden>
@@ -131,6 +133,8 @@ document.querySelectorAll('.manage-img').forEach(img => {
     img.style.cursor = 'zoom-in';
     img.addEventListener('click', () => {
         if (designMode) return;  // tasarim modunda surukleme var, lightbox acma
+        const g = document.getElementById('image-grid');
+        if (g && g._suppressTap) return;  // mobil swipe sirasinda lightbox acma
         lbImg.src = img.dataset.full;
         lbCap.textContent = img.dataset.caption || '';
         lb.hidden = false;
@@ -245,6 +249,41 @@ grid.addEventListener('dragover', (e) => {
     const after = (e.clientX - rect.left) > rect.width / 2;
     grid.insertBefore(dragEl, after ? target.nextSibling : target);
 });
+
+// --- Mobil carousel: dots + swipe/tap ayrımı ---
+(function () {
+    const cgrid = document.getElementById('image-grid');
+    const dotsHost = document.getElementById('carousel-dots');
+    if (!cgrid || !dotsHost) return;
+    if (!window.matchMedia('(max-width: 720px)').matches) return;
+    const slides = [...cgrid.querySelectorAll('.img-manage-card')];
+    if (slides.length === 0) return;
+    slides.forEach((_, i) => {
+        const d = document.createElement('span');
+        d.className = 'dot' + (i === 0 ? ' is-active' : '');
+        dotsHost.appendChild(d);
+    });
+    const dots = [...dotsHost.querySelectorAll('.dot')];
+    const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+            if (e.isIntersecting && e.intersectionRatio > 0.6) {
+                const idx = slides.indexOf(e.target);
+                if (idx >= 0) dots.forEach((d, i) => d.classList.toggle('is-active', i === idx));
+            }
+        });
+    }, { root: cgrid, threshold: [0.6] });
+    slides.forEach(s => io.observe(s));
+    let sx = 0, st = 0;
+    cgrid.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; st = Date.now(); }, { passive: true });
+    cgrid.addEventListener('touchend', (e) => {
+        const dx = Math.abs(e.changedTouches[0].clientX - sx);
+        const dt = Date.now() - st;
+        if (dx > 10 || dt > 200) {
+            cgrid._suppressTap = true;
+            setTimeout(() => { cgrid._suppressTap = false; }, 250);
+        }
+    }, { passive: true });
+})();
 </script>
 {% endif %}
 {% endblock %}

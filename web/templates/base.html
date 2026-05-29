@@ -38,6 +38,23 @@
         {% block content %}{% endblock %}
     </main>
 
+    <nav class="mobile-tabbar" aria-label="Mobil ana menü">
+        <a href="{{ url_for('index') }}"
+           class="tab-item {% if request.endpoint in ('index', 'urun_detail') %}is-active{% endif %}">
+            <span class="tab-icon" aria-hidden="true">▦</span>
+            <span class="tab-label">Galeri</span>
+        </a>
+        <a href="{{ url_for('ekle') }}"
+           class="tab-item tab-item-center {% if request.endpoint == 'ekle' %}is-active{% endif %}">
+            <span class="tab-icon" aria-hidden="true">＋</span>
+            <span class="tab-label">Ekle</span>
+        </a>
+        <a href="{{ url_for('logout') }}" class="tab-item tab-item-logout">
+            <span class="tab-icon" aria-hidden="true">⏻</span>
+            <span class="tab-label">Çıkış</span>
+        </a>
+    </nav>
+
     {% block scripts %}{% endblock %}
 </body>
 </html>
