@@ -77,6 +77,10 @@
 <div class="images-header">
     <h2 class="section-title">Görseller ({{ product.images|length }})</h2>
     <div class="design-controls">
+        <div class="view-toggle" role="group" aria-label="Görüntüleme modu">
+            <button class="view-btn" data-mode="grid" title="Kart grid">🎴</button>
+            <button class="view-btn" data-mode="list" title="Liste">☰</button>
+        </div>
         <span id="design-hint" class="design-hint" hidden>↔ Kartları sürükleyip bırakarak sırala</span>
         <button id="design-save" class="btn btn-primary" hidden>💾 Sıralamayı Kaydet</button>
         <button id="design-cancel" class="btn btn-secondary" hidden>İptal</button>

@@ -56,5 +56,26 @@
     </nav>
 
     {% block scripts %}{% endblock %}
+
+    <script>
+    // --- Görüntüleme modu (Grid/Liste) — body class + localStorage ---
+    (function () {
+        const KEY = 'view_mode';
+        function apply(mode) {
+            document.body.classList.toggle('view-list', mode === 'list');
+            document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('is-active', b.dataset.mode === mode));
+        }
+        let saved = 'grid';
+        try { saved = localStorage.getItem(KEY) || 'grid'; } catch (e) {}
+        apply(saved);
+        document.querySelectorAll('.view-btn').forEach(b => {
+            b.addEventListener('click', () => {
+                const m = b.dataset.mode;
+                try { localStorage.setItem(KEY, m); } catch (e) {}
+                apply(m);
+            });
+        });
+    })();
+    </script>
 </body>
 </html>

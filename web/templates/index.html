@@ -15,6 +15,10 @@
         <option value="{{ b }}">{{ b }}</option>
         {% endfor %}
     </select>
+    <div class="view-toggle" role="group" aria-label="Görüntüleme modu">
+        <button class="view-btn" data-mode="grid" title="Kart grid">🎴</button>
+        <button class="view-btn" data-mode="list" title="Liste">☰</button>
+    </div>
 </div>
 
 {% if total == 0 %}
