@@ -493,6 +493,45 @@ main { padding: 24px 32px; max-width: 1600px; margin: 0 auto; }
     background: #4a90e2;
 }
 
+/* === Lightbox zoom controls === */
+#lightbox-img {
+    transition: transform 0.15s ease-out;
+    will-change: transform;
+    user-select: none;
+    -webkit-user-drag: none;
+    touch-action: none;
+}
+.lightbox-zoom-controls {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    background: rgba(0,0,0,0.6);
+    padding: 6px;
+    border-radius: 28px;
+    z-index: 2;
+}
+.lb-zoom-btn {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.22);
+    color: #fff;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    padding: 0;
+}
+.lb-zoom-btn:hover { background: rgba(255,255,255,0.22); }
+.lb-zoom-btn:active { background: rgba(255,255,255,0.30); }
+
 /* === Pending grid (main) === */
 .pending-grid {
     display: grid;
@@ -1108,6 +1147,7 @@ main { padding: 24px 32px; max-width: 1600px; margin: 0 auto; }
 /* === Mobil-only bileşenler — desktop'ta gizli === */
 .mobile-tabbar { display: none; }
 .carousel-dots { display: none; }
+.thumb-strip { display: none; }
 
 /* === Mobile (≤720px) — kompakt mobile-app yeniden tasarımı === */
 @media (max-width: 720px) {
@@ -1380,6 +1420,39 @@ main { padding: 24px 32px; max-width: 1600px; margin: 0 auto; }
     .carousel-dots .dot.is-active {
         background: var(--accent);
         transform: scale(1.4);
+    }
+
+    /* === Thumbnail strip (mobil carousel altinda) === */
+    .thumb-strip {
+        display: flex;
+        gap: 6px;
+        padding: 8px 12px 12px;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    .thumb-strip::-webkit-scrollbar { display: none; }
+    .thumb-strip .thumb {
+        flex: 0 0 auto;
+        width: 56px;
+        height: 56px;
+        border-radius: 6px;
+        overflow: hidden;
+        border: 2px solid transparent;
+        padding: 0;
+        background: var(--bg-card);
+        cursor: pointer;
+        transition: border-color 0.15s, transform 0.15s;
+    }
+    .thumb-strip .thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    .thumb-strip .thumb.is-active {
+        border-color: var(--accent);
+        transform: scale(1.05);
     }
 
     /* === Buttons mobil tap target === */
