@@ -103,6 +103,19 @@ def clean(v):
     return s or None
 
 
+def country_list() -> list[str]:
+    """COUNTRY_SUGGESTIONS + data'dan unique ulkeleri alfabetik."""
+    cs: set[str] = set(COUNTRY_SUGGESTIONS)
+    try:
+        for p in store.get_all():
+            c = p.get("country")
+            if c:
+                cs.add(c)
+    except Exception:
+        pass
+    return sorted(cs, key=lambda s: s.lower())
+
+
 def save_image(file_storage, dest_prefix: str, order: int) -> str:
     """Gorseli jpg'e normalize edip Supabase Storage'a yukle. Bucket-yolu doner."""
     img = Image.open(file_storage.stream)
@@ -200,6 +213,7 @@ def index():
 def ekle():
     return render_template(
         "ekle.html", tracked_brands=TRACKED_BRANDS,
+        countries=country_list(),
         country_suggestions=COUNTRY_SUGGESTIONS, weave_suggestions=WEAVE_SUGGESTIONS,
     )
 
@@ -229,6 +243,7 @@ def urun_detail(urun_id: str):
         "urun.html", product=d, urun_id=urun_id,
         cover_image=store.public_url(cover_path(d)),
         display_items=display_items,
+        countries=country_list(),
         country_suggestions=COUNTRY_SUGGESTIONS, weave_suggestions=WEAVE_SUGGESTIONS,
     )
 
@@ -283,6 +298,7 @@ def api_create_urun():
         "collection": clean(f.get("collection")), "product_name": product_name,
         "product_code": product_code or folder_code,
         "composition": clean(f.get("composition")), "width_cm": parse_int(f.get("width_cm")),
+        "weight_gsm": parse_int(f.get("weight_gsm")),
         "weave_type": clean(f.get("weave_type")),
         "repeat_vertical_cm": parse_int(f.get("repeat_vertical_cm")),
         "repeat_horizontal_cm": parse_int(f.get("repeat_horizontal_cm")),
@@ -306,7 +322,7 @@ def api_update_meta(urun_id: str):
             d[key] = clean(data[key])
     if "country" in data:
         d["country"] = norm_country(clean(data["country"]))
-    for key in ("width_cm", "repeat_vertical_cm", "repeat_horizontal_cm"):
+    for key in ("width_cm", "weight_gsm", "repeat_vertical_cm", "repeat_horizontal_cm"):
         if key in data:
             d[key] = parse_int(data[key])
     d["updated_at"] = now_iso()

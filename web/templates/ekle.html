@@ -38,10 +38,14 @@
 
         <div class="form-row">
             <label>Ülke</label>
-            <input type="text" name="country" list="country-list" placeholder="örn. İtalya">
-            <datalist id="country-list">
-                {% for c in country_suggestions %}<option value="{{ c }}">{% endfor %}
-            </datalist>
+            <select id="country-select">
+                <option value="" disabled selected>Ülke seç…</option>
+                {% for c in countries %}
+                <option value="{{ c }}">{{ c }}</option>
+                {% endfor %}
+                <option value="__other__">Diğer (elle yaz)…</option>
+            </select>
+            <input type="text" id="country-other" placeholder="Ülke adı yaz" style="display:none; margin-top:8px;">
         </div>
 
         <div class="form-row">
@@ -52,6 +56,11 @@
         <div class="form-row">
             <label>En (cm)</label>
             <input type="number" name="width_cm" min="0" placeholder="örn. 315">
+        </div>
+
+        <div class="form-row">
+            <label>Gramaj (g/m²)</label>
+            <input type="number" name="weight_gsm" min="0" placeholder="örn. 180 (opsiyonel)">
         </div>
 
         <div class="form-row">
@@ -109,6 +118,8 @@
 <script>
 const brandSelect = document.getElementById('brand-select');
 const brandOther = document.getElementById('brand-other');
+const countrySelect = document.getElementById('country-select');
+const countryOther = document.getElementById('country-other');
 const fileInput = document.getElementById('file-input');
 const preview = document.getElementById('preview');
 const form = document.getElementById('ekle-form');
@@ -117,6 +128,10 @@ const submitBtn = document.getElementById('submit-btn');
 
 brandSelect.addEventListener('change', () => {
     brandOther.style.display = brandSelect.value === '__other__' ? 'block' : 'none';
+});
+
+countrySelect.addEventListener('change', () => {
+    countryOther.style.display = countrySelect.value === '__other__' ? 'block' : 'none';
 });
 
 let selectedFiles = [];
@@ -154,9 +169,15 @@ form.addEventListener('submit', async (e) => {
     }
     if (!brandName) { msg.textContent = 'Marka seç veya yaz.'; msg.className = 'form-msg err'; return; }
 
+    // ulke
+    let country = '';
+    if (countrySelect.value === '__other__') country = countryOther.value.trim();
+    else if (countrySelect.value) country = countrySelect.value;
+
     const fd = new FormData(form);
     fd.set('brand', brandName);
     fd.set('brand_slug', brandSlug);
+    fd.set('country', country);
 
     // dosyalar + etiketler (sirali)
     const labelInputs = preview.querySelectorAll('.variant-label');

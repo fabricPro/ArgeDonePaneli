@@ -21,9 +21,9 @@ TABLE = "products"
 
 PRODUCT_COLUMNS = [
     "urun_id", "brand", "brand_slug", "country", "collection", "product_name",
-    "product_code", "composition", "width_cm", "weave_type",
+    "product_code", "composition", "width_cm", "weight_gsm", "weave_type",
     "repeat_vertical_cm", "repeat_horizontal_cm", "arge_notu", "notes",
-    "source_url", "images", "created_at", "updated_at",
+    "source_url", "images", "dashboard_order", "created_at", "updated_at",
 ]
 
 
@@ -64,6 +64,27 @@ def upsert(product: dict) -> None:
 
 def delete(urun_id: str) -> None:
     client().table(TABLE).delete().eq("urun_id", urun_id).execute()
+
+
+# ---- app_state (kullanici tercihleri: country_order, vb.) ----
+
+def get_app_state(key: str, default=None):
+    try:
+        res = client().table("app_state").select("value").eq("key", key).limit(1).execute()
+        if res.data:
+            return res.data[0].get("value", default)
+    except Exception:
+        pass
+    return default
+
+
+def set_app_state(key: str, value) -> None:
+    try:
+        client().table("app_state").upsert(
+            {"key": key, "value": value}, on_conflict="key"
+        ).execute()
+    except Exception:
+        pass
 
 
 # ---- Storage ----
