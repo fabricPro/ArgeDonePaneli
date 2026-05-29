@@ -1,29 +1,75 @@
 /* Faz 7.3: Mobidik ARGE Web UI styles */
 
 :root {
-    --bg: #0d1117;
-    --bg-card: #161b22;
-    --bg-elev: #1f2937;
-    --border: #30363d;
-    --text: #e6edf3;
-    --text-dim: #8b949e;
-    --accent: #58a6ff;
-    --altin: #fbbf24;
-    --altin-dim: #92400e;
-    --green: #3fb950;
-    --red: #f85149;
-    --orange: #d18616;
+    /* Renk — Editorial warm-dark, champagne accent (v3.4) */
+    --bg: #0a0b0d;
+    --bg-card: #15171a;
+    --bg-elev: #1c1f23;
+    --border: #26292e;
+    --border-strong: #353940;
+    --text: #e8e6e2;
+    --text-dim: #8b8a87;
+    --text-muted: #5a5d63;
+    --accent: #d4af7f;        /* champagne — premium tekstil hissi */
+    --accent-cool: #5b8def;   /* link/info ton */
+    --altin: #c8a062;         /* refined gold (eski geri uyum) */
+    --altin-dim: #6b5028;
+    --gold: #c8a062;
+    --green: #7fb37f;
+    --red: #e07260;
+    --orange: #c68b50;
+
+    /* Tipografi */
+    --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --type-display: 32px;
+    --type-h1: 24px;
+    --type-h2: 18px;
+    --type-h3: 16px;
+    --type-body: 14px;
+    --type-small: 13px;
+    --type-caption: 12px;
+
+    /* Spacing */
+    --space-1: 4px;  --space-2: 8px;   --space-3: 12px;  --space-4: 16px;
+    --space-6: 24px; --space-8: 32px;  --space-12: 48px; --space-16: 64px;
+
+    /* Radius */
+    --radius-sm: 4px;  --radius: 6px;   --radius-lg: 10px;
+    --radius-xl: 14px; --radius-pill: 999px;
+
+    /* Shadow */
+    --shadow-1: 0 1px 2px rgba(0,0,0,0.25);
+    --shadow-2: 0 4px 12px rgba(0,0,0,0.3);
+    --shadow-hover: 0 10px 28px rgba(0,0,0,0.45);
+
+    /* Motion */
+    --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+    --t-fast: 120ms;
+    --t-base: 180ms;
+    --t-slow: 280ms;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 [hidden] { display: none !important; }
 
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: var(--font-sans);
     background: var(--bg);
     color: var(--text);
-    line-height: 1.5;
+    font-size: var(--type-body);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    animation: fadeIn 200ms var(--ease) both;
 }
+h1, h2, h3, h4 { letter-spacing: -0.01em; }
+h1 { font-size: var(--type-h1); }
+h2 { font-size: var(--type-h2); }
+h3 { font-size: var(--type-h3); }
+.stat-value, .analiz-table td, .card-meta { font-variant-numeric: tabular-nums; }
+button, input, select, textarea { font-family: inherit; }
 
 a { color: var(--accent); text-decoration: none; }
 
