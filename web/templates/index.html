@@ -19,6 +19,12 @@
         <button class="view-btn" data-mode="grid" title="Kart grid">🎴</button>
         <button class="view-btn" data-mode="list" title="Liste">☰</button>
     </div>
+    <div class="design-controls" id="design-controls">
+        <span id="design-hint" class="design-hint" hidden>↔ Başlıkları veya kartları sürükleyip bırakarak sırala</span>
+        <button id="design-save" class="btn btn-primary" hidden>💾 Kaydet</button>
+        <button id="design-cancel" class="btn btn-secondary" hidden>İptal</button>
+        <button id="design-toggle" class="btn btn-secondary">✎ Tasarım Modu</button>
+    </div>
 </div>
 
 {% if total == 0 %}
@@ -29,7 +35,7 @@
 {% endif %}
 
 {% for country, items in country_groups %}
-<section class="country-group">
+<section class="country-group" data-country="{{ country }}">
     <h2 class="country-group-title">
         <span class="cg-flag">📍</span> {{ country }}
         <span class="cg-count">{{ items|length }}</span>
@@ -37,6 +43,7 @@
     <div class="product-grid">
         {% for p in items %}
         <a class="product-card card-link" href="{{ url_for('urun_detail', urun_id=p.urun_id) }}"
+           data-urunid="{{ p.urun_id }}"
            data-brand="{{ p.brand|lower }}"
            data-name="{{ p.product_name|lower }}"
            data-country="{{ (p.country or '')|lower }}">
@@ -88,5 +95,85 @@ function applyFilters() {
 }
 searchInput.addEventListener('input', applyFilters);
 brandSelect.addEventListener('change', applyFilters);
+
+// --- Dashboard Tasarım Modu (drag-drop sıralama) ---
+const dBtnToggle = document.getElementById('design-toggle');
+const dBtnSave = document.getElementById('design-save');
+const dBtnCancel = document.getElementById('design-cancel');
+const dHint = document.getElementById('design-hint');
+let designMode = false;
+let dragEl = null, dragType = null;
+
+function preventClick(e) { if (designMode) { e.preventDefault(); e.stopPropagation(); } }
+function setDesignMode(on) {
+    designMode = on;
+    document.body.classList.toggle('design-on', on);
+    dBtnToggle.hidden = on;
+    dBtnSave.hidden = !on;
+    dBtnCancel.hidden = !on;
+    dHint.hidden = !on;
+    document.querySelectorAll('.country-group-title').forEach(t => t.draggable = on);
+    document.querySelectorAll('.product-card').forEach(c => {
+        c.draggable = on;
+        if (on) c.addEventListener('click', preventClick, true);
+        else c.removeEventListener('click', preventClick, true);
+    });
+}
+
+dBtnToggle?.addEventListener('click', () => setDesignMode(true));
+dBtnCancel?.addEventListener('click', () => location.reload());
+dBtnSave?.addEventListener('click', async () => {
+    const country_order = [...document.querySelectorAll('.country-group')].map(g => g.dataset.country);
+    const product_orders = [...document.querySelectorAll('.product-card')].map(c => c.dataset.urunid);
+    const res = await fetch('/api/sirala-dashboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ country_order, product_orders })
+    });
+    const data = await res.json();
+    if (data.ok) location.reload(); else alert(data.error || 'Sıralama kaydedilemedi');
+});
+
+document.addEventListener('dragstart', (e) => {
+    if (!designMode) return;
+    const card = e.target.closest('.product-card');
+    const title = e.target.closest('.country-group-title');
+    if (card) {
+        dragEl = card;
+        dragType = 'card';
+        card.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+    } else if (title) {
+        const group = title.closest('.country-group');
+        if (group) {
+            dragEl = group;
+            dragType = 'group';
+            group.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        } else { e.preventDefault(); }
+    } else { e.preventDefault(); }
+});
+document.addEventListener('dragend', () => {
+    if (dragEl) dragEl.classList.remove('dragging');
+    dragEl = null; dragType = null;
+});
+document.addEventListener('dragover', (e) => {
+    if (!designMode || !dragEl) return;
+    e.preventDefault();
+    if (dragType === 'card') {
+        const t = e.target.closest('.product-card');
+        if (!t || t === dragEl) return;
+        if (t.parentElement !== dragEl.parentElement) return;  // cross-group yok
+        const rect = t.getBoundingClientRect();
+        const after = (e.clientX - rect.left) > rect.width / 2;
+        dragEl.parentElement.insertBefore(dragEl, after ? t.nextSibling : t);
+    } else if (dragType === 'group') {
+        const t = e.target.closest('.country-group');
+        if (!t || t === dragEl) return;
+        const rect = t.getBoundingClientRect();
+        const after = (e.clientY - rect.top) > rect.height / 2;
+        dragEl.parentElement.insertBefore(dragEl, after ? t.nextSibling : t);
+    }
+});
 </script>
 {% endblock %}

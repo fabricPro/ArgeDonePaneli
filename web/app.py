@@ -195,18 +195,63 @@ def logout():
 
 @app.route("/")
 def index():
-    products = [product_summary(p) for p in store.get_all()]
+    raw = store.get_all()
+    products = [product_summary(p) for p in raw]
+    # dashboard_order'i ozetlere ekle (siralama icin)
+    order_map = {p.get("urun_id"): p.get("dashboard_order") for p in raw}
+    for s in products:
+        s["dashboard_order"] = order_map.get(s["urun_id"])
+    # Ulkelere grupla
     groups: dict[str, list] = {}
     for p in products:
         groups.setdefault(p.get("country") or "Belirtilmemiş", []).append(p)
-    country_groups = sorted(
-        groups.items(),
-        key=lambda kv: (kv[0] == "Belirtilmemiş", -len(kv[1]), kv[0]),
-    )
+    # Grup ici siralama: dashboard_order ASC NULLS LAST, sonra updated_at DESC
+    for items in groups.values():
+        items.sort(key=lambda p: p.get("updated_at") or "", reverse=True)
+        items.sort(key=lambda p: p.get("dashboard_order") if p.get("dashboard_order") is not None else 10**9)
+    # Grup sirasi: app_state.country_order varsa o; yoksa default (count desc, Belirtilmemis son)
+    saved_order = store.get_app_state("country_order") or []
+    if saved_order:
+        ordered: list = []
+        used: set = set()
+        for c in saved_order:
+            if c in groups:
+                ordered.append((c, groups[c]))
+                used.add(c)
+        for c, items in groups.items():
+            if c not in used:
+                ordered.append((c, items))
+        country_groups = ordered
+    else:
+        country_groups = sorted(
+            groups.items(),
+            key=lambda kv: (kv[0] == "Belirtilmemiş", -len(kv[1]), kv[0]),
+        )
     brands = sorted({p["brand"] for p in products if p.get("brand")})
     return render_template(
         "index.html", country_groups=country_groups, total=len(products), brands=brands,
     )
+
+
+@app.route("/api/sirala-dashboard", methods=["POST"])
+def api_reorder_dashboard():
+    """Dashboard siralamasini kaydet.
+    Body: {country_order: [ulke...], product_orders: [urun_id...]} (urun_id sirasiyla dashboard_order).
+    """
+    data = request.get_json(force=True) or {}
+    country_order = data.get("country_order") or []
+    product_orders = data.get("product_orders") or []
+    # Ulke sirasi kaydi
+    store.set_app_state("country_order", country_order)
+    # Her urune dashboard_order ata
+    for idx, urun_id in enumerate(product_orders):
+        d = store.get(urun_id)
+        if not d:
+            continue
+        d["dashboard_order"] = idx
+        d["updated_at"] = d.get("updated_at") or now_iso()  # zaman bozma
+        store.upsert(d)
+    return jsonify({"ok": True, "saved_countries": len(country_order), "saved_products": len(product_orders)})
 
 
 @app.route("/ekle")
