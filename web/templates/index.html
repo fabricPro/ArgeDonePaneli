@@ -50,11 +50,13 @@
            data-brand="{{ p.brand|lower }}"
            data-name="{{ p.product_name|lower }}"
            data-country="{{ (p.country or '')|lower }}">
-            {% if p.cover_image %}
-            <img src="{{ p.cover_image }}" alt="{{ p.product_name }}" loading="lazy">
-            {% else %}
-            <div class="img-placeholder">Görsel yok</div>
-            {% endif %}
+            <div class="card-media">
+                {% if p.cover_image %}
+                <img src="{{ p.cover_image }}" alt="{{ p.product_name }}" loading="lazy">
+                {% else %}
+                <div class="img-placeholder">Görsel yok</div>
+                {% endif %}
+            </div>
             <div class="card-body">
                 <div class="card-brand">{{ p.brand }}{% if p.country %} · {{ p.country }}{% endif %}</div>
                 <div class="card-title">{{ p.product_name }}</div>
