@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giriş — Mobidik Kumaş Paneli</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    <div class="login-wrap">
+        <form class="login-card" method="POST" action="{{ url_for('login') }}{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}">
+            <div class="brand-mark">MOBİDİK</div>
+            <div class="brand-sub">Kumaş Küratörlük Paneli</div>
+            <input type="password" name="password" placeholder="Şifre" autofocus required class="login-input">
+            {% if error %}<div class="login-error">{{ error }}</div>{% endif %}
+            <button type="submit" class="btn btn-primary login-btn">Giriş</button>
+        </form>
+    </div>
+</body>
+</html>

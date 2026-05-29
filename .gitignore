@@ -1,25 +1,27 @@
+# Yuklenen/indirilen gorseller — buyuk binary, git'e girmez (panel diske yazar)
 gorseller/
 pdfler/
-topla/ham_cikti/
-topla/logs/
-# Faz 6: haftalik oz-degerlendirme cikti — generated, kalici docs degil
-docs/haftalik_oz_degerlendirme_*.md
+02_gorseller/
 
-# Faz 7: ML model artifacts — büyük binary dosyalar (generated)
-ml/*.pkl
-ml/*.npy
-# metrics.json ve feedback_log.jsonl COMMIT — performans takibi + audit
+# urunler/ COMMIT EDILIR — kucuk lean JSON kayitlari (sistem-of-record)
+
+# Ham veri / model artifacts (nerede olursa olsun ignore — _arsiv dahil)
+ham_cikti/
+logs/
+*.pkl
+*.npy
+
+# Gizli anahtarlar — ASLA commit etme
+.env
+
+# Python
 *.pyc
 __pycache__/
+.venv/
+
+# Misc
 .DS_Store
 *.bak
 
-# Python sanal ortami (2 GB+ playwright/chromium)
-.venv/
-
-# Eski Cowork iterasyonu gorselleri (legacy, ~150 MB, _legacy_cowork/'a tasinacak)
-02_gorseller/
-
-# Bu klasör üst git repo'nun worktree mekanizmasından geldi (numune-master-web).
-# ARGE projesinin parçası değil, içine girilmez.
+# Ust git repo'nun worktree mekanizmasi
 .claude/

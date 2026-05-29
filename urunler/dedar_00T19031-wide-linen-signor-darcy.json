@@ -1,0 +1,220 @@
+{
+  "_schema_version": "2.0-lean",
+  "urun_id": "dedar_00T19031-wide-linen-signor-darcy",
+  "brand": "Dedar",
+  "brand_slug": "dedar",
+  "country": "İtalya",
+  "collection": "Wide Sheers — Linen",
+  "product_name": "Wide Linen Signor Darcy",
+  "product_code": "00T19031",
+  "composition": "%100 linen",
+  "width_cm": 310,
+  "weave_type": "dobby_chevron",
+  "repeat_vertical_cm": null,
+  "repeat_horizontal_cm": null,
+  "arge_notu": "⭐ ALTIN — Anatolian Linen sub-brand'ın PREMİUM uçta pilot adayı. 100% saf keten chevron + 11 renk = Air Line (81)/Melange Linen (81)/Nuri (82) ailesine yeni hat olarak eklenebilir. Mobidik avantajı: Bursa keten + dobby chevron = İtalyan yarn-dyed Avrupa keten muadili 'Anatolian Linen Chevron'. Sertifika: OEKO-TEX zaten var, M1 başvuru (3-6 ay), EU Flax muadili 'Anatolian Linen' söylem (Masters of Linen ekipman gerek). ARGE pilot: 5 nötr+toprak ton × 150 m, 6 hafta. Designer: Dedar in-house (Mobidik için Türk tasarımcı işbirliği fırsatı).",
+  "notes": null,
+  "source_url": "https://dedar.com/wide-linen-signor-darcy/",
+  "created_at": "2026-05-26T09:02:05.543885+00:00",
+  "updated_at": "2026-05-29T18:23:29Z",
+  "images": [
+    {
+      "local_path": "gorseller/dedar/00T19031/ana_01.jpg",
+      "variant_label": null,
+      "is_cover": true,
+      "order": 0
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_10.jpg",
+      "variant_label": "perle",
+      "is_cover": false,
+      "order": 1
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_11.jpg",
+      "variant_label": "perle",
+      "is_cover": false,
+      "order": 2
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_12.jpg",
+      "variant_label": "perle",
+      "is_cover": false,
+      "order": 3
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_13.jpg",
+      "variant_label": "bianco",
+      "is_cover": false,
+      "order": 4
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_14.jpg",
+      "variant_label": "bianco",
+      "is_cover": false,
+      "order": 5
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_15.jpg",
+      "variant_label": "bianco",
+      "is_cover": false,
+      "order": 6
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_16.jpg",
+      "variant_label": "avorio",
+      "is_cover": false,
+      "order": 7
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_17.jpg",
+      "variant_label": "avorio",
+      "is_cover": false,
+      "order": 8
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_18.jpg",
+      "variant_label": "ardoise",
+      "is_cover": false,
+      "order": 9
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_19.jpg",
+      "variant_label": "ardoise",
+      "is_cover": false,
+      "order": 10
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_20.jpg",
+      "variant_label": "ardoise",
+      "is_cover": false,
+      "order": 11
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_21.jpg",
+      "variant_label": "sable",
+      "is_cover": false,
+      "order": 12
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_22.jpg",
+      "variant_label": "sable",
+      "is_cover": false,
+      "order": 13
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_23.jpg",
+      "variant_label": "rose poudré",
+      "is_cover": false,
+      "order": 14
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_24.jpg",
+      "variant_label": "rose poudré",
+      "is_cover": false,
+      "order": 15
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_25.jpg",
+      "variant_label": "rose poudré",
+      "is_cover": false,
+      "order": 16
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_26.jpg",
+      "variant_label": "glacier",
+      "is_cover": false,
+      "order": 17
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_27.jpg",
+      "variant_label": "glacier",
+      "is_cover": false,
+      "order": 18
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_28.jpg",
+      "variant_label": "jonc",
+      "is_cover": false,
+      "order": 19
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_29.jpg",
+      "variant_label": "jonc",
+      "is_cover": false,
+      "order": 20
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_30.jpg",
+      "variant_label": "jonc",
+      "is_cover": false,
+      "order": 21
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_31.jpg",
+      "variant_label": "jonc",
+      "is_cover": false,
+      "order": 22
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_32.jpg",
+      "variant_label": "jonc",
+      "is_cover": false,
+      "order": 23
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_33.jpg",
+      "variant_label": "charbon",
+      "is_cover": false,
+      "order": 24
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_34.jpg",
+      "variant_label": "charbon",
+      "is_cover": false,
+      "order": 25
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_35.jpg",
+      "variant_label": "charbon",
+      "is_cover": false,
+      "order": 26
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_36.jpg",
+      "variant_label": "mastic",
+      "is_cover": false,
+      "order": 27
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_37.jpg",
+      "variant_label": "mastic",
+      "is_cover": false,
+      "order": 28
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_38.jpg",
+      "variant_label": "daim",
+      "is_cover": false,
+      "order": 29
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_39.jpg",
+      "variant_label": "daim",
+      "is_cover": false,
+      "order": 30
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_40.jpg",
+      "variant_label": "daim",
+      "is_cover": false,
+      "order": 31
+    },
+    {
+      "local_path": "gorseller/dedar/00T19031/varyant_41.jpg",
+      "variant_label": "daim",
+      "is_cover": false,
+      "order": 32
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "_schema_version": "2.0-lean",
+  "urun_id": "dedar_00T25007-days-like-now",
+  "brand": "Dedar",
+  "brand_slug": "dedar",
+  "country": "Hindistan",
+  "collection": "Curtain fabrics",
+  "product_name": "Days Like Now",
+  "product_code": "00T25007",
+  "composition": "%100 Ipek",
+  "width_cm": 134,
+  "weave_type": "plain",
+  "repeat_vertical_cm": 0,
+  "repeat_horizontal_cm": 0,
+  "arge_notu": "DUSUK ONCELIK. Mobidik icin egzotik kategori (ipek + Hindistan fason + dar en). Stabli'de yapilabilir (plain + dogal lif) ama iplik tedariki Turkiye'de zor (Bursa ipekciligi historic). Onerilen: pas gec, Cobra leno + Capri Plus outdoor + Niket gibi ana pilot urunlere yogunlas. Days Like Now sadece 'Italyan + Hindistan artisanal' is modeli ogrenme amacli. Bursa ipekciligi ayri bir ARGE projesi olabilir (uzun vade).",
+  "notes": null,
+  "source_url": "https://dedar.com/days-like-now/?sku=00T2500700001",
+  "created_at": "2026-05-25T20:45:54Z",
+  "updated_at": "2026-05-29T18:23:29Z",
+  "images": [
+    {
+      "local_path": "gorseller/dedar/00T25007/ana_01.jpg",
+      "variant_label": null,
+      "is_cover": true,
+      "order": 0
+    },
+    {
+      "local_path": "gorseller/dedar/00T25007/varyant_10.jpg",
+      "variant_label": "sandstone",
+      "is_cover": false,
+      "order": 1
+    },
+    {
+      "local_path": "gorseller/dedar/00T25007/varyant_11.jpg",
+      "variant_label": "alabastro",
+      "is_cover": false,
+      "order": 2
+    },
+    {
+      "local_path": "gorseller/dedar/00T25007/varyant_12.jpg",
+      "variant_label": "luna",
+      "is_cover": false,
+      "order": 3
+    },
+    {
+      "local_path": "gorseller/dedar/00T25007/varyant_13.jpg",
+      "variant_label": "ambra",
+      "is_cover": false,
+      "order": 4
+    },
+    {
+      "local_path": "gorseller/dedar/00T25007/varyant_14.jpg",
+      "variant_label": "gemma",
+      "is_cover": false,
+      "order": 5
+    },
+    {
+      "local_path": "gorseller/dedar/00T25007/varyant_15.jpg",
+      "variant_label": "lago",
+      "is_cover": false,
+      "order": 6
+    },
+    {
+      "local_path": "gorseller/dedar/00T25007/varyant_16.jpg",
+      "variant_label": "smeraldo",
+      "is_cover": false,
+      "order": 7
+    },
+    {
+      "local_path": "gorseller/dedar/00T25007/detay_01.jpg",
+      "variant_label": null,
+      "is_cover": false,
+      "order": 8
+    },
+    {
+      "local_path": "gorseller/dedar/00T25007/detay_02.jpg",
+      "variant_label": null,
+      "is_cover": false,
+      "order": 9
+    }
+  ]
+}

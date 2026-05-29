@@ -1,667 +1,436 @@
-"""Faz 7.3: Flask web app — Ön onay + ana dashboard + manuel tetik.
+"""Mobidik ARGE — Manuel Kumas Gorsel Kuratorluk Paneli (v3.1 — bulut).
 
-Routes:
-- GET  /              → Ana dashboard (approved ürünler)
-- GET  /pending       → Ön onay sayfası (pending ürünler)
-- GET  /history       → Geçmiş kararlar (approved + rejected karma)
-- POST /trigger       → Manuel tarama (form: bölge)
-- POST /api/approve   → JSON: {urun_id, notes?}
-- POST /api/reject    → JSON: {urun_id, reasons[], notes?}
-- GET  /api/products  → Ana dashboard veri (JSON)
-- GET  /api/pending   → Pending veri (JSON)
-- GET  /gorsel/<path> → gorseller/ static serve
+Veri: Supabase Postgres (products tablosu) · Gorseller: Supabase Storage (gorseller bucket)
+Erisim: tek sifreli giris (APP_PASSWORD). Her yerden (mobil dahil) kullanilir.
 
-Kullanim:
-    python web/app.py
-    # Tarayici: http://localhost:5000
+Env: SUPABASE_URL, SUPABASE_SERVICE_KEY, APP_PASSWORD, SECRET_KEY
+Calistirma (yerel):  python web/app.py     |  Bulut (Render): gunicorn --chdir web app:app
 """
 from __future__ import annotations
 
-import json
-import os
+import io
 import re
-import subprocess
-import sys
+import unicodedata
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")  # yereldeyse .env yukle
+
+import os
+
 from flask import (
-    Flask, jsonify, render_template, request, send_from_directory,
-    redirect, url_for, flash,
+    Flask, jsonify, redirect, render_template, request, session, url_for,
 )
+from PIL import Image, ImageOps
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
-
-URUNLER_DIR = PROJECT_ROOT / "markalar" / "urunler"
-GORSELLER_DIR = PROJECT_ROOT / "gorseller"
-HAM_CIKTI_DIR = PROJECT_ROOT / "topla" / "ham_cikti"
-LOGS_DIR = PROJECT_ROOT / "topla" / "logs"
-ML_DIR = PROJECT_ROOT / "ml"
-FEEDBACK_LOG = ML_DIR / "feedback_log.jsonl"
+import store
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
-app.secret_key = "mobidik_arge_dev"
+app.secret_key = os.environ.get("SECRET_KEY", "dev-insecure-change-me")
+app.config["MAX_CONTENT_LENGTH"] = 64 * 1024 * 1024  # 64 MB
+
+APP_PASSWORD = os.environ.get("APP_PASSWORD", "")
+
+TRACKED_BRANDS = [
+    ("Kvadrat", "kvadrat"), ("Dedar", "dedar"), ("Rubelli", "rubelli"),
+    ("Sahco", "sahco"), ("Nya Nordiska", "nya_nordiska"),
+    ("Création Baumann", "creation_baumann"), ("Zimmer + Rohde", "zimmer_rohde"),
+    ("ADO Goldkante", "ado_goldkante"), ("Etamine", "etamine"), ("Travers", "travers"),
+]
+COUNTRY_SUGGESTIONS = [
+    "Türkiye", "Danimarka", "İtalya", "Almanya", "Fransa", "Belçika",
+    "ABD", "İsveç", "İsviçre", "Hollanda", "İngiltere", "Avusturya",
+]
+WEAVE_SUGGESTIONS = ["dobby", "jacquard", "plain", "leno", "sheer", "bouclé", "saten", "twill"]
+
+COUNTRY_MAP = {
+    "italy": "İtalya", "italya": "İtalya", "italia": "İtalya",
+    "turkey": "Türkiye", "turkiye": "Türkiye", "germany": "Almanya", "deutschland": "Almanya",
+    "france": "Fransa", "belgium": "Belçika", "belgique": "Belçika",
+    "usa": "ABD", "us": "ABD", "united states": "ABD", "denmark": "Danimarka",
+    "sweden": "İsveç", "switzerland": "İsviçre", "netherlands": "Hollanda",
+    "uk": "İngiltere", "united kingdom": "İngiltere", "india": "Hindistan", "austria": "Avusturya",
+}
 
 
 # ============================================================
 # Helpers
 # ============================================================
 
-def load_product(urun_id: str) -> dict | None:
-    """Bir ürün JSON'unu yükle."""
-    for jp in URUNLER_DIR.glob("*.json"):
-        if jp.stem == urun_id:
-            return json.loads(jp.read_text(encoding="utf-8"))
-    return None
+def now_iso() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def save_product(urun_id: str, d: dict) -> bool:
-    """Bir ürün JSON'u yaz."""
-    jp = URUNLER_DIR / f"{urun_id}.json"
-    if not jp.exists():
-        return False
-    jp.write_text(json.dumps(d, ensure_ascii=False, indent=2), encoding="utf-8")
-    return True
+def slugify(text: str) -> str:
+    text = (text or "").strip().lower()
+    text = text.translate(str.maketrans("çğıİöşü", "cgiiosu"))
+    text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
+    text = re.sub(r"[^a-z0-9]+", "-", text).strip("-")
+    return text or "urun"
 
 
-def load_products_by_status(status: str) -> list[dict]:
-    """approval_status == status olan tüm ürünleri yükle (özet bilgilerle)."""
-    products = []
-    for jp in sorted(URUNLER_DIR.glob("*.json")):
-        d = json.loads(jp.read_text(encoding="utf-8"))
-        approval = d.get("approval_status", {})
-        current = approval.get("value") if isinstance(approval, dict) else approval
-        if current != status:
-            continue
-        products.append(_product_summary(d))
-    return products
+def brand_slugify(text: str) -> str:
+    s = slugify(text).replace("-", "_")
+    return re.sub(r"[^a-z0-9_]", "_", s) or "diger"
 
 
-def _product_summary(d: dict) -> dict:
-    """Dashboard için product card özeti."""
-    sd = d.get("source_data", {})
-    tech = sd.get("technical", {})
-    me = d.get("mobidik_evaluation", {})
-    images = d.get("images", {})
-    variants = sd.get("variants", [])
+def norm_country(c: str | None) -> str | None:
+    if not c:
+        return None
+    c = c.strip()
+    return COUNTRY_MAP.get(c.lower(), c)
 
-    main_image = None
-    if images.get("main"):
-        main_image = images["main"][0].get("local_path")
-    elif variants and variants[0].get("main_image_local_path"):
-        main_image = variants[0]["main_image_local_path"]
 
+def parse_int(v):
+    if v is None:
+        return None
+    s = str(v).strip()
+    if not s:
+        return None
+    try:
+        return int(float(s))
+    except ValueError:
+        return None
+
+
+def clean(v):
+    if v is None:
+        return None
+    s = str(v).strip()
+    return s or None
+
+
+def save_image(file_storage, dest_prefix: str, order: int) -> str:
+    """Gorseli jpg'e normalize edip Supabase Storage'a yukle. Bucket-yolu doner."""
+    img = Image.open(file_storage.stream)
+    img = ImageOps.exif_transpose(img).convert("RGB")
+    img.thumbnail((2000, 2000))
+    buf = io.BytesIO()
+    img.save(buf, "JPEG", quality=85, optimize=True)
+    path = f"{dest_prefix}/{order}_{uuid.uuid4().hex[:8]}.jpg"
+    store.upload_image(path, buf.getvalue(), "image/jpeg")
+    return path
+
+
+def infer_prefix(d: dict) -> str:
+    images = d.get("images") or []
+    if images and images[0].get("path") and "/" in images[0]["path"]:
+        return images[0]["path"].rsplit("/", 1)[0]
+    bs = d.get("brand_slug") or "diger"
+    code = slugify(d.get("product_code") or d.get("urun_id") or "urun")
+    return f"{bs}/{code}"
+
+
+def cover_path(d: dict) -> str | None:
+    images = d.get("images") or []
+    cover = next((im for im in images if im.get("is_cover")), None)
+    if cover is None and images:
+        cover = sorted(images, key=lambda x: x.get("order", 0))[0]
+    return cover.get("path") if cover else None
+
+
+def product_summary(d: dict) -> dict:
     return {
-        "urun_id": d.get("urun_id"),
-        "brand": d.get("brand"),
-        "brand_slug": d.get("brand_slug"),
-        "product_code": d.get("product_code"),
-        "product_name": d.get("product_name"),
-        "collection": d.get("collection"),
-        "source_url": d.get("source_url"),
-        "width_cm": tech.get("width_cm"),
-        "weave": tech.get("weave_type_normalized") or tech.get("weave_type_raw"),
-        "country": sd.get("commercial", {}).get("country_of_origin"),
-        "variant_count": len(variants),
-        "color_names": [v.get("color_name") for v in variants[:8]],
-        "overall_score": me.get("overall_score"),
-        "staubli_score": (me.get("staubli_feasibility") or {}).get("score"),
-        "priority_level": me.get("priority_level"),
-        "strategic_note": me.get("strategic_note"),
-        "approval_status": d.get("approval_status", {}).get("value") if isinstance(d.get("approval_status"), dict) else d.get("approval_status"),
-        "admin_decision": d.get("admin_decision"),
-        "ml_score": d.get("ml_score"),
-        "main_image": main_image,
-        "is_altin": (me.get("overall_score") or 0) >= 80,
+        "urun_id": d.get("urun_id"), "brand": d.get("brand"),
+        "brand_slug": d.get("brand_slug"), "country": d.get("country"),
+        "collection": d.get("collection"), "product_name": d.get("product_name"),
+        "product_code": d.get("product_code"), "width_cm": d.get("width_cm"),
+        "weave_type": d.get("weave_type"),
+        "cover_image": store.public_url(cover_path(d)),
+        "variant_count": len(d.get("images") or []),
+        "updated_at": d.get("updated_at"),
     }
 
 
-def append_feedback(entry: dict):
-    """feedback_log.jsonl'e satır ekle."""
-    ML_DIR.mkdir(parents=True, exist_ok=True)
-    with FEEDBACK_LOG.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+# ============================================================
+# Auth
+# ============================================================
+
+@app.before_request
+def require_login():
+    if request.endpoint in ("login", "static"):
+        return
+    if not APP_PASSWORD:
+        return  # sifre tanimli degil -> acik (yerel gelistirme)
+    if not session.get("auth"):
+        return redirect(url_for("login", next=request.path))
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        if APP_PASSWORD and request.form.get("password") == APP_PASSWORD:
+            session["auth"] = True
+            session.permanent = True
+            return redirect(request.args.get("next") or url_for("index"))
+        return render_template("login.html", error="Yanlış şifre"), 401
+    return render_template("login.html", error=None)
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
 
 
 # ============================================================
-# Routes — HTML pages
+# Sayfalar
 # ============================================================
 
 @app.route("/")
 def index():
-    """Ana dashboard — approved ürünler."""
-    products = load_products_by_status("approved")
-    products.sort(key=lambda p: -(p.get("overall_score") or 0))
-    pending_count = len(load_products_by_status("pending"))
+    products = [product_summary(p) for p in store.get_all()]
+    groups: dict[str, list] = {}
+    for p in products:
+        groups.setdefault(p.get("country") or "Belirtilmemiş", []).append(p)
+    country_groups = sorted(
+        groups.items(),
+        key=lambda kv: (kv[0] == "Belirtilmemiş", -len(kv[1]), kv[0]),
+    )
+    brands = sorted({p["brand"] for p in products if p.get("brand")})
     return render_template(
-        "index.html",
-        products=products,
-        pending_count=pending_count,
+        "index.html", country_groups=country_groups, total=len(products), brands=brands,
     )
 
 
-@app.route("/pending")
-def pending():
-    """Ön onay sayfası — pending ürünler + yeni aday URL'ler."""
-    products = load_products_by_status("pending")
-
-    # ML score sort: yüksekten düşüğe
-    def sort_key(p):
-        ml = p.get("ml_score") or {}
-        return -(ml.get("predicted_approval_prob") or 0)
-    products.sort(key=sort_key)
-
-    # AI stats
-    high = sum(1 for p in products if (p.get("ml_score") or {}).get("predicted_approval_prob", 0) >= 0.75)
-    med = sum(1 for p in products if 0.5 <= ((p.get("ml_score") or {}).get("predicted_approval_prob") or 0) < 0.75)
-    low = sum(1 for p in products if ((p.get("ml_score") or {}).get("predicted_approval_prob") or 0) < 0.5)
-
-    # Aday URL'ler — henüz scrape edilmemiş
-    with app.test_request_context():
-        aday_res = api_aday()
-    aday_data = aday_res.get_json() if hasattr(aday_res, "get_json") else json.loads(aday_res.data)
-
+@app.route("/ekle")
+def ekle():
     return render_template(
-        "pending.html",
-        products=products,
-        ai_stats={"high": high, "med": med, "low": low, "total": len(products)},
-        adaylar=aday_data.get("adaylar", []),
-        aday_count=aday_data.get("count", 0),
+        "ekle.html", tracked_brands=TRACKED_BRANDS,
+        country_suggestions=COUNTRY_SUGGESTIONS, weave_suggestions=WEAVE_SUGGESTIONS,
     )
 
 
-@app.route("/history")
-def history():
-    """Geçmiş kararlar."""
-    approved = load_products_by_status("approved")
-    rejected = load_products_by_status("rejected")
-
-    # Decision date'e göre sırala (en yeni önce)
-    def sort_key(p):
-        ad = p.get("admin_decision") or {}
-        return ad.get("decision_date") or ""
-    approved.sort(key=sort_key, reverse=True)
-    rejected.sort(key=sort_key, reverse=True)
-
+@app.route("/urun/<urun_id>")
+def urun_detail(urun_id: str):
+    d = store.get(urun_id)
+    if not d:
+        return render_template("urun.html", product=None, urun_id=urun_id), 404
+    images = sorted(d.get("images") or [], key=lambda x: x.get("order", 0))
+    for im in images:
+        im["url"] = store.public_url(im.get("path"))
+    d["images"] = images
     return render_template(
-        "history.html",
-        approved=approved,
-        rejected=rejected,
+        "urun.html", product=d, urun_id=urun_id,
+        cover_image=store.public_url(cover_path(d)),
+        country_suggestions=COUNTRY_SUGGESTIONS, weave_suggestions=WEAVE_SUGGESTIONS,
     )
 
 
 # ============================================================
-# Routes — API endpoints
+# API
 # ============================================================
 
-@app.route("/api/approve", methods=["POST"])
-def api_approve():
-    data = request.get_json(force=True)
-    urun_id = data.get("urun_id")
-    notes = data.get("notes", "")
+@app.route("/api/urun", methods=["POST"])
+def api_create_urun():
+    f = request.form
+    brand = clean(f.get("brand"))
+    product_name = clean(f.get("product_name"))
+    if not brand:
+        return jsonify({"ok": False, "error": "Marka zorunlu"}), 400
+    if not product_name:
+        return jsonify({"ok": False, "error": "Ürün adı zorunlu"}), 400
 
-    d = load_product(urun_id)
+    brand_slug = clean(f.get("brand_slug")) or brand_slugify(brand)
+    brand_slug = re.sub(r"[^a-z0-9_]", "_", brand_slug.lower()) or "diger"
+    product_code = clean(f.get("product_code"))
+    code_slug = slugify(product_code or product_name)
+
+    urun_id = f"{brand_slug}_{code_slug}"
+    folder_code = code_slug
+    if store.get(urun_id):
+        suffix = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
+        folder_code = f"{code_slug}-{suffix}"
+        urun_id = f"{brand_slug}_{folder_code}"
+    dest_prefix = f"{brand_slug}/{folder_code}"
+
+    files = [x for x in request.files.getlist("files") if x and x.filename]
+    labels = request.form.getlist("variant_labels")
+    cover_index = parse_int(f.get("cover_index")) or 0
+
+    images = []
+    for i, fs in enumerate(files):
+        try:
+            path = save_image(fs, dest_prefix, i)
+        except Exception as e:
+            return jsonify({"ok": False, "error": f"Görsel yüklenemedi ({fs.filename}): {e}"}), 400
+        label = labels[i].strip() if i < len(labels) and labels[i].strip() else None
+        images.append({"path": path, "variant_label": label, "is_cover": False, "order": i})
+    if images:
+        ci = cover_index if 0 <= cover_index < len(images) else 0
+        images[ci]["is_cover"] = True
+
+    now = now_iso()
+    d = {
+        "urun_id": urun_id, "brand": brand, "brand_slug": brand_slug,
+        "country": norm_country(clean(f.get("country"))),
+        "collection": clean(f.get("collection")), "product_name": product_name,
+        "product_code": product_code or folder_code,
+        "composition": clean(f.get("composition")), "width_cm": parse_int(f.get("width_cm")),
+        "weave_type": clean(f.get("weave_type")),
+        "repeat_vertical_cm": parse_int(f.get("repeat_vertical_cm")),
+        "repeat_horizontal_cm": parse_int(f.get("repeat_horizontal_cm")),
+        "arge_notu": clean(f.get("arge_notu")), "notes": clean(f.get("notes")),
+        "source_url": clean(f.get("source_url")),
+        "created_at": now, "updated_at": now, "images": images,
+    }
+    store.upsert(d)
+    return jsonify({"ok": True, "urun_id": urun_id, "redirect": url_for("urun_detail", urun_id=urun_id)})
+
+
+@app.route("/api/urun/<urun_id>/meta", methods=["POST"])
+def api_update_meta(urun_id: str):
+    d = store.get(urun_id)
     if not d:
         return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
-
-    now_iso = datetime.now(timezone.utc).isoformat()
-
-    # Güncelle
-    if not isinstance(d.get("approval_status"), dict):
-        d["approval_status"] = {}
-    d["approval_status"]["value"] = "approved"
-    d["admin_decision"] = {
-        "status": "approved",
-        "decision_date": now_iso,
-        "decision_by": "admin",
-        "notes": notes,
-        "rejection_reasons": [],
-    }
-    d["last_updated"] = now_iso
-
-    # Audit history
-    audit_hist = d.setdefault("source_data", {}).setdefault("_provenance", {}).setdefault("audit_history", [])
-    audit_hist.append({
-        "audit_id": f"{urun_id}_approve_{now_iso[:10]}",
-        "audit_date": now_iso[:10],
-        "version_before": "pending",
-        "version_after": "approved (admin onay)",
-        "notes": f"Web UI'dan admin onay: {notes[:200]}",
-    })
-
-    save_product(urun_id, d)
-
-    # feedback_log
-    append_feedback({
-        "timestamp": now_iso,
-        "urun_id": urun_id,
-        "action": "approve",
-        "notes": notes,
-        "model_version": (d.get("ml_score") or {}).get("model_version"),
-        "predicted_prob": (d.get("ml_score") or {}).get("predicted_approval_prob"),
-    })
-
-    return jsonify({"ok": True, "urun_id": urun_id, "new_status": "approved"})
-
-
-@app.route("/api/reject", methods=["POST"])
-def api_reject():
     data = request.get_json(force=True)
-    urun_id = data.get("urun_id")
-    reasons = data.get("reasons") or []
-    notes = data.get("notes", "")
+    for key in ("brand", "collection", "product_name", "product_code",
+                "composition", "weave_type", "arge_notu", "notes", "source_url"):
+        if key in data:
+            d[key] = clean(data[key])
+    if "country" in data:
+        d["country"] = norm_country(clean(data["country"]))
+    for key in ("width_cm", "repeat_vertical_cm", "repeat_horizontal_cm"):
+        if key in data:
+            d[key] = parse_int(data[key])
+    d["updated_at"] = now_iso()
+    store.upsert(d)
+    return jsonify({"ok": True})
 
-    d = load_product(urun_id)
+
+@app.route("/api/urun/<urun_id>/gorsel-ekle", methods=["POST"])
+def api_add_images(urun_id: str):
+    d = store.get(urun_id)
     if not d:
         return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
-
-    now_iso = datetime.now(timezone.utc).isoformat()
-
-    if not isinstance(d.get("approval_status"), dict):
-        d["approval_status"] = {}
-    d["approval_status"]["value"] = "rejected"
-    d["admin_decision"] = {
-        "status": "rejected",
-        "decision_date": now_iso,
-        "decision_by": "admin",
-        "notes": notes,
-        "rejection_reasons": reasons,
-    }
-    d["last_updated"] = now_iso
-
-    audit_hist = d.setdefault("source_data", {}).setdefault("_provenance", {}).setdefault("audit_history", [])
-    audit_hist.append({
-        "audit_id": f"{urun_id}_reject_{now_iso[:10]}",
-        "audit_date": now_iso[:10],
-        "version_before": "pending",
-        "version_after": f"rejected (sebep: {', '.join(reasons)})",
-        "notes": f"Web UI'dan admin red: {notes[:200]}",
-    })
-
-    save_product(urun_id, d)
-
-    append_feedback({
-        "timestamp": now_iso,
-        "urun_id": urun_id,
-        "action": "reject",
-        "reasons": reasons,
-        "notes": notes,
-        "model_version": (d.get("ml_score") or {}).get("model_version"),
-        "predicted_prob": (d.get("ml_score") or {}).get("predicted_approval_prob"),
-    })
-
-    return jsonify({"ok": True, "urun_id": urun_id, "new_status": "rejected"})
+    images = d.get("images") or []
+    max_order = max((im.get("order", 0) for im in images), default=-1)
+    prefix = infer_prefix(d)
+    files = [x for x in request.files.getlist("files") if x and x.filename]
+    labels = request.form.getlist("variant_labels")
+    added = 0
+    for i, fs in enumerate(files):
+        order = max_order + 1 + i
+        try:
+            path = save_image(fs, prefix, order)
+        except Exception as e:
+            return jsonify({"ok": False, "error": f"Görsel yüklenemedi ({fs.filename}): {e}"}), 400
+        label = labels[i].strip() if i < len(labels) and labels[i].strip() else None
+        images.append({"path": path, "variant_label": label, "is_cover": False, "order": order})
+        added += 1
+    if images and not any(im.get("is_cover") for im in images):
+        images[0]["is_cover"] = True
+    d["images"] = images
+    d["updated_at"] = now_iso()
+    store.upsert(d)
+    return jsonify({"ok": True, "added": added})
 
 
-@app.route("/api/products")
-def api_products():
-    """JSON: ana dashboard data."""
-    products = load_products_by_status("approved")
+@app.route("/api/urun/<urun_id>/sirala", methods=["POST"])
+def api_reorder(urun_id: str):
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    order_list = (request.get_json(force=True) or {}).get("order") or []
+    pos = {p: i for i, p in enumerate(order_list)}
+    images = d.get("images") or []
+    images.sort(key=lambda im: pos.get(im.get("path"), len(order_list)))
+    for i, im in enumerate(images):
+        im["order"] = i
+    d["images"] = images
+    d["updated_at"] = now_iso()
+    store.upsert(d)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/urun/<urun_id>/gorsel-etiket", methods=["POST"])
+def api_set_label(urun_id: str):
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    data = request.get_json(force=True) or {}
+    target = data.get("path")
+    found = False
+    for im in d.get("images") or []:
+        if im.get("path") == target:
+            im["variant_label"] = clean(data.get("variant_label"))
+            found = True
+            break
+    if not found:
+        return jsonify({"ok": False, "error": "Görsel bulunamadı"}), 400
+    d["updated_at"] = now_iso()
+    store.upsert(d)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/urun/<urun_id>/kapak", methods=["POST"])
+def api_set_cover(urun_id: str):
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    target = (request.get_json(force=True) or {}).get("path")
+    found = False
+    for im in d.get("images") or []:
+        im["is_cover"] = (im.get("path") == target)
+        if im.get("path") == target:
+            found = True
+    if not found:
+        return jsonify({"ok": False, "error": "Görsel bulunamadı"}), 400
+    d["updated_at"] = now_iso()
+    store.upsert(d)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/urun/<urun_id>/gorsel-sil", methods=["POST"])
+def api_delete_image(urun_id: str):
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    target = (request.get_json(force=True) or {}).get("path")
+    images = d.get("images") or []
+    match = next((im for im in images if im.get("path") == target), None)
+    if not match:
+        return jsonify({"ok": False, "error": "Görsel bulunamadı"}), 400
+    was_cover = match.get("is_cover")
+    store.delete_images([target])
+    images = [im for im in images if im.get("path") != target]
+    if was_cover and images:
+        images[0]["is_cover"] = True
+    for i, im in enumerate(images):
+        im["order"] = i
+    d["images"] = images
+    d["updated_at"] = now_iso()
+    store.upsert(d)
+    return jsonify({"ok": True, "remaining": len(images)})
+
+
+@app.route("/api/urun/<urun_id>/sil", methods=["POST"])
+def api_delete_product(urun_id: str):
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    store.delete_images([im.get("path") for im in (d.get("images") or [])])
+    store.delete(urun_id)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/urunler")
+def api_urunler():
+    products = [product_summary(p) for p in store.get_all()]
     return jsonify({"count": len(products), "products": products})
 
 
-@app.route("/api/pending")
-def api_pending():
-    products = load_products_by_status("pending")
-    return jsonify({"count": len(products), "products": products})
+@app.route("/health")
+def health():
+    return jsonify({"ok": True})
 
-
-@app.route("/api/aday")
-def api_aday():
-    """Aday URL'leri listele (henüz scrape edilmedi).
-
-    aday_*.json dosyalarındaki yeni_adaylar[] içeriğini topla.
-    Zaten markalar/urunler/'de olanları + reddedilmişleri çıkar.
-    """
-    # Mevcut markalar/urunler/ slug/code listesi
-    existing_keys: set[str] = set()
-    rejected_urls: set[str] = set()
-    for jp in URUNLER_DIR.glob("*.json"):
-        d = json.loads(jp.read_text(encoding="utf-8"))
-        # urun_id formatı: <brand>_<code>-<slug> veya <brand>_<slug>
-        stem = jp.stem
-        existing_keys.add(stem)
-        approval = d.get("approval_status", {})
-        status = approval.get("value") if isinstance(approval, dict) else approval
-        if status == "rejected":
-            url = d.get("source_url")
-            if url:
-                rejected_urls.add(url)
-
-    # Aday-seviyesi hızlı red URL'leri
-    rejected_urls_file = ML_DIR / "rejected_urls.jsonl"
-    if rejected_urls_file.exists():
-        for line in rejected_urls_file.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                entry = json.loads(line)
-                if entry.get("url"):
-                    rejected_urls.add(entry["url"])
-            except Exception:
-                continue
-
-    # Aday JSON dosyalarından URL topla
-    aday_urls: list[dict] = []
-    seen_urls: set[str] = set()
-
-    if HAM_CIKTI_DIR.exists():
-        # Bugünün adaylarını öncelikle göster
-        for aday_file in sorted(HAM_CIKTI_DIR.glob("aday_*.json"),
-                                 key=lambda p: -p.stat().st_mtime):
-            try:
-                aday_data = json.loads(aday_file.read_text(encoding="utf-8"))
-            except Exception:
-                continue
-            region = aday_data.get("region")
-            marka_sonuclari = aday_data.get("marka_sonuclari", {})
-            for brand_slug, brand_data in marka_sonuclari.items():
-                if brand_data.get("status") != "ok":
-                    continue
-                for prod in brand_data.get("yeni_adaylar") or []:
-                    url = prod.get("url", "")
-                    if not url or url in seen_urls or url in rejected_urls:
-                        continue
-                    # Var olanı atla — urun_id tahmini
-                    key = prod.get("key", "")
-                    estimated_urun_id = f"{brand_slug}_{key}"
-                    if estimated_urun_id in existing_keys:
-                        continue
-                    seen_urls.add(url)
-                    # Thumbnail upscale (250→500 daha kaliteli preview)
-                    thumb = prod.get("thumbnail")
-                    if thumb:
-                        thumb = re.sub(r"width=\d+", "width=500", thumb)
-                        thumb = re.sub(r"height=\d+", "height=500", thumb)
-                        thumb = re.sub(r"/stencil/\d+w/", "/stencil/500w/", thumb)
-                        thumb = re.sub(r"/stencil/\d+x\d+/", "/stencil/500x500/", thumb)
-                    aday_urls.append({
-                        "url": url,
-                        "brand_slug": brand_slug,
-                        "code": prod.get("code"),
-                        "slug": prod.get("slug"),
-                        "key": key,
-                        "thumbnail": thumb,
-                        "region": region,
-                        "discovered_in": aday_file.name,
-                    })
-
-    return jsonify({"count": len(aday_urls), "adaylar": aday_urls})
-
-
-SUPPORTED_SCRAPE_DOMAINS = {"kvadrat.dk", "dedar.com", "rubelli.com"}
-UNSUPPORTED_BRANDS = {
-    "zimmer-rohde.com": "Z+R Group (Z+R/ADO/Etamine/Travers) scraper henüz yazılmadı (Faz 7.11). Adaptör hazır — referans `adaptorler/zimmer_rohde.md`. Mevcut görsel indirme: `topla/scripts/download_zr_variants.py`.",
-    "sahco.com": "Sahco scraper henüz yok (Faz 7.x).",
-    "nya-nordiska.com": "Nya Nordiska scraper henüz yok (Faz 7.x).",
-    "creationbaumann.com": "Création Baumann scraper henüz yok (Faz 7.x).",
-}
-
-
-@app.route("/api/scrape", methods=["POST"])
-def api_scrape():
-    """Bir aday URL için detaylı scrape başlat (subprocess).
-
-    Background olarak topla.cli <url> çalıştırır. stdout/stderr log dosyasına
-    yönlenir (topla/logs/scrape_<timestamp>.log). Tamamlanınca
-    markalar/urunler/<urun>.json oluşur (approval_status=pending).
-    """
-    data = request.get_json(force=True)
-    url = data.get("url")
-    if not url:
-        return jsonify({"ok": False, "error": "url eksik"}), 400
-
-    # Brand pre-check (subprocess başlatmadan önce)
-    from urllib.parse import urlparse
-    host = urlparse(url).netloc.lower().replace("www.", "")
-    if host in UNSUPPORTED_BRANDS:
-        return jsonify({
-            "ok": False,
-            "error": f"Scraper yok: {host}",
-            "message": UNSUPPORTED_BRANDS[host],
-            "scraper_missing": True,
-        }), 400
-    if not any(d in host for d in SUPPORTED_SCRAPE_DOMAINS):
-        return jsonify({
-            "ok": False,
-            "error": f"Bilinmeyen marka: {host}",
-            "message": "Bu domain'e ait scraper yok. Mevcut: Kvadrat, Dedar, Rubelli.",
-        }), 400
-
-    # Log dosyası (terminale değil dosyaya yaz)
-    LOGS_DIR.mkdir(parents=True, exist_ok=True)
-    ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    safe_slug = url.rstrip("/").rsplit("/", 1)[-1].split("?")[0][:30]
-    log_path = LOGS_DIR / f"scrape_{safe_slug}_{ts}.log"
-
-    python_exe = PROJECT_ROOT / ".venv" / "Scripts" / "python.exe"
-    if not python_exe.exists():
-        return jsonify({"ok": False, "error": f".venv yok: {python_exe}"}), 500
-
-    # Playwright env — Flask context'inde LOCALAPPDATA eksik olabilir
-    env = os.environ.copy()
-    if "LOCALAPPDATA" not in env or "ms-playwright" not in (env.get("PLAYWRIGHT_BROWSERS_PATH", "")):
-        # Explicit Windows user path
-        user_localappdata = os.environ.get("LOCALAPPDATA") or f"C:\\Users\\{os.environ.get('USERNAME', 'PC')}\\AppData\\Local"
-        env["LOCALAPPDATA"] = user_localappdata
-        env["PLAYWRIGHT_BROWSERS_PATH"] = os.path.join(user_localappdata, "ms-playwright")
-
-    try:
-        log_f = log_path.open("w", encoding="utf-8")
-        log_f.write(f"# Scrape başlangıç: {ts}\n# URL: {url}\n# CMD: python -m topla.cli {url}\n")
-        log_f.write(f"# PLAYWRIGHT_BROWSERS_PATH: {env.get('PLAYWRIGHT_BROWSERS_PATH')}\n\n")
-        log_f.flush()
-
-        # Faz 7.10f fix: subprocess KALDIRILDI — sandbox context sorununa yol acti
-        # (Playwright Chromium executable visible degil subprocess child'a)
-        # Cozum: scrape_and_score'u Flask thread'inde DOGRUDAN cagir (ayni process,
-        # ayni context). UX bloklamaz cunku daemon thread'inde.
-        import threading
-        def _run_inline():
-            try:
-                sys.path.insert(0, str(PROJECT_ROOT))
-                from topla.topla import scrape_and_score
-                result = scrape_and_score(url)
-                log_f.write(f"\n=== SCRAPE TAMAM ===\n")
-                log_f.write(json.dumps(result, ensure_ascii=False, indent=2))
-                log_f.write("\n")
-            except Exception as e:
-                import traceback
-                log_f.write(f"\n=== HATA ===\n")
-                log_f.write(f"{type(e).__name__}: {e}\n")
-                log_f.write(traceback.format_exc())
-            finally:
-                try:
-                    log_f.close()
-                except Exception:
-                    pass
-        t = threading.Thread(target=_run_inline, daemon=True)
-        t.start()
-        return jsonify({
-            "ok": True,
-            "message": f"Scrape başladı: {url}",
-            "log_file": log_path.name,
-            "log_path": str(log_path.relative_to(PROJECT_ROOT)),
-        })
-    except Exception as e:
-        import traceback
-        return jsonify({"ok": False, "error": str(e), "trace": traceback.format_exc()[:500]}), 500
-
-
-@app.route("/api/quick-reject", methods=["POST"])
-def api_quick_reject():
-    """Aday seviyesinde hızlı red — URL'i feedback_log'a yaz, markalar/urunler/'e gitmesin.
-
-    Kullanım: aday slug'ında "jacquard"/"metallic" gibi açıkça kötü pattern
-    görüldüğünde, scrape etmeden direkt reddet.
-    """
-    data = request.get_json(force=True)
-    url = data.get("url")
-    reasons = data.get("reasons") or ["aday_seviyesinde_red"]
-    notes = data.get("notes", "")
-
-    if not url:
-        return jsonify({"ok": False, "error": "url eksik"}), 400
-
-    now_iso = datetime.now(timezone.utc).isoformat()
-    append_feedback({
-        "timestamp": now_iso,
-        "action": "quick_reject",
-        "url": url,
-        "brand_slug": data.get("brand_slug"),
-        "key": data.get("key"),
-        "reasons": reasons,
-        "notes": notes,
-        "_note": "Aday seviyesinde red — scrape edilmedi. Tekrar aynı URL gelirse filtreyle.",
-    })
-
-    # Reddedilen URL'leri ayrı dosyada da tut (aday taramasında filtrelensin)
-    rejected_urls_file = ML_DIR / "rejected_urls.jsonl"
-    ML_DIR.mkdir(parents=True, exist_ok=True)
-    with rejected_urls_file.open("a", encoding="utf-8") as f:
-        f.write(json.dumps({
-            "url": url,
-            "reasons": reasons,
-            "timestamp": now_iso,
-            "brand_slug": data.get("brand_slug"),
-            "key": data.get("key"),
-        }, ensure_ascii=False) + "\n")
-
-    return jsonify({"ok": True, "url": url})
-
-
-@app.route("/api/scan-status")
-def api_scan_status():
-    """Arka planda çalışan tarama durumu — son log dosyalarından çıkar.
-
-    Bir tarama "aktif" sayılır eğer:
-      - log dosyası son 5 dakikada modify edildi
-      - log içinde "Batch run BASARILI" veya "HATA" görünmedi
-    """
-    import time
-
-    now = time.time()
-    active_threshold = 300  # 5 dk
-
-    scans = []
-    if LOGS_DIR.exists():
-        for log_file in sorted(LOGS_DIR.glob("task_scheduler_*.log"), key=lambda p: -p.stat().st_mtime):
-            # Sadece bugünün dosyaları
-            today_str = datetime.now(timezone.utc).strftime("%Y%m%d")
-            if today_str not in log_file.name:
-                continue
-
-            mtime = log_file.stat().st_mtime
-            age_sec = now - mtime
-
-            # Region çıkar
-            # task_scheduler_<region>_<date>.log
-            parts = log_file.stem.split("_")
-            region = parts[2] if len(parts) >= 3 else "unknown"
-
-            # Log son 30 satır
-            try:
-                lines = log_file.read_text(encoding="utf-8", errors="replace").splitlines()
-                last_lines = lines[-30:]
-                tail = "\n".join(last_lines)
-            except Exception:
-                tail = ""
-
-            # Durum: success / error / running
-            success = "Batch run BASARILI" in tail or "Weekly review BASARILI" in tail
-            error = "HATA:" in tail or "EXCEPTION:" in tail
-            is_running = (age_sec < active_threshold) and not success and not error
-
-            # Output JSON kompakt (son 10 satır)
-            tail_short = "\n".join(last_lines[-10:])
-
-            # Aday JSON oluştu mu?
-            aday_path = HAM_CIKTI_DIR / f"aday_{region}_{today_str}.json"
-            aday_count = None
-            if aday_path.exists():
-                try:
-                    aday_data = json.loads(aday_path.read_text(encoding="utf-8"))
-                    aday_count = aday_data.get("toplam_yeni_aday", 0)
-                except Exception:
-                    pass
-
-            scans.append({
-                "region": region,
-                "log_file": log_file.name,
-                "modified_at": datetime.fromtimestamp(mtime, tz=timezone.utc).isoformat(),
-                "age_seconds": int(age_sec),
-                "status": "running" if is_running else ("success" if success else ("error" if error else "stale")),
-                "new_candidates": aday_count,
-                "log_tail": tail_short,
-            })
-
-    active_count = sum(1 for s in scans if s["status"] == "running")
-    return jsonify({"active_count": active_count, "scans": scans})
-
-
-@app.route("/trigger", methods=["POST"])
-def trigger():
-    """Manuel tarama: subprocess ile topla.cli --batch çağrı."""
-    region = request.form.get("region", "nordik")
-    if region not in ("nordik", "italyan", "alman", "all"):
-        flash(f"Geçersiz bölge: {region}", "error")
-        return redirect(url_for("pending"))
-
-    regions = ["nordik", "italyan", "alman"] if region == "all" else [region]
-
-    # Background tetikle (asenkron — kullanıcı beklemesin)
-    # Log dosyasına yaz, env=parent (Playwright PATH için)
-    LOGS_DIR.mkdir(parents=True, exist_ok=True)
-    today = datetime.now(timezone.utc).strftime("%Y%m%d")
-    for r in regions:
-        log_path = LOGS_DIR / f"task_scheduler_{r}_{today}.log"
-        log_f = log_path.open("a", encoding="utf-8")
-        log_f.write(f"\n[{datetime.now(timezone.utc).isoformat()}] === Web UI trigger ===\n")
-        log_f.flush()
-        subprocess.Popen(
-            [str(PROJECT_ROOT / ".venv" / "Scripts" / "python.exe"),
-             "-m", "topla.cli", "--batch", r],
-            cwd=str(PROJECT_ROOT),
-            stdout=log_f,
-            stderr=subprocess.STDOUT,
-            env=os.environ.copy(),
-            creationflags=(subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0),
-        )
-
-    flash(
-        f"🔍 {region.upper()} tarama başladı (arka planda). 5-10 dk içinde "
-        f"topla/ham_cikti/aday_*.json oluşur ve pending listesine düşer.",
-        "info",
-    )
-    return redirect(url_for("pending"))
-
-
-# ============================================================
-# Static — görseller
-# ============================================================
-
-@app.route("/gorsel/<path:relpath>")
-def serve_gorsel(relpath: str):
-    """gorseller/ klasörü servis."""
-    return send_from_directory(str(GORSELLER_DIR), relpath)
-
-
-# ============================================================
-# Run
-# ============================================================
 
 if __name__ == "__main__":
-    print("=" * 50)
-    print("Mobidik ARGE Pazar Zekası — Web UI")
-    print("=" * 50)
-    print(f"\nProje: {PROJECT_ROOT}")
-    print(f"Ürün sayısı: {len(list(URUNLER_DIR.glob('*.json')))}")
-    print(f"\nAna dashboard:  http://localhost:5000/")
-    print(f"Ön onay:        http://localhost:5000/pending")
-    print(f"Geçmiş:         http://localhost:5000/history")
-    print(f"\nCTRL+C ile durdurabilirsiniz.\n")
-    # debug=False — auto-reload daemon thread'i oldurur, scrape yarida kalir
-    # Code degisikligi sonrasi Flask manuel restart gerekir (Ctrl+C, yeniden basla)
-    app.run(host="0.0.0.0", port=5000, debug=False, threaded=True)
+    port = int(os.environ.get("PORT", "5000"))
+    print(f"Mobidik Kumas Paneli — http://localhost:{port}")
+    if not APP_PASSWORD:
+        print("UYARI: APP_PASSWORD bos — panel sifresiz acik (yerel gelistirme).")
+    app.run(host="0.0.0.0", port=port, debug=False, threaded=True)

@@ -1,0 +1,94 @@
+{
+  "_schema_version": "2.0-lean",
+  "urun_id": "zimmer_rohde_11047-ishari",
+  "brand": "Zimmer + Rohde",
+  "brand_slug": "zimmer_rohde",
+  "country": "Almanya",
+  "collection": "After The Rain",
+  "product_name": "Ishari",
+  "product_code": "11047",
+  "composition": "%100 Polyester",
+  "width_cm": 310,
+  "weave_type": "double_cloth",
+  "repeat_vertical_cm": null,
+  "repeat_horizontal_cm": null,
+  "arge_notu": "Cift atki + cozgu kapasite TAM, double-cloth Stabli'de yapilabilir ama 8-12 cerceve + programlama. Pilot: 1 nötr ton x 50 m, 8-10 hafta (test programlama dahil). Mevcut After The Rain koleksiyon temasi (yagmur sonrasi) ile Mobidik 'Anatolian After Rain' sub-brand'i.",
+  "notes": null,
+  "source_url": "https://www.zimmer-rohde.com/en/product-finder/details/ishari-11047-894",
+  "created_at": "2026-05-11T00:00:00Z",
+  "updated_at": "2026-05-29T18:23:29Z",
+  "images": [
+    {
+      "local_path": "gorseller/zimmer_rohde/11047/891_1.jpg",
+      "variant_label": "Pudra",
+      "is_cover": true,
+      "order": 0
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/11047/891_2.jpg",
+      "variant_label": "Pudra",
+      "is_cover": false,
+      "order": 1
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/11047/891_3.jpg",
+      "variant_label": "Pudra",
+      "is_cover": false,
+      "order": 2
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/11047/894_1.jpg",
+      "variant_label": "Soluk somon",
+      "is_cover": false,
+      "order": 3
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/11047/894_2.jpg",
+      "variant_label": "Soluk somon",
+      "is_cover": false,
+      "order": 4
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/11047/894_3.jpg",
+      "variant_label": "Soluk somon",
+      "is_cover": false,
+      "order": 5
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/11047/990_1.jpg",
+      "variant_label": "Açık nötr",
+      "is_cover": false,
+      "order": 6
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/11047/990_2.jpg",
+      "variant_label": "Açık nötr",
+      "is_cover": false,
+      "order": 7
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/11047/990_3.jpg",
+      "variant_label": "Açık nötr",
+      "is_cover": false,
+      "order": 8
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/11047/991_1.jpg",
+      "variant_label": "Krem",
+      "is_cover": false,
+      "order": 9
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/11047/991_2.jpg",
+      "variant_label": "Krem",
+      "is_cover": false,
+      "order": 10
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/11047/991_3.jpg",
+      "variant_label": "Krem",
+      "is_cover": false,
+      "order": 11
+    }
+  ]
+}

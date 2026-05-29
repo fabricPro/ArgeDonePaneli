@@ -1,0 +1,76 @@
+{
+  "_schema_version": "2.0-lean",
+  "urun_id": "dedar_00T21015-wide-linen-atelier-1930",
+  "brand": "Dedar",
+  "brand_slug": "dedar",
+  "country": "İtalya",
+  "collection": "Wide Sheers — Linen",
+  "product_name": "Wide Linen Atelier 1930",
+  "product_code": "00T21015",
+  "composition": "%90 linen, %10 polyamide",
+  "width_cm": 305,
+  "weave_type": "open_weave_dobby",
+  "repeat_vertical_cm": null,
+  "repeat_horizontal_cm": null,
+  "arge_notu": "Atelier 1930 söylemi Anatolian Linen sub-brand'ın 'Bursa atölye geleneği' hikayesine uygun. M1+OEKO-TEX iki sertifika mevcut (Mobidik OEKO-TEX zaten var, M1 başvuru gerek — 3-6 ay). 3 renk varyantı = sınırlı palette; pilot için 3 nötr ton × 100 m, 4-6 hafta. Türk keten + SASA naylon yerli.",
+  "notes": null,
+  "source_url": "https://dedar.com/wide-linen-atelier-1930/",
+  "created_at": "2026-05-26T09:01:27.161480+00:00",
+  "updated_at": "2026-05-29T18:23:29Z",
+  "images": [
+    {
+      "local_path": "gorseller/dedar/00T21015/ana_01.jpg",
+      "variant_label": null,
+      "is_cover": true,
+      "order": 0
+    },
+    {
+      "local_path": "gorseller/dedar/00T21015/varyant_10.jpg",
+      "variant_label": "bianco",
+      "is_cover": false,
+      "order": 1
+    },
+    {
+      "local_path": "gorseller/dedar/00T21015/varyant_11.jpg",
+      "variant_label": "bianco",
+      "is_cover": false,
+      "order": 2
+    },
+    {
+      "local_path": "gorseller/dedar/00T21015/varyant_12.jpg",
+      "variant_label": "bianco",
+      "is_cover": false,
+      "order": 3
+    },
+    {
+      "local_path": "gorseller/dedar/00T21015/varyant_13.jpg",
+      "variant_label": "metis",
+      "is_cover": false,
+      "order": 4
+    },
+    {
+      "local_path": "gorseller/dedar/00T21015/varyant_14.jpg",
+      "variant_label": "metis",
+      "is_cover": false,
+      "order": 5
+    },
+    {
+      "local_path": "gorseller/dedar/00T21015/varyant_15.jpg",
+      "variant_label": "metis",
+      "is_cover": false,
+      "order": 6
+    },
+    {
+      "local_path": "gorseller/dedar/00T21015/varyant_16.jpg",
+      "variant_label": "lino",
+      "is_cover": false,
+      "order": 7
+    },
+    {
+      "local_path": "gorseller/dedar/00T21015/varyant_17.jpg",
+      "variant_label": "lino",
+      "is_cover": false,
+      "order": 8
+    }
+  ]
+}

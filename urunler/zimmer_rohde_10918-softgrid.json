@@ -1,0 +1,166 @@
+{
+  "_schema_version": "2.0-lean",
+  "urun_id": "zimmer_rohde_10918-softgrid",
+  "brand": "Zimmer + Rohde",
+  "brand_slug": "zimmer_rohde",
+  "country": "Almanya",
+  "collection": "SKETCHBOOK",
+  "product_name": "Softgrid",
+  "product_code": "10918",
+  "composition": "%36 PES, %34 Pamuk, %16 Viskon, %14 Keten",
+  "width_cm": 300,
+  "weave_type": "dobby",
+  "repeat_vertical_cm": 4,
+  "repeat_horizontal_cm": null,
+  "arge_notu": "Kapasite TAM, ana darbogaz 4-bilesen iplik MOQ. Onerilen: 3-bilesen muadil (PES+Cot+Lin) ile pilot, %90 gorsel yakinlik + %20 maliyet dususu. Pilot: 4 notr ton x 100 m, 6-8 hafta. Korteks 3-bilesen teklif talep et.",
+  "notes": null,
+  "source_url": "https://www.zimmer-rohde.com/en/product-finder/details/softgrid-10918-694",
+  "created_at": "2026-05-11T00:00:00Z",
+  "updated_at": "2026-05-29T18:28:37Z",
+  "images": [
+    {
+      "local_path": "gorseller/zimmer_rohde/10918/294_1.jpg",
+      "variant_label": "Açık deniz mavisi",
+      "is_cover": true,
+      "order": 0
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10918/294_2.jpg",
+      "variant_label": "Açık deniz mavisi",
+      "is_cover": false,
+      "order": 1
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10918/595_1.jpg",
+      "variant_label": "Adaçayı yeşili",
+      "is_cover": false,
+      "order": 2
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10918/595_2.jpg",
+      "variant_label": "Adaçayı yeşili",
+      "is_cover": false,
+      "order": 3
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10918/694_1.jpg",
+      "variant_label": "Taba kahve",
+      "is_cover": false,
+      "order": 4
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10918/694_2.jpg",
+      "variant_label": "Taba kahve",
+      "is_cover": false,
+      "order": 5
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10918/890_1.jpg",
+      "variant_label": "Pudra pembe",
+      "is_cover": false,
+      "order": 6
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10918/890_2.jpg",
+      "variant_label": "Pudra pembe",
+      "is_cover": false,
+      "order": 7
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10918/895_1.jpg",
+      "variant_label": "Açık nötr",
+      "is_cover": false,
+      "order": 8
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10918/895_2.jpg",
+      "variant_label": "Açık nötr",
+      "is_cover": false,
+      "order": 9
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10918/900_1.jpg",
+      "variant_label": "Saf beyaz",
+      "is_cover": false,
+      "order": 10
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10918/900_2.jpg",
+      "variant_label": "Saf beyaz",
+      "is_cover": false,
+      "order": 11
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10918/953_1.jpg",
+      "variant_label": "Bej-nötr",
+      "is_cover": false,
+      "order": 12
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10918/953_2.jpg",
+      "variant_label": "Bej-nötr",
+      "is_cover": false,
+      "order": 13
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10918/981_1.jpg",
+      "variant_label": "Bulutsu beyaz",
+      "is_cover": false,
+      "order": 14
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10918/981_2.jpg",
+      "variant_label": "Bulutsu beyaz",
+      "is_cover": false,
+      "order": 15
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10918/984_1.jpg",
+      "variant_label": "Açık bej",
+      "is_cover": false,
+      "order": 16
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10918/984_2.jpg",
+      "variant_label": "Açık bej",
+      "is_cover": false,
+      "order": 17
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10918/991_1.jpg",
+      "variant_label": "Açık taş",
+      "is_cover": false,
+      "order": 18
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10918/991_2.jpg",
+      "variant_label": "Açık taş",
+      "is_cover": false,
+      "order": 19
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10918/995_1.jpg",
+      "variant_label": "Krem",
+      "is_cover": false,
+      "order": 20
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10918/995_2.jpg",
+      "variant_label": "Krem",
+      "is_cover": false,
+      "order": 21
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10918/997_1.jpg",
+      "variant_label": "Doğal beyaz",
+      "is_cover": false,
+      "order": 22
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10918/997_2.jpg",
+      "variant_label": "Doğal beyaz",
+      "is_cover": false,
+      "order": 23
+    }
+  ]
+}

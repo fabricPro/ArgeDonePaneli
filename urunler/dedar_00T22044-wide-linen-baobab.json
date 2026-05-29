@@ -1,0 +1,166 @@
+{
+  "_schema_version": "2.0-lean",
+  "urun_id": "dedar_00T22044-wide-linen-baobab",
+  "brand": "Dedar",
+  "brand_slug": "dedar",
+  "country": "İtalya",
+  "collection": "Wide Sheers — Linen",
+  "product_name": "Wide Linen Baobab",
+  "product_code": "00T22044",
+  "composition": "%90 linen, %10 polyamide",
+  "width_cm": 300,
+  "weave_type": "open_weave_dobby",
+  "repeat_vertical_cm": null,
+  "repeat_horizontal_cm": null,
+  "arge_notu": "Anatolian Linen sub-brand için pilot adayı (Air Line/Melange Linen/Nuri 81-82 ALTIN ailesi). Mobidik avantajı: 360 cm warp beam → 300 cm en kolay, Türk keten + naylon tedariki yerli (SASA + Bursa). M1 sertifika prosesi mevcut OEKO-TEX'i tamamlar. ARGE pilot: 3 nötr ton × 100 m, 4-6 hafta. EU Flax sertifikası 'Anatolian Linen' söylem için ek değer (3-6 ay başvuru).",
+  "notes": null,
+  "source_url": "https://dedar.com/wide-linen-baobab/",
+  "created_at": "2026-05-26T09:00:48.339829+00:00",
+  "updated_at": "2026-05-29T18:23:29Z",
+  "images": [
+    {
+      "local_path": "gorseller/dedar/00T22044/ana_01.jpg",
+      "variant_label": null,
+      "is_cover": true,
+      "order": 0
+    },
+    {
+      "local_path": "gorseller/dedar/00T22044/varyant_10.jpg",
+      "variant_label": "senape",
+      "is_cover": false,
+      "order": 1
+    },
+    {
+      "local_path": "gorseller/dedar/00T22044/varyant_11.jpg",
+      "variant_label": "senape",
+      "is_cover": false,
+      "order": 2
+    },
+    {
+      "local_path": "gorseller/dedar/00T22044/varyant_12.jpg",
+      "variant_label": "bianco",
+      "is_cover": false,
+      "order": 3
+    },
+    {
+      "local_path": "gorseller/dedar/00T22044/varyant_13.jpg",
+      "variant_label": "bianco",
+      "is_cover": false,
+      "order": 4
+    },
+    {
+      "local_path": "gorseller/dedar/00T22044/varyant_14.jpg",
+      "variant_label": "bianco",
+      "is_cover": false,
+      "order": 5
+    },
+    {
+      "local_path": "gorseller/dedar/00T22044/varyant_15.jpg",
+      "variant_label": "avorio",
+      "is_cover": false,
+      "order": 6
+    },
+    {
+      "local_path": "gorseller/dedar/00T22044/varyant_16.jpg",
+      "variant_label": "avorio",
+      "is_cover": false,
+      "order": 7
+    },
+    {
+      "local_path": "gorseller/dedar/00T22044/varyant_17.jpg",
+      "variant_label": "avorio",
+      "is_cover": false,
+      "order": 8
+    },
+    {
+      "local_path": "gorseller/dedar/00T22044/varyant_18.jpg",
+      "variant_label": "mastice",
+      "is_cover": false,
+      "order": 9
+    },
+    {
+      "local_path": "gorseller/dedar/00T22044/varyant_19.jpg",
+      "variant_label": "mastice",
+      "is_cover": false,
+      "order": 10
+    },
+    {
+      "local_path": "gorseller/dedar/00T22044/varyant_20.jpg",
+      "variant_label": "mastice",
+      "is_cover": false,
+      "order": 11
+    },
+    {
+      "local_path": "gorseller/dedar/00T22044/varyant_21.jpg",
+      "variant_label": "perla",
+      "is_cover": false,
+      "order": 12
+    },
+    {
+      "local_path": "gorseller/dedar/00T22044/varyant_22.jpg",
+      "variant_label": "perla",
+      "is_cover": false,
+      "order": 13
+    },
+    {
+      "local_path": "gorseller/dedar/00T22044/varyant_23.jpg",
+      "variant_label": "perla",
+      "is_cover": false,
+      "order": 14
+    },
+    {
+      "local_path": "gorseller/dedar/00T22044/varyant_24.jpg",
+      "variant_label": "taupe",
+      "is_cover": false,
+      "order": 15
+    },
+    {
+      "local_path": "gorseller/dedar/00T22044/varyant_25.jpg",
+      "variant_label": "taupe",
+      "is_cover": false,
+      "order": 16
+    },
+    {
+      "local_path": "gorseller/dedar/00T22044/varyant_26.jpg",
+      "variant_label": "taupe",
+      "is_cover": false,
+      "order": 17
+    },
+    {
+      "local_path": "gorseller/dedar/00T22044/varyant_27.jpg",
+      "variant_label": "canyon",
+      "is_cover": false,
+      "order": 18
+    },
+    {
+      "local_path": "gorseller/dedar/00T22044/varyant_28.jpg",
+      "variant_label": "canyon",
+      "is_cover": false,
+      "order": 19
+    },
+    {
+      "local_path": "gorseller/dedar/00T22044/varyant_29.jpg",
+      "variant_label": "canyon",
+      "is_cover": false,
+      "order": 20
+    },
+    {
+      "local_path": "gorseller/dedar/00T22044/varyant_30.jpg",
+      "variant_label": "bottiglia",
+      "is_cover": false,
+      "order": 21
+    },
+    {
+      "local_path": "gorseller/dedar/00T22044/varyant_31.jpg",
+      "variant_label": "bottiglia",
+      "is_cover": false,
+      "order": 22
+    },
+    {
+      "local_path": "gorseller/dedar/00T22044/varyant_32.jpg",
+      "variant_label": "bottiglia",
+      "is_cover": false,
+      "order": 23
+    }
+  ]
+}

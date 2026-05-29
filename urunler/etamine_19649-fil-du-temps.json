@@ -1,0 +1,118 @@
+{
+  "_schema_version": "2.0-lean",
+  "urun_id": "etamine_19649-fil-du-temps",
+  "brand": "Etamine",
+  "brand_slug": "etamine",
+  "country": "Fransa",
+  "collection": "Songe d'Ete",
+  "product_name": "Fil du Temps",
+  "product_code": "19649",
+  "composition": "%100 Akrilik",
+  "width_cm": 297,
+  "weave_type": "crochet/gauzy",
+  "repeat_vertical_cm": null,
+  "repeat_horizontal_cm": null,
+  "arge_notu": "Kapasite TAM dokumada (leno). Asil iş: (1) Aksa solution-dyed acrylic iplik teklif, (2) Outdoor finishing fason (water+UV+saltwater) tedarikci tespit, (3) Pilot: 2 ton x 60 m, 8-10 hafta. Leno portfoyu ROI hesabinda Niket + Alpaca Leno + Fil du Temps + Loops birlestir.",
+  "notes": null,
+  "source_url": "https://www.zimmer-rohde.com/en/product-finder/details/fil-du-temps-19649-883",
+  "created_at": "2026-05-11T00:00:00Z",
+  "updated_at": "2026-05-29T18:23:29Z",
+  "images": [
+    {
+      "local_path": "gorseller/etamine/19649/383_1.jpg",
+      "variant_label": "Yeşil outdoor",
+      "is_cover": true,
+      "order": 0
+    },
+    {
+      "local_path": "gorseller/etamine/19649/383_2.jpg",
+      "variant_label": "Yeşil outdoor",
+      "is_cover": false,
+      "order": 1
+    },
+    {
+      "local_path": "gorseller/etamine/19649/383_3.jpg",
+      "variant_label": "Yeşil outdoor",
+      "is_cover": false,
+      "order": 2
+    },
+    {
+      "local_path": "gorseller/etamine/19649/383_4.jpg",
+      "variant_label": "Yeşil outdoor",
+      "is_cover": false,
+      "order": 3
+    },
+    {
+      "local_path": "gorseller/etamine/19649/683_1.jpg",
+      "variant_label": "Taba outdoor",
+      "is_cover": false,
+      "order": 4
+    },
+    {
+      "local_path": "gorseller/etamine/19649/683_2.jpg",
+      "variant_label": "Taba outdoor",
+      "is_cover": false,
+      "order": 5
+    },
+    {
+      "local_path": "gorseller/etamine/19649/683_3.jpg",
+      "variant_label": "Taba outdoor",
+      "is_cover": false,
+      "order": 6
+    },
+    {
+      "local_path": "gorseller/etamine/19649/683_4.jpg",
+      "variant_label": "Taba outdoor",
+      "is_cover": false,
+      "order": 7
+    },
+    {
+      "local_path": "gorseller/etamine/19649/880_1.jpg",
+      "variant_label": "Doğal outdoor",
+      "is_cover": false,
+      "order": 8
+    },
+    {
+      "local_path": "gorseller/etamine/19649/880_2.jpg",
+      "variant_label": "Doğal outdoor",
+      "is_cover": false,
+      "order": 9
+    },
+    {
+      "local_path": "gorseller/etamine/19649/880_3.jpg",
+      "variant_label": "Doğal outdoor",
+      "is_cover": false,
+      "order": 10
+    },
+    {
+      "local_path": "gorseller/etamine/19649/880_4.jpg",
+      "variant_label": "Doğal outdoor",
+      "is_cover": false,
+      "order": 11
+    },
+    {
+      "local_path": "gorseller/etamine/19649/883_1.jpg",
+      "variant_label": "Pudra outdoor",
+      "is_cover": false,
+      "order": 12
+    },
+    {
+      "local_path": "gorseller/etamine/19649/883_2.jpg",
+      "variant_label": "Pudra outdoor",
+      "is_cover": false,
+      "order": 13
+    },
+    {
+      "local_path": "gorseller/etamine/19649/883_3.jpg",
+      "variant_label": "Pudra outdoor",
+      "is_cover": false,
+      "order": 14
+    },
+    {
+      "local_path": "gorseller/etamine/19649/883_4.jpg",
+      "variant_label": "Pudra outdoor",
+      "is_cover": false,
+      "order": 15
+    }
+  ]
+}

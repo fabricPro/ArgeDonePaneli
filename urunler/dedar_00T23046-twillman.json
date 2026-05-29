@@ -1,0 +1,70 @@
+{
+  "_schema_version": "2.0-lean",
+  "urun_id": "dedar_00T23046-twillman",
+  "brand": "Dedar",
+  "brand_slug": "dedar",
+  "country": "İtalya",
+  "collection": "Indoor/outdoor fabrics — FR Twill",
+  "product_name": "Twillman",
+  "product_code": "00T23046",
+  "composition": "%69 polyester, %17 polyester_recycled, %14 polyester_recycled",
+  "width_cm": 140,
+  "weave_type": "dobby_twill",
+  "repeat_vertical_cm": null,
+  "repeat_horizontal_cm": null,
+  "arge_notu": "Cobra ailesi'ne kardeş ürün — FR dobby twill. Mobidik için yeni FR perdelik hattı (Cobra leno sheer + Twillman twill upholstery/curtain). 6 sertifika seti Mobidik için yol haritası: IMO MED (denizyolu), BS5867 (UK), NFPA 701 (US), M1 (FR), OEKO-TEX (mevcut). 3-12 ay sertifika süreçleri paralel başlat. Türk iplik: Indorama Türkiye (Trevira CS FR), SASA solution-dyed FR PES. Recycled PES → GRS başvurusu (Harry RE ailesi ile birlikte hızlandırma). ARGE pilot: 3 nötr ton × 100 m, 5-6 hafta + sertifika 3-12 ay paralel.",
+  "notes": null,
+  "source_url": "https://dedar.com/twillman/",
+  "created_at": "2026-05-26T09:04:34.313700+00:00",
+  "updated_at": "2026-05-29T18:23:29Z",
+  "images": [
+    {
+      "local_path": "gorseller/dedar/00T23046/ana_01.jpg",
+      "variant_label": null,
+      "is_cover": true,
+      "order": 0
+    },
+    {
+      "local_path": "gorseller/dedar/00T23046/varyant_10.jpg",
+      "variant_label": "avorio",
+      "is_cover": false,
+      "order": 1
+    },
+    {
+      "local_path": "gorseller/dedar/00T23046/varyant_11.jpg",
+      "variant_label": "perla",
+      "is_cover": false,
+      "order": 2
+    },
+    {
+      "local_path": "gorseller/dedar/00T23046/varyant_12.jpg",
+      "variant_label": "perla",
+      "is_cover": false,
+      "order": 3
+    },
+    {
+      "local_path": "gorseller/dedar/00T23046/varyant_13.jpg",
+      "variant_label": "rafia",
+      "is_cover": false,
+      "order": 4
+    },
+    {
+      "local_path": "gorseller/dedar/00T23046/varyant_14.jpg",
+      "variant_label": "rafia",
+      "is_cover": false,
+      "order": 5
+    },
+    {
+      "local_path": "gorseller/dedar/00T23046/varyant_15.jpg",
+      "variant_label": "rafia",
+      "is_cover": false,
+      "order": 6
+    },
+    {
+      "local_path": "gorseller/dedar/00T23046/detay_01.jpg",
+      "variant_label": null,
+      "is_cover": false,
+      "order": 7
+    }
+  ]
+}

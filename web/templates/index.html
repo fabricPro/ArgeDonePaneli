@@ -1,84 +1,88 @@
 {% extends "base.html" %}
-{% block title %}Ana Dashboard — {{ products|length }} ürün{% endblock %}
+{% block title %}Galeri — {{ total }} kumaş{% endblock %}
 
 {% block content %}
 <div class="page-header">
-    <h1>Ana Dashboard</h1>
-    <p class="page-subtitle">{{ products|length }} onaylı ürün · Mobidik ARGE benchmark seti</p>
+    <h1>Kumaş Galerisi</h1>
+    <p class="page-subtitle">{{ total }} kumaş · {{ country_groups|length }} ülke · Mobidik ARGE referans koleksiyonu</p>
 </div>
 
 <div class="filter-bar">
-    <input type="text" id="search-input" placeholder="🔍 Marka, ürün, koleksiyon..." class="search-input">
-    <div class="filter-group">
-        <label>
-            <input type="checkbox" id="filter-altin"> Sadece ALTIN (skor ≥ 80)
-        </label>
-    </div>
+    <input type="text" id="search-input" placeholder="🔍 Marka, ürün, ülke..." class="search-input">
+    <select id="filter-brand" class="filter-select">
+        <option value="">Tüm markalar</option>
+        {% for b in brands %}
+        <option value="{{ b }}">{{ b }}</option>
+        {% endfor %}
+    </select>
 </div>
 
-<div class="product-grid">
-    {% for p in products %}
-    <article class="product-card {% if p.is_altin %}is-altin{% endif %}"
-             data-brand="{{ p.brand }}"
-             data-name="{{ p.product_name }}"
-             data-score="{{ p.overall_score or 0 }}">
-        {% if p.is_altin %}
-        <div class="altin-ribbon">⭐ ALTIN {{ p.overall_score }}</div>
-        {% endif %}
-        <a href="{{ p.source_url }}" target="_blank" class="card-link">
-            {% if p.main_image %}
-            <img src="{{ url_for('serve_gorsel', relpath=p.main_image.replace('gorseller/', '')) }}"
-                 alt="{{ p.product_name }}" loading="lazy">
+{% if total == 0 %}
+<div class="empty-state">
+    <p>Henüz kumaş eklenmedi.</p>
+    <a href="{{ url_for('ekle') }}" class="btn btn-primary">➕ İlk kumaşı ekle</a>
+</div>
+{% endif %}
+
+{% for country, items in country_groups %}
+<section class="country-group">
+    <h2 class="country-group-title">
+        <span class="cg-flag">📍</span> {{ country }}
+        <span class="cg-count">{{ items|length }}</span>
+    </h2>
+    <div class="product-grid">
+        {% for p in items %}
+        <a class="product-card card-link" href="{{ url_for('urun_detail', urun_id=p.urun_id) }}"
+           data-brand="{{ p.brand|lower }}"
+           data-name="{{ p.product_name|lower }}"
+           data-country="{{ (p.country or '')|lower }}">
+            {% if p.cover_image %}
+            <img src="{{ p.cover_image }}" alt="{{ p.product_name }}" loading="lazy">
             {% else %}
             <div class="img-placeholder">Görsel yok</div>
             {% endif %}
+            <div class="card-body">
+                <div class="card-brand">{{ p.brand }}{% if p.country %} · {{ p.country }}{% endif %}</div>
+                <div class="card-title">{{ p.product_name }}</div>
+                <div class="card-meta">
+                    {% if p.collection %}{{ p.collection }}{% endif %}
+                    {% if p.width_cm %} · {{ p.width_cm }}cm{% endif %}
+                    {% if p.weave_type %} · {{ p.weave_type }}{% endif %}
+                </div>
+                <div class="card-variants">{{ p.variant_count }} görsel/varyant</div>
+            </div>
         </a>
-        <div class="card-body">
-            <div class="card-brand">{{ p.brand }}</div>
-            <div class="card-title">{{ p.product_name }}</div>
-            <div class="card-meta">
-                {% if p.width_cm %}{{ p.width_cm|int }}cm{% endif %}
-                {% if p.weave %}· {{ p.weave }}{% endif %}
-                {% if p.country %}· {{ p.country }}{% endif %}
-            </div>
-            <div class="card-scores">
-                <span class="score score-overall {% if p.overall_score >= 80 %}altin{% elif p.overall_score >= 60 %}good{% else %}low{% endif %}">
-                    {{ p.overall_score }}/100
-                </span>
-                <span class="score score-staubli">
-                    Stäubli {{ p.staubli_score }}/5
-                </span>
-            </div>
-            {% if p.variant_count %}
-            <div class="card-variants">{{ p.variant_count }} renk varyantı</div>
-            {% endif %}
-        </div>
-    </article>
-    {% endfor %}
-</div>
+        {% endfor %}
+    </div>
+</section>
+{% endfor %}
+{% endblock %}
 
 {% block scripts %}
 <script>
-// Basit filter + arama
 const searchInput = document.getElementById('search-input');
-const filterAltin = document.getElementById('filter-altin');
-const cards = document.querySelectorAll('.product-card');
+const brandSelect = document.getElementById('filter-brand');
+const groups = document.querySelectorAll('.country-group');
 
 function applyFilters() {
     const q = (searchInput.value || '').toLowerCase();
-    const altinOnly = filterAltin.checked;
-    cards.forEach(card => {
-        const brand = card.dataset.brand.toLowerCase();
-        const name = card.dataset.name.toLowerCase();
-        const score = parseInt(card.dataset.score) || 0;
-        const matchesQ = !q || brand.includes(q) || name.includes(q);
-        const matchesAltin = !altinOnly || score >= 80;
-        card.style.display = (matchesQ && matchesAltin) ? '' : 'none';
+    const brand = (brandSelect.value || '').toLowerCase();
+    groups.forEach(group => {
+        let anyVisible = false;
+        group.querySelectorAll('.product-card').forEach(card => {
+            const cb = card.dataset.brand;
+            const cn = card.dataset.name;
+            const cc = card.dataset.country;
+            const matchesQ = !q || cb.includes(q) || cn.includes(q) || cc.includes(q);
+            const matchesBrand = !brand || cb === brand;
+            const show = matchesQ && matchesBrand;
+            card.style.display = show ? '' : 'none';
+            if (show) anyVisible = true;
+        });
+        group.style.display = anyVisible ? '' : 'none';
     });
 }
-
 searchInput.addEventListener('input', applyFilters);
-filterAltin.addEventListener('change', applyFilters);
+brandSelect.addEventListener('change', applyFilters);
 </script>
-{% endblock %}
 {% endblock %}

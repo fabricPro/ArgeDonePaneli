@@ -3,29 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Mobidik ARGE{% endblock %}</title>
+    <title>{% block title %}Mobidik ARGE — Kumaş Paneli{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     {% block extra_head %}{% endblock %}
 </head>
 <body>
     <nav class="topbar">
-        <div class="topbar-brand">
+        <a href="{{ url_for('index') }}" class="topbar-brand">
             <span class="brand-mark">MOBİDİK</span>
-            <span class="brand-sub">ARGE Pazar Zekası</span>
-        </div>
+            <span class="brand-sub">Kumaş Küratörlük Paneli</span>
+        </a>
         <div class="topbar-nav">
-            <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">
-                Ana Dashboard
+            <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint in ('index', 'urun_detail') %}active{% endif %}">
+                Galeri
             </a>
-            <a href="{{ url_for('pending') }}" class="nav-link nav-pending {% if request.endpoint == 'pending' %}active{% endif %}">
-                🔍 Onay Bekleyen
-                {% if pending_count is defined and pending_count > 0 %}
-                <span class="badge-count">{{ pending_count }}</span>
-                {% endif %}
+            <a href="{{ url_for('ekle') }}" class="nav-link nav-add {% if request.endpoint == 'ekle' %}active{% endif %}">
+                ➕ Yeni Ürün
             </a>
-            <a href="{{ url_for('history') }}" class="nav-link {% if request.endpoint == 'history' %}active{% endif %}">
-                Geçmiş
-            </a>
+            <a href="{{ url_for('logout') }}" class="nav-link nav-logout">Çıkış</a>
         </div>
     </nav>
 

@@ -1,0 +1,94 @@
+{
+  "_schema_version": "2.0-lean",
+  "urun_id": "ado_goldkante_3302-pure-white-tape",
+  "brand": "ADO Goldkante",
+  "brand_slug": "ado_goldkante",
+  "country": "Almanya",
+  "collection": "Color Fields",
+  "product_name": "Pure White Tape",
+  "product_code": "3302",
+  "composition": "%100 Polyester",
+  "width_cm": 320,
+  "weave_type": "dobby",
+  "repeat_vertical_cm": 16,
+  "repeat_horizontal_cm": null,
+  "arge_notu": "Kapasite TAM ama 320 cm sınır yakın — warp beam test gerekli. Boucle iplik Korteks/SASA teklif (MOQ ~500 kg). Pilot Pure White Pinstripe ile birlikte 2 ton x 150 m, 4-5 hafta. Color Fields alt hatti olabilir.",
+  "notes": null,
+  "source_url": "https://www.zimmer-rohde.com/en/product-finder/details/pure-white-tape-3302-110",
+  "created_at": "2026-05-11T00:00:00Z",
+  "updated_at": "2026-05-29T18:23:29Z",
+  "images": [
+    {
+      "local_path": "gorseller/ado_goldkante/3302/110_1.jpg",
+      "variant_label": "Krem çizgi",
+      "is_cover": true,
+      "order": 0
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3302/110_2.jpg",
+      "variant_label": "Krem çizgi",
+      "is_cover": false,
+      "order": 1
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3302/110_3.jpg",
+      "variant_label": "Krem çizgi",
+      "is_cover": false,
+      "order": 2
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3302/110_4.jpg",
+      "variant_label": "Krem çizgi",
+      "is_cover": false,
+      "order": 3
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3302/110_5.jpg",
+      "variant_label": "Krem çizgi",
+      "is_cover": false,
+      "order": 4
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3302/110_6.jpg",
+      "variant_label": "Krem çizgi",
+      "is_cover": false,
+      "order": 5
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3302/200_1.jpg",
+      "variant_label": "Bej çizgi",
+      "is_cover": false,
+      "order": 6
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3302/200_2.jpg",
+      "variant_label": "Bej çizgi",
+      "is_cover": false,
+      "order": 7
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3302/200_3.jpg",
+      "variant_label": "Bej çizgi",
+      "is_cover": false,
+      "order": 8
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3302/200_4.jpg",
+      "variant_label": "Bej çizgi",
+      "is_cover": false,
+      "order": 9
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3302/200_5.jpg",
+      "variant_label": "Bej çizgi",
+      "is_cover": false,
+      "order": 10
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3302/200_6.jpg",
+      "variant_label": "Bej çizgi",
+      "is_cover": false,
+      "order": 11
+    }
+  ]
+}

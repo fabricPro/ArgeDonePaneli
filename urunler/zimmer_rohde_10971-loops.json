@@ -1,0 +1,112 @@
+{
+  "_schema_version": "2.0-lean",
+  "urun_id": "zimmer_rohde_10971-loops",
+  "brand": "Zimmer + Rohde",
+  "brand_slug": "zimmer_rohde",
+  "country": "Almanya",
+  "collection": "Abstract",
+  "product_name": "Loops",
+  "product_code": "10971",
+  "composition": "%82 Fleece wool, %16 Alpaka, %2 Poliamid",
+  "width_cm": 315,
+  "weave_type": "boucle",
+  "repeat_vertical_cm": null,
+  "repeat_horizontal_cm": null,
+  "arge_notu": "Yun+alpaka boucle = niş premium. Acil aksiyon: (1) Yunsa+Polaron yun+alpaka boucle iplik teklifi, MOQ muzakere, (2) Pilot: 3 notr ton x 60 m, 6-8 hafta, (3) DACH ihracat kanali (Almanya/Avusturya konut), (4) Alpaca Leno ile birlikte ROI hesabi.",
+  "notes": null,
+  "source_url": "https://www.zimmer-rohde.com/en/product-finder/details/loops-10971-981",
+  "created_at": "2026-05-11T00:00:00Z",
+  "updated_at": "2026-05-29T18:23:29Z",
+  "images": [
+    {
+      "local_path": "gorseller/zimmer_rohde/10971/882_1.jpg",
+      "variant_label": "Pudra wool",
+      "is_cover": true,
+      "order": 0
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10971/882_2.jpg",
+      "variant_label": "Pudra wool",
+      "is_cover": false,
+      "order": 1
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10971/882_3.jpg",
+      "variant_label": "Pudra wool",
+      "is_cover": false,
+      "order": 2
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10971/882_4.jpg",
+      "variant_label": "Pudra wool",
+      "is_cover": false,
+      "order": 3
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10971/882_5.jpg",
+      "variant_label": "Pudra wool",
+      "is_cover": false,
+      "order": 4
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10971/981_1.jpg",
+      "variant_label": "Bulutsu yün",
+      "is_cover": false,
+      "order": 5
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10971/981_2.jpg",
+      "variant_label": "Bulutsu yün",
+      "is_cover": false,
+      "order": 6
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10971/981_3.jpg",
+      "variant_label": "Bulutsu yün",
+      "is_cover": false,
+      "order": 7
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10971/981_4.jpg",
+      "variant_label": "Bulutsu yün",
+      "is_cover": false,
+      "order": 8
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10971/981_5.jpg",
+      "variant_label": "Bulutsu yün",
+      "is_cover": false,
+      "order": 9
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10971/992_1.jpg",
+      "variant_label": "Saf beyaz yün",
+      "is_cover": false,
+      "order": 10
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10971/992_2.jpg",
+      "variant_label": "Saf beyaz yün",
+      "is_cover": false,
+      "order": 11
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10971/992_3.jpg",
+      "variant_label": "Saf beyaz yün",
+      "is_cover": false,
+      "order": 12
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10971/992_4.jpg",
+      "variant_label": "Saf beyaz yün",
+      "is_cover": false,
+      "order": 13
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10971/992_5.jpg",
+      "variant_label": "Saf beyaz yün",
+      "is_cover": false,
+      "order": 14
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "_schema_version": "2.0-lean",
+  "urun_id": "kvadrat_5539-air-line",
+  "brand": "Kvadrat",
+  "brand_slug": "kvadrat",
+  "country": "Türkiye",
+  "collection": "Frequency",
+  "product_name": "Air Line",
+  "product_code": "5539",
+  "composition": "%100 Keten",
+  "width_cm": 315,
+  "weave_type": "dobby",
+  "repeat_vertical_cm": 6,
+  "repeat_horizontal_cm": 0,
+  "arge_notu": "✨ BENCHMARK ÜRÜN. Kvadrat seviyesi marka Türkiye'de fason aldırıyor = teknik bariyer aşılmış, kalite bandı kurulmuş. Mobidik 'Türk üretimi Kvadrat referansı' söylemini ihracat pitchlerinde kullanabilir ('The same manufacturing region trusted by Kvadrat'). Acil aksiyonlar: (1) Technical specs PDF talebi (en/gramaj/abrasion/Martindale değerleri), (2) Türk fason üretici tespiti (Bursa havzası — Akın, Erak, İpekiş, Karsu, vb.), (3) EU Flax + OEKOTEX 100 başvuru paralel, (4) Pilot: 3 nötr ton × 100 m, 4-6 hafta. Pazar pozisyonu: Kvadrat retail €70-110/m → Mobidik hedef €18-28/m (%25-30 fiyat). Mobidik bu ürünle 'doğrudan rakip' değil — partner/fason aday pozisyonunda.",
+  "notes": null,
+  "source_url": "https://www.kvadrat.dk/en/products/curtains/5539-air-line",
+  "created_at": "2026-05-14T17:41:20Z",
+  "updated_at": "2026-05-29T18:32:46Z",
+  "images": [
+    {
+      "local_path": "gorseller/kvadrat/5539/0101_1.jpg",
+      "variant_label": "White Linen",
+      "is_cover": true,
+      "order": 0
+    },
+    {
+      "local_path": "gorseller/kvadrat/5539/0111_1.jpg",
+      "variant_label": "Light Ash",
+      "is_cover": false,
+      "order": 1
+    },
+    {
+      "local_path": "gorseller/kvadrat/5539/0161_1.jpg",
+      "variant_label": "Hazel",
+      "is_cover": false,
+      "order": 2
+    },
+    {
+      "local_path": "gorseller/kvadrat/5539/0331_1.jpg",
+      "variant_label": "Mosswood",
+      "is_cover": false,
+      "order": 3
+    },
+    {
+      "local_path": "gorseller/kvadrat/5539/0941_1.jpg",
+      "variant_label": "Northern Pine",
+      "is_cover": false,
+      "order": 4
+    }
+  ]
+}

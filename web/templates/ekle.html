@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block title %}Yeni Kumaş Ekle{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Yeni Kumaş Ekle</h1>
+    <p class="page-subtitle">Görselleri seç, etiketle, kaydet. Kapak görselini sonra ürün sayfasında seçebilirsin.</p>
+</div>
+
+<form id="ekle-form" class="edit-form">
+    <div class="form-grid">
+        <div class="form-row">
+            <label>Marka *</label>
+            <select id="brand-select" required>
+                <option value="" disabled selected>Marka seç…</option>
+                {% for name, slug in tracked_brands %}
+                <option value="{{ slug }}" data-name="{{ name }}">{{ name }}</option>
+                {% endfor %}
+                <option value="__other__">Diğer (elle yaz)…</option>
+            </select>
+            <input type="text" id="brand-other" placeholder="Marka adı yaz" style="display:none; margin-top:8px;">
+        </div>
+
+        <div class="form-row">
+            <label>Ürün Adı *</label>
+            <input type="text" name="product_name" required placeholder="örn. Air Line">
+        </div>
+
+        <div class="form-row">
+            <label>Ürün Kodu</label>
+            <input type="text" name="product_code" placeholder="örn. 5539 (opsiyonel)">
+        </div>
+
+        <div class="form-row">
+            <label>Koleksiyon</label>
+            <input type="text" name="collection" placeholder="opsiyonel">
+        </div>
+
+        <div class="form-row">
+            <label>Ülke</label>
+            <input type="text" name="country" list="country-list" placeholder="örn. İtalya">
+            <datalist id="country-list">
+                {% for c in country_suggestions %}<option value="{{ c }}">{% endfor %}
+            </datalist>
+        </div>
+
+        <div class="form-row">
+            <label>Kompozisyon</label>
+            <input type="text" name="composition" placeholder="örn. %100 Keten">
+        </div>
+
+        <div class="form-row">
+            <label>En (cm)</label>
+            <input type="number" name="width_cm" min="0" placeholder="örn. 315">
+        </div>
+
+        <div class="form-row">
+            <label>Dokuma</label>
+            <input type="text" name="weave_type" list="weave-list" placeholder="örn. dobby">
+            <datalist id="weave-list">
+                {% for w in weave_suggestions %}<option value="{{ w }}">{% endfor %}
+            </datalist>
+        </div>
+
+        <div class="form-row">
+            <label>Rapor — boyuna (cm)</label>
+            <input type="number" name="repeat_vertical_cm" min="0" step="0.1" placeholder="örn. 27">
+        </div>
+
+        <div class="form-row">
+            <label>Rapor — enine (cm)</label>
+            <input type="number" name="repeat_horizontal_cm" min="0" step="0.1" placeholder="opsiyonel">
+        </div>
+
+        <div class="form-row form-row-wide">
+            <label>Kaynak Bağlantısı (URL)</label>
+            <input type="url" name="source_url" placeholder="Pinterest / Instagram / firma sitesi linki (opsiyonel)">
+        </div>
+
+        <div class="form-row form-row-wide">
+            <label>ARGE Notu</label>
+            <textarea name="arge_notu" rows="3" placeholder="Stäubli yapılabilirlik, pazar fırsatı, stratejik not…"></textarea>
+        </div>
+
+        <div class="form-row form-row-wide">
+            <label>Not</label>
+            <textarea name="notes" rows="2" placeholder="Serbest not (nereden bulundu, örnek mevcut mu, vb.)"></textarea>
+        </div>
+    </div>
+
+    <div class="upload-section">
+        <label class="upload-label">
+            Görseller
+            <span class="hint">— bilgisayardan seç veya telefonda kamerayla çek (birden fazla seçilebilir)</span>
+        </label>
+        <input type="file" id="file-input" accept="image/*" capture="environment" multiple>
+        <div id="preview" class="upload-preview"></div>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary" id="submit-btn">Kaydet</button>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">İptal</a>
+        <span id="form-msg" class="form-msg"></span>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const brandSelect = document.getElementById('brand-select');
+const brandOther = document.getElementById('brand-other');
+const fileInput = document.getElementById('file-input');
+const preview = document.getElementById('preview');
+const form = document.getElementById('ekle-form');
+const msg = document.getElementById('form-msg');
+const submitBtn = document.getElementById('submit-btn');
+
+brandSelect.addEventListener('change', () => {
+    brandOther.style.display = brandSelect.value === '__other__' ? 'block' : 'none';
+});
+
+let selectedFiles = [];
+fileInput.addEventListener('change', () => {
+    selectedFiles = Array.from(fileInput.files);
+    renderPreview();
+});
+
+function renderPreview() {
+    preview.innerHTML = '';
+    selectedFiles.forEach((file, i) => {
+        const url = URL.createObjectURL(file);
+        const item = document.createElement('div');
+        item.className = 'preview-item';
+        item.innerHTML = `
+            <img src="${url}" alt="">
+            <input type="text" class="variant-label" data-i="${i}" placeholder="Varyant/renk adı (ops.)">
+        `;
+        preview.appendChild(item);
+    });
+}
+
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    msg.textContent = '';
+
+    // marka
+    let brandName = '', brandSlug = '';
+    if (brandSelect.value === '__other__') {
+        brandName = brandOther.value.trim();
+    } else if (brandSelect.value) {
+        const opt = brandSelect.selectedOptions[0];
+        brandName = opt.dataset.name;
+        brandSlug = brandSelect.value;
+    }
+    if (!brandName) { msg.textContent = 'Marka seç veya yaz.'; msg.className = 'form-msg err'; return; }
+
+    const fd = new FormData(form);
+    fd.set('brand', brandName);
+    fd.set('brand_slug', brandSlug);
+
+    // dosyalar + etiketler (sirali)
+    const labelInputs = preview.querySelectorAll('.variant-label');
+    selectedFiles.forEach((file, i) => {
+        fd.append('files', file);
+        fd.append('variant_labels', labelInputs[i] ? labelInputs[i].value.trim() : '');
+    });
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Kaydediliyor…';
+    try {
+        const res = await fetch('{{ url_for("api_create_urun") }}', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (data.ok) {
+            window.location.href = data.redirect;
+        } else {
+            msg.textContent = data.error || 'Hata oluştu.';
+            msg.className = 'form-msg err';
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Kaydet';
+        }
+    } catch (err) {
+        msg.textContent = 'Bağlantı hatası: ' + err;
+        msg.className = 'form-msg err';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Kaydet';
+    }
+});
+</script>
+{% endblock %}

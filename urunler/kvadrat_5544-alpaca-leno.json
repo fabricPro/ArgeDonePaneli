@@ -1,0 +1,52 @@
+{
+  "_schema_version": "2.0-lean",
+  "urun_id": "kvadrat_5544-alpaca-leno",
+  "brand": "Kvadrat",
+  "brand_slug": "kvadrat",
+  "country": "İtalya",
+  "collection": "Frequency",
+  "product_name": "Alpaca Leno",
+  "product_code": "5544",
+  "composition": "%58 Yün, %17 Alpaka, %14 Lyocell, %11 Viskon",
+  "width_cm": 315,
+  "weave_type": "leno",
+  "repeat_vertical_cm": 0,
+  "repeat_horizontal_cm": 0,
+  "arge_notu": "ÇELİŞKİ DÜZELTİLDİ: Documents raporu 'Stäubli leno yapamaz' demişti — anayasa kural #7'ye göre kapasite tablosu bağlayıcı, leno TAM. Yeniden değerlendirildi: Stäubli leno için engel YOK, yatırım gerekmiyor. Asıl darboğaz multi-staple yün/alpaka iplik tedariki (Yünsa/Polaron MOQ müzakeresi). Replication 3 yol: (1) Mock-leno dobby (8-16 çerçeve) %60 görsel yakınlık, mevcut altyapı ile pilot — eski Documents önerisi hâlâ geçerli alternatif yol; (2) Doğrudan leno (Mobidik kapasitesinde olduğundan ESAS yol), İtalyan premium iplik ithal + Türkiye dokuma; (3) Yünsa/Polaron Türk yün+alpaka MOQ — Loops dosyası ile birleştir. Pilot: 4 nötr ton × 50 m, 8-10 hafta. Acil aksiyon: (a) Yünsa yün+alpaka teklif al, (b) Lyocell TENCEL Türk ithalatçı (Adana/İzmir), (c) 5. renk adı (5544-0931) tespiti — Kvadrat sayfası tam çekimi veya PDF.",
+  "notes": null,
+  "source_url": "https://www.kvadrat.dk/en/products/curtains/5544-alpaca-leno",
+  "created_at": "2026-05-14T17:42:13Z",
+  "updated_at": "2026-05-29T18:23:29Z",
+  "images": [
+    {
+      "local_path": "gorseller/kvadrat/5544/0101_1.jpg",
+      "variant_label": "Soft Wool",
+      "is_cover": true,
+      "order": 0
+    },
+    {
+      "local_path": "gorseller/kvadrat/5544/0141_1.jpg",
+      "variant_label": "Almond Bark",
+      "is_cover": false,
+      "order": 1
+    },
+    {
+      "local_path": "gorseller/kvadrat/5544/0221_1.jpg",
+      "variant_label": "Redwood",
+      "is_cover": false,
+      "order": 2
+    },
+    {
+      "local_path": "gorseller/kvadrat/5544/0631_1.jpg",
+      "variant_label": "Cool Cedar",
+      "is_cover": false,
+      "order": 3
+    },
+    {
+      "local_path": "gorseller/kvadrat/5544/0931_1.jpg",
+      "variant_label": null,
+      "is_cover": false,
+      "order": 4
+    }
+  ]
+}

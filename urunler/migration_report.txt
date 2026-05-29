@@ -1,0 +1,120 @@
+Migration 2026-05-29T18:23:29Z
+
+ado_goldkante_3009-harry-re: 3 gorsel, kapak=gorseller/ado_goldkante/3009/110_1.jpg
+ado_goldkante_3018-ora: 33 gorsel, kapak=gorseller/ado_goldkante/3018/110_1.jpg
+ado_goldkante_3150-capri-plus: 5 gorsel, kapak=gorseller/ado_goldkante/3150/332_1.jpg, EKSIK=80
+ado_goldkante_3301-pure-white-pinstripe: 11 gorsel, kapak=gorseller/ado_goldkante/3301/110_1.jpg
+ado_goldkante_3302-pure-white-tape: 12 gorsel, kapak=gorseller/ado_goldkante/3302/110_1.jpg
+ado_goldkante_3610-drift-fr: 28 gorsel, kapak=gorseller/ado_goldkante/3610/110_1.jpg
+dedar_00T19031-wide-linen-signor-darcy: 33 gorsel, kapak=gorseller/dedar/00T19031/ana_01.jpg
+dedar_00T19063-cobra: 2 gorsel, kapak=gorseller/dedar/00T19063/ana_01.jpg
+dedar_00T21015-wide-linen-atelier-1930: 9 gorsel, kapak=gorseller/dedar/00T21015/ana_01.jpg
+dedar_00T22044-wide-linen-baobab: 24 gorsel, kapak=gorseller/dedar/00T22044/ana_01.jpg
+dedar_00T23046-twillman: 8 gorsel, kapak=gorseller/dedar/00T23046/ana_01.jpg
+dedar_00T25007-days-like-now: 10 gorsel, kapak=gorseller/dedar/00T25007/ana_01.jpg
+etamine_19621-andria: 18 gorsel, kapak=gorseller/etamine/19621/880_1.jpg
+etamine_19635-blanc-de-lin-re: 4 gorsel, kapak=gorseller/etamine/19635/880_1.jpg
+etamine_19649-fil-du-temps: 16 gorsel, kapak=gorseller/etamine/19649/383_1.jpg, EKSIK=4
+etamine_19650-heure-bleue: 16 gorsel, kapak=gorseller/etamine/19650/113_1.jpg
+kvadrat_5539-air-line: 5 gorsel, kapak=gorseller/kvadrat/5539/0101_1.jpg
+kvadrat_5544-alpaca-leno: 5 gorsel, kapak=gorseller/kvadrat/5544/0101_1.jpg
+rubelli_30750-charles: 2 gorsel, kapak=gorseller/rubelli/30750/001_main.jpg
+rubelli_30764-filicudi: 2 gorsel, kapak=gorseller/rubelli/30764/001_main.jpg
+travers_44187-garden-stripe: 18 gorsel, kapak=gorseller/travers/44187/586_1.jpg
+zimmer_rohde_10918-softgrid: 24 gorsel, kapak=gorseller/zimmer_rohde/10918/294_1.jpg
+zimmer_rohde_10969-melange-linen: 50 gorsel, kapak=gorseller/zimmer_rohde/10969/785_1.jpg
+zimmer_rohde_10971-loops: 15 gorsel, kapak=gorseller/zimmer_rohde/10971/882_1.jpg
+zimmer_rohde_11047-ishari: 12 gorsel, kapak=gorseller/zimmer_rohde/11047/891_1.jpg, EKSIK=3
+zimmer_rohde_11049-nuri: 15 gorsel, kapak=gorseller/zimmer_rohde/11049/883_1.jpg
+zimmer_rohde_11051-niket: 20 gorsel, kapak=gorseller/zimmer_rohde/11051/812_1.jpg
+
+TOPLAM: 27 urun, 400 gorsel
+
+EKSIK GORSELLER (JSON referans veriyor ama diskte yok):
+  - gorseller/ado_goldkante/3150/111_1.jpg
+  - gorseller/ado_goldkante/3150/111_2.jpg
+  - gorseller/ado_goldkante/3150/111_3.jpg
+  - gorseller/ado_goldkante/3150/111_4.jpg
+  - gorseller/ado_goldkante/3150/111_5.jpg
+  - gorseller/ado_goldkante/3150/131_1.jpg
+  - gorseller/ado_goldkante/3150/131_2.jpg
+  - gorseller/ado_goldkante/3150/131_3.jpg
+  - gorseller/ado_goldkante/3150/131_4.jpg
+  - gorseller/ado_goldkante/3150/131_5.jpg
+  - gorseller/ado_goldkante/3150/191_1.jpg
+  - gorseller/ado_goldkante/3150/191_2.jpg
+  - gorseller/ado_goldkante/3150/191_3.jpg
+  - gorseller/ado_goldkante/3150/191_4.jpg
+  - gorseller/ado_goldkante/3150/191_5.jpg
+  - gorseller/ado_goldkante/3150/192_1.jpg
+  - gorseller/ado_goldkante/3150/192_2.jpg
+  - gorseller/ado_goldkante/3150/192_3.jpg
+  - gorseller/ado_goldkante/3150/192_4.jpg
+  - gorseller/ado_goldkante/3150/192_5.jpg
+  - gorseller/ado_goldkante/3150/200_1.jpg
+  - gorseller/ado_goldkante/3150/200_2.jpg
+  - gorseller/ado_goldkante/3150/200_3.jpg
+  - gorseller/ado_goldkante/3150/200_4.jpg
+  - gorseller/ado_goldkante/3150/200_5.jpg
+  - gorseller/ado_goldkante/3150/331_1.jpg
+  - gorseller/ado_goldkante/3150/331_2.jpg
+  - gorseller/ado_goldkante/3150/331_3.jpg
+  - gorseller/ado_goldkante/3150/331_4.jpg
+  - gorseller/ado_goldkante/3150/331_5.jpg
+  - gorseller/ado_goldkante/3150/444_1.jpg
+  - gorseller/ado_goldkante/3150/444_2.jpg
+  - gorseller/ado_goldkante/3150/444_3.jpg
+  - gorseller/ado_goldkante/3150/444_4.jpg
+  - gorseller/ado_goldkante/3150/444_5.jpg
+  - gorseller/ado_goldkante/3150/445_1.jpg
+  - gorseller/ado_goldkante/3150/445_2.jpg
+  - gorseller/ado_goldkante/3150/445_3.jpg
+  - gorseller/ado_goldkante/3150/445_4.jpg
+  - gorseller/ado_goldkante/3150/445_5.jpg
+  - gorseller/ado_goldkante/3150/554_1.jpg
+  - gorseller/ado_goldkante/3150/554_2.jpg
+  - gorseller/ado_goldkante/3150/554_3.jpg
+  - gorseller/ado_goldkante/3150/554_4.jpg
+  - gorseller/ado_goldkante/3150/554_5.jpg
+  - gorseller/ado_goldkante/3150/562_1.jpg
+  - gorseller/ado_goldkante/3150/562_2.jpg
+  - gorseller/ado_goldkante/3150/562_3.jpg
+  - gorseller/ado_goldkante/3150/562_4.jpg
+  - gorseller/ado_goldkante/3150/562_5.jpg
+  - gorseller/ado_goldkante/3150/662_1.jpg
+  - gorseller/ado_goldkante/3150/662_2.jpg
+  - gorseller/ado_goldkante/3150/662_3.jpg
+  - gorseller/ado_goldkante/3150/662_4.jpg
+  - gorseller/ado_goldkante/3150/662_5.jpg
+  - gorseller/ado_goldkante/3150/682_1.jpg
+  - gorseller/ado_goldkante/3150/682_2.jpg
+  - gorseller/ado_goldkante/3150/682_3.jpg
+  - gorseller/ado_goldkante/3150/682_4.jpg
+  - gorseller/ado_goldkante/3150/682_5.jpg
+  - gorseller/ado_goldkante/3150/684_1.jpg
+  - gorseller/ado_goldkante/3150/684_2.jpg
+  - gorseller/ado_goldkante/3150/684_3.jpg
+  - gorseller/ado_goldkante/3150/684_4.jpg
+  - gorseller/ado_goldkante/3150/684_5.jpg
+  - gorseller/ado_goldkante/3150/843_1.jpg
+  - gorseller/ado_goldkante/3150/843_2.jpg
+  - gorseller/ado_goldkante/3150/843_3.jpg
+  - gorseller/ado_goldkante/3150/843_4.jpg
+  - gorseller/ado_goldkante/3150/843_5.jpg
+  - gorseller/ado_goldkante/3150/992_1.jpg
+  - gorseller/ado_goldkante/3150/992_2.jpg
+  - gorseller/ado_goldkante/3150/992_3.jpg
+  - gorseller/ado_goldkante/3150/992_4.jpg
+  - gorseller/ado_goldkante/3150/992_5.jpg
+  - gorseller/ado_goldkante/3150/994_1.jpg
+  - gorseller/ado_goldkante/3150/994_2.jpg
+  - gorseller/ado_goldkante/3150/994_3.jpg
+  - gorseller/ado_goldkante/3150/994_4.jpg
+  - gorseller/ado_goldkante/3150/994_5.jpg
+  - gorseller/etamine/19649/183_1.jpg
+  - gorseller/etamine/19649/183_2.jpg
+  - gorseller/etamine/19649/183_3.jpg
+  - gorseller/etamine/19649/183_4.jpg
+  - gorseller/zimmer_rohde/11047/813_1.jpg
+  - gorseller/zimmer_rohde/11047/813_2.jpg
+  - gorseller/zimmer_rohde/11047/813_3.jpg

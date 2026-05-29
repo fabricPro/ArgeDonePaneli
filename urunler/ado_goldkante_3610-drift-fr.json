@@ -1,0 +1,190 @@
+{
+  "_schema_version": "2.0-lean",
+  "urun_id": "ado_goldkante_3610-drift-fr",
+  "brand": "ADO Goldkante",
+  "brand_slug": "ado_goldkante",
+  "country": "Almanya",
+  "collection": "Snapshot",
+  "product_name": "Drift FR",
+  "product_code": "3610",
+  "composition": "%100 Polyester",
+  "width_cm": 300,
+  "weave_type": "stripe / effect yarn batiste",
+  "repeat_vertical_cm": 21,
+  "repeat_horizontal_cm": null,
+  "arge_notu": "Kapasite TAM. ACIL: FR son urun sertifika sureci (B1, DIN 4102-1) basvurusu — sertifika 3-6 ay. Trevira CS PES iplik teklifi (Indorama, Toray Türkiye temsilci). Pilot: 3 notr ton x 100 m, 4-6 hafta. AB contract pazari kanal pitch ozel.",
+  "notes": null,
+  "source_url": "https://www.zimmer-rohde.com/en/product-finder/details/drift-fr-3610-110",
+  "created_at": "2026-05-11T00:00:00Z",
+  "updated_at": "2026-05-29T18:23:29Z",
+  "images": [
+    {
+      "local_path": "gorseller/ado_goldkante/3610/110_1.jpg",
+      "variant_label": "Saf beyaz",
+      "is_cover": true,
+      "order": 0
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/110_2.jpg",
+      "variant_label": "Saf beyaz",
+      "is_cover": false,
+      "order": 1
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/111_1.jpg",
+      "variant_label": "Doğal beyaz",
+      "is_cover": false,
+      "order": 2
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/111_2.jpg",
+      "variant_label": "Doğal beyaz",
+      "is_cover": false,
+      "order": 3
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/131_1.jpg",
+      "variant_label": "Açık kum",
+      "is_cover": false,
+      "order": 4
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/131_2.jpg",
+      "variant_label": "Açık kum",
+      "is_cover": false,
+      "order": 5
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/132_1.jpg",
+      "variant_label": "Kum",
+      "is_cover": false,
+      "order": 6
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/132_2.jpg",
+      "variant_label": "Kum",
+      "is_cover": false,
+      "order": 7
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/191_1.jpg",
+      "variant_label": "Açık duman",
+      "is_cover": false,
+      "order": 8
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/191_2.jpg",
+      "variant_label": "Açık duman",
+      "is_cover": false,
+      "order": 9
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/333_1.jpg",
+      "variant_label": "Açık gri",
+      "is_cover": false,
+      "order": 10
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/333_2.jpg",
+      "variant_label": "Açık gri",
+      "is_cover": false,
+      "order": 11
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/554_1.jpg",
+      "variant_label": "Adaçayı",
+      "is_cover": false,
+      "order": 12
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/554_2.jpg",
+      "variant_label": "Adaçayı",
+      "is_cover": false,
+      "order": 13
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/665_1.jpg",
+      "variant_label": "Bakır",
+      "is_cover": false,
+      "order": 14
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/665_2.jpg",
+      "variant_label": "Bakır",
+      "is_cover": false,
+      "order": 15
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/684_1.jpg",
+      "variant_label": "Antik kahve",
+      "is_cover": false,
+      "order": 16
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/684_2.jpg",
+      "variant_label": "Antik kahve",
+      "is_cover": false,
+      "order": 17
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/733_1.jpg",
+      "variant_label": "Lavanta",
+      "is_cover": false,
+      "order": 18
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/733_2.jpg",
+      "variant_label": "Lavanta",
+      "is_cover": false,
+      "order": 19
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/775_1.jpg",
+      "variant_label": "Pudra",
+      "is_cover": false,
+      "order": 20
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/775_2.jpg",
+      "variant_label": "Pudra",
+      "is_cover": false,
+      "order": 21
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/992_1.jpg",
+      "variant_label": "Duman",
+      "is_cover": false,
+      "order": 22
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/992_2.jpg",
+      "variant_label": "Duman",
+      "is_cover": false,
+      "order": 23
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/993_1.jpg",
+      "variant_label": "Açık nötr gri",
+      "is_cover": false,
+      "order": 24
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/993_2.jpg",
+      "variant_label": "Açık nötr gri",
+      "is_cover": false,
+      "order": 25
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/995_1.jpg",
+      "variant_label": "Orta gri",
+      "is_cover": false,
+      "order": 26
+    },
+    {
+      "local_path": "gorseller/ado_goldkante/3610/995_2.jpg",
+      "variant_label": "Orta gri",
+      "is_cover": false,
+      "order": 27
+    }
+  ]
+}

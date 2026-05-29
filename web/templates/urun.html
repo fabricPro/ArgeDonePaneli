@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% block title %}{{ product.product_name if product else 'Ürün bulunamadı' }}{% endblock %}
+
+{% block content %}
+{% if not product %}
+<div class="empty-state">
+    <p>Ürün bulunamadı: <code>{{ urun_id }}</code></p>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">← Galeriye dön</a>
+</div>
+{% else %}
+<div class="detail-header">
+    <div>
+        <div class="card-brand">{{ product.brand }}{% if product.country %} · {{ product.country }}{% endif %}</div>
+        <h1>{{ product.product_name }}</h1>
+        <div class="card-meta">
+            {% if product.product_code %}Kod: {{ product.product_code }}{% endif %}
+            {% if product.collection %} · {{ product.collection }}{% endif %}
+            {% if product.width_cm %} · En {{ product.width_cm }}cm{% endif %}
+            {% if product.weave_type %} · {{ product.weave_type }}{% endif %}
+            {% if product.composition %} · {{ product.composition }}{% endif %}
+            {% if product.repeat_vertical_cm is not none or product.repeat_horizontal_cm is not none %}
+             · Rapor (boy×en): {{ product.repeat_vertical_cm if product.repeat_vertical_cm is not none else '–' }} × {{ product.repeat_horizontal_cm if product.repeat_horizontal_cm is not none else '–' }} cm
+            {% endif %}
+        </div>
+    </div>
+    <div class="detail-header-actions">
+        {% if product.source_url %}
+        <a href="{{ product.source_url }}" target="_blank" rel="noopener" class="btn btn-secondary">↗ Kaynak</a>
+        {% endif %}
+        <button class="btn btn-danger" id="delete-product-btn">🗑 Ürünü Sil</button>
+    </div>
+</div>
+
+{% if product.arge_notu %}
+<div class="arge-note">
+    <strong>ARGE Notu:</strong> {{ product.arge_notu }}
+</div>
+{% endif %}
+
+<details class="meta-edit">
+    <summary>✎ Bilgileri düzenle</summary>
+    <div class="form-grid">
+        <div class="form-row"><label>Marka</label><input data-key="brand" value="{{ product.brand or '' }}"></div>
+        <div class="form-row"><label>Ülke</label><input data-key="country" list="country-list" value="{{ product.country or '' }}">
+            <datalist id="country-list">{% for c in country_suggestions %}<option value="{{ c }}">{% endfor %}</datalist></div>
+        <div class="form-row"><label>Ürün Adı</label><input data-key="product_name" value="{{ product.product_name or '' }}"></div>
+        <div class="form-row"><label>Ürün Kodu</label><input data-key="product_code" value="{{ product.product_code or '' }}"></div>
+        <div class="form-row"><label>Koleksiyon</label><input data-key="collection" value="{{ product.collection or '' }}"></div>
+        <div class="form-row"><label>Kompozisyon</label><input data-key="composition" value="{{ product.composition or '' }}"></div>
+        <div class="form-row"><label>En (cm)</label><input data-key="width_cm" type="number" value="{{ product.width_cm if product.width_cm is not none else '' }}"></div>
+        <div class="form-row"><label>Dokuma</label><input data-key="weave_type" list="weave-list" value="{{ product.weave_type or '' }}">
+            <datalist id="weave-list">{% for w in weave_suggestions %}<option value="{{ w }}">{% endfor %}</datalist></div>
+        <div class="form-row"><label>Rapor — boyuna (cm)</label><input data-key="repeat_vertical_cm" type="number" step="0.1" value="{{ product.repeat_vertical_cm if product.repeat_vertical_cm is not none else '' }}"></div>
+        <div class="form-row"><label>Rapor — enine (cm)</label><input data-key="repeat_horizontal_cm" type="number" step="0.1" value="{{ product.repeat_horizontal_cm if product.repeat_horizontal_cm is not none else '' }}"></div>
+        <div class="form-row form-row-wide"><label>Kaynak URL</label><input data-key="source_url" type="url" value="{{ product.source_url or '' }}"></div>
+        <div class="form-row form-row-wide"><label>ARGE Notu</label><textarea data-key="arge_notu" rows="3">{{ product.arge_notu or '' }}</textarea></div>
+        <div class="form-row form-row-wide"><label>Not</label><textarea data-key="notes" rows="2">{{ product.notes or '' }}</textarea></div>
+    </div>
+    <button class="btn btn-primary" id="save-meta-btn">Kaydet</button>
+    <span id="meta-msg" class="form-msg"></span>
+</details>
+
+<div class="images-header">
+    <h2 class="section-title">Görseller ({{ product.images|length }})</h2>
+    <div class="design-controls">
+        <span id="design-hint" class="design-hint" hidden>↔ Kartları sürükleyip bırakarak sırala</span>
+        <button id="design-save" class="btn btn-primary" hidden>💾 Sıralamayı Kaydet</button>
+        <button id="design-cancel" class="btn btn-secondary" hidden>İptal</button>
+        <button id="design-toggle" class="btn btn-secondary">✎ Tasarım Modu (sırala)</button>
+    </div>
+</div>
+<div class="image-manage-grid" id="image-grid">
+    {% for im in product.images %}
+    <div class="img-manage-card {% if im.is_cover %}is-cover{% endif %}" data-path="{{ im.path }}">
+        {% if im.is_cover %}<div class="cover-badge">⭐ Kapak</div>{% endif %}
+        <img src="{{ im.url }}"
+             alt="{{ im.variant_label or '' }}" loading="lazy" draggable="false"
+             class="manage-img"
+             data-full="{{ im.url }}"
+             data-caption="{{ im.variant_label or product.product_name }}">
+        <input type="text" class="variant-label-input" value="{{ im.variant_label or '' }}"
+               placeholder="Varyant/renk adı" data-path="{{ im.path }}">
+        <div class="img-manage-actions">
+            {% if im.is_cover %}
+            <button class="btn-mini btn-mini-cover" disabled>✓ Kapak</button>
+            {% else %}
+            <button class="btn-mini btn-set-cover" data-path="{{ im.path }}">⭐ Kapak Yap</button>
+            {% endif %}
+            <button class="btn-mini btn-del-img" data-path="{{ im.path }}">🗑</button>
+        </div>
+    </div>
+    {% endfor %}
+
+    <label class="img-add-card">
+        <span class="img-add-plus">＋</span>
+        <span>Görsel Ekle</span>
+        <input type="file" id="add-img-input" accept="image/*" capture="environment" multiple hidden>
+    </label>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox-overlay" id="lightbox" hidden>
+    <button class="lightbox-close" id="lightbox-close">×</button>
+    <img id="lightbox-img" src="" alt="">
+    <div class="lightbox-caption" id="lightbox-caption"></div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if product %}
+<script>
+const URUN_ID = {{ urun_id|tojson }};
+
+async function postJson(url, body) {
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body || {}),
+    });
+    return res.json();
+}
+
+let designMode = false;
+
+// --- Lightbox ---
+const lb = document.getElementById('lightbox');
+const lbImg = document.getElementById('lightbox-img');
+const lbCap = document.getElementById('lightbox-caption');
+document.querySelectorAll('.manage-img').forEach(img => {
+    img.style.cursor = 'zoom-in';
+    img.addEventListener('click', () => {
+        if (designMode) return;  // tasarim modunda surukleme var, lightbox acma
+        lbImg.src = img.dataset.full;
+        lbCap.textContent = img.dataset.caption || '';
+        lb.hidden = false;
+    });
+});
+function closeLb() { lb.hidden = true; lbImg.src = ''; }
+document.getElementById('lightbox-close').addEventListener('click', closeLb);
+lb.addEventListener('click', (e) => { if (e.target === lb) closeLb(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !lb.hidden) closeLb(); });
+
+// --- Kapak yap ---
+document.querySelectorAll('.btn-set-cover').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const data = await postJson(`/api/urun/${URUN_ID}/kapak`, { path: btn.dataset.path });
+        if (data.ok) location.reload(); else alert(data.error || 'Hata');
+    });
+});
+
+// --- Görsel sil ---
+document.querySelectorAll('.btn-del-img').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        if (!confirm('Bu görseli silmek istediğine emin misin? (Dosya diskten de silinir)')) return;
+        const data = await postJson(`/api/urun/${URUN_ID}/gorsel-sil`, { path: btn.dataset.path });
+        if (data.ok) location.reload(); else alert(data.error || 'Hata');
+    });
+});
+
+// --- Etiket kaydet (blur) ---
+document.querySelectorAll('.variant-label-input').forEach(inp => {
+    let last = inp.value;
+    inp.addEventListener('blur', async () => {
+        if (inp.value === last) return;
+        last = inp.value;
+        const data = await postJson(`/api/urun/${URUN_ID}/gorsel-etiket`,
+            { path: inp.dataset.path, variant_label: inp.value });
+        if (!data.ok) alert(data.error || 'Etiket kaydedilemedi');
+    });
+});
+
+// --- Metadata kaydet ---
+document.getElementById('save-meta-btn').addEventListener('click', async () => {
+    const body = {};
+    document.querySelectorAll('.meta-edit [data-key]').forEach(el => { body[el.dataset.key] = el.value; });
+    const msg = document.getElementById('meta-msg');
+    const data = await postJson(`/api/urun/${URUN_ID}/meta`, body);
+    if (data.ok) { msg.textContent = '✓ Kaydedildi'; msg.className = 'form-msg ok'; setTimeout(() => location.reload(), 600); }
+    else { msg.textContent = data.error || 'Hata'; msg.className = 'form-msg err'; }
+});
+
+// --- Görsel ekle ---
+const addInput = document.getElementById('add-img-input');
+addInput.addEventListener('change', async () => {
+    if (!addInput.files.length) return;
+    const fd = new FormData();
+    Array.from(addInput.files).forEach(f => { fd.append('files', f); fd.append('variant_labels', ''); });
+    const res = await fetch(`/api/urun/${URUN_ID}/gorsel-ekle`, { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.ok) location.reload(); else alert(data.error || 'Yükleme hatası');
+});
+
+// --- Ürünü sil ---
+document.getElementById('delete-product-btn').addEventListener('click', async () => {
+    if (!confirm('Bu ürünü ve tüm görsellerini kalıcı olarak silmek istediğine emin misin?')) return;
+    const data = await postJson(`/api/urun/${URUN_ID}/sil`, {});
+    if (data.ok) window.location.href = '{{ url_for("index") }}'; else alert(data.error || 'Hata');
+});
+
+// --- Tasarım modu: sürükle-bırak sıralama ---
+const grid = document.getElementById('image-grid');
+const btnToggle = document.getElementById('design-toggle');
+const btnSave = document.getElementById('design-save');
+const btnCancel = document.getElementById('design-cancel');
+const hint = document.getElementById('design-hint');
+let dragEl = null;
+
+function setDesignMode(on) {
+    designMode = on;
+    grid.classList.toggle('design-on', on);
+    btnToggle.hidden = on;
+    btnSave.hidden = !on;
+    btnCancel.hidden = !on;
+    hint.hidden = !on;
+    grid.querySelectorAll('.img-manage-card').forEach(c => { c.draggable = on; });
+}
+
+btnToggle.addEventListener('click', () => setDesignMode(true));
+btnCancel.addEventListener('click', () => location.reload());
+
+btnSave.addEventListener('click', async () => {
+    const order = [...grid.querySelectorAll('.img-manage-card')].map(c => c.dataset.path);
+    const data = await postJson(`/api/urun/${URUN_ID}/sirala`, { order });
+    if (data.ok) location.reload(); else alert(data.error || 'Sıralama kaydedilemedi');
+});
+
+grid.addEventListener('dragstart', (e) => {
+    const card = e.target.closest('.img-manage-card');
+    if (!designMode || !card) { e.preventDefault(); return; }
+    dragEl = card;
+    card.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+});
+grid.addEventListener('dragend', () => {
+    if (dragEl) dragEl.classList.remove('dragging');
+    dragEl = null;
+});
+grid.addEventListener('dragover', (e) => {
+    if (!designMode || !dragEl) return;
+    e.preventDefault();
+    const target = e.target.closest('.img-manage-card');
+    if (!target || target === dragEl) return;
+    const rect = target.getBoundingClientRect();
+    const after = (e.clientX - rect.left) > rect.width / 2;
+    grid.insertBefore(dragEl, after ? target.nextSibling : target);
+});
+</script>
+{% endif %}
+{% endblock %}

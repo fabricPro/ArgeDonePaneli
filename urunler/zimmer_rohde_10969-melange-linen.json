@@ -1,0 +1,322 @@
+{
+  "_schema_version": "2.0-lean",
+  "urun_id": "zimmer_rohde_10969-melange-linen",
+  "brand": "Zimmer + Rohde",
+  "brand_slug": "zimmer_rohde",
+  "country": "Belçika",
+  "collection": "Abstract",
+  "product_name": "Melange Linen",
+  "product_code": "10969",
+  "composition": "%100 Keten",
+  "width_cm": 283,
+  "weave_type": "plain",
+  "repeat_vertical_cm": null,
+  "repeat_horizontal_cm": null,
+  "arge_notu": "Kapasite TAM. Pilot: 3 notr ton x 100 m, 4-6 hafta. Belgian Linen yerine EU Flax + OEKO-TEX sertifika basvurusu paralel. Anatolian Linen alt hatti calismasinin temel urunu olabilir.",
+  "notes": null,
+  "source_url": "https://www.zimmer-rohde.com/en/product-finder/details/melange-linen-10969-900",
+  "created_at": "2026-05-11T00:00:00Z",
+  "updated_at": "2026-05-29T18:23:29Z",
+  "images": [
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/785_1.jpg",
+      "variant_label": "Çay yeşili",
+      "is_cover": true,
+      "order": 0
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/785_2.jpg",
+      "variant_label": "Çay yeşili",
+      "is_cover": false,
+      "order": 1
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/785_3.jpg",
+      "variant_label": "Çay yeşili",
+      "is_cover": false,
+      "order": 2
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/785_4.jpg",
+      "variant_label": "Çay yeşili",
+      "is_cover": false,
+      "order": 3
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/785_5.jpg",
+      "variant_label": "Çay yeşili",
+      "is_cover": false,
+      "order": 4
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/882_1.jpg",
+      "variant_label": "Soluk pudra",
+      "is_cover": false,
+      "order": 5
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/882_2.jpg",
+      "variant_label": "Soluk pudra",
+      "is_cover": false,
+      "order": 6
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/882_3.jpg",
+      "variant_label": "Soluk pudra",
+      "is_cover": false,
+      "order": 7
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/882_4.jpg",
+      "variant_label": "Soluk pudra",
+      "is_cover": false,
+      "order": 8
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/882_5.jpg",
+      "variant_label": "Soluk pudra",
+      "is_cover": false,
+      "order": 9
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/887_1.jpg",
+      "variant_label": "Açık leylak",
+      "is_cover": false,
+      "order": 10
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/887_2.jpg",
+      "variant_label": "Açık leylak",
+      "is_cover": false,
+      "order": 11
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/887_3.jpg",
+      "variant_label": "Açık leylak",
+      "is_cover": false,
+      "order": 12
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/887_4.jpg",
+      "variant_label": "Açık leylak",
+      "is_cover": false,
+      "order": 13
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/887_5.jpg",
+      "variant_label": "Açık leylak",
+      "is_cover": false,
+      "order": 14
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/900_1.jpg",
+      "variant_label": "Beyaz keten",
+      "is_cover": false,
+      "order": 15
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/900_2.jpg",
+      "variant_label": "Beyaz keten",
+      "is_cover": false,
+      "order": 16
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/900_3.jpg",
+      "variant_label": "Beyaz keten",
+      "is_cover": false,
+      "order": 17
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/900_4.jpg",
+      "variant_label": "Beyaz keten",
+      "is_cover": false,
+      "order": 18
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/900_5.jpg",
+      "variant_label": "Beyaz keten",
+      "is_cover": false,
+      "order": 19
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/980_1.jpg",
+      "variant_label": "Bej keten",
+      "is_cover": false,
+      "order": 20
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/980_2.jpg",
+      "variant_label": "Bej keten",
+      "is_cover": false,
+      "order": 21
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/980_3.jpg",
+      "variant_label": "Bej keten",
+      "is_cover": false,
+      "order": 22
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/980_4.jpg",
+      "variant_label": "Bej keten",
+      "is_cover": false,
+      "order": 23
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/980_5.jpg",
+      "variant_label": "Bej keten",
+      "is_cover": false,
+      "order": 24
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/984_1.jpg",
+      "variant_label": "Taba keten",
+      "is_cover": false,
+      "order": 25
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/984_2.jpg",
+      "variant_label": "Taba keten",
+      "is_cover": false,
+      "order": 26
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/984_3.jpg",
+      "variant_label": "Taba keten",
+      "is_cover": false,
+      "order": 27
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/984_4.jpg",
+      "variant_label": "Taba keten",
+      "is_cover": false,
+      "order": 28
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/984_5.jpg",
+      "variant_label": "Taba keten",
+      "is_cover": false,
+      "order": 29
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/992_1.jpg",
+      "variant_label": "Açık duman keten",
+      "is_cover": false,
+      "order": 30
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/992_2.jpg",
+      "variant_label": "Açık duman keten",
+      "is_cover": false,
+      "order": 31
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/992_3.jpg",
+      "variant_label": "Açık duman keten",
+      "is_cover": false,
+      "order": 32
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/992_4.jpg",
+      "variant_label": "Açık duman keten",
+      "is_cover": false,
+      "order": 33
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/992_5.jpg",
+      "variant_label": "Açık duman keten",
+      "is_cover": false,
+      "order": 34
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/995_1.jpg",
+      "variant_label": "Doğal krem",
+      "is_cover": false,
+      "order": 35
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/995_2.jpg",
+      "variant_label": "Doğal krem",
+      "is_cover": false,
+      "order": 36
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/995_3.jpg",
+      "variant_label": "Doğal krem",
+      "is_cover": false,
+      "order": 37
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/995_4.jpg",
+      "variant_label": "Doğal krem",
+      "is_cover": false,
+      "order": 38
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/995_5.jpg",
+      "variant_label": "Doğal krem",
+      "is_cover": false,
+      "order": 39
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/996_1.jpg",
+      "variant_label": "Sıcak bej",
+      "is_cover": false,
+      "order": 40
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/996_2.jpg",
+      "variant_label": "Sıcak bej",
+      "is_cover": false,
+      "order": 41
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/996_3.jpg",
+      "variant_label": "Sıcak bej",
+      "is_cover": false,
+      "order": 42
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/996_4.jpg",
+      "variant_label": "Sıcak bej",
+      "is_cover": false,
+      "order": 43
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/996_5.jpg",
+      "variant_label": "Sıcak bej",
+      "is_cover": false,
+      "order": 44
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/998_1.jpg",
+      "variant_label": "Eko beyaz",
+      "is_cover": false,
+      "order": 45
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/998_2.jpg",
+      "variant_label": "Eko beyaz",
+      "is_cover": false,
+      "order": 46
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/998_3.jpg",
+      "variant_label": "Eko beyaz",
+      "is_cover": false,
+      "order": 47
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/998_4.jpg",
+      "variant_label": "Eko beyaz",
+      "is_cover": false,
+      "order": 48
+    },
+    {
+      "local_path": "gorseller/zimmer_rohde/10969/998_5.jpg",
+      "variant_label": "Eko beyaz",
+      "is_cover": false,
+      "order": 49
+    }
+  ]
+}
