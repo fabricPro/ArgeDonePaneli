@@ -2232,10 +2232,11 @@ body.select-on .card-delete-btn { pointer-events: none; }
     height: 100%;
     object-fit: cover;
     opacity: 0;
+    pointer-events: none;  /* Aktif olmayan slide tıklamayı yakalamasın */
     transition: opacity var(--t-slow) var(--ease);
     cursor: zoom-in;
 }
-.hero-slide.is-active { opacity: 1; }
+.hero-slide.is-active { opacity: 1; pointer-events: auto; z-index: 1; }
 .hero-slide[hidden] { display: none !important; }
 
 .hero-arrow {
