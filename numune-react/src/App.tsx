@@ -11,12 +11,30 @@
 import { useState, useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 import { Grid3x3, Sliders } from "lucide-react";
-import { normalizeDesen, setDimension } from "./lib/desen";
-import { normalizeTarak } from "./lib/tarak";
+import { defaultDesen, normalizeDesen, setDimension } from "./lib/desen";
+import { defaultTarak, normalizeTarak } from "./lib/tarak";
 import { DesenTab } from "./components/DesenTab";
 import { TarakTab } from "./components/TarakTab";
 import type { DesenState, TarakState } from "./lib/types";
 import { C } from "./theme";
+
+/** Server'dan gelen `{}` boş obje veya partial state → default + merge + normalize.
+ *  normalizeDesen tek başına boş objeyi handle etmiyor (sadece loops ekliyor),
+ *  bu yüzden burada default ile merge edip eksik field'ları garantiliyoruz. */
+function safeNormalizeDesen(input: unknown): DesenState {
+  if (!input || typeof input !== "object" || Object.keys(input).length === 0) {
+    return defaultDesen();
+  }
+  const merged = { ...defaultDesen(), ...(input as Partial<DesenState>) } as DesenState;
+  return normalizeDesen(merged);
+}
+function safeNormalizeTarak(input: unknown): TarakState {
+  if (!input || typeof input !== "object" || Object.keys(input).length === 0) {
+    return defaultTarak();
+  }
+  const merged = { ...defaultTarak(), ...(input as Partial<TarakState>) } as TarakState;
+  return normalizeTarak(merged);
+}
 
 interface Props {
   initialState: { desen?: unknown; tarak?: unknown };
@@ -28,10 +46,9 @@ interface Props {
 type Tab = "desen" | "tarak";
 
 export function App({ initialState, onChange }: Props) {
-  // initialState server'dan jsonb olarak gelir → herhangi bir tipte olabilir.
-  // normalizeDesen/Tarak içeriği güvenli şekilde defaultlara düşürür.
-  const [desen, setDesen] = useState<DesenState>(() => normalizeDesen(initialState.desen as DesenState | undefined));
-  const [tarak, setTarak] = useState<TarakState>(() => normalizeTarak(initialState.tarak as TarakState | undefined));
+  // initialState server'dan jsonb olarak gelir; boş obje {} ise default.
+  const [desen, setDesen] = useState<DesenState>(() => safeNormalizeDesen(initialState.desen));
+  const [tarak, setTarak] = useState<TarakState>(() => safeNormalizeTarak(initialState.tarak));
   const [tab, setTab] = useState<Tab>("desen");
   const firstSync = useRef(true);
 
