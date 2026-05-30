@@ -434,18 +434,19 @@
         {# v3.9 — Desen + Tarak modülü (NumuneAnaliz React bundle) #}
         <fieldset class="teknik-card teknik-numune">
             <legend>Desen + Tarak Modülü</legend>
-            {% set _active_surum = none %}
+            {# Jinja namespace ile aktif sürümü bul (for-loop scope sızması olmaması için) #}
+            {% set ns = namespace(active=none) %}
             {% if teknik and teknik.surumler %}
                 {% for s in teknik.surumler %}
-                    {% if s.id == teknik.active_surum_id %}{% set _active_surum = s %}{% endif %}
+                    {% if s.id == teknik.active_surum_id %}{% set ns.active = s %}{% endif %}
                 {% endfor %}
-                {% if not _active_surum %}{% set _active_surum = teknik.surumler[0] %}{% endif %}
+                {% if not ns.active %}{% set ns.active = teknik.surumler[0] %}{% endif %}
             {% endif %}
             <div id="numune-root"
                  class="numune-root"
                  data-urun-id="{{ urun_id }}"
-                 data-surum-id="{{ _active_surum.id if _active_surum else '' }}"
-                 data-initial-state='{{ {"desen": (_active_surum.tahar_grid if _active_surum else {}) or {}, "tarak": (_active_surum.tarak_raporu if _active_surum else {}) or {}}|tojson }}'>
+                 data-surum-id="{{ ns.active.id if ns.active else '' }}"
+                 data-initial-state='{{ {"desen": (ns.active.tahar_grid if ns.active else {}) or {}, "tarak": (ns.active.tarak_raporu if ns.active else {}) or {}}|tojson }}'>
                 <div class="numune-loading">
                     {% if not teknik or not teknik.surumler %}
                     Önce bir sürüm oluştur (yukarıdan "+ Yeni Sürüm").
