@@ -2122,13 +2122,13 @@ img[data-blur][data-loaded="1"] {
    ========================================================= */
 
 .color-tools {
-    display: grid;
-    grid-template-columns: 240px 1fr 280px;
-    gap: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
     margin: 20px 0 24px;
-    align-items: start;
 }
-.ct-palette-side,
+.ct-palette-bar,
+.ct-picker-details,
 .ct-canvas-side,
 .ct-result-side {
     background: var(--bg-card);
@@ -2136,6 +2136,74 @@ img[data-blur][data-loaded="1"] {
     border-radius: var(--radius-lg);
     padding: 14px;
     min-width: 0;
+}
+.ct-canvas-side,
+.ct-result-side {
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+/* --- Akordiyon (details/summary) --- */
+.ct-picker-details {
+    padding: 0;
+}
+.ct-picker-summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    font-size: var(--type-h3);
+    font-weight: 600;
+    color: var(--text);
+    user-select: none;
+    border-radius: var(--radius-lg);
+    transition: background var(--t-fast) var(--ease);
+}
+.ct-picker-summary::-webkit-details-marker { display: none; }
+.ct-picker-summary:hover { background: var(--bg-elev); }
+.ct-picker-details[open] > .ct-picker-summary {
+    border-bottom: 1px solid var(--border);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+.ct-summary-icon {
+    transition: transform var(--t-base) var(--ease);
+    color: var(--text-dim);
+    flex-shrink: 0;
+}
+.ct-picker-details[open] .ct-summary-icon {
+    transform: rotate(180deg);
+}
+.ct-picker-summary > span { flex: 1; }
+.ct-summary-badge {
+    font-size: var(--type-caption);
+    color: var(--gold);
+    background: rgba(214, 137, 16, 0.12);
+    border: 1px solid rgba(214, 137, 16, 0.3);
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-weight: 600;
+    flex: 0 0 auto;
+}
+.ct-picker-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 18px;
+    padding: 16px;
+    align-items: start;
+}
+.ct-no-album {
+    padding: 28px 24px;
+    color: var(--text-dim);
+    text-align: center;
+    line-height: 1.6;
+}
+.ct-no-album strong { color: var(--accent); }
+.ct-no-album-hint {
+    font-size: var(--type-small);
+    color: var(--text-muted);
+    margin-top: 10px;
 }
 .ct-side-head {
     display: flex;
@@ -2166,11 +2234,11 @@ img[data-blur][data-loaded="1"] {
     line-height: 1.5;
 }
 
-/* --- Palet grid (4-sıra) --- */
+/* --- Palet grid (palette-bar üstte full-width, ~8 sütun masaüstünde) --- */
 .palette-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 8px;
 }
 .palette-chip {
     display: flex;
@@ -2460,36 +2528,34 @@ img[data-blur][data-loaded="1"] {
     white-space: nowrap;
 }
 
-/* --- Mobile (≤720px) — dikey yığ --- */
+/* --- Mobile (≤720px) — kompakt --- */
 @media (max-width: 720px) {
-    .color-tools {
+    .color-tools { gap: 10px; }
+    .ct-palette-bar,
+    .ct-picker-details { padding: 12px; }
+    .ct-picker-summary { padding: 12px 14px; font-size: var(--type-h3); }
+    .ct-picker-grid {
         grid-template-columns: 1fr;
         gap: 12px;
+        padding: 14px;
     }
-    /* DOM order: palette · canvas · result → mobilde canvas üstte */
-    .ct-canvas-side { order: 1; }
-    .ct-result-side { order: 2; }
-    .ct-palette-side { order: 3; }
-
     .cp-canvas-box {
         aspect-ratio: 1 / 1;
         max-height: 70vh;
     }
-    /* Touch loupe MOBİLDE aktif (color-picker.js touchstart'ta hidden=false yapar) */
-
     .palette-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
         gap: 5px;
     }
     .chip-name { font-size: 9px; }
     .chip-swatch { width: 28px; height: 28px; }
-
     .cp-role-tab { padding: 12px 4px; font-size: 13px; min-height: 44px; }
     #cp-save { min-height: 48px; font-size: 15px; }
     .cp-name { font-size: 16px; }
+    .ct-no-album { padding: 18px 14px; }
 }
 @media (max-width: 380px) {
-    .palette-grid { grid-template-columns: repeat(2, 1fr); }
+    .palette-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
 /* =========================================================

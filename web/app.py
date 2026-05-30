@@ -299,12 +299,26 @@ def urun_detail(urun_id: str):
     album_counts = {a.get("slug"): sum(1 for im in images if a.get("slug") in (im.get("albums") or [])) for a in albums}
     # v3.6: Renk paleti (auto-derived, açıktan koyuya — LAB L desc)
     color_palette = _derive_color_palette(images)
+    # v3.6+: Renk çözümleme yalnız "Renkler" albümündeki görsellerden
+    color_album_slug = None
+    for a in albums:
+        a_slug = (a.get("slug") or "").lower()
+        a_name = (a.get("name") or "").strip().lower()
+        if a_slug == "renkler" or a_name == "renkler":
+            color_album_slug = a.get("slug")
+            break
+    if color_album_slug:
+        color_picker_images = [im for im in images if color_album_slug in (im.get("albums") or [])]
+    else:
+        color_picker_images = []
     return render_template(
         "urun.html", product=d, urun_id=urun_id,
         cover_image=store.public_url(cover_path(d)),
         display_items=display_items,
         display_images=display_images,
         color_palette=color_palette,
+        color_picker_images=color_picker_images,
+        color_album_slug=color_album_slug,
         pinned_items=pinned_items,
         albums=albums,
         album_counts=album_counts,
