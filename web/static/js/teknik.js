@@ -136,10 +136,9 @@
             (window.toast || alert)(data.error || 'Sürüm oluşturulamadı', 'error');
             return;
         }
-        teknik.surumler.push(data.surum);
-        teknik.active_surum_id = data.active_surum_id;
         (window.toast || alert)(`Sürüm oluşturuldu: ${data.surum.ad}`, 'success');
-        renderActive();
+        // v3.9: numune-react'in yeni sürümle remount olabilmesi için reload
+        setTimeout(() => location.reload(), 400);
     }
 
     yeniBtn && yeniBtn.addEventListener('click', createSurum);

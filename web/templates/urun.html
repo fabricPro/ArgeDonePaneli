@@ -431,17 +431,28 @@
             </div>
         </fieldset>
 
-        <fieldset class="teknik-card teknik-tahar">
-            <legend>Tahar Armür Desen Gridi</legend>
-            <div class="ui-placeholder">
-                <p><strong>Faz 3'te eklenecek:</strong> kullanıcının yollayacağı UI örneğine göre interaktif grid.</p>
-            </div>
-        </fieldset>
-
-        <fieldset class="teknik-card teknik-tarak">
-            <legend>Tarak Raporu</legend>
-            <div class="ui-placeholder">
-                <p><strong>Faz 3'te eklenecek:</strong> kullanıcının yollayacağı UI örneğine göre.</p>
+        {# v3.9 — Desen + Tarak modülü (NumuneAnaliz React bundle) #}
+        <fieldset class="teknik-card teknik-numune">
+            <legend>Desen + Tarak Modülü</legend>
+            {% set _active_surum = none %}
+            {% if teknik and teknik.surumler %}
+                {% for s in teknik.surumler %}
+                    {% if s.id == teknik.active_surum_id %}{% set _active_surum = s %}{% endif %}
+                {% endfor %}
+                {% if not _active_surum %}{% set _active_surum = teknik.surumler[0] %}{% endif %}
+            {% endif %}
+            <div id="numune-root"
+                 class="numune-root"
+                 data-urun-id="{{ urun_id }}"
+                 data-surum-id="{{ _active_surum.id if _active_surum else '' }}"
+                 data-initial-state='{{ {"desen": (_active_surum.tahar_grid if _active_surum else {}) or {}, "tarak": (_active_surum.tarak_raporu if _active_surum else {}) or {}}|tojson }}'>
+                <div class="numune-loading">
+                    {% if not teknik or not teknik.surumler %}
+                    Önce bir sürüm oluştur (yukarıdan "+ Yeni Sürüm").
+                    {% else %}
+                    Desen + Tarak modülü yükleniyor…
+                    {% endif %}
+                </div>
             </div>
         </fieldset>
 
@@ -1384,6 +1395,72 @@ grid.addEventListener('dragover', (e) => {
 })();
 </script>
 <script src="{{ url_for('static', filename='js/teknik.js') }}"></script>
+
+{# v3.9 — NumuneAnaliz Desen + Tarak React bundle + mount #}
+<script src="{{ url_for('static', filename='numune/numune.js') }}"></script>
+<script>
+(function () {
+    const root = document.getElementById('numune-root');
+    if (!root || !window.NumuneApp) return;
+
+    const urunId = root.dataset.urunId;
+    let surumId = root.dataset.surumId || '';
+    let initialState = {};
+    try { initialState = JSON.parse(root.dataset.initialState || '{}'); } catch (e) {}
+
+    // Boş loading metnini temizle (React mount içeride render edecek)
+    root.innerHTML = '';
+
+    let mountedInstance = null;
+
+    function mountFor(sId, state) {
+        if (mountedInstance) {
+            mountedInstance.unmount();
+            mountedInstance = null;
+        }
+        if (!sId) {
+            root.innerHTML = '<div class="numune-loading">Önce bir sürüm oluştur.</div>';
+            return;
+        }
+        mountedInstance = window.NumuneApp.mount(root, {
+            initialState: state || {},
+            urunId,
+            surumId: sId,
+            onChange: async (s) => {
+                try {
+                    await fetch(`/api/urun/${encodeURIComponent(urunId)}/teknik/${encodeURIComponent(sId)}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ tahar_grid: s.desen, tarak_raporu: s.tarak }),
+                    });
+                } catch (e) {
+                    console.warn('[numune] sunucu senkron hatası:', e);
+                }
+            },
+        });
+    }
+
+    // İlk mount
+    if (surumId) mountFor(surumId, initialState);
+
+    // Sürüm seçici değişimi: yeni sürümün state'i için sayfa yenile (V1 — basit)
+    const sel = document.getElementById('teknik-surum-select');
+    if (sel) {
+        sel.addEventListener('change', () => {
+            // Yeni sürüm state'i sayfa yenile ile gelir
+            setTimeout(() => location.reload(), 100);
+        });
+    }
+
+    // Yeni sürüm yaratınca da sayfa yenile (teknik.js'in createSurum'undan sonra)
+    const yeniBtn = document.getElementById('teknik-surum-yeni');
+    if (yeniBtn) {
+        const origClick = yeniBtn.onclick;
+        // teknik.js zaten addEventListener kullandığı için override etmek yerine
+        // bir event tipi tanımlayıp dinleyelim — basitlik için reload sonradan tetiklenir
+    }
+})();
+</script>
 
 {% endif %}
 {% endblock %}

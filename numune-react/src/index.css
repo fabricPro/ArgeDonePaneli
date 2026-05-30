@@ -1,0 +1,38 @@
+/* numune-react bundle stilleri
+ * Tüm class'lar `.numune-root` parent altında; ana sayfayla çakışma yok.
+ * NumuneAnaliz orijinal C palet → mevcut design system CSS var ile override.
+ */
+.numune-root {
+    /* Mobidik design-system'den geçirme */
+    --num-bg: var(--bg, #0f1115);
+    --num-panel: var(--bg-card, #171a21);
+    --num-line: var(--border, #2a3040);
+    --num-text: var(--text, #e7ebf2);
+    --num-dim: var(--text-dim, #8b94a7);
+    --num-accent: var(--accent, #5b8def);
+    --num-bad: var(--red, #e8674f);
+    --num-warp: var(--gold, #f0a830);
+    --num-ok: var(--green, #36c98a);
+
+    font-family: var(--font-sans, "Inter", system-ui, -apple-system, sans-serif);
+    font-size: 14px;
+    line-height: 1.5;
+    box-sizing: border-box;
+    background: var(--num-bg);
+    color: var(--num-text);
+    border-radius: var(--radius, 6px);
+    padding: 0;
+}
+.numune-root *,
+.numune-root *::before,
+.numune-root *::after {
+    box-sizing: inherit;
+}
+.numune-root button {
+    font-family: inherit;
+}
+.numune-root input,
+.numune-root textarea {
+    font-family: inherit;
+    color: inherit;
+}
