@@ -12,6 +12,13 @@ import { resolve } from "path";
  */
 export default defineConfig({
   plugins: [react()],
+  // Vite lib mode `process.env.NODE_ENV` placeholder'ı default replace etmez
+  // → React'in CommonJS dağıtımı runtime'da `process` arar → ReferenceError.
+  // Manuel define ile production string'ine bind ediyoruz.
+  define: {
+    "process.env.NODE_ENV": JSON.stringify("production"),
+    "process.env": "{}",
+  },
   build: {
     outDir: resolve(__dirname, "../web/static/numune"),
     emptyOutDir: true,
