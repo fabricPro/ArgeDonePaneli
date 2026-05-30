@@ -4,7 +4,11 @@
 {% block content %}
 {% if not product %}
 <div class="empty-state">
-    <p>Ürün bulunamadı: <code>{{ urun_id }}</code></p>
+    <div class="empty-icon-wrap">
+        <svg class="empty-icon"><use href="#ic-x"/></svg>
+    </div>
+    <h2>Ürün bulunamadı</h2>
+    <p>Aradığın ürün silinmiş ya da kimliği değişmiş olabilir: <code>{{ urun_id }}</code></p>
     <a href="{{ url_for('index') }}" class="btn btn-secondary">← Galeriye dön</a>
 </div>
 {% else %}
@@ -190,7 +194,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !lb.hidd
 document.querySelectorAll('.btn-set-cover').forEach(btn => {
     btn.addEventListener('click', async () => {
         const data = await postJson(`/api/urun/${URUN_ID}/kapak`, { path: btn.dataset.path });
-        if (data.ok) location.reload(); else alert(data.error || 'Hata');
+        if (data.ok) location.reload(); else window.toast(data.error || 'Hata', 'error');
     });
 });
 
@@ -199,7 +203,7 @@ document.querySelectorAll('.btn-del-img').forEach(btn => {
     btn.addEventListener('click', async () => {
         if (!confirm('Bu görseli silmek istediğine emin misin? (Dosya diskten de silinir)')) return;
         const data = await postJson(`/api/urun/${URUN_ID}/gorsel-sil`, { path: btn.dataset.path });
-        if (data.ok) location.reload(); else alert(data.error || 'Hata');
+        if (data.ok) location.reload(); else window.toast(data.error || 'Hata', 'error');
     });
 });
 
@@ -211,13 +215,13 @@ document.querySelectorAll('.btn-pin').forEach(btn => {
     btn.addEventListener('click', async () => {
         const pin = btn.dataset.pin === 'true';
         const data = await pinAction(btn.dataset.path, pin);
-        if (data.ok) location.reload(); else alert(data.error || 'Hata');
+        if (data.ok) location.reload(); else window.toast(data.error || 'Hata', 'error');
     });
 });
 document.querySelectorAll('.btn-pin-remove').forEach(btn => {
     btn.addEventListener('click', async () => {
         const data = await pinAction(btn.dataset.path, false);
-        if (data.ok) location.reload(); else alert(data.error || 'Hata');
+        if (data.ok) location.reload(); else window.toast(data.error || 'Hata', 'error');
     });
 });
 
@@ -229,7 +233,8 @@ document.querySelectorAll('.variant-label-input').forEach(inp => {
         last = inp.value;
         const data = await postJson(`/api/urun/${URUN_ID}/gorsel-etiket`,
             { path: inp.dataset.path, variant_label: inp.value });
-        if (!data.ok) alert(data.error || 'Etiket kaydedilemedi');
+        if (!data.ok) window.toast(data.error || 'Etiket kaydedilemedi', 'error');
+        else window.toast('Etiket kaydedildi', 'success');
     });
 });
 
@@ -251,14 +256,14 @@ addInput.addEventListener('change', async () => {
     Array.from(addInput.files).forEach(f => { fd.append('files', f); fd.append('variant_labels', ''); });
     const res = await fetch(`/api/urun/${URUN_ID}/gorsel-ekle`, { method: 'POST', body: fd });
     const data = await res.json();
-    if (data.ok) location.reload(); else alert(data.error || 'Yükleme hatası');
+    if (data.ok) location.reload(); else window.toast(data.error || 'Yükleme hatası', 'error');
 });
 
 // --- Ürünü sil ---
 document.getElementById('delete-product-btn').addEventListener('click', async () => {
     if (!confirm('Bu ürünü ve tüm görsellerini kalıcı olarak silmek istediğine emin misin?')) return;
     const data = await postJson(`/api/urun/${URUN_ID}/sil`, {});
-    if (data.ok) window.location.href = '{{ url_for("index") }}'; else alert(data.error || 'Hata');
+    if (data.ok) window.location.href = '{{ url_for("index") }}'; else window.toast(data.error || 'Hata', 'error');
 });
 
 // --- Tasarım modu: sürükle-bırak sıralama ---
@@ -285,7 +290,7 @@ btnCancel.addEventListener('click', () => location.reload());
 btnSave.addEventListener('click', async () => {
     const order = [...grid.querySelectorAll('.img-manage-card')].map(c => c.dataset.path);
     const data = await postJson(`/api/urun/${URUN_ID}/sirala`, { order });
-    if (data.ok) location.reload(); else alert(data.error || 'Sıralama kaydedilemedi');
+    if (data.ok) location.reload(); else window.toast(data.error || 'Sıralama kaydedilemedi', 'error');
 });
 
 grid.addEventListener('dragstart', (e) => {

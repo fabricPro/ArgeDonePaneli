@@ -33,9 +33,14 @@
 
 {% if stats.total_products == 0 %}
 <div class="empty-state">
-    <svg class="icon icon-2xl" style="color: var(--text-muted);"><use href="#ic-bar-chart"/></svg>
-    <p style="margin-top: 12px;">Henüz veri yok. Ürün ekledikçe analiz burada şekillenir.</p>
-    <a href="{{ url_for('ekle') }}" class="btn btn-primary"><svg class="icon"><use href="#ic-plus"/></svg> İlk ürünü ekle</a>
+    <div class="empty-icon-wrap">
+        <svg class="empty-icon"><use href="#ic-bar-chart"/></svg>
+    </div>
+    <h2>Henüz analiz edilecek veri yok</h2>
+    <p>İlk kumaşı eklediğinde ülke karşılaştırması, dokuma dağılımı ve eğilim grafikleri burada şekillenmeye başlar.</p>
+    <a href="{{ url_for('ekle') }}" class="btn btn-primary">
+        <svg class="icon"><use href="#ic-plus"/></svg> İlk ürünü ekle
+    </a>
 </div>
 {% else %}
 

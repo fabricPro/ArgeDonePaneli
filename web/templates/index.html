@@ -32,8 +32,14 @@
 
 {% if total == 0 %}
 <div class="empty-state">
-    <p>Henüz kumaş eklenmedi.</p>
-    <a href="{{ url_for('ekle') }}" class="btn btn-primary">➕ İlk kumaşı ekle</a>
+    <div class="empty-icon-wrap">
+        <svg class="empty-icon"><use href="#ic-image"/></svg>
+    </div>
+    <h2>Galeri henüz boş</h2>
+    <p>İlk kumaşını ekle — marka, ülke, görsel ve varyantlarıyla birlikte burada görünecek.</p>
+    <a href="{{ url_for('ekle') }}" class="btn btn-primary">
+        <svg class="icon"><use href="#ic-plus"/></svg> İlk kumaşı ekle
+    </a>
 </div>
 {% endif %}
 
@@ -136,7 +142,7 @@ dBtnSave?.addEventListener('click', async () => {
         body: JSON.stringify({ country_order, product_orders })
     });
     const data = await res.json();
-    if (data.ok) location.reload(); else alert(data.error || 'Sıralama kaydedilemedi');
+    if (data.ok) location.reload(); else window.toast(data.error || 'Sıralama kaydedilemedi', 'error');
 });
 
 document.addEventListener('dragstart', (e) => {
