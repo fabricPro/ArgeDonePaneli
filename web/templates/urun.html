@@ -398,57 +398,9 @@
     {% endif %}
 
     <div class="teknik-grid" id="teknik-grid" {% if not teknik.surumler %}hidden{% endif %}>
-        <fieldset class="teknik-card teknik-parametreler">
-            <legend>Temel Parametreler</legend>
-            <div class="form-grid">
-                <div class="form-row">
-                    <label>Çözgü Sıklığı (tel/cm)</label>
-                    <input type="number" step="0.1" min="0" data-key="cozgu_sikligi" placeholder="örn. 28">
-                </div>
-                <div class="form-row">
-                    <label>Atkı Sıklığı (tel/cm)</label>
-                    <input type="number" step="0.1" min="0" data-key="atki_sikligi" placeholder="örn. 24">
-                </div>
-                <div class="form-row">
-                    <label>Ham En (cm)</label>
-                    <input type="number" step="0.1" min="0" data-key="ham_en_cm" placeholder="örn. 320">
-                </div>
-                <div class="form-row">
-                    <label>Mamül En (cm) {% if product.width_cm %}<span class="hint-default">(varsayılan {{ product.width_cm }})</span>{% endif %}</label>
-                    <input type="number" step="0.1" min="0" data-key="mamul_en_cm" placeholder="{{ product.width_cm or 'gir' }}">
-                </div>
-                <div class="form-row">
-                    <label>Gramaj (g/m²) {% if product.weight_gsm %}<span class="hint-default">(varsayılan {{ product.weight_gsm }})</span>{% endif %}</label>
-                    <input type="number" step="1" min="0" data-key="gramaj_gsm" placeholder="{{ product.weight_gsm or 'gir' }}">
-                </div>
-            </div>
-        </fieldset>
-
-        <fieldset class="teknik-card teknik-iplikler">
-            <legend>İplikler (Çözgü + Atkı)</legend>
-            <div class="ui-placeholder">
-                <p><strong>Faz 2'de eklenecek:</strong> Çözgü max 8 + Atkı max 8 iplik tablosu (etiket, kompozisyon, numara, renk, oran %).</p>
-            </div>
-        </fieldset>
-
-        <fieldset class="teknik-card teknik-tahar">
-            <legend>Tahar Armür Desen Gridi</legend>
-            <div class="ui-placeholder">
-                <p><strong>Faz 3'te eklenecek:</strong> kullanıcının yollayacağı UI örneğine göre interaktif grid.</p>
-            </div>
-        </fieldset>
-
-        <fieldset class="teknik-card teknik-tarak">
-            <legend>Tarak Raporu</legend>
-            <div class="ui-placeholder">
-                <p><strong>Faz 3'te eklenecek:</strong> kullanıcının yollayacağı UI örneğine göre.</p>
-            </div>
-        </fieldset>
-
-        <fieldset class="teknik-card teknik-notlar">
-            <legend>Notlar</legend>
-            <textarea data-key="notlar" rows="4" placeholder="Bu sürüm için ARGE notları, deneme amacı, hedef müşteri, vb."></textarea>
-        </fieldset>
+        {# v4.0-part-2: tüm Faz 1 placeholder kartlar (Temel Parametreler, İplikler,
+           Tahar Grid, Tarak, Notlar) kaldırıldı. Sıfırdan inşa noktası — yeni
+           içerik buraya eklenir. #}
     </div>
 
     {# Tüm sürüm verisi — JS okumak için #}
