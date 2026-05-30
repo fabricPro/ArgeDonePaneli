@@ -1,0 +1,14 @@
+{# Jinja makro — küçük yatay bar chart (HTML/CSS, JS yok) #}
+{% macro bar_chart(items, max_value, color='var(--accent)') %}
+<div class="bar-chart">
+    {% for label, n in items %}
+    <div class="bar-row">
+        <span class="bar-label" title="{{ label }}">{{ label }}</span>
+        <div class="bar-track">
+            <div class="bar-fill" style="width: {{ ((n / max_value * 100) | round) if max_value > 0 else 0 }}%; background: {{ color }};"></div>
+        </div>
+        <span class="bar-value">{{ n }}</span>
+    </div>
+    {% endfor %}
+</div>
+{% endmacro %}

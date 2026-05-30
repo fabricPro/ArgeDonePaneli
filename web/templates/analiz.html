@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_chart_macros.html" import bar_chart %}
 {% block title %}Veri Analizi{% endblock %}
 
 {% block content %}
@@ -30,7 +31,15 @@
     </div>
 </div>
 
-<h2 class="section-title">Ülkeye göre karşılaştırma</h2>
+{% if stats.total_products == 0 %}
+<div class="empty-state">
+    <svg class="icon icon-2xl" style="color: var(--text-muted);"><use href="#ic-bar-chart"/></svg>
+    <p style="margin-top: 12px;">Henüz veri yok. Ürün ekledikçe analiz burada şekillenir.</p>
+    <a href="{{ url_for('ekle') }}" class="btn btn-primary"><svg class="icon"><use href="#ic-plus"/></svg> İlk ürünü ekle</a>
+</div>
+{% else %}
+
+<h2 class="section-title">Karşılaştırma tablosu</h2>
 <div class="analiz-table-wrap">
 <table class="analiz-table">
     <thead>
@@ -39,9 +48,7 @@
             <th>Ürün</th>
             <th>Ort. En</th>
             <th>Ort. Gramaj</th>
-            <th>Dokuma dağılımı</th>
-            <th>Sık kompozisyon</th>
-            <th>Ort. renk / Toplam</th>
+            <th>Ort. Renk / Toplam</th>
         </tr>
     </thead>
     <tbody>
@@ -49,16 +56,8 @@
         <tr>
             <td><strong>{{ s.country }}</strong></td>
             <td>{{ s.count }}</td>
-            <td>{% if s.avg_width is not none %}{{ s.avg_width|round|int }} cm{% else %}–{% endif %}</td>
-            <td>{% if s.avg_weight is not none %}{{ s.avg_weight|round|int }} g/m²{% else %}–{% endif %}</td>
-            <td>
-                {% for w, n in s.weave_dist[:4] %}<span class="chip">{{ w }} <small>({{ n }})</small></span>{% endfor %}
-                {% if not s.weave_dist %}<span class="muted">–</span>{% endif %}
-            </td>
-            <td>
-                {% for c, n in s.top_compositions %}<span class="chip">{{ c }} <small>({{ n }})</small></span>{% endfor %}
-                {% if not s.top_compositions %}<span class="muted">–</span>{% endif %}
-            </td>
+            <td>{% if s.avg_width is not none %}{{ s.avg_width|round|int }} cm{% else %}<span class="muted">–</span>{% endif %}</td>
+            <td>{% if s.avg_weight is not none %}{{ s.avg_weight|round|int }} g/m²{% else %}<span class="muted">–</span>{% endif %}</td>
             <td>{{ "%.1f"|format(s.avg_variants) }} <small class="muted">({{ s.distinct_labels }} renk)</small></td>
         </tr>
     {% endfor %}
@@ -66,13 +65,34 @@
 </table>
 </div>
 
-<h2 class="section-title">Ülke içgörüleri</h2>
-<div class="insight-list">
+<h2 class="section-title">Ülkeye göre eğilim</h2>
+<div class="country-detail-list">
     {% for s in stats.by_country %}
-    <div class="insight-card">
-        <div class="insight-flag">📍</div>
+    {% set weave_max = s.weave_dist[0][1] if s.weave_dist else 0 %}
+    {% set comp_max = s.top_compositions[0][1] if s.top_compositions else 0 %}
+    <section class="country-detail">
+        <header class="country-detail-head">
+            <h3>{{ s.country }}</h3>
+            <span class="cg-count">{{ s.count }} ürün</span>
+        </header>
+
         <div class="insight-body">{{ s.insight | safe }}</div>
-    </div>
+
+        {% if s.weave_dist %}
+        <div class="chart-block">
+            <div class="chart-title">Dokuma dağılımı</div>
+            {{ bar_chart(s.weave_dist[:5], weave_max, 'var(--accent)') }}
+        </div>
+        {% endif %}
+
+        {% if s.top_compositions %}
+        <div class="chart-block">
+            <div class="chart-title">En sık kompozisyon</div>
+            {{ bar_chart(s.top_compositions, comp_max, 'var(--altin)') }}
+        </div>
+        {% endif %}
+    </section>
     {% endfor %}
 </div>
+{% endif %}
 {% endblock %}

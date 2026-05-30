@@ -1492,7 +1492,92 @@ body.design-on .product-card:active { cursor: grabbing; }
     align-items: flex-start;
 }
 .insight-flag { font-size: 18px; flex: 0 0 auto; line-height: 1.4; }
-.insight-body { font-size: 14px; line-height: 1.55; }
+.insight-body { font-size: var(--type-body); line-height: 1.6; color: var(--text-dim); }
+
+/* === Ülke detay kartları (analiz sayfası) === */
+.country-detail-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-12);
+}
+.country-detail {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4) var(--space-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+.country-detail-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-2);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--border);
+}
+.country-detail-head h3 {
+    font-size: var(--type-h2);
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+}
+.country-detail .insight-body {
+    font-size: var(--type-small);
+    line-height: 1.55;
+    color: var(--text-dim);
+}
+.chart-block { margin-top: var(--space-2); }
+.chart-title {
+    font-size: var(--type-caption);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    margin-bottom: var(--space-2);
+}
+
+/* === Yatay bar chart (HTML/CSS) === */
+.bar-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.bar-row {
+    display: grid;
+    grid-template-columns: minmax(70px, 25%) 1fr 32px;
+    align-items: center;
+    gap: var(--space-2);
+}
+.bar-label {
+    font-size: var(--type-small);
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.bar-track {
+    background: var(--bg-elev);
+    border-radius: var(--radius-pill);
+    height: 8px;
+    overflow: hidden;
+    position: relative;
+}
+.bar-fill {
+    height: 100%;
+    border-radius: var(--radius-pill);
+    transition: width var(--t-slow) var(--ease);
+    min-width: 2px;  /* sıfır görünmesin */
+}
+.bar-value {
+    font-size: var(--type-caption);
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    font-weight: 600;
+}
 
 /* === Mobil-only bileşenler — desktop'ta gizli === */
 .mobile-tabbar { display: none; }
