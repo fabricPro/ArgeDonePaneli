@@ -79,15 +79,22 @@
                 return r.json();
             })
             .then(list => {
-                // meodai best-of formatı: [{name, hex}, ...]
-                // Fallback formatı: [["Name",[r,g,b]], ...]
+                // Desteklenen formatlar:
+                //   1) renkler.json (v3.6.1+, TR): [{ad, hex, rgb:[r,g,b]}, ...]
+                //   2) meodai best-of (v3.6 EN): [{name, hex}, ...]
+                //   3) Fallback (gömülü): [["Name", [r,g,b]], ...]
                 COLOR_LAB = list.map(item => {
                     if (Array.isArray(item)) {
                         const [name, rgb] = item;
                         return { name, hex: rgbToHex(rgb), rgb, lab: rgbToLab(...rgb) };
                     }
-                    const rgb = hexToRgb(item.hex);
-                    return { name: item.name, hex: item.hex.toUpperCase(), rgb, lab: rgbToLab(...rgb) };
+                    // Object: 'ad' (TR) öncelikli, sonra 'name' (legacy)
+                    const name = item.ad || item.name || "—";
+                    const hex = (item.hex || "").toUpperCase();
+                    const rgb = Array.isArray(item.rgb) && item.rgb.length === 3
+                        ? item.rgb
+                        : hexToRgb(hex);
+                    return { name, hex, rgb, lab: rgbToLab(...rgb) };
                 });
                 dictionaryReady = true;
                 console.log(`[ColorPicker] Sözlük yüklendi: ${COLOR_LAB.length} renk`);

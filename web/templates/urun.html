@@ -992,7 +992,7 @@ grid.addEventListener('dragover', (e) => {
         swatch.style.background = res.hex;
         nameEl.textContent = res.name || '—';
         if (res.delta_e != null) {
-            const tag = res.delta_e < 2 ? ' (çok yakın)' : res.delta_e < 5 ? ' (yakın)' : ' (yaklaşık)';
+            const tag = res.delta_e < 3 ? ' (tam isabet)' : res.delta_e < 6 ? ' (yakın)' : ' (yaklaşık)';
             deEl.textContent = 'ΔE2000 = ' + res.delta_e.toFixed(1) + tag;
         } else {
             deEl.textContent = '';
@@ -1151,7 +1151,7 @@ grid.addEventListener('dragover', (e) => {
     window.ColorPicker.init({
         canvasEl: canvas,
         magnifierEl: mag,
-        dictionaryUrl: "{{ url_for('static', filename='data/colornames.bestof.json') }}",
+        dictionaryUrl: "{{ url_for('static', filename='data/renkler.json') }}",
         onChange: (role, res, n) => updateUI(role, res, n),
         onRoleChange: (role) => setActiveTab(role),
     }).then(info => {
