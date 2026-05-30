@@ -337,6 +337,9 @@ def urun_detail(urun_id: str):
         color_picker_images = [im for im in images if color_album_slug in (im.get("albums") or [])]
     else:
         color_picker_images = []
+    # v3.8: Teknik çalışma sekme verisi + mobile UA detect
+    teknik = d.get("teknik") or {}
+    is_mobile_ua = _is_mobile_ua(request)
     return render_template(
         "urun.html", product=d, urun_id=urun_id,
         cover_image=store.public_url(cover_path(d)),
@@ -345,6 +348,8 @@ def urun_detail(urun_id: str):
         color_palette=color_palette,
         color_picker_images=color_picker_images,
         color_album_slug=color_album_slug,
+        teknik=teknik,
+        is_mobile_ua=is_mobile_ua,
         pinned_items=pinned_items,
         albums=albums,
         album_counts=album_counts,
@@ -562,6 +567,14 @@ def api_delete_image(urun_id: str):
     return jsonify({"ok": True, "remaining": len(images)})
 
 
+def _is_mobile_ua(req) -> bool:
+    """Basit UA kontrol — telefon mu? (tablet false döner)."""
+    ua = (req.headers.get("User-Agent") or "").lower()
+    if "ipad" in ua or "tablet" in ua:
+        return False
+    return any(k in ua for k in ("iphone", "android", "mobile", "windows phone"))
+
+
 def _delete_product_atomic(uid: str) -> bool:
     """Bir ürünü ve tüm görsellerini atomik olarak siler. Yoksa False döner."""
     d = store.get(uid)
@@ -623,6 +636,183 @@ def api_bulk_delete():
         return jsonify({"ok": False, "error": "urun_ids string listesi olmalı"}), 400
     deleted = [uid for uid in ids if _delete_product_atomic(uid)]
     return jsonify({"ok": True, "deleted": deleted, "count": len(deleted)})
+
+
+# ============================================================
+# Teknik çalışma (multi-sürüm) — v3.8 Faz 1
+# ============================================================
+
+def _next_surum_id(existing_ids: list[str]) -> str:
+    """v1, v2, v3 ... şeklinde benzersiz id üret."""
+    nums = []
+    for sid in existing_ids:
+        m = re.match(r"^v(\d+)$", sid or "")
+        if m:
+            nums.append(int(m.group(1)))
+    next_n = (max(nums) + 1) if nums else 1
+    return f"v{next_n}"
+
+
+def _ensure_teknik(d: dict) -> dict:
+    t = d.get("teknik")
+    if not isinstance(t, dict):
+        t = {}
+    t.setdefault("active_surum_id", None)
+    t.setdefault("surumler", [])
+    d["teknik"] = t
+    return t
+
+
+def _find_surum(teknik: dict, surum_id: str) -> dict | None:
+    for s in (teknik.get("surumler") or []):
+        if s.get("id") == surum_id:
+            return s
+    return None
+
+
+@app.route("/api/urun/<urun_id>/teknik/surum", methods=["POST"])
+def api_teknik_surum_create(urun_id: str):
+    """Yeni teknik sürüm oluştur. Body: {ad}."""
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    body = request.get_json(force=True) or {}
+    ad = clean(body.get("ad")) or "Yeni Sürüm"
+    teknik = _ensure_teknik(d)
+    new_id = _next_surum_id([s.get("id") for s in teknik["surumler"]])
+    now = now_iso()
+    surum = {
+        "id": new_id,
+        "ad": ad,
+        "olusturma_tarihi": now,
+        "guncelleme_tarihi": now,
+        "parametreler": {
+            "cozgu_sikligi": None,
+            "atki_sikligi": None,
+            "ham_en_cm": None,
+            "mamul_en_cm": d.get("width_cm"),     # mevcut metadata'dan default
+            "gramaj_gsm": d.get("weight_gsm"),
+        },
+        "iplikler": {"cozgu": [], "atki": []},
+        "tahar_grid": {},
+        "tarak_raporu": {},
+        "notlar": "",
+    }
+    teknik["surumler"].append(surum)
+    # İlk sürüm otomatik aktif
+    if not teknik.get("active_surum_id"):
+        teknik["active_surum_id"] = new_id
+    d["updated_at"] = now
+    store.upsert(d)
+    return jsonify({"ok": True, "surum": surum, "active_surum_id": teknik["active_surum_id"]})
+
+
+@app.route("/api/urun/<urun_id>/teknik/<surum_id>", methods=["POST"])
+def api_teknik_surum_update(urun_id: str, surum_id: str):
+    """Sürüm verisini güncelle. Body: {parametreler?, iplikler?, tahar_grid?, tarak_raporu?, notlar?}."""
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    teknik = _ensure_teknik(d)
+    surum = _find_surum(teknik, surum_id)
+    if not surum:
+        return jsonify({"ok": False, "error": "Sürüm bulunamadı"}), 404
+    body = request.get_json(force=True) or {}
+    # Parametreler
+    if "parametreler" in body and isinstance(body["parametreler"], dict):
+        cur_param = surum.get("parametreler") or {}
+        for key in ("cozgu_sikligi", "atki_sikligi", "ham_en_cm", "mamul_en_cm", "gramaj_gsm"):
+            if key in body["parametreler"]:
+                v = body["parametreler"][key]
+                if v is None or v == "":
+                    cur_param[key] = None
+                else:
+                    try:
+                        cur_param[key] = float(str(v).replace(",", "."))
+                    except (TypeError, ValueError):
+                        cur_param[key] = None
+        surum["parametreler"] = cur_param
+    # İplikler (max 8 per yön)
+    if "iplikler" in body and isinstance(body["iplikler"], dict):
+        cur_ipl = surum.get("iplikler") or {"cozgu": [], "atki": []}
+        for yon in ("cozgu", "atki"):
+            if yon in body["iplikler"]:
+                lst = body["iplikler"][yon]
+                if isinstance(lst, list):
+                    cur_ipl[yon] = lst[:8]
+        surum["iplikler"] = cur_ipl
+    # Tahar grid + tarak raporu (UI gelince netleşir, jsonb passthrough)
+    for k in ("tahar_grid", "tarak_raporu"):
+        if k in body:
+            surum[k] = body[k] if isinstance(body[k], (dict, list)) else {}
+    # Notlar
+    if "notlar" in body:
+        surum["notlar"] = clean(body["notlar"]) or ""
+    surum["guncelleme_tarihi"] = now_iso()
+    d["updated_at"] = surum["guncelleme_tarihi"]
+    store.upsert(d)
+    return jsonify({"ok": True, "surum": surum})
+
+
+@app.route("/api/urun/<urun_id>/teknik/<surum_id>/ad", methods=["POST"])
+def api_teknik_surum_rename(urun_id: str, surum_id: str):
+    """Sürüm yeniden adlandır. Body: {yeni_ad}."""
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    teknik = _ensure_teknik(d)
+    surum = _find_surum(teknik, surum_id)
+    if not surum:
+        return jsonify({"ok": False, "error": "Sürüm bulunamadı"}), 404
+    yeni_ad = clean((request.get_json(force=True) or {}).get("yeni_ad"))
+    if not yeni_ad:
+        return jsonify({"ok": False, "error": "yeni_ad zorunlu"}), 400
+    surum["ad"] = yeni_ad
+    surum["guncelleme_tarihi"] = now_iso()
+    d["updated_at"] = surum["guncelleme_tarihi"]
+    store.upsert(d)
+    return jsonify({"ok": True, "ad": yeni_ad})
+
+
+@app.route("/api/urun/<urun_id>/teknik/<surum_id>", methods=["DELETE"])
+def api_teknik_surum_delete(urun_id: str, surum_id: str):
+    """Sürümü sil. Aktifse ilk sürüme geç."""
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    teknik = _ensure_teknik(d)
+    before = len(teknik["surumler"])
+    teknik["surumler"] = [s for s in teknik["surumler"] if s.get("id") != surum_id]
+    if len(teknik["surumler"]) == before:
+        return jsonify({"ok": False, "error": "Sürüm bulunamadı"}), 404
+    # Aktif kontrolü
+    if teknik.get("active_surum_id") == surum_id:
+        teknik["active_surum_id"] = (teknik["surumler"][0]["id"] if teknik["surumler"] else None)
+    d["updated_at"] = now_iso()
+    store.upsert(d)
+    return jsonify({"ok": True, "active_surum_id": teknik["active_surum_id"]})
+
+
+@app.route("/api/urun/<urun_id>/teknik/aktif", methods=["POST"])
+def api_teknik_set_active(urun_id: str):
+    """Aktif sürümü değiştir. Body: {surum_id}."""
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    teknik = _ensure_teknik(d)
+    surum_id = (request.get_json(force=True) or {}).get("surum_id")
+    if not _find_surum(teknik, surum_id):
+        return jsonify({"ok": False, "error": "Sürüm bulunamadı"}), 404
+    teknik["active_surum_id"] = surum_id
+    d["updated_at"] = now_iso()
+    store.upsert(d)
+    return jsonify({"ok": True, "active_surum_id": surum_id})
+
+
+@app.route("/api/urun/<urun_id>/teknik/<surum_id>/pdf", methods=["GET"])
+def api_teknik_pdf(urun_id: str, surum_id: str):
+    """PDF çıktısı — v3.8 Faz 4'te WeasyPrint ile uygulanacak."""
+    return jsonify({"ok": False, "error": "PDF üretimi v3.8 Faz 4'te eklenecek"}), 501
 
 
 # ============================================================

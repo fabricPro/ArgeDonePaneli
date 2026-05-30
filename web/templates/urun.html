@@ -12,6 +12,8 @@
     <a href="{{ url_for('index') }}" class="btn btn-secondary">← Galeriye dön</a>
 </div>
 {% else %}
+{# v3.8 — Sticky hero wrapper #}
+<div class="urun-sticky-hero" id="urun-sticky-hero">
 {% if display_images %}
 <div class="hero-carousel" id="hero-carousel" data-current="0">
     <div class="hero-stage" id="hero-stage">
@@ -66,6 +68,23 @@
     </div>
 </div>
 {% endif %}
+</div>{# /urun-sticky-hero #}
+
+{# v3.8 — Ana sekme navigasyonu #}
+<nav class="urun-main-tabs" id="urun-main-tabs" aria-label="Ana sekmeler">
+    <button type="button" class="utab-btn is-active" data-tab="galeri">
+        <svg class="icon"><use href="#ic-image"/></svg>
+        <span>Galeri</span>
+    </button>
+    <button type="button" class="utab-btn" data-tab="teknik">
+        <svg class="icon"><use href="#ic-pencil"/></svg>
+        <span>Teknik Çalışma</span>
+        {% if teknik and teknik.surumler %}<span class="utab-cnt">{{ teknik.surumler|length }}</span>{% endif %}
+    </button>
+</nav>
+
+{# === GALERİ SEKMESİ — mevcut tüm yapı === #}
+<section data-tab="galeri" class="utab-section">
 
 {% if product.images %}
 <nav class="album-tabs" id="album-tabs" aria-label="Albümler">
@@ -345,6 +364,96 @@
 
 <div class="carousel-dots" id="carousel-dots" aria-hidden="true"></div>
 <div class="thumb-strip" id="thumb-strip" aria-label="Görsel önizleme"></div>
+
+</section>{# /Galeri sekmesi #}
+
+{# === TEKNİK ÇALIŞMA SEKMESİ — v3.8 Faz 1 === #}
+<section data-tab="teknik" class="utab-section" hidden>
+    {% if is_mobile_ua %}
+    <div class="mobile-warning">
+        📱 Bu sekme tablet/masaüstü için tasarlandı. Telefonda da düzenlenebilir ama büyük ekran daha rahat.
+    </div>
+    {% endif %}
+
+    <div class="teknik-toolbar">
+        <select id="teknik-surum-select" class="filter-select">
+            {% for s in (teknik.surumler or []) %}
+            <option value="{{ s.id }}" {% if s.id == teknik.active_surum_id %}selected{% endif %}>{{ s.ad }}</option>
+            {% endfor %}
+            {% if not teknik.surumler %}<option value="">— Sürüm yok —</option>{% endif %}
+        </select>
+        <button id="teknik-surum-yeni" class="btn-mini" type="button">+ Yeni Sürüm</button>
+        <button id="teknik-surum-rename" class="btn-mini" type="button" {% if not teknik.surumler %}disabled{% endif %}>✎ Adlandır</button>
+        <button id="teknik-surum-sil" class="btn-mini btn-danger" type="button" {% if not teknik.surumler %}disabled{% endif %}>× Sil</button>
+        <span class="flex-spacer"></span>
+        <a id="teknik-pdf" class="btn btn-secondary" href="#" target="_blank" rel="noopener" {% if not teknik.surumler %}hidden{% endif %}>📄 PDF</a>
+        <button id="teknik-kaydet" class="btn btn-primary" type="button" {% if not teknik.surumler %}disabled{% endif %}>Kaydet</button>
+    </div>
+
+    {% if not teknik.surumler %}
+    <div class="teknik-empty">
+        <p>Bu ürün için henüz teknik çalışma sürümü yok.</p>
+        <button class="btn btn-primary" id="teknik-empty-new" type="button">+ İlk Sürümü Oluştur</button>
+    </div>
+    {% endif %}
+
+    <div class="teknik-grid" id="teknik-grid" {% if not teknik.surumler %}hidden{% endif %}>
+        <fieldset class="teknik-card teknik-parametreler">
+            <legend>Temel Parametreler</legend>
+            <div class="form-grid">
+                <div class="form-row">
+                    <label>Çözgü Sıklığı (tel/cm)</label>
+                    <input type="number" step="0.1" min="0" data-key="cozgu_sikligi" placeholder="örn. 28">
+                </div>
+                <div class="form-row">
+                    <label>Atkı Sıklığı (tel/cm)</label>
+                    <input type="number" step="0.1" min="0" data-key="atki_sikligi" placeholder="örn. 24">
+                </div>
+                <div class="form-row">
+                    <label>Ham En (cm)</label>
+                    <input type="number" step="0.1" min="0" data-key="ham_en_cm" placeholder="örn. 320">
+                </div>
+                <div class="form-row">
+                    <label>Mamül En (cm) {% if product.width_cm %}<span class="hint-default">(varsayılan {{ product.width_cm }})</span>{% endif %}</label>
+                    <input type="number" step="0.1" min="0" data-key="mamul_en_cm" placeholder="{{ product.width_cm or 'gir' }}">
+                </div>
+                <div class="form-row">
+                    <label>Gramaj (g/m²) {% if product.weight_gsm %}<span class="hint-default">(varsayılan {{ product.weight_gsm }})</span>{% endif %}</label>
+                    <input type="number" step="1" min="0" data-key="gramaj_gsm" placeholder="{{ product.weight_gsm or 'gir' }}">
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset class="teknik-card teknik-iplikler">
+            <legend>İplikler (Çözgü + Atkı)</legend>
+            <div class="ui-placeholder">
+                <p><strong>Faz 2'de eklenecek:</strong> Çözgü max 8 + Atkı max 8 iplik tablosu (etiket, kompozisyon, numara, renk, oran %).</p>
+            </div>
+        </fieldset>
+
+        <fieldset class="teknik-card teknik-tahar">
+            <legend>Tahar Armür Desen Gridi</legend>
+            <div class="ui-placeholder">
+                <p><strong>Faz 3'te eklenecek:</strong> kullanıcının yollayacağı UI örneğine göre interaktif grid.</p>
+            </div>
+        </fieldset>
+
+        <fieldset class="teknik-card teknik-tarak">
+            <legend>Tarak Raporu</legend>
+            <div class="ui-placeholder">
+                <p><strong>Faz 3'te eklenecek:</strong> kullanıcının yollayacağı UI örneğine göre.</p>
+            </div>
+        </fieldset>
+
+        <fieldset class="teknik-card teknik-notlar">
+            <legend>Notlar</legend>
+            <textarea data-key="notlar" rows="4" placeholder="Bu sürüm için ARGE notları, deneme amacı, hedef müşteri, vb."></textarea>
+        </fieldset>
+    </div>
+
+    {# Tüm sürüm verisi — JS okumak için #}
+    <script type="application/json" id="teknik-data">{{ teknik|tojson }}</script>
+</section>{# /Teknik sekmesi #}
 
 <!-- Lightbox -->
 <div class="lightbox-overlay" id="lightbox" hidden>
@@ -1251,5 +1360,29 @@ grid.addEventListener('dragover', (e) => {
     }
 })();
 </script>
+
+{# v3.8 — Ana sekme nav (Galeri/Teknik) + URL hash + teknik.js include #}
+<script>
+(function () {
+    const tabs = document.querySelectorAll('.urun-main-tabs .utab-btn');
+    if (!tabs.length) return;
+    const sections = document.querySelectorAll('.utab-section');
+    function setTab(name) {
+        tabs.forEach(t => t.classList.toggle('is-active', t.dataset.tab === name));
+        sections.forEach(s => s.hidden = s.dataset.tab !== name);
+        // URL hash güncelle (history kirletmeden)
+        if (history.replaceState) {
+            history.replaceState(null, '', location.pathname + '#' + name);
+        } else {
+            location.hash = '#' + name;
+        }
+    }
+    tabs.forEach(t => t.addEventListener('click', () => setTab(t.dataset.tab)));
+    const initial = (location.hash || '#galeri').slice(1);
+    setTab(['galeri', 'teknik'].includes(initial) ? initial : 'galeri');
+})();
+</script>
+<script src="{{ url_for('static', filename='js/teknik.js') }}"></script>
+
 {% endif %}
 {% endblock %}

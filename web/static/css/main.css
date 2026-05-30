@@ -2988,6 +2988,203 @@ body.image-select-on .img-manage-card .variant-label-input { pointer-events: non
 }
 
 /* =========================================================
+   v3.8 — Teknik Çalışma Sekmesi (sticky hero + sekme + form)
+   ========================================================= */
+
+/* Sticky hero — scroll'da üstte kalır */
+.urun-sticky-hero {
+    position: sticky;
+    top: 56px;                  /* topbar altı */
+    z-index: 50;
+    background: var(--bg);
+    padding: 4px 0 8px;
+    margin: 0 0 12px;
+    border-bottom: 1px solid var(--border);
+    transition: padding var(--t-base) var(--ease);
+}
+
+/* Ana sekme nav (Galeri/Teknik) */
+.urun-main-tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid var(--border);
+    margin: 0 0 18px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+.utab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: var(--type-h3);
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    margin-bottom: -1px;
+    transition: color var(--t-fast) var(--ease),
+                border-color var(--t-fast) var(--ease);
+}
+.utab-btn:hover { color: var(--text); }
+.utab-btn.is-active { color: var(--accent); border-bottom-color: var(--accent); }
+.utab-btn .icon { width: 18px; height: 18px; }
+.utab-btn .utab-cnt {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    padding: 0 7px;
+    height: 18px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #1a1410;
+    font-size: var(--type-caption);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.utab-section[hidden] { display: none; }
+
+/* Teknik toolbar — sürüm seçici + aksiyon butonları */
+.teknik-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 16px;
+}
+.teknik-toolbar #teknik-surum-select {
+    min-width: 220px;
+    flex: 0 1 auto;
+}
+.teknik-toolbar .flex-spacer { flex: 1; }
+
+/* Sürüm yokken boş mesaj */
+.teknik-empty {
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--text-dim);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 16px;
+}
+.teknik-empty p { margin: 0 0 16px; font-size: var(--type-body); }
+
+/* Teknik form grid */
+.teknik-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+.teknik-grid[hidden] { display: none; }
+.teknik-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    margin: 0;
+}
+.teknik-card legend {
+    font-weight: 700;
+    font-size: var(--type-h3);
+    color: var(--accent);
+    padding: 0 6px;
+}
+.teknik-card .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-top: 4px;
+}
+.teknik-card .form-row label {
+    display: block;
+    font-size: var(--type-caption);
+    color: var(--text-dim);
+    margin-bottom: 4px;
+}
+.teknik-card .form-row input,
+.teknik-card textarea {
+    width: 100%;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 8px 10px;
+    font-family: inherit;
+    font-size: var(--type-body);
+}
+.teknik-card .form-row input:focus,
+.teknik-card textarea:focus {
+    border-color: var(--accent);
+    outline: none;
+}
+.teknik-card .hint-default {
+    font-size: var(--type-caption);
+    color: var(--text-muted);
+    margin-left: 4px;
+    font-weight: 400;
+}
+
+/* Geniş kart (notlar + tahar + tarak + iplikler) — 2 sütun yan yana yerine tam genişlik */
+.teknik-iplikler,
+.teknik-tahar,
+.teknik-tarak,
+.teknik-notlar { grid-column: 1 / -1; }
+
+/* Placeholder kutuları (Faz 2-3 için) */
+.ui-placeholder {
+    background: var(--bg-elev);
+    border: 1px dashed var(--border-strong, var(--border));
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: var(--type-small);
+}
+.ui-placeholder p { margin: 0; }
+.ui-placeholder strong { color: var(--accent); }
+
+/* Mobil uyarı banner */
+.mobile-warning {
+    background: rgba(212, 175, 127, 0.12);
+    border: 1px solid rgba(212, 175, 127, 0.35);
+    color: var(--accent);
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    font-size: var(--type-small);
+    margin-bottom: 14px;
+    line-height: 1.5;
+}
+
+/* Mobile (≤720px) — teknik form 1-sütun */
+@media (max-width: 720px) {
+    .urun-sticky-hero {
+        position: static;     /* mobile'da hero zaten display:none, sticky gereksiz */
+        padding: 0;
+        margin: 0;
+        border: none;
+    }
+    .urun-main-tabs { font-size: 14px; }
+    .utab-btn { padding: 10px 12px; font-size: var(--type-body); min-height: 44px; }
+    .teknik-toolbar { padding: 10px; gap: 6px; }
+    .teknik-toolbar #teknik-surum-select { min-width: 0; flex: 1 1 100%; }
+    .teknik-toolbar .btn-mini,
+    .teknik-toolbar .btn { min-height: 44px; }
+    .teknik-grid { grid-template-columns: 1fr; gap: 10px; }
+    .teknik-card { padding: 12px; }
+    .teknik-card .form-grid { grid-template-columns: 1fr; gap: 8px; }
+}
+
+/* =========================================================
    v3.7 — Hero Cetvel + Rapor Ölçümü
    ========================================================= */
 
