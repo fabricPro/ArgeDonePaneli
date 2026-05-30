@@ -475,6 +475,7 @@
 {% if product %}
 <script>
 const URUN_ID = {{ urun_id|tojson }};
+window.URUN_ID = URUN_ID;  // teknik.js ve diğer dış modüller erişebilsin
 
 async function postJson(url, body) {
     const res = await fetch(url, {
