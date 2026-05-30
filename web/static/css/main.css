@@ -1335,8 +1335,11 @@ main { padding: 24px 32px; max-width: 1600px; margin: 0 auto; }
 .btn-pin-remove:hover { background: var(--red); }
 .btn-pin-remove svg { width: 11px; height: 11px; }
 
-/* === Varyant grup ayraci (image-manage-grid icinde, masaustu) === */
-.variant-separator {
+/* === Varyant grup ayraci (image-manage-grid icinde, masaustu) ===
+   v3.5: default GIZLI — kartlar yan yana kalir.
+   Toggle ile aktif: body.group-variants */
+.variant-separator { display: none; }
+body.group-variants .variant-separator {
     grid-column: 1 / -1;
     display: flex;
     align-items: center;
@@ -1879,6 +1882,8 @@ body.design-on .product-card:active { cursor: grabbing; }
 
     /* Mobilde varyant ayracleri gizli — her slide'in yuzen etiketi zaten varyanti soyler */
     .variant-separator { display: none; }
+    /* Mobilde "Grupla" toggle anlamsiz (carousel zaten) — gizle */
+    #group-toggle { display: none; }
 
     /* === Gorsel carousel (image-manage-grid mobil-transform) === */
     .image-manage-grid {
@@ -2201,7 +2206,9 @@ body.select-on .card-delete-btn { pointer-events: none; }
 .select-actionbar .sel-count { font-size: var(--type-body); color: var(--text); }
 .select-actionbar .sel-count strong { color: var(--accent); font-size: var(--type-h2); font-variant-numeric: tabular-nums; }
 .select-actionbar .sel-actions { display: flex; gap: 8px; }
-#select-toggle.is-active { background: var(--accent); color: #1a1410; border-color: var(--accent); }
+#select-toggle.is-active,
+#img-select-toggle.is-active,
+#group-toggle.is-active { background: var(--accent); color: #1a1410; border-color: var(--accent); }
 
 /* --- Hero carousel (masaüstü) --- */
 .hero-carousel {

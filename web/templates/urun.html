@@ -141,6 +141,7 @@
         <span id="design-hint" class="design-hint" hidden>↔ Kartları sürükleyip bırakarak sırala</span>
         <button id="design-save" class="btn btn-primary" hidden>Sıralamayı Kaydet</button>
         <button id="design-cancel" class="btn btn-secondary" hidden>İptal</button>
+        <button id="group-toggle" class="btn btn-secondary" title="Varyanta göre gruplama aç/kapat">🎨 Grupla</button>
         <button id="design-toggle" class="btn btn-secondary"><svg class="icon"><use href="#ic-pencil"/></svg> Tasarım Modu</button>
         <button id="img-select-toggle" class="btn btn-secondary"><svg class="icon"><use href="#ic-check"/></svg> Seç</button>
     </div>
@@ -517,6 +518,26 @@ grid.addEventListener('dragover', (e) => {
         .observe(lb, { attributes: true, attributeFilter: ['hidden'] });
     new MutationObserver(() => { reset(); })
         .observe(lbImg, { attributes: true, attributeFilter: ['src'] });
+})();
+
+// --- Varyanta göre grupla toggle (default: kapalı = yan yana) ---
+(function () {
+    const btn = document.getElementById('group-toggle');
+    if (!btn) return;
+    const KEY = 'images_grouped';
+    function apply(on) {
+        document.body.classList.toggle('group-variants', on);
+        btn.classList.toggle('is-active', on);
+        btn.textContent = on ? '🎨 Gruplu' : '🎨 Grupla';
+    }
+    let saved = false;
+    try { saved = localStorage.getItem(KEY) === '1'; } catch (e) {}
+    apply(saved);
+    btn.addEventListener('click', () => {
+        const on = !document.body.classList.contains('group-variants');
+        try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) {}
+        apply(on);
+    });
 })();
 
 // --- Hero carousel (masaüstü) ---
