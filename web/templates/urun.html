@@ -398,31 +398,9 @@
     {% endif %}
 
     <div class="teknik-grid" id="teknik-grid" {% if not teknik.surumler %}hidden{% endif %}>
-        <fieldset class="teknik-card teknik-parametreler">
-            <legend>Temel Parametreler</legend>
-            <div class="form-grid">
-                <div class="form-row">
-                    <label>Çözgü Sıklığı (tel/cm)</label>
-                    <input type="number" step="0.1" min="0" data-key="cozgu_sikligi" placeholder="örn. 28">
-                </div>
-                <div class="form-row">
-                    <label>Atkı Sıklığı (tel/cm)</label>
-                    <input type="number" step="0.1" min="0" data-key="atki_sikligi" placeholder="örn. 24">
-                </div>
-                <div class="form-row">
-                    <label>Ham En (cm)</label>
-                    <input type="number" step="0.1" min="0" data-key="ham_en_cm" placeholder="örn. 320">
-                </div>
-                <div class="form-row">
-                    <label>Mamül En (cm) {% if product.width_cm %}<span class="hint-default">(varsayılan {{ product.width_cm }})</span>{% endif %}</label>
-                    <input type="number" step="0.1" min="0" data-key="mamul_en_cm" placeholder="{{ product.width_cm or 'gir' }}">
-                </div>
-                <div class="form-row">
-                    <label>Gramaj (g/m²) {% if product.weight_gsm %}<span class="hint-default">(varsayılan {{ product.weight_gsm }})</span>{% endif %}</label>
-                    <input type="number" step="1" min="0" data-key="gramaj_gsm" placeholder="{{ product.weight_gsm or 'gir' }}">
-                </div>
-            </div>
-        </fieldset>
+        {# v3.9: "Temel Parametreler" fieldset kaldırıldı — Analiz tab'ında
+           daha detaylı: olcum (gramaj, tarak en, mamül en) + her iplik için
+           sıklık ayrı (cozgu/atki listelerinde). #}
 
         {# v3.9 — NumuneAnaliz React modülü (Analiz · Maliyet · Desen · Tarak) #}
         {# Faz 2 "İplikler" placeholder kaldırıldı — Analiz tab içinde detaylı iplik tablosu #}
