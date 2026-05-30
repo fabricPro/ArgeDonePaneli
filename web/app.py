@@ -32,6 +32,9 @@ import store
 app = Flask(__name__, template_folder="templates", static_folder="static")
 app.secret_key = os.environ.get("SECRET_KEY", "dev-insecure-change-me")
 app.config["MAX_CONTENT_LENGTH"] = 64 * 1024 * 1024  # 64 MB
+# Sablon onbellegini kapat — her istekte disk mtime kontrolu (hem yerel hem Render)
+app.config["TEMPLATES_AUTO_RELOAD"] = True
+app.jinja_env.auto_reload = True
 
 APP_PASSWORD = os.environ.get("APP_PASSWORD", "")
 
@@ -627,7 +630,10 @@ def analiz():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", "5000"))
-    print(f"Mobidik Kumas Paneli — http://localhost:{port}")
+    # FLASK_ENV=production -> debug kapali (Render asagidaki main'i kullanmaz, gunicorn calistirir)
+    # Yerel calistirmada debug=True: kod degisikliklerinde otomatik reload + sablon refresh.
+    debug = os.environ.get("FLASK_ENV", "").lower() != "production"
+    print(f"Fabric Agent System — http://localhost:{port}  (debug={debug})")
     if not APP_PASSWORD:
         print("UYARI: APP_PASSWORD bos — panel sifresiz acik (yerel gelistirme).")
-    app.run(host="0.0.0.0", port=port, debug=False, threaded=True)
+    app.run(host="0.0.0.0", port=port, debug=debug, threaded=True, use_reloader=debug)
