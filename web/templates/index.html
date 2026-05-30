@@ -68,6 +68,13 @@
            data-country="{{ (p.country or '')|lower }}">
             <button type="button" class="card-delete-btn" data-urunid="{{ p.urun_id }}" data-name-label="{{ p.product_name }}" aria-label="Bu ürünü sil" title="Bu ürünü sil"><svg class="icon"><use href="#ic-x"/></svg></button>
             <span class="card-select-check" aria-hidden="true"><svg class="icon"><use href="#ic-check"/></svg></span>
+            {% if p.has_color_album %}
+            <span class="card-color-flag" title="Renkler albümü var{% if p.palette_size %} · {{ p.palette_size }} renk paletinde{% endif %}" aria-label="Renkler albümü var">
+                <svg class="icon"><use href="#ic-image"/></svg>
+                <span class="ccf-label">Renkler</span>
+                {% if p.palette_size %}<span class="ccf-cnt">{{ p.palette_size }}</span>{% endif %}
+            </span>
+            {% endif %}
             <div class="card-media">
                 {% if p.cover_image %}
                 <img src="{{ p.cover_image }}" alt="{{ p.product_name }}" loading="lazy">

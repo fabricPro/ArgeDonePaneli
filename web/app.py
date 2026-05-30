@@ -150,6 +150,28 @@ def cover_path(d: dict) -> str | None:
 
 
 def product_summary(d: dict) -> dict:
+    # "Renkler" adında veya slug'ında albüm var mı? (v3.6+)
+    has_color_album = False
+    color_album_slug = None
+    for a in (d.get("albums") or []):
+        a_slug = (a.get("slug") or "").lower()
+        a_name = (a.get("name") or "").strip().lower()
+        if a_slug == "renkler" or a_name == "renkler":
+            color_album_slug = a.get("slug")
+            break
+    if color_album_slug:
+        # Albüme atanmış en az bir görsel olmalı (boş albüm sayılmaz)
+        for im in (d.get("images") or []):
+            if color_album_slug in (im.get("albums") or []):
+                has_color_album = True
+                break
+    # Renk paleti sayısı (auto-derived)
+    palette_size = len({
+        c["hex"].upper()
+        for im in (d.get("images") or [])
+        for c in (im.get("colors") or {}).values()
+        if c and c.get("hex")
+    })
     return {
         "urun_id": d.get("urun_id"), "brand": d.get("brand"),
         "brand_slug": d.get("brand_slug"), "country": d.get("country"),
@@ -159,6 +181,8 @@ def product_summary(d: dict) -> dict:
         "cover_image": store.public_url(cover_path(d)),
         "variant_count": len(d.get("images") or []),
         "updated_at": d.get("updated_at"),
+        "has_color_album": has_color_album,
+        "palette_size": palette_size,
     }
 
 
