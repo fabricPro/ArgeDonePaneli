@@ -12,10 +12,54 @@
     <a href="{{ url_for('index') }}" class="btn btn-secondary">← Galeriye dön</a>
 </div>
 {% else %}
-{% if cover_image %}
-<div class="hero-image">
-    <img src="{{ cover_image }}" alt="{{ product.product_name }}" loading="eager">
+{% if display_images %}
+<div class="hero-carousel" id="hero-carousel" data-current="0">
+    <div class="hero-stage">
+        {% for im in display_images %}
+        <img class="hero-slide {% if loop.first %}is-active{% endif %}"
+             src="{{ im.url }}"
+             data-idx="{{ loop.index0 }}"
+             data-full="{{ im.url }}"
+             data-path="{{ im.path }}"
+             data-caption="{{ im.variant_label or product.product_name }}"
+             data-albums='{{ (im.albums or [])|tojson }}'
+             alt="{{ im.variant_label or product.product_name }}"
+             loading="{% if loop.first %}eager{% else %}lazy{% endif %}">
+        {% endfor %}
+        <button class="hero-arrow hero-prev" id="hero-prev" type="button" aria-label="Önceki">‹</button>
+        <button class="hero-arrow hero-next" id="hero-next" type="button" aria-label="Sonraki">›</button>
+    </div>
+    {% if display_images|length > 1 %}
+    <div class="hero-thumbs" id="hero-thumbs">
+        {% for im in display_images %}
+        <button class="hero-thumb {% if loop.first %}is-active{% endif %}"
+                type="button" data-idx="{{ loop.index0 }}"
+                data-albums='{{ (im.albums or [])|tojson }}'
+                aria-label="{{ im.variant_label or 'Görsel ' ~ loop.index }}">
+            <img src="{{ im.url }}" loading="lazy" alt="">
+        </button>
+        {% endfor %}
+    </div>
+    {% endif %}
 </div>
+{% endif %}
+
+{% if product.images %}
+<nav class="album-tabs" id="album-tabs" aria-label="Albümler">
+    <button type="button" class="album-tab is-active" data-album="">
+        Tümü <span class="cnt">{{ product.images|length }}</span>
+    </button>
+    {% for a in albums %}
+    <button type="button" class="album-tab" data-album="{{ a.slug }}" data-name="{{ a.name }}">
+        {{ a.name }} <span class="cnt">{{ album_counts.get(a.slug, 0) }}</span>
+        <span class="album-edit" data-action="rename" title="Yeniden adlandır">✎</span>
+        <span class="album-edit" data-action="delete" title="Albümü sil">×</span>
+    </button>
+    {% endfor %}
+    <button type="button" class="album-tab album-new" id="album-new-btn" title="Yeni albüm">
+        <svg class="icon"><use href="#ic-plus"/></svg> Yeni Albüm
+    </button>
+</nav>
 {% endif %}
 <div class="detail-header">
     <div class="detail-header-text">
@@ -98,6 +142,31 @@
         <button id="design-save" class="btn btn-primary" hidden>Sıralamayı Kaydet</button>
         <button id="design-cancel" class="btn btn-secondary" hidden>İptal</button>
         <button id="design-toggle" class="btn btn-secondary"><svg class="icon"><use href="#ic-pencil"/></svg> Tasarım Modu</button>
+        <button id="img-select-toggle" class="btn btn-secondary"><svg class="icon"><use href="#ic-check"/></svg> Seç</button>
+    </div>
+</div>
+
+<div id="img-select-actionbar" class="img-select-actionbar" hidden>
+    <span class="sel-count"><strong id="img-sel-count">0</strong> görsel seçili</span>
+    <div class="sel-actions">
+        {% if albums %}
+        <select id="album-assign" class="album-assign-select" aria-label="Albüme ekle">
+            <option value="">Albüme Ekle…</option>
+            {% for a in albums %}
+            <option value="{{ a.slug }}">{{ a.name }}</option>
+            {% endfor %}
+            <option value="__new__">+ Yeni albüm…</option>
+        </select>
+        <select id="album-unassign" class="album-assign-select" aria-label="Albümden kaldır">
+            <option value="">Albümden Kaldır…</option>
+            {% for a in albums %}
+            <option value="{{ a.slug }}">{{ a.name }}</option>
+            {% endfor %}
+        </select>
+        {% else %}
+        <button id="album-quick-create" class="btn btn-secondary"><svg class="icon"><use href="#ic-plus"/></svg> Yeni albüme ekle</button>
+        {% endif %}
+        <button id="img-sel-cancel" class="btn btn-secondary">İptal</button>
     </div>
 </div>
 <div class="image-manage-grid" id="image-grid">
@@ -108,7 +177,11 @@
         <span class="vs-count">{{ item.count }}</span>
     </div>
         {% else %}
-    <div class="img-manage-card {% if item.is_cover %}is-cover{% endif %}" data-path="{{ item.path }}" data-label="{{ item.variant_label or '' }}">
+    <div class="img-manage-card {% if item.is_cover %}is-cover{% endif %}"
+         data-path="{{ item.path }}"
+         data-label="{{ item.variant_label or '' }}"
+         data-albums='{{ (item.albums or [])|tojson }}'>
+        <span class="img-check-overlay" aria-hidden="true"><svg class="icon"><use href="#ic-check"/></svg></span>
         {% if item.is_cover %}<div class="cover-badge"><svg class="icon"><use href="#ic-star"/></svg> Kapak</div>{% endif %}
         <img src="{{ item.url }}"
              alt="{{ item.variant_label or '' }}" loading="lazy" draggable="false"
@@ -143,6 +216,8 @@
 <!-- Lightbox -->
 <div class="lightbox-overlay" id="lightbox" hidden>
     <button class="lightbox-close" id="lightbox-close" title="Kapat"><svg class="icon icon-lg"><use href="#ic-x"/></svg></button>
+    <button class="lb-nav lb-prev" id="lb-prev" type="button" aria-label="Önceki">‹</button>
+    <button class="lb-nav lb-next" id="lb-next" type="button" aria-label="Sonraki">›</button>
     <img id="lightbox-img" src="" alt="">
     <div class="lightbox-caption" id="lightbox-caption"></div>
     <div class="lightbox-zoom-controls" id="lightbox-zoom-controls">
@@ -170,25 +245,73 @@ async function postJson(url, body) {
 
 let designMode = false;
 
-// --- Lightbox ---
+// --- Lightbox (paylaşılan, prev/next ile) ---
 const lb = document.getElementById('lightbox');
 const lbImg = document.getElementById('lightbox-img');
 const lbCap = document.getElementById('lightbox-caption');
+const lbPrev = document.getElementById('lb-prev');
+const lbNext = document.getElementById('lb-next');
+
+// Tüm görselleri ortak liste — hem hero hem image-grid bunu kullanır
+const LB_IMAGES = [
+    {% for im in display_images %}
+    { src: {{ im.url|tojson }}, caption: {{ (im.variant_label or product.product_name)|tojson }}, path: {{ im.path|tojson }}, albums: {{ (im.albums or [])|tojson }} },
+    {% endfor %}
+];
+let lbIdx = 0;
+let lbFiltered = LB_IMAGES.map((_, i) => i);  // şu an görünür index listesi
+
+function lbVisibleByPath(path) {
+    return lbFiltered.find(i => LB_IMAGES[i].path === path);
+}
+function openLightboxByPath(path) {
+    const i = lbVisibleByPath(path);
+    if (i === undefined) return;
+    openLightboxAtFilteredIdx(lbFiltered.indexOf(i));
+}
+function openLightboxAtFilteredIdx(fIdx) {
+    if (fIdx < 0 || fIdx >= lbFiltered.length) return;
+    lbIdx = fIdx;
+    const im = LB_IMAGES[lbFiltered[lbIdx]];
+    lbImg.src = im.src;
+    lbCap.textContent = im.caption || '';
+    lb.hidden = false;
+    updateLbNav();
+}
+function updateLbNav() {
+    if (!lbPrev || !lbNext) return;
+    lbPrev.disabled = lbIdx <= 0;
+    lbNext.disabled = lbIdx >= lbFiltered.length - 1;
+    lbPrev.hidden = lbFiltered.length <= 1;
+    lbNext.hidden = lbFiltered.length <= 1;
+}
+function lbStep(delta) {
+    const next = lbIdx + delta;
+    if (next < 0 || next >= lbFiltered.length) return;
+    openLightboxAtFilteredIdx(next);
+}
+lbPrev?.addEventListener('click', (e) => { e.stopPropagation(); lbStep(-1); });
+lbNext?.addEventListener('click', (e) => { e.stopPropagation(); lbStep(1); });
+
 document.querySelectorAll('.manage-img').forEach(img => {
     img.style.cursor = 'zoom-in';
     img.addEventListener('click', () => {
-        if (designMode) return;  // tasarim modunda surukleme var, lightbox acma
+        if (designMode) return;
+        if (document.body.classList.contains('image-select-on')) return;
         const g = document.getElementById('image-grid');
-        if (g && g._suppressTap) return;  // mobil swipe sirasinda lightbox acma
-        lbImg.src = img.dataset.full;
-        lbCap.textContent = img.dataset.caption || '';
-        lb.hidden = false;
+        if (g && g._suppressTap) return;
+        openLightboxByPath(img.closest('.img-manage-card')?.dataset.path);
     });
 });
 function closeLb() { lb.hidden = true; lbImg.src = ''; }
 document.getElementById('lightbox-close').addEventListener('click', closeLb);
 lb.addEventListener('click', (e) => { if (e.target === lb) closeLb(); });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !lb.hidden) closeLb(); });
+document.addEventListener('keydown', (e) => {
+    if (lb.hidden) return;
+    if (e.key === 'Escape') closeLb();
+    else if (e.key === 'ArrowLeft') lbStep(-1);
+    else if (e.key === 'ArrowRight') lbStep(1);
+});
 
 // --- Kapak yap ---
 document.querySelectorAll('.btn-set-cover').forEach(btn => {
@@ -389,9 +512,241 @@ grid.addEventListener('dragover', (e) => {
         lastTap = now;
     });
 
-    // Lightbox kapaninca state reset
+    // Lightbox kapaninca + src degisince state reset
     new MutationObserver(() => { if (lb.hidden) reset(); })
         .observe(lb, { attributes: true, attributeFilter: ['hidden'] });
+    new MutationObserver(() => { reset(); })
+        .observe(lbImg, { attributes: true, attributeFilter: ['src'] });
+})();
+
+// --- Hero carousel (masaüstü) ---
+(function () {
+    const hero = document.getElementById('hero-carousel');
+    if (!hero) return;
+    const slides = [...hero.querySelectorAll('.hero-slide')];
+    const thumbs = [...hero.querySelectorAll('.hero-thumb')];
+    const prev = document.getElementById('hero-prev');
+    const next = document.getElementById('hero-next');
+    if (slides.length <= 1) {
+        if (prev) prev.hidden = true;
+        if (next) next.hidden = true;
+    }
+    let cur = 0;
+
+    function visibleIndexes() {
+        return slides.map((s, i) => i).filter(i => !slides[i].hidden);
+    }
+    function setActive(idx) {
+        const vis = visibleIndexes();
+        if (vis.length === 0) return;
+        if (!vis.includes(idx)) idx = vis[0];
+        cur = idx;
+        slides.forEach((s, i) => s.classList.toggle('is-active', i === idx));
+        thumbs.forEach((t, i) => t.classList.toggle('is-active', i === idx));
+        const t = thumbs[idx];
+        if (t) t.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        hero.dataset.current = idx;
+        updateArrows();
+    }
+    function updateArrows() {
+        const vis = visibleIndexes();
+        const pos = vis.indexOf(cur);
+        if (prev) prev.disabled = pos <= 0;
+        if (next) next.disabled = pos >= vis.length - 1;
+    }
+    function step(delta) {
+        const vis = visibleIndexes();
+        const pos = vis.indexOf(cur);
+        const np = pos + delta;
+        if (np < 0 || np >= vis.length) return;
+        setActive(vis[np]);
+    }
+
+    prev?.addEventListener('click', () => step(-1));
+    next?.addEventListener('click', () => step(1));
+
+    thumbs.forEach(t => {
+        t.addEventListener('click', () => setActive(parseInt(t.dataset.idx, 10) || 0));
+    });
+
+    slides.forEach(s => {
+        s.addEventListener('click', () => {
+            if (document.body.classList.contains('image-select-on')) return;
+            openLightboxByPath(s.dataset.path);
+        });
+    });
+
+    // Klavye ←/→ — lightbox kapalıyken hero focused değilse de çalışsın (sadece masaüstü için)
+    document.addEventListener('keydown', (e) => {
+        if (!lb.hidden) return;
+        if (window.matchMedia('(max-width: 720px)').matches) return;
+        if (e.target.matches('input, textarea, select')) return;
+        if (e.key === 'ArrowLeft') step(-1);
+        else if (e.key === 'ArrowRight') step(1);
+    });
+
+    // Public API — album filter sonrası ilk visible'a kay
+    window._heroResync = function () {
+        const vis = visibleIndexes();
+        if (vis.length === 0) return;
+        if (!vis.includes(cur)) setActive(vis[0]);
+        else updateArrows();
+    };
+})();
+
+// --- Albüm filtresi (client-side) + albüm CRUD ---
+(function () {
+    const tabs = document.querySelectorAll('.album-tab');
+    if (tabs.length === 0) return;
+
+    function applyAlbumFilter(slug) {
+        document.body.dataset.album = slug || '';
+        // image-manage-card, hero-slide, hero-thumb
+        const apply = (els) => {
+            els.forEach(el => {
+                let tags = [];
+                try { tags = JSON.parse(el.dataset.albums || '[]'); } catch (e) {}
+                el.hidden = slug && !tags.includes(slug);
+            });
+        };
+        apply(document.querySelectorAll('.img-manage-card'));
+        apply(document.querySelectorAll('.hero-slide'));
+        apply(document.querySelectorAll('.hero-thumb'));
+        // Varyant header'ları: alttaki kart kalmamışsa gizle
+        document.querySelectorAll('.variant-separator').forEach(h => {
+            // header'dan sonraki img-manage-card'lar görünür mü?
+            let n = h.nextElementSibling, anyVisible = false;
+            while (n && !n.classList.contains('variant-separator')) {
+                if (n.classList.contains('img-manage-card') && !n.hidden) { anyVisible = true; break; }
+                n = n.nextElementSibling;
+            }
+            h.hidden = !anyVisible;
+        });
+        // Lightbox filtered list güncelle
+        lbFiltered = LB_IMAGES.map((im, i) => i).filter(i => {
+            if (!slug) return true;
+            return (LB_IMAGES[i].albums || []).includes(slug);
+        });
+        // Hero'yu ilk visible slide'a kaydır
+        if (window._heroResync) window._heroResync();
+    }
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            // Edit/delete butonlarına tıklamayı yakala
+            const action = e.target.closest('.album-edit')?.dataset.action;
+            const slug = tab.dataset.album;
+            if (action === 'rename') {
+                e.stopPropagation();
+                const cur = tab.dataset.name || '';
+                const newName = prompt('Yeni albüm adı:', cur);
+                if (!newName || newName.trim() === cur) return;
+                postJson(`/api/urun/${URUN_ID}/album-yeniden-adlandir`, { slug, new_name: newName.trim() })
+                    .then(d => d.ok ? location.reload() : (window.toast || alert)(d.error || 'Yeniden adlandırılamadı', 'error'));
+                return;
+            }
+            if (action === 'delete') {
+                e.stopPropagation();
+                if (!confirm(`"${tab.dataset.name}" albümü silinsin mi? Görseller silinmez, sadece etiket kaldırılır.`)) return;
+                postJson(`/api/urun/${URUN_ID}/album-sil`, { slug })
+                    .then(d => d.ok ? location.reload() : (window.toast || alert)(d.error || 'Silinemedi', 'error'));
+                return;
+            }
+            if (tab.id === 'album-new-btn') {
+                const name = prompt('Yeni albüm adı (örn. Varyantlar, Analiz):', '');
+                if (!name || !name.trim()) return;
+                postJson(`/api/urun/${URUN_ID}/album-ekle`, { name: name.trim() })
+                    .then(d => d.ok ? location.reload() : (window.toast || alert)(d.error || 'Albüm oluşturulamadı', 'error'));
+                return;
+            }
+            // Normal tab tıklama → filtre uygula
+            tabs.forEach(t => t.classList.toggle('is-active', t === tab));
+            applyAlbumFilter(slug);
+        });
+    });
+})();
+
+// --- Görsel seçim modu + albüme atama ---
+(function () {
+    const toggle = document.getElementById('img-select-toggle');
+    const bar = document.getElementById('img-select-actionbar');
+    const countEl = document.getElementById('img-sel-count');
+    const cancelBtn = document.getElementById('img-sel-cancel');
+    const assignSel = document.getElementById('album-assign');
+    const unassignSel = document.getElementById('album-unassign');
+    const quickCreateBtn = document.getElementById('album-quick-create');
+    const gridEl = document.getElementById('image-grid');
+    if (!toggle || !gridEl) return;
+
+    const selectedPaths = new Set();
+    function updateCount() { if (countEl) countEl.textContent = selectedPaths.size; }
+    function setOn(on) {
+        document.body.classList.toggle('image-select-on', on);
+        toggle.classList.toggle('is-active', on);
+        if (!on) {
+            selectedPaths.clear();
+            document.querySelectorAll('.img-manage-card.is-selected').forEach(c => c.classList.remove('is-selected'));
+        }
+        bar.hidden = !on;
+        updateCount();
+    }
+    toggle.addEventListener('click', () => setOn(!document.body.classList.contains('image-select-on')));
+    cancelBtn?.addEventListener('click', () => setOn(false));
+
+    gridEl.addEventListener('click', (e) => {
+        if (!document.body.classList.contains('image-select-on')) return;
+        const card = e.target.closest('.img-manage-card');
+        if (!card) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const p = card.dataset.path;
+        if (selectedPaths.has(p)) { selectedPaths.delete(p); card.classList.remove('is-selected'); }
+        else { selectedPaths.add(p); card.classList.add('is-selected'); }
+        updateCount();
+    }, true);
+
+    async function assignToAlbum(slug, add) {
+        if (selectedPaths.size === 0) {
+            (window.toast || alert)('Önce görsel seç', 'warn');
+            return;
+        }
+        const data = await postJson(`/api/urun/${URUN_ID}/album-atama`, {
+            slug, paths: [...selectedPaths], add: !!add
+        });
+        if (data.ok) location.reload();
+        else (window.toast || alert)(data.error || 'Atama hatası', 'error');
+    }
+
+    assignSel?.addEventListener('change', async (e) => {
+        const v = e.target.value;
+        if (!v) return;
+        if (v === '__new__') {
+            const name = prompt('Yeni albüm adı:', '');
+            e.target.value = '';
+            if (!name || !name.trim()) return;
+            const d = await postJson(`/api/urun/${URUN_ID}/album-ekle`, { name: name.trim() });
+            if (!d.ok) return (window.toast || alert)(d.error || 'Albüm oluşturulamadı', 'error');
+            await assignToAlbum(d.slug, true);
+            return;
+        }
+        await assignToAlbum(v, true);
+        e.target.value = '';
+    });
+
+    unassignSel?.addEventListener('change', async (e) => {
+        const v = e.target.value;
+        if (!v) return;
+        await assignToAlbum(v, false);
+        e.target.value = '';
+    });
+
+    quickCreateBtn?.addEventListener('click', async () => {
+        const name = prompt('Yeni albüm adı:', '');
+        if (!name || !name.trim()) return;
+        const d = await postJson(`/api/urun/${URUN_ID}/album-ekle`, { name: name.trim() });
+        if (!d.ok) return (window.toast || alert)(d.error || 'Albüm oluşturulamadı', 'error');
+        await assignToAlbum(d.slug, true);
+    });
 })();
 
 // --- Mobil carousel: dots + thumbnail strip + swipe/tap ayrımı ---

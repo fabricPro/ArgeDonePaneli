@@ -289,11 +289,22 @@ def urun_detail(urun_id: str):
         for im in imgs:
             display_items.append({"type": "image", **im})
     pinned_items = [im for im in images if im.get("is_pinned")]
+    # Hero carousel için image-only, order'a göre sıralanmış, kapak ilk
+    display_images = list(images)
+    cover_idx = next((i for i, im in enumerate(display_images) if im.get("is_cover")), 0)
+    if cover_idx > 0:
+        display_images = [display_images[cover_idx]] + display_images[:cover_idx] + display_images[cover_idx+1:]
+    # Albümler
+    albums = d.get("albums") or []
+    album_counts = {a.get("slug"): sum(1 for im in images if a.get("slug") in (im.get("albums") or [])) for a in albums}
     return render_template(
         "urun.html", product=d, urun_id=urun_id,
         cover_image=store.public_url(cover_path(d)),
         display_items=display_items,
+        display_images=display_images,
         pinned_items=pinned_items,
+        albums=albums,
+        album_counts=album_counts,
         countries=country_list(),
         country_suggestions=COUNTRY_SUGGESTIONS, weave_suggestions=WEAVE_SUGGESTIONS,
     )
@@ -508,14 +519,149 @@ def api_delete_image(urun_id: str):
     return jsonify({"ok": True, "remaining": len(images)})
 
 
+def _delete_product_atomic(uid: str) -> bool:
+    """Bir ürünü ve tüm görsellerini atomik olarak siler. Yoksa False döner."""
+    d = store.get(uid)
+    if not d:
+        return False
+    paths = [im.get("path") for im in (d.get("images") or []) if im.get("path")]
+    if paths:
+        store.delete_images(paths)
+    store.delete(uid)
+    return True
+
+
 @app.route("/api/urun/<urun_id>/sil", methods=["POST"])
 def api_delete_product(urun_id: str):
+    if not _delete_product_atomic(urun_id):
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    return jsonify({"ok": True})
+
+
+@app.route("/api/urun/toplu-sil", methods=["POST"])
+def api_bulk_delete():
+    """Toplu ürün silme. Body: {urun_ids: [str]}. Bulunmayanlar sessiz atlanır."""
+    body = request.get_json(silent=True) or {}
+    ids = body.get("urun_ids") or []
+    if not isinstance(ids, list) or not all(isinstance(x, str) for x in ids):
+        return jsonify({"ok": False, "error": "urun_ids string listesi olmalı"}), 400
+    deleted = [uid for uid in ids if _delete_product_atomic(uid)]
+    return jsonify({"ok": True, "deleted": deleted, "count": len(deleted)})
+
+
+# ============================================================
+# Albümler (etiket-tabanlı, çoklu üyelik)
+# ============================================================
+
+def _album_slugify(name: str) -> str:
+    s = (name or "").strip().lower()
+    s = s.translate(str.maketrans("çğıİöşü", "cgiiosu"))
+    s = unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode("ascii")
+    s = re.sub(r"[^a-z0-9]+", "-", s).strip("-")
+    return s or "album"
+
+
+def _unique_album_slug(base: str, existing: list[str]) -> str:
+    if base not in existing:
+        return base
+    i = 2
+    while f"{base}-{i}" in existing:
+        i += 1
+    return f"{base}-{i}"
+
+
+@app.route("/api/urun/<urun_id>/album-ekle", methods=["POST"])
+def api_album_create(urun_id: str):
     d = store.get(urun_id)
     if not d:
         return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
-    store.delete_images([im.get("path") for im in (d.get("images") or [])])
-    store.delete(urun_id)
+    name = clean((request.get_json(force=True) or {}).get("name"))
+    if not name:
+        return jsonify({"ok": False, "error": "Albüm adı zorunlu"}), 400
+    albums = d.get("albums") or []
+    existing = [a.get("slug") for a in albums if isinstance(a, dict)]
+    slug = _unique_album_slug(_album_slugify(name), existing)
+    albums.append({"slug": slug, "name": name})
+    d["albums"] = albums
+    d["updated_at"] = now_iso()
+    store.upsert(d)
+    return jsonify({"ok": True, "slug": slug, "name": name})
+
+
+@app.route("/api/urun/<urun_id>/album-sil", methods=["POST"])
+def api_album_delete(urun_id: str):
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    slug = (request.get_json(force=True) or {}).get("slug")
+    if not slug:
+        return jsonify({"ok": False, "error": "slug zorunlu"}), 400
+    albums = [a for a in (d.get("albums") or []) if a.get("slug") != slug]
+    # Tüm images'tan slug'ı temizle
+    for im in (d.get("images") or []):
+        tags = im.get("albums") or []
+        if slug in tags:
+            im["albums"] = [s for s in tags if s != slug]
+    d["albums"] = albums
+    d["updated_at"] = now_iso()
+    store.upsert(d)
     return jsonify({"ok": True})
+
+
+@app.route("/api/urun/<urun_id>/album-yeniden-adlandir", methods=["POST"])
+def api_album_rename(urun_id: str):
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    body = request.get_json(force=True) or {}
+    slug = body.get("slug")
+    new_name = clean(body.get("new_name"))
+    if not slug or not new_name:
+        return jsonify({"ok": False, "error": "slug ve new_name zorunlu"}), 400
+    for a in (d.get("albums") or []):
+        if a.get("slug") == slug:
+            a["name"] = new_name
+            d["updated_at"] = now_iso()
+            store.upsert(d)
+            return jsonify({"ok": True})
+    return jsonify({"ok": False, "error": "Albüm bulunamadı"}), 404
+
+
+@app.route("/api/urun/<urun_id>/album-atama", methods=["POST"])
+def api_album_assign(urun_id: str):
+    """Toplu görsel ↔ albüm atama. Body: {slug, paths: [str], add: bool}.
+    add=True → albums listesine slug ekle (set semantiği); add=False → çıkar."""
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    body = request.get_json(force=True) or {}
+    slug = body.get("slug")
+    paths = body.get("paths") or []
+    add = bool(body.get("add", True))
+    if not slug or not isinstance(paths, list):
+        return jsonify({"ok": False, "error": "slug ve paths zorunlu"}), 400
+    # Slug ürünün albüm listesinde olmalı (add iken)
+    if add:
+        known = [a.get("slug") for a in (d.get("albums") or [])]
+        if slug not in known:
+            return jsonify({"ok": False, "error": "Albüm tanımlı değil"}), 400
+    path_set = set(paths)
+    affected = 0
+    for im in (d.get("images") or []):
+        if im.get("path") not in path_set:
+            continue
+        tags = set(im.get("albums") or [])
+        if add:
+            if slug not in tags:
+                tags.add(slug); affected += 1
+        else:
+            if slug in tags:
+                tags.discard(slug); affected += 1
+        im["albums"] = sorted(tags)
+    if affected:
+        d["updated_at"] = now_iso()
+        store.upsert(d)
+    return jsonify({"ok": True, "affected": affected})
 
 
 @app.route("/api/urunler")

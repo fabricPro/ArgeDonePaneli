@@ -23,7 +23,7 @@ PRODUCT_COLUMNS = [
     "urun_id", "brand", "brand_slug", "country", "collection", "product_name",
     "product_code", "composition", "width_cm", "weight_gsm", "weave_type",
     "repeat_vertical_cm", "repeat_horizontal_cm", "arge_notu", "notes",
-    "source_url", "images", "dashboard_order", "created_at", "updated_at",
+    "source_url", "images", "albums", "dashboard_order", "created_at", "updated_at",
 ]
 
 

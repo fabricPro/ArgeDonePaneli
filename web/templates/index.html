@@ -27,6 +27,15 @@
         <button id="design-save" class="btn btn-primary" hidden>Kaydet</button>
         <button id="design-cancel" class="btn btn-secondary" hidden>İptal</button>
         <button id="design-toggle" class="btn btn-secondary"><svg class="icon"><use href="#ic-pencil"/></svg> Tasarım Modu</button>
+        <button id="select-toggle" class="btn btn-secondary"><svg class="icon"><use href="#ic-check"/></svg> Seç</button>
+    </div>
+</div>
+
+<div id="select-actionbar" class="select-actionbar" hidden>
+    <span class="sel-count"><strong id="sel-count-num">0</strong> seçili</span>
+    <div class="sel-actions">
+        <button id="sel-cancel" class="btn btn-secondary">İptal</button>
+        <button id="sel-delete" class="btn btn-danger"><svg class="icon"><use href="#ic-trash"/></svg> Sil</button>
     </div>
 </div>
 
@@ -53,9 +62,12 @@
         {% for p in items %}
         <a class="product-card card-link" href="{{ url_for('urun_detail', urun_id=p.urun_id) }}"
            data-urunid="{{ p.urun_id }}"
+           data-name-label="{{ p.product_name }}"
            data-brand="{{ p.brand|lower }}"
            data-name="{{ p.product_name|lower }}"
            data-country="{{ (p.country or '')|lower }}">
+            <button type="button" class="card-delete-btn" data-urunid="{{ p.urun_id }}" data-name-label="{{ p.product_name }}" aria-label="Bu ürünü sil" title="Bu ürünü sil"><svg class="icon"><use href="#ic-x"/></svg></button>
+            <span class="card-select-check" aria-hidden="true"><svg class="icon"><use href="#ic-check"/></svg></span>
             <div class="card-media">
                 {% if p.cover_image %}
                 <img src="{{ p.cover_image }}" alt="{{ p.product_name }}" loading="lazy">
@@ -106,6 +118,104 @@ function applyFilters() {
 }
 searchInput.addEventListener('input', applyFilters);
 brandSelect.addEventListener('change', applyFilters);
+
+// --- Tekil kart silme (sağ-üst X butonu) ---
+async function deleteProduct(uid, name) {
+    if (!confirm(`"${name || uid}" ürününü ve tüm görsellerini kalıcı silmek istiyor musun?`)) return false;
+    const res = await fetch(`/api/urun/${encodeURIComponent(uid)}/sil`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}'
+    });
+    const data = await res.json();
+    return data.ok;
+}
+
+document.querySelectorAll('.card-delete-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const uid = btn.dataset.urunid;
+        const name = btn.dataset.nameLabel || uid;
+        const ok = await deleteProduct(uid, name);
+        if (ok) {
+            const card = btn.closest('.product-card');
+            const group = card?.closest('.country-group');
+            card?.remove();
+            // Grup boşsa gizle
+            if (group && group.querySelectorAll('.product-card').length === 0) group.remove();
+            (window.toast || alert)('Ürün silindi', 'success');
+        } else {
+            (window.toast || alert)('Silinemedi', 'error');
+        }
+    });
+});
+
+// --- Toplu seçim + silme (Seç modu) ---
+const selToggle = document.getElementById('select-toggle');
+const selBar = document.getElementById('select-actionbar');
+const selCountNum = document.getElementById('sel-count-num');
+const selCancel = document.getElementById('sel-cancel');
+const selDelete = document.getElementById('sel-delete');
+let selectMode = false;
+const selectedIds = new Set();
+
+function preventNav(e) { if (selectMode) { e.preventDefault(); e.stopPropagation(); } }
+
+function updateSelCount() {
+    selCountNum.textContent = selectedIds.size;
+    selBar.hidden = selectedIds.size === 0 && !selectMode;
+}
+
+function setSelectMode(on) {
+    selectMode = on;
+    document.body.classList.toggle('select-on', on);
+    selToggle.classList.toggle('is-active', on);
+    if (!on) {
+        selectedIds.clear();
+        document.querySelectorAll('.product-card.is-selected').forEach(c => c.classList.remove('is-selected'));
+    }
+    selBar.hidden = !on;
+    updateSelCount();
+}
+
+selToggle?.addEventListener('click', () => setSelectMode(!selectMode));
+selCancel?.addEventListener('click', () => setSelectMode(false));
+
+document.querySelectorAll('.product-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+        if (!selectMode) return;
+        if (e.target.closest('.card-delete-btn')) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const uid = card.dataset.urunid;
+        if (selectedIds.has(uid)) { selectedIds.delete(uid); card.classList.remove('is-selected'); }
+        else { selectedIds.add(uid); card.classList.add('is-selected'); }
+        updateSelCount();
+    });
+});
+
+selDelete?.addEventListener('click', async () => {
+    if (selectedIds.size === 0) return;
+    const ids = [...selectedIds];
+    if (!confirm(`${ids.length} ürün ve tüm görselleri kalıcı silinecek. Devam edilsin mi?`)) return;
+    if (!confirm(`EMİN MİSİN? Bu işlem geri alınamaz. (${ids.length} ürün)`)) return;
+    const res = await fetch('/api/urun/toplu-sil', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ urun_ids: ids })
+    });
+    const data = await res.json();
+    if (data.ok) {
+        ids.forEach(uid => {
+            const c = document.querySelector(`.product-card[data-urunid="${CSS.escape(uid)}"]`);
+            const g = c?.closest('.country-group');
+            c?.remove();
+            if (g && g.querySelectorAll('.product-card').length === 0) g.remove();
+        });
+        (window.toast || alert)(`${data.count} ürün silindi`, 'success');
+        setSelectMode(false);
+    } else {
+        (window.toast || alert)(data.error || 'Toplu silme hatası', 'error');
+    }
+});
 
 // --- Dashboard Tasarım Modu (drag-drop sıralama) ---
 const dBtnToggle = document.getElementById('design-toggle');
