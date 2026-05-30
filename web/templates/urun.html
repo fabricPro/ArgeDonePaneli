@@ -14,7 +14,7 @@
 {% else %}
 {% if display_images %}
 <div class="hero-carousel" id="hero-carousel" data-current="0">
-    <div class="hero-stage">
+    <div class="hero-stage" id="hero-stage">
         {% for im in display_images %}
         <img class="hero-slide {% if loop.first %}is-active{% endif %}"
              src="{{ im.url }}"
@@ -28,6 +28,19 @@
         {% endfor %}
         <button class="hero-arrow hero-prev" id="hero-prev" type="button" aria-label="Önceki">‹</button>
         <button class="hero-arrow hero-next" id="hero-next" type="button" aria-label="Sonraki">›</button>
+
+        {# v3.7 — Cetvel toggle #}
+        <button class="hero-tool-btn" id="ruler-toggle" type="button"
+                title="Cetvel aç/kapat" aria-label="Cetvel">📏</button>
+
+        {# v3.7 — Cetvel overlay #}
+        <div class="ruler-overlay" id="ruler-overlay" hidden>
+            <svg class="ruler-svg ruler-svg-h" id="ruler-svg-h"></svg>
+            <svg class="ruler-svg ruler-svg-v" id="ruler-svg-v"></svg>
+            <div class="ruler-handle ruler-handle-h" id="ruler-handle-h" title="Yatay cetveli sürükle (yukarı/aşağı)">●</div>
+            <div class="ruler-handle ruler-handle-v" id="ruler-handle-v" title="Dikey cetveli sürükle (sol/sağ)">●</div>
+            <svg class="ruler-points-svg" id="ruler-points"></svg>
+        </div>
     </div>
     {% if display_images|length > 1 %}
     <div class="hero-thumbs" id="hero-thumbs">
@@ -41,6 +54,16 @@
         {% endfor %}
     </div>
     {% endif %}
+
+    {# v3.7 — Cetvel toolbar (hero altında) #}
+    <div class="ruler-toolbar" id="ruler-toolbar" hidden>
+        <button id="ruler-calibrate" class="btn-mini" type="button">🎯 Kalibre Et</button>
+        <button id="ruler-measure" class="btn-mini" type="button" disabled>📐 Mesafe Ölç</button>
+        <span class="ruler-status" id="ruler-status">Kalibrasyon gerekli</span>
+        <button id="ruler-save-v" class="btn-mini btn-primary" type="button" hidden>Boyuna Rapora Kaydet</button>
+        <button id="ruler-save-h" class="btn-mini btn-primary" type="button" hidden>Enine Rapora Kaydet</button>
+        <button id="ruler-close" class="btn-mini" type="button">× Kapat</button>
+    </div>
 </div>
 {% endif %}
 
@@ -939,6 +962,56 @@ grid.addEventListener('dragover', (e) => {
             setTimeout(() => { cgrid._suppressTap = false; }, 250);
         }
     }, { passive: true });
+})();
+</script>
+
+{# v3.7 — Cetvel + Rapor Ölçümü #}
+<script src="{{ url_for('static', filename='js/ruler.js') }}"></script>
+<script>
+(function () {
+    const toggleBtn = document.getElementById('ruler-toggle');
+    const stage = document.getElementById('hero-stage');
+    if (!toggleBtn || !stage || !window.Ruler) return;
+    const overlay = document.getElementById('ruler-overlay');
+    const svgH = document.getElementById('ruler-svg-h');
+    const svgV = document.getElementById('ruler-svg-v');
+    const handleH = document.getElementById('ruler-handle-h');
+    const handleV = document.getElementById('ruler-handle-v');
+    const points = document.getElementById('ruler-points');
+    const toolbar = document.getElementById('ruler-toolbar');
+    const status = document.getElementById('ruler-status');
+    const calibrateBtn = document.getElementById('ruler-calibrate');
+    const measureBtn = document.getElementById('ruler-measure');
+    const saveVBtn = document.getElementById('ruler-save-v');
+    const saveHBtn = document.getElementById('ruler-save-h');
+    const closeBtn = document.getElementById('ruler-close');
+
+    // İlk aktif slide'ın path'i
+    const firstSlide = stage.querySelector('.hero-slide.is-active') || stage.querySelector('.hero-slide');
+    const initialPath = firstSlide ? firstSlide.dataset.path : null;
+
+    window.Ruler.init({
+        urunId: URUN_ID,
+        initialPath,
+        stage, overlay, svgH, svgV, handleH, handleV, points,
+        toolbar, status,
+        toggleBtn, calibrateBtn, measureBtn,
+        saveVBtn, saveHBtn, closeBtn,
+    });
+
+    // Hero carousel slide değişiminde aktif görselin path'ini ruler'a bildir
+    const heroEl = document.getElementById('hero-carousel');
+    if (heroEl) {
+        const mo = new MutationObserver(() => {
+            const active = stage.querySelector('.hero-slide.is-active');
+            if (active && active.dataset.path) {
+                window.Ruler.setCurrentImagePath(active.dataset.path);
+            }
+        });
+        stage.querySelectorAll('.hero-slide').forEach(s => {
+            mo.observe(s, { attributes: true, attributeFilter: ['class'] });
+        });
+    }
 })();
 </script>
 
