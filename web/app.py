@@ -741,8 +741,8 @@ def api_teknik_surum_update(urun_id: str, surum_id: str):
                 if isinstance(lst, list):
                     cur_ipl[yon] = lst[:8]
         surum["iplikler"] = cur_ipl
-    # Tahar grid + tarak raporu (UI gelince netleşir, jsonb passthrough)
-    for k in ("tahar_grid", "tarak_raporu"):
+    # Tahar grid + tarak raporu + analiz_data (NumuneAnaliz AnalizState tamamı) — jsonb passthrough
+    for k in ("tahar_grid", "tarak_raporu", "analiz_data"):
         if k in body:
             surum[k] = body[k] if isinstance(body[k], (dict, list)) else {}
     # Notlar

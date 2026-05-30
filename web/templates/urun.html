@@ -424,16 +424,10 @@
             </div>
         </fieldset>
 
-        <fieldset class="teknik-card teknik-iplikler">
-            <legend>İplikler (Çözgü + Atkı)</legend>
-            <div class="ui-placeholder">
-                <p><strong>Faz 2'de eklenecek:</strong> Çözgü max 8 + Atkı max 8 iplik tablosu (etiket, kompozisyon, numara, renk, oran %).</p>
-            </div>
-        </fieldset>
-
-        {# v3.9 — Desen + Tarak modülü (NumuneAnaliz React bundle) #}
+        {# v3.9 — NumuneAnaliz React modülü (Analiz · Maliyet · Desen · Tarak) #}
+        {# Faz 2 "İplikler" placeholder kaldırıldı — Analiz tab içinde detaylı iplik tablosu #}
         <fieldset class="teknik-card teknik-numune">
-            <legend>Desen + Tarak Modülü</legend>
+            <legend>Analiz · Maliyet · Desen · Tarak</legend>
             {# Jinja namespace ile aktif sürümü bul (for-loop scope sızması olmaması için) #}
             {% set ns = namespace(active=none) %}
             {% if teknik and teknik.surumler %}
@@ -446,7 +440,7 @@
                  class="numune-root"
                  data-urun-id="{{ urun_id }}"
                  data-surum-id="{{ ns.active.id if ns.active else '' }}"
-                 data-initial-state='{{ {"desen": (ns.active.tahar_grid if ns.active else {}) or {}, "tarak": (ns.active.tarak_raporu if ns.active else {}) or {}}|tojson }}'>
+                 data-initial-state='{{ {"analiz": (ns.active.analiz_data if ns.active else {}) or {}, "desen": (ns.active.tahar_grid if ns.active else {}) or {}, "tarak": (ns.active.tarak_raporu if ns.active else {}) or {}}|tojson }}'>
                 <div class="numune-loading">
                     {% if not teknik or not teknik.surumler %}
                     Önce bir sürüm oluştur (yukarıdan "+ Yeni Sürüm").
@@ -1428,11 +1422,17 @@ grid.addEventListener('dragover', (e) => {
             urunId,
             surumId: sId,
             onChange: async (s) => {
+                // s.analiz = tam AnalizState (yeni format)
+                // Geriye uyumlu: desen + tarak alanları analiz_data içinden ayrıştırılıp
+                // ayrı slot'lara da yazılır (mevcut tahar_grid + tarak_raporu okuma noktaları çalışsın).
+                const body = { analiz_data: s.analiz };
+                if (s.analiz && s.analiz.desen) body.tahar_grid = s.analiz.desen;
+                if (s.analiz && s.analiz.tarak) body.tarak_raporu = s.analiz.tarak;
                 try {
                     await fetch(`/api/urun/${encodeURIComponent(urunId)}/teknik/${encodeURIComponent(sId)}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ tahar_grid: s.desen, tarak_raporu: s.tarak }),
+                        body: JSON.stringify(body),
                     });
                 } catch (e) {
                     console.warn('[numune] sunucu senkron hatası:', e);

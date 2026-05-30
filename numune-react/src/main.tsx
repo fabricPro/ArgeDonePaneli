@@ -28,13 +28,15 @@ import "./index.css";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 import { App } from "./App";
-import type { DesenState, TarakState } from "./lib/types";
+import type { AnalizState } from "./lib/types";
 
 export interface MountOpts {
-  initialState: { desen?: DesenState | unknown; tarak?: TarakState | unknown };
+  /** Backward-compat: hem yeni `{analiz}` hem eski `{desen, tarak}` formatı kabul. */
+  initialState: { analiz?: unknown; desen?: unknown; tarak?: unknown };
   urunId: string;
   surumId: string;
-  onChange?: (state: { desen: DesenState; tarak: TarakState }) => void;
+  /** Tam AnalizState'i 500ms debounced ile sunucuya iletir. */
+  onChange?: (state: { analiz: AnalizState }) => void;
 }
 
 export interface MountInstance {
