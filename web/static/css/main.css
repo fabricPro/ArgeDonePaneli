@@ -2588,15 +2588,32 @@ img[data-blur][data-loaded="1"] {
 .card-color-flag .icon { width: 12px; height: 12px; stroke-width: 2; }
 .card-color-flag .ccf-label { color: var(--text); }
 .card-color-flag .ccf-cnt {
-    background: var(--accent);
-    color: #1a1410;
+    background: var(--bg-elev);
+    color: var(--text);
     border-radius: 999px;
     padding: 1px 6px;
     font-size: 10px;
     font-weight: 700;
     margin-left: 2px;
     font-variant-numeric: tabular-nums;
+    border: 1px solid var(--border);
 }
+.card-color-flag .ccf-palette {
+    background: var(--accent);
+    color: #1a1410;
+    border-radius: 999px;
+    padding: 1px 6px;
+    font-size: 10px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    position: relative;
+}
+/* Renk atanmışsa belirteç accent border'lı, atanmamışsa daha kısık */
+.card-color-flag:not(.has-palette) {
+    border-color: rgba(255, 255, 255, 0.18);
+    color: var(--text-dim);
+}
+.card-color-flag.has-palette .ccf-label { color: var(--accent); }
 /* Seç modunda check overlay sol-üstte zaten; flag çakışmasın → flag sağ-üste taşı */
 body.select-on .card-color-flag {
     left: auto;

@@ -153,6 +153,7 @@ def product_summary(d: dict) -> dict:
     # "Renkler" adında veya slug'ında albüm var mı? (v3.6+)
     has_color_album = False
     color_album_slug = None
+    color_album_image_count = 0
     for a in (d.get("albums") or []):
         a_slug = (a.get("slug") or "").lower()
         a_name = (a.get("name") or "").strip().lower()
@@ -160,12 +161,12 @@ def product_summary(d: dict) -> dict:
             color_album_slug = a.get("slug")
             break
     if color_album_slug:
-        # Albüme atanmış en az bir görsel olmalı (boş albüm sayılmaz)
+        # Albüme atanmış görsel sayısı (varyantlar = bu albümdeki swatch sayısı)
         for im in (d.get("images") or []):
             if color_album_slug in (im.get("albums") or []):
-                has_color_album = True
-                break
-    # Renk paleti sayısı (auto-derived)
+                color_album_image_count += 1
+        has_color_album = color_album_image_count > 0
+    # Renk paleti sayısı (auto-derived — kaç renk Atkı/Çözgü/Toplam ile atanmış)
     palette_size = len({
         c["hex"].upper()
         for im in (d.get("images") or [])
@@ -182,6 +183,7 @@ def product_summary(d: dict) -> dict:
         "variant_count": len(d.get("images") or []),
         "updated_at": d.get("updated_at"),
         "has_color_album": has_color_album,
+        "color_album_image_count": color_album_image_count,
         "palette_size": palette_size,
     }
 
