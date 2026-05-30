@@ -2118,6 +2118,381 @@ img[data-blur][data-loaded="1"] {
 }
 
 /* =========================================================
+   v3.6 — Renk Çözümleme + Renk Paleti
+   ========================================================= */
+
+.color-tools {
+    display: grid;
+    grid-template-columns: 240px 1fr 280px;
+    gap: 18px;
+    margin: 20px 0 24px;
+    align-items: start;
+}
+.ct-palette-side,
+.ct-canvas-side,
+.ct-result-side {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    min-width: 0;
+}
+.ct-side-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+}
+.ct-side-head h3 {
+    margin: 0;
+    font-size: var(--type-h3);
+    font-weight: 600;
+}
+.ct-side-head .cnt {
+    background: var(--bg-elev);
+    color: var(--text-dim);
+    border-radius: 999px;
+    font-size: var(--type-caption);
+    font-weight: 600;
+    padding: 1px 8px;
+    font-variant-numeric: tabular-nums;
+}
+.ct-empty {
+    color: var(--text-muted);
+    font-size: var(--type-small);
+    text-align: center;
+    padding: 20px 8px;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* --- Palet grid (4-sıra) --- */
+.palette-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+}
+.palette-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 4px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+    font-family: inherit;
+}
+.palette-chip:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+}
+.chip-swatch {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);
+}
+.chip-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    width: 100%;
+}
+.chip-name {
+    font-size: 10px;
+    color: var(--text);
+    line-height: 1.2;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    max-width: 100%;
+    word-break: break-word;
+}
+.chip-roles {
+    display: flex;
+    gap: 2px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.chip-role {
+    font-size: 9px;
+    font-weight: 700;
+    font-style: normal;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    text-transform: uppercase;
+}
+.chip-role-weft { background: #5b8def; }
+.chip-role-warp { background: var(--green); }
+.chip-role-mix  { background: var(--accent); color: #1a1410; }
+
+/* --- Canvas alanı --- */
+.ct-canvas-side #cp-image-sel {
+    width: 100%;
+    margin-bottom: 10px;
+}
+.cp-canvas-box {
+    position: relative;
+    background: #0d0e11;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    max-height: 520px;
+    aspect-ratio: 4 / 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#cp-canvas {
+    max-width: 100%;
+    max-height: 100%;
+    cursor: crosshair;
+    touch-action: none;
+    display: block;
+}
+.cp-mag {
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    pointer-events: none;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+    z-index: 10;
+    background: #000;
+}
+.cp-canvas-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+.cp-opt {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--type-small);
+    color: var(--text-dim);
+    cursor: pointer;
+}
+.cp-count {
+    font-size: var(--type-small);
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+    margin-left: auto;
+}
+.cp-hint {
+    font-size: var(--type-caption);
+    color: var(--text-muted);
+    margin: 8px 0 0;
+    line-height: 1.5;
+}
+.cp-hint kbd {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: 11px;
+    font-family: monospace;
+}
+
+/* --- Mod tabs (Atkı/Çözgü/Toplam segmented) --- */
+.cp-role-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+.cp-role-tab {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: var(--type-small);
+    font-weight: 600;
+    padding: 9px 4px;
+    cursor: pointer;
+    transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.cp-role-tab:hover { color: var(--text); }
+.cp-role-tab.is-active {
+    background: var(--accent);
+    color: #1a1410;
+}
+
+/* --- Sonuç --- */
+.cp-result {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+.cp-swatch {
+    width: 56px;
+    height: 56px;
+    border-radius: 8px;
+    background: transparent;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);
+}
+.cp-meta {
+    flex: 1;
+    min-width: 0;
+}
+.cp-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.cp-de {
+    font-size: var(--type-caption);
+    color: var(--text-dim);
+    margin-top: 2px;
+}
+.cp-fields {
+    display: grid;
+    gap: 4px;
+    margin: 0 0 10px;
+    font-size: var(--type-small);
+}
+.cp-fields > div {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border);
+}
+.cp-fields dt {
+    color: var(--text-dim);
+}
+.cp-fields dd {
+    margin: 0;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    font-family: var(--font-sans);
+}
+.cp-quality {
+    font-size: var(--type-caption);
+    padding: 7px 10px;
+    border-radius: var(--radius);
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+.cp-quality.ok {
+    background: rgba(127, 179, 127, 0.12);
+    color: var(--green);
+    border: 1px solid rgba(127, 179, 127, 0.3);
+}
+.cp-quality.warn {
+    background: rgba(214, 137, 16, 0.12);
+    color: var(--gold);
+    border: 1px solid rgba(214, 137, 16, 0.3);
+}
+.cp-quality.warn.is-critical {
+    font-weight: 600;
+    border-width: 2px;
+}
+#cp-save { width: 100%; }
+#cp-save:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* --- Image-card renk badge'leri --- */
+.img-color-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 6px 8px 0;
+    margin-top: -2px;
+}
+.color-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 7px 3px 3px;
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--c, var(--bg-elev)) 18%, var(--bg-elev));
+    border: 1px solid var(--border);
+    font-size: 10px;
+    line-height: 1.2;
+    color: var(--text);
+}
+.cb-role {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--c);
+    color: #fff;
+    font-weight: 700;
+    font-size: 8px;
+    font-style: normal;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow: 0 0 2px rgba(0,0,0,0.45);
+    flex-shrink: 0;
+}
+.cb-name {
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* --- Mobile (≤720px) — dikey yığ --- */
+@media (max-width: 720px) {
+    .color-tools {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    /* DOM order: palette · canvas · result → mobilde canvas üstte */
+    .ct-canvas-side { order: 1; }
+    .ct-result-side { order: 2; }
+    .ct-palette-side { order: 3; }
+
+    .cp-canvas-box {
+        aspect-ratio: 1 / 1;
+        max-height: 70vh;
+    }
+    /* Touch loupe MOBİLDE aktif (color-picker.js touchstart'ta hidden=false yapar) */
+
+    .palette-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 5px;
+    }
+    .chip-name { font-size: 9px; }
+    .chip-swatch { width: 28px; height: 28px; }
+
+    .cp-role-tab { padding: 12px 4px; font-size: 13px; min-height: 44px; }
+    #cp-save { min-height: 48px; font-size: 15px; }
+    .cp-name { font-size: 16px; }
+}
+@media (max-width: 380px) {
+    .palette-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* =========================================================
    v3.5 — Dashboard silme + Hero galeri + Albümler
    ========================================================= */
 

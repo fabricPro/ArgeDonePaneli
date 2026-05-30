@@ -297,11 +297,14 @@ def urun_detail(urun_id: str):
     # Albümler
     albums = d.get("albums") or []
     album_counts = {a.get("slug"): sum(1 for im in images if a.get("slug") in (im.get("albums") or [])) for a in albums}
+    # v3.6: Renk paleti (auto-derived, açıktan koyuya — LAB L desc)
+    color_palette = _derive_color_palette(images)
     return render_template(
         "urun.html", product=d, urun_id=urun_id,
         cover_image=store.public_url(cover_path(d)),
         display_items=display_items,
         display_images=display_images,
+        color_palette=color_palette,
         pinned_items=pinned_items,
         albums=albums,
         album_counts=album_counts,
@@ -531,6 +534,39 @@ def _delete_product_atomic(uid: str) -> bool:
     return True
 
 
+def _derive_color_palette(images: list[dict]) -> list[dict]:
+    """images[i].colors -> dedup hex palette, açıktan koyuya (LAB L desc)."""
+    items = []
+    for im in images:
+        for role, c in (im.get("colors") or {}).items():
+            if not c or not c.get("hex"):
+                continue
+            items.append({
+                "hex": c["hex"].upper(),
+                "name": c.get("name") or c.get("nearest") or "—",
+                "lab": c.get("lab") or [50, 0, 0],
+                "role": role,
+                "image_path": im.get("path"),
+            })
+    by_hex: dict[str, list[dict]] = {}
+    for it in items:
+        by_hex.setdefault(it["hex"], []).append(it)
+    palette = []
+    for hex_, srcs in by_hex.items():
+        s0 = srcs[0]
+        palette.append({
+            "hex": hex_,
+            "name": s0["name"],
+            "lab": s0["lab"],
+            "roles": sorted({s["role"] for s in srcs}),
+            "image_paths": sorted({s["image_path"] for s in srcs if s.get("image_path")}),
+            "count": len(srcs),
+        })
+    # Açıktan koyuya — LAB L değeri azalan
+    palette.sort(key=lambda p: -(p["lab"][0] if isinstance(p.get("lab"), list) and p["lab"] else 0))
+    return palette
+
+
 @app.route("/api/urun/<urun_id>/sil", methods=["POST"])
 def api_delete_product(urun_id: str):
     if not _delete_product_atomic(urun_id):
@@ -625,6 +661,53 @@ def api_album_rename(urun_id: str):
             store.upsert(d)
             return jsonify({"ok": True})
     return jsonify({"ok": False, "error": "Albüm bulunamadı"}), 404
+
+
+@app.route("/api/urun/<urun_id>/gorsel-renk", methods=["POST"])
+def api_set_image_colors(urun_id: str):
+    """Bir görselin atkı/çözgü/toplam renk atamasını günceller.
+    Body: {path: str, colors: {weft|warp|mix: {hex, rgb, lab, name, delta_e, points} | null | {}}}
+    - null veya {} -> o rol silinir
+    - Sadece gönderilen role'ler güncellenir (kısmi update)
+    """
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    body = request.get_json(force=True) or {}
+    target = body.get("path")
+    payload = body.get("colors") or {}
+    if not target or not isinstance(payload, dict):
+        return jsonify({"ok": False, "error": "path ve colors zorunlu"}), 400
+    images = d.get("images") or []
+    match = next((im for im in images if im.get("path") == target), None)
+    if not match:
+        return jsonify({"ok": False, "error": "Görsel bulunamadı"}), 400
+    cur = match.get("colors") or {}
+    for role in ("weft", "warp", "mix"):
+        if role not in payload:
+            continue
+        v = payload[role]
+        if v is None or v == {}:
+            cur.pop(role, None)
+            continue
+        if not isinstance(v, dict) or not v.get("hex"):
+            return jsonify({"ok": False, "error": f"{role} için hex zorunlu"}), 400
+        # Server-side normalize
+        v["hex"] = str(v["hex"]).upper()
+        v["name"] = (str(v.get("name") or "")).strip() or "—"
+        v["picked_at"] = now_iso()
+        cur[role] = v
+    if cur:
+        match["colors"] = cur
+    else:
+        match.pop("colors", None)
+    d["updated_at"] = now_iso()
+    store.upsert(d)
+    return jsonify({
+        "ok": True,
+        "palette": _derive_color_palette(images),
+        "image_colors": cur,
+    })
 
 
 @app.route("/api/urun/<urun_id>/album-atama", methods=["POST"])
