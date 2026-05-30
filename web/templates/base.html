@@ -2,21 +2,30 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#0a0b0d">
-    <title>{% block title %}Mobidik ARGE — Kumaş Paneli{% endblock %}</title>
+    <title>{% block title %}Fabric Agent System — Kumaş Paneli{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+
+    {# === PWA === #}
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/fas-icon.svg') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/fas-icon.svg') }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FAS">
+    <meta name="mobile-web-app-capable" content="yes">
+
     {% block extra_head %}{% endblock %}
 </head>
 <body>
     {% include "_icons.html" %}
     <nav class="topbar">
-        <a href="{{ url_for('index') }}" class="topbar-brand">
-            <span class="brand-mark">MOBİDİK</span>
-            <span class="brand-sub">Kumaş Küratörlük Paneli</span>
+        <a href="{{ url_for('index') }}" class="topbar-brand" aria-label="Fabric Agent System ana sayfa">
+            <img src="{{ url_for('static', filename='img/fas-logo-dark.svg') }}" alt="Fabric Agent System" class="brand-logo">
         </a>
         <div class="topbar-nav">
             <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint in ('index', 'urun_detail') %}active{% endif %}">
@@ -71,6 +80,15 @@
     </nav>
 
     {% block scripts %}{% endblock %}
+
+    <script>
+    // --- Service Worker kayıt (PWA installable) ---
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+    }
+    </script>
 
     <script>
     // --- Görüntüleme modu (Grid/Liste) — body class + localStorage ---

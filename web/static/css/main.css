@@ -105,24 +105,21 @@ a { color: var(--accent); text-decoration: none; }
 
 .topbar-brand {
     display: flex;
-    align-items: baseline;
-    gap: 10px;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
 }
+.brand-logo {
+    height: 40px;
+    width: auto;
+    display: block;
+    opacity: 0.95;
+    transition: opacity var(--t-base) var(--ease);
+}
+.topbar-brand:hover .brand-logo { opacity: 1; }
 
-.brand-mark {
-    font-size: 18px;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    background: linear-gradient(90deg, #58a6ff, #fbbf24);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-}
-
-.brand-sub {
-    color: var(--text-dim);
-    font-size: 13px;
-}
+/* Legacy text mark sınıfları — geriye uyum, kullanım kaldırıldı */
+.brand-mark, .brand-sub { display: none; }
 
 .topbar-nav { display: flex; gap: 20px; }
 
@@ -1506,9 +1503,9 @@ body.design-on .product-card:active { cursor: grabbing; }
 @media (max-width: 720px) {
     /* Topbar daralt, nav alt bara tasindi */
     main { padding: 12px 12px 0; max-width: 100%; }
-    .topbar { padding: 10px 14px; }
+    .topbar { padding: 8px 14px; }
     .topbar-nav { display: none; }
-    .brand-sub { display: none; }
+    .brand-logo { height: 32px; }
 
     /* Body alt bar icin yer rezervi (safe-area dahil) */
     body { padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)); }

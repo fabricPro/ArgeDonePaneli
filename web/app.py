@@ -165,7 +165,7 @@ def product_summary(d: dict) -> dict:
 
 @app.before_request
 def require_login():
-    if request.endpoint in ("login", "static", "health"):
+    if request.endpoint in ("login", "static", "health", "service_worker", "web_manifest"):
         return
     if not APP_PASSWORD:
         return  # sifre tanimli degil -> acik (yerel gelistirme)
@@ -524,6 +524,26 @@ def api_urunler():
 @app.route("/health")
 def health():
     return jsonify({"ok": True})
+
+
+@app.route("/sw.js")
+def service_worker():
+    """Service worker root scope — sw.js /sw.js'ten servis edilmeli ki tüm site scope'una sahip olsun."""
+    static_dir = Path(app.static_folder) if app.static_folder else Path(__file__).resolve().parent / "static"
+    resp = send_from_directory(str(static_dir), "sw.js")
+    resp.headers["Service-Worker-Allowed"] = "/"
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    resp.headers["Content-Type"] = "application/javascript"
+    return resp
+
+
+@app.route("/manifest.json")
+def web_manifest():
+    """PWA manifest (kök yol için max uyumluluk)."""
+    static_dir = Path(app.static_folder) if app.static_folder else Path(__file__).resolve().parent / "static"
+    resp = send_from_directory(str(static_dir), "manifest.json")
+    resp.headers["Content-Type"] = "application/manifest+json"
+    return resp
 
 
 # ============================================================
