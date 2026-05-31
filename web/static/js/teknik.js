@@ -250,9 +250,94 @@
         return data;
     }
 
-    // === Sürüm: yeni oluştur ===
-    async function createSurum() {
-        const ad = prompt('Yeni sürüm adı:', `v${teknik.surumler.length + 1} — Standart 2026`);
+    // === Sürüm: yeni oluştur — v4.0-part-2 Adım 8 modal akışı ===
+    const modalYeniSurum = document.getElementById('modal-yeni-surum');
+    const inputYeniAd = document.getElementById('new-surum-ad');
+    const sourceListEl = document.getElementById('surum-source-list');
+    const btnConfirmCreate = document.getElementById('btn-confirm-create-surum');
+
+    function openYeniSurumModal() {
+        if (!modalYeniSurum) {
+            // Fallback: modal yoksa prompt
+            return createSurumLegacy();
+        }
+        // Default ad
+        const defaultAd = `v${(teknik.surumler || []).length + 1} — Yeni Sürüm`;
+        inputYeniAd.value = defaultAd;
+
+        // Source list: mevcut sürümleri radio olarak doldur
+        sourceListEl.innerHTML = '';
+        (teknik.surumler || []).forEach(s => {
+            const lbl = document.createElement('label');
+            lbl.className = 'surum-source-opt';
+            lbl.innerHTML = `
+                <input type="radio" name="surum-source" value="${s.id}">
+                <div>
+                    <strong>${escapeHtml(s.ad || s.id)}</strong>
+                    <small>${escapeHtml(s.id)} sürümünden 1·Analiz + 2·Desen miras al</small>
+                </div>
+            `;
+            sourceListEl.appendChild(lbl);
+        });
+
+        // "Boş başla" default seçili
+        const emptyOpt = modalYeniSurum.querySelector('input[name="surum-source"][value=""]');
+        if (emptyOpt) emptyOpt.checked = true;
+
+        if (typeof modalYeniSurum.showModal === 'function') {
+            modalYeniSurum.showModal();
+        } else {
+            // Safari ≤14 fallback (dialog desteklemiyor)
+            modalYeniSurum.setAttribute('open', '');
+        }
+        setTimeout(() => inputYeniAd.focus(), 50);
+    }
+
+    function closeYeniSurumModal() {
+        if (!modalYeniSurum) return;
+        if (typeof modalYeniSurum.close === 'function') modalYeniSurum.close();
+        else modalYeniSurum.removeAttribute('open');
+    }
+
+    async function confirmCreateSurum() {
+        const ad = (inputYeniAd.value || '').trim();
+        if (!ad) {
+            (window.toast || alert)('Sürüm adı zorunlu', 'error');
+            inputYeniAd.focus();
+            return;
+        }
+        const sourceRadio = modalYeniSurum.querySelector('input[name="surum-source"]:checked');
+        const sourceId = (sourceRadio && sourceRadio.value) || '';
+
+        const body = { ad };
+        if (sourceId) body.source_surum_id = sourceId;
+
+        btnConfirmCreate.disabled = true;
+        btnConfirmCreate.textContent = 'Oluşturuluyor…';
+        try {
+            const data = await api('POST', `/api/urun/${encodeURIComponent(URUN_ID)}/teknik/surum`, body);
+            if (!data.ok) {
+                (window.toast || alert)(data.error || 'Sürüm oluşturulamadı', 'error');
+                return;
+            }
+            teknik.surumler.push(data.surum);
+            teknik.active_surum_id = data.active_surum_id;
+            const inheritedMsg = sourceId ? ` (${sourceId}'den miras alındı)` : '';
+            (window.toast || alert)(`Sürüm oluşturuldu: ${data.surum.ad}${inheritedMsg}`, 'success');
+            closeYeniSurumModal();
+            renderActive();
+            // v4.0-part-2 Adım 8 — Notlar paneline haber ver (yeni sürüm aktif oldu)
+            if (window.URUN_TEKNIK_STATE) window.URUN_TEKNIK_STATE.activeSurumId = data.active_surum_id;
+            document.dispatchEvent(new CustomEvent('teknik-surum-changed', { detail: { surum_id: data.active_surum_id } }));
+        } finally {
+            btnConfirmCreate.disabled = false;
+            btnConfirmCreate.textContent = 'Oluştur';
+        }
+    }
+
+    // Eski prompt-based createSurum (modal yoksa fallback için tutulur)
+    async function createSurumLegacy() {
+        const ad = prompt('Yeni sürüm adı:', `v${teknik.surumler.length + 1} — Yeni Sürüm`);
         if (!ad || !ad.trim()) return;
         const data = await api('POST', `/api/urun/${encodeURIComponent(URUN_ID)}/teknik/surum`, { ad: ad.trim() });
         if (!data.ok) {
@@ -265,8 +350,25 @@
         renderActive();
     }
 
-    yeniBtn && yeniBtn.addEventListener('click', createSurum);
-    emptyBtn && emptyBtn.addEventListener('click', createSurum);
+    function escapeHtml(s) {
+        return String(s ?? '').replace(/[&<>"']/g, c => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+        }[c]));
+    }
+
+    yeniBtn && yeniBtn.addEventListener('click', openYeniSurumModal);
+    emptyBtn && emptyBtn.addEventListener('click', openYeniSurumModal);
+    btnConfirmCreate && btnConfirmCreate.addEventListener('click', confirmCreateSurum);
+    // Modal close buttons
+    if (modalYeniSurum) {
+        modalYeniSurum.querySelectorAll('[data-modal-close]').forEach(btn => {
+            btn.addEventListener('click', closeYeniSurumModal);
+        });
+        // Backdrop click → kapat
+        modalYeniSurum.addEventListener('click', (e) => {
+            if (e.target === modalYeniSurum) closeYeniSurumModal();
+        });
+    }
 
     // === Sürüm: aktif değiştir ===
     surumSel.addEventListener('change', async () => {
@@ -281,6 +383,9 @@
         const surum = activeSurum();
         loadFormFromSurum(surum);
         refreshButtonsAndVisibility();
+        // v4.0-part-2 Adım 8 — Notlar paneline ve diğer dış modüllere haber ver
+        if (window.URUN_TEKNIK_STATE) window.URUN_TEKNIK_STATE.activeSurumId = newId;
+        document.dispatchEvent(new CustomEvent('teknik-surum-changed', { detail: { surum_id: newId } }));
     });
 
     // === Sürüm: yeniden adlandır ===

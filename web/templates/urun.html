@@ -122,6 +122,13 @@
         {% if product.source_url %}
         <a href="{{ product.source_url }}" target="_blank" rel="noopener" class="btn btn-secondary"><svg class="icon"><use href="#ic-external-link"/></svg> Kaynak</a>
         {% endif %}
+        {# v4.0-part-2 Adım 8 — Çalışma yapıldı toggle (active/archived) #}
+        <button class="btn btn-secondary" id="status-toggle-btn"
+                data-status="{{ product.status or 'active' }}"
+                title="Bu ürün için çalışma tamamlandıysa arşive al — ana ekranda Aktif filtresi ile gizlenir">
+            <svg class="icon"><use href="#ic-check"/></svg>
+            <span class="status-toggle-label">{% if product.status == 'archived' %}Aktif Et{% else %}Çalışma Tamamlandı{% endif %}</span>
+        </button>
         <button class="btn btn-danger" id="delete-product-btn"><svg class="icon"><use href="#ic-trash"/></svg> Ürünü Sil</button>
     </div>
 </div>
@@ -409,6 +416,45 @@
         <button class="btn btn-primary" id="teknik-empty-new" type="button">+ İlk Sürümü Oluştur</button>
     </div>
     {% endif %}
+
+    {# v4.0-part-2 Adım 8 — Yeni Sürüm modal (miras alma seçenekli) #}
+    <dialog id="modal-yeni-surum" class="surum-modal">
+        <form method="dialog" class="surum-modal-form">
+            <header class="surum-modal-head">
+                <h3>Yeni Sürüm Oluştur</h3>
+                <button type="button" class="btn-icon" data-modal-close aria-label="Kapat">
+                    <svg class="icon"><use href="#ic-x"/></svg>
+                </button>
+            </header>
+
+            <div class="surum-modal-body">
+                <label class="surum-field">
+                    <span>Sürüm Adı *</span>
+                    <input type="text" id="new-surum-ad" placeholder="örn. v2 — Sıklık Denemesi" required>
+                </label>
+
+                <fieldset class="surum-source">
+                    <legend>Veri Kaynağı</legend>
+                    <label class="surum-source-opt">
+                        <input type="radio" name="surum-source" value="" checked>
+                        <div>
+                            <strong>Boş başla</strong>
+                            <small>Hiçbir veri kopyalanmaz, sıfırdan başlar.</small>
+                        </div>
+                    </label>
+                    <div id="surum-source-list">
+                        {# JS doldurur — mevcut sürüm listesi #}
+                    </div>
+                    <p class="surum-source-hint">Miras alındığında <strong>1·Analiz</strong> + <strong>2·Desen</strong> tabları kopyalanır. <strong>3·Tarak</strong> ve notlar boş başlar.</p>
+                </fieldset>
+            </div>
+
+            <footer class="surum-modal-foot">
+                <button type="button" class="btn btn-secondary" data-modal-close>İptal</button>
+                <button type="button" class="btn btn-primary" id="btn-confirm-create-surum">Oluştur</button>
+            </footer>
+        </form>
+    </dialog>
 
     <div class="teknik-grid" id="teknik-grid" {% if not teknik.surumler %}hidden{% endif %}>
         {# v4.0-part-2 Adım 1 — Numune Master üst bar (status + iç sekme) #}
@@ -1090,8 +1136,14 @@
             <button type="button" data-cmd="insertUnorderedList" title="Liste">•</button>
             <button type="button" data-cmd="removeFormat" title="Format temizle">⌫</button>
         </div>
+        {# v4.0-part-2 Adım 8 — Aktif sürümün notlar_html'i; yoksa product.notlar_html fallback #}
+        {% set _active_surum = (teknik.surumler or [])|selectattr('id', 'equalto', teknik.active_surum_id)|first %}
+        {% set _initial_notlar = (_active_surum.notlar_html if _active_surum and _active_surum.notlar_html else product.notlar_html) or '' %}
         <div id="rich-content" class="rich-content" contenteditable="true"
-             aria-label="Notlar düzenleme alanı">{{ product.notlar_html|safe }}</div>
+             aria-label="Notlar düzenleme alanı">{{ _initial_notlar|safe }}</div>
+        {% if _active_surum and not _active_surum.notlar_html and product.notlar_html %}
+        <small class="notlar-fallback-hint">⚠ Ürün-seviyesi nottan gösteriliyor. Düzenleyip kaydedersen <strong>{{ _active_surum.ad }}</strong> sürümüne özel olur.</small>
+        {% endif %}
     </div>
 </section>{# /Notlar sekmesi #}
 
@@ -1123,6 +1175,12 @@ window.PRODUCT_CONTEXT = {{ {
     "product_code": product.product_code or "",
     "product_name": product.product_name or ""
 } | tojson }};
+
+// v4.0-part-2 Adım 8 — Aktif sürüm bilgisi (notlar.js için)
+window.URUN_TEKNIK_STATE = {
+    activeSurumId: {{ teknik.active_surum_id|tojson if teknik.active_surum_id else 'null' }},
+    productFallbackNotlar: {{ (product.notlar_html or '')|tojson }},
+};
 
 async function postJson(url, body) {
     const res = await fetch(url, {
@@ -1278,6 +1336,37 @@ document.getElementById('delete-product-btn').addEventListener('click', async ()
     const data = await postJson(`/api/urun/${URUN_ID}/sil`, {});
     if (data.ok) window.location.href = '{{ url_for("index") }}'; else window.toast(data.error || 'Hata', 'error');
 });
+
+// --- v4.0-part-2 Adım 8 — Çalışma yapıldı toggle (active ↔ archived) ---
+const statusToggleBtn = document.getElementById('status-toggle-btn');
+if (statusToggleBtn) {
+    statusToggleBtn.addEventListener('click', async () => {
+        const current = statusToggleBtn.dataset.status || 'active';
+        const next = current === 'archived' ? 'active' : 'archived';
+        const verb = next === 'archived' ? 'arşive almak' : 'aktif etmek';
+        if (!confirm(`Bu ürünü ${verb} istediğine emin misin?`)) return;
+        try {
+            const data = await postJson(`/api/urun/${URUN_ID}/status`, { status: next });
+            if (data.ok) {
+                statusToggleBtn.dataset.status = next;
+                const label = statusToggleBtn.querySelector('.status-toggle-label');
+                if (label) label.textContent = next === 'archived' ? 'Aktif Et' : 'Çalışma Tamamlandı';
+                statusToggleBtn.classList.toggle('btn-secondary', next === 'active');
+                statusToggleBtn.classList.toggle('btn-success', next === 'archived');
+                window.toast(next === 'archived' ? 'Ürün arşive alındı' : 'Ürün aktif edildi', 'success');
+            } else {
+                window.toast(data.error || 'Hata', 'error');
+            }
+        } catch (e) {
+            window.toast('Bağlantı hatası', 'error');
+        }
+    });
+    // Açılışta arşivlenmişse stil
+    if (statusToggleBtn.dataset.status === 'archived') {
+        statusToggleBtn.classList.remove('btn-secondary');
+        statusToggleBtn.classList.add('btn-success');
+    }
+}
 
 // --- Tasarım modu: sürükle-bırak sıralama ---
 const grid = document.getElementById('image-grid');

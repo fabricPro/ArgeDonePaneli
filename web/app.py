@@ -327,6 +327,12 @@ def product_summary(d: dict) -> dict:
         "has_color_album": has_color_album,
         "color_album_image_count": color_album_image_count,
         "palette_size": palette_size,
+        # v4.0-part-2 Adım 8 — Galeri filtre + kart indikatörleri
+        "status": d.get("status") or "active",
+        "country_code": d.get("country_code"),
+        "has_teknik": store.has_teknik_calisma(d),
+        "has_pdf": store.has_pdfs(d),
+        "has_notlar": store.has_notlar(d),
     }
 
 
@@ -428,11 +434,26 @@ def api_reorder_dashboard():
 
 @app.route("/ekle")
 def ekle():
+    # v4.0-part-2 Adım 8 — Ön Çalışmadan prefill (URL ?from_research=<id>)
+    prefill = None
+    from_research_id = request.args.get("from_research")
+    if from_research_id:
+        try:
+            prefill = store.research_get(from_research_id)
+        except Exception:
+            prefill = None
+    # Sağ panel için: tüm pending research'leri grupla (ülke → firma)
+    try:
+        research_rows = store.research_list(status="pending", limit=200)
+    except Exception:
+        research_rows = []
     return render_template(
         "ekle.html", tracked_brands=TRACKED_BRANDS,
         brands_registry=get_brands_registry(),
         countries=country_list(),
         country_suggestions=COUNTRY_SUGGESTIONS, weave_suggestions=WEAVE_SUGGESTIONS,
+        prefill=prefill,
+        research_rows=research_rows,
     )
 
 
@@ -630,6 +651,17 @@ def api_create_urun():
         ci = cover_index if 0 <= cover_index < len(images) else 0
         images[ci]["is_cover"] = True
 
+    # v4.0-part-2 Adım 8 — PDF dosyaları (opsiyonel)
+    pdf_files = [x for x in request.files.getlist("pdf_files") if x and x.filename]
+    pdfs_meta: list[dict] = []
+    for fs in pdf_files:
+        try:
+            pdfs_meta.append(save_pdf(fs, urun_id))
+        except Exception as e:
+            return jsonify({"ok": False, "error": f"PDF yüklenemedi ({fs.filename}): {e}"}), 400
+
+    source_url = clean(f.get("source_url"))
+
     now = now_iso()
     d = {
         "urun_id": urun_id, "brand": brand, "brand_slug": brand_slug,
@@ -642,10 +674,24 @@ def api_create_urun():
         "repeat_vertical_cm": parse_int(f.get("repeat_vertical_cm")),
         "repeat_horizontal_cm": parse_int(f.get("repeat_horizontal_cm")),
         "arge_notu": clean(f.get("arge_notu")), "notes": clean(f.get("notes")),
-        "source_url": clean(f.get("source_url")),
+        "source_url": source_url,
+        "source_url_hash": store.url_hash(source_url) if source_url else None,
+        "status": "active",
+        "country_code": _country_iso(norm_country(clean(f.get("country")))),
         "created_at": now, "updated_at": now, "images": images,
     }
+    if pdfs_meta:
+        d["pdfs"] = pdfs_meta
     store.upsert(d)
+
+    # v4.0-part-2 Adım 8 — Ön Çalışma kaydı varsa "imported" işaretle
+    from_research_id = clean(f.get("from_research_id"))
+    if from_research_id:
+        try:
+            store.research_update_status(from_research_id, "imported", imported_product_id=urun_id)
+        except Exception:
+            pass  # best-effort, ürün yine de oluştu
+
     return jsonify({"ok": True, "urun_id": urun_id, "redirect": url_for("urun_detail", urun_id=urun_id)})
 
 
@@ -907,53 +953,90 @@ def _find_surum(teknik: dict, surum_id: str) -> dict | None:
 
 @app.route("/api/urun/<urun_id>/teknik/surum", methods=["POST"])
 def api_teknik_surum_create(urun_id: str):
-    """Yeni teknik sürüm oluştur. Body: {ad}."""
+    """Yeni teknik sürüm oluştur.
+    Body: {ad, source_surum_id?}
+
+    v4.0-part-2 Adım 8 — Eğer source_surum_id verilirse, o sürümdeki
+    1·Analiz (kunye + parametreler + iplikler) + 2·Desen (desen) tablar
+    KOPYALANIR. 3·Tarak (tahar_grid, tarak_raporu, tarak) ve notlar her
+    zaman BOŞ başlar.
+    """
+    import copy
     d = store.get(urun_id)
     if not d:
         return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
     body = request.get_json(force=True) or {}
     ad = clean(body.get("ad")) or "Yeni Sürüm"
+    source_id = clean(body.get("source_surum_id"))
+
     teknik = _ensure_teknik(d)
     new_id = _next_surum_id([s.get("id") for s in teknik["surumler"]])
     now = now_iso()
-    surum = {
-        "id": new_id,
-        "ad": ad,
-        "olusturma_tarihi": now,
-        "guncelleme_tarihi": now,
-        "kunye": {
-            # v4.0-part-2 Adım 2.4 — ürün metadata'sından auto-fill
-            "ad": d.get("product_code") or d.get("product_name") or "",
-            "musteri": d.get("brand") or "",
-            "tarih": now[:10],   # YYYY-MM-DD (ISO)
-        },
-        "parametreler": {
-            "cozgu_sikligi": None,
-            "atki_sikligi": None,
-            "ham_en_cm": None,
-            "mamul_en_cm": d.get("width_cm"),     # mevcut metadata'dan default
-            "gramaj_gsm": d.get("weight_gsm"),
-            # v4.0-part-2 Adım 2.5 — üretim & finisaj parametreleri default'ları
-            "tezgah_devri": 280,
-            "randiman": 85,
-            "terbiye_fiyat": 1,
-            "genel_fire": 5,
-            "kursun_sabit": 0.25,
-            "ek_malzeme": None,
-        },
-        "iplikler": {"cozgu": [], "atki": []},
-        "tahar_grid": {},
-        "tarak_raporu": {},
-        # v4.0-part-2 Adım 3 — Desen modülü (tahar+armür+iro+döngü+rapor)
-        "desen": {},
-        # v4.0-part-2 Adım 4 — Tarak modülü (sıklık+rapor+dentThreads)
-        "tarak": {},
-        "notlar": "",
-    }
+
+    source = _find_surum(teknik, source_id) if source_id else None
+    if source:
+        # Miras alma: Analiz + Desen kopyalanır, Tarak + notlar boş.
+        kunye_copy = copy.deepcopy(source.get("kunye") or {})
+        # Tarih taze: yeni çalışma bugün başlıyor
+        kunye_copy["tarih"] = now[:10]
+        surum = {
+            "id": new_id,
+            "ad": ad,
+            "olusturma_tarihi": now,
+            "guncelleme_tarihi": now,
+            "kunye": kunye_copy,
+            "parametreler": copy.deepcopy(source.get("parametreler") or {}),
+            "iplikler": copy.deepcopy(source.get("iplikler") or {"cozgu": [], "atki": []}),
+            "desen": copy.deepcopy(source.get("desen") or {}),
+            # 3·Tarak boş başlar
+            "tahar_grid": {},
+            "tarak_raporu": {},
+            "tarak": {},
+            # Notlar boş başlar (sürüm-spesifik)
+            "notlar": "",
+            "notlar_html": "",
+            # Mirastan geldiği info (audit + UI badge için)
+            "inherited_from": source_id,
+        }
+    else:
+        surum = {
+            "id": new_id,
+            "ad": ad,
+            "olusturma_tarihi": now,
+            "guncelleme_tarihi": now,
+            "kunye": {
+                # v4.0-part-2 Adım 2.4 — ürün metadata'sından auto-fill
+                "ad": d.get("product_code") or d.get("product_name") or "",
+                "musteri": d.get("brand") or "",
+                "tarih": now[:10],   # YYYY-MM-DD (ISO)
+            },
+            "parametreler": {
+                "cozgu_sikligi": None,
+                "atki_sikligi": None,
+                "ham_en_cm": None,
+                "mamul_en_cm": d.get("width_cm"),     # mevcut metadata'dan default
+                "gramaj_gsm": d.get("weight_gsm"),
+                # v4.0-part-2 Adım 2.5 — üretim & finisaj parametreleri default'ları
+                "tezgah_devri": 280,
+                "randiman": 85,
+                "terbiye_fiyat": 1,
+                "genel_fire": 5,
+                "kursun_sabit": 0.25,
+                "ek_malzeme": None,
+            },
+            "iplikler": {"cozgu": [], "atki": []},
+            "tahar_grid": {},
+            "tarak_raporu": {},
+            # v4.0-part-2 Adım 3 — Desen modülü (tahar+armür+iro+döngü+rapor)
+            "desen": {},
+            # v4.0-part-2 Adım 4 — Tarak modülü (sıklık+rapor+dentThreads)
+            "tarak": {},
+            "notlar": "",
+            "notlar_html": "",
+        }
     teknik["surumler"].append(surum)
-    # İlk sürüm otomatik aktif
-    if not teknik.get("active_surum_id"):
-        teknik["active_surum_id"] = new_id
+    # İlk sürüm otomatik aktif (veya miras alındıysa onu da aktif yap — kullanıcı yeniyi düzenleyecek)
+    teknik["active_surum_id"] = new_id
     d["updated_at"] = now
     store.upsert(d)
     return jsonify({"ok": True, "surum": surum, "active_surum_id": teknik["active_surum_id"]})
@@ -1632,7 +1715,9 @@ def api_pdf_sil(urun_id: str):
 
 @app.route("/api/urun/<urun_id>/notlar", methods=["POST"])
 def api_notlar(urun_id: str):
-    """Rich-text notlar kaydet. Body: {html}. Server-side sanitize."""
+    """Rich-text notlar kaydet (ürün-seviyesi, fallback / geriye uyum).
+    v4.0-part-2 Adım 8: sürüm-spesifik notlar için
+    POST /api/urun/<urun_id>/teknik/<surum_id>/notlar kullanılmalı."""
     d = store.get(urun_id)
     if not d:
         return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
@@ -1645,6 +1730,48 @@ def api_notlar(urun_id: str):
     d["updated_at"] = now_iso()
     store.upsert(d)
     return jsonify({"ok": True, "html": clean_html})
+
+
+@app.route("/api/urun/<urun_id>/teknik/<surum_id>/notlar", methods=["POST"])
+def api_teknik_surum_notlar(urun_id: str, surum_id: str):
+    """v4.0-part-2 Adım 8 — Sürüm-spesifik notlar kaydet.
+    Body: {html}. Aktif sürümün `notlar_html` alanına yazılır."""
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    teknik = _ensure_teknik(d)
+    surum = _find_surum(teknik, surum_id)
+    if not surum:
+        return jsonify({"ok": False, "error": "Sürüm bulunamadı"}), 404
+    body = request.get_json(force=True) or {}
+    raw_html = body.get("html") or ""
+    if len(raw_html) > 200_000:
+        return jsonify({"ok": False, "error": "Not içeriği çok büyük"}), 400
+    clean_html = _sanitize_notlar_html(raw_html)
+    surum["notlar_html"] = clean_html
+    surum["guncelleme_tarihi"] = now_iso()
+    d["updated_at"] = surum["guncelleme_tarihi"]
+    store.upsert(d)
+    return jsonify({"ok": True, "html": clean_html, "surum_id": surum_id})
+
+
+@app.route("/api/urun/<urun_id>/teknik/<surum_id>/notlar", methods=["GET"])
+def api_teknik_surum_notlar_get(urun_id: str, surum_id: str):
+    """Aktif sürümün notlar_html'ini döner (fallback: product.notlar_html)."""
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    teknik = _ensure_teknik(d)
+    surum = _find_surum(teknik, surum_id)
+    if not surum:
+        return jsonify({"ok": False, "error": "Sürüm bulunamadı"}), 404
+    html = surum.get("notlar_html") or ""
+    fallback_used = False
+    if not html.strip():
+        html = d.get("notlar_html") or ""
+        if html.strip():
+            fallback_used = True
+    return jsonify({"ok": True, "html": html, "surum_id": surum_id, "fallback": fallback_used})
 
 
 @app.route("/api/urunler")
@@ -1753,6 +1880,327 @@ def analiz():
     for s in stats["by_country"]:
         s["insight"] = _generate_insight(s)
     return render_template("analiz.html", stats=stats)
+
+
+# ============================================================
+# v4.0-part-2 Adım 8 — Ön Çalışma Alanı (research_pool)
+# ============================================================
+
+# Marka slug → ISO-2 ülke kodu çıkarımı (registry için)
+COUNTRY_TO_ISO = {
+    "türkiye": "TR", "turkey": "TR",
+    "italya": "IT", "italy": "IT",
+    "danimarka": "DK", "denmark": "DK",
+    "almanya": "DE", "germany": "DE",
+    "fransa": "FR", "france": "FR",
+    "belçika": "BE", "belgium": "BE",
+    "abd": "US", "usa": "US",
+    "isveç": "SE", "sweden": "SE",
+    "isviçre": "CH", "switzerland": "CH",
+    "hollanda": "NL", "netherlands": "NL",
+    "ingiltere": "GB", "uk": "GB",
+    "avusturya": "AT", "austria": "AT",
+    "hindistan": "IN", "india": "IN",
+    "ispanya": "ES", "spain": "ES",
+    "portekiz": "PT", "portugal": "PT",
+}
+
+
+def _country_iso(country: str | None) -> str | None:
+    if not country:
+        return None
+    return COUNTRY_TO_ISO.get(country.strip().lower())
+
+
+def _favicon_url(product_url: str | None, size: int = 64) -> str | None:
+    """v4.0-part-2 Sprint 5 — Google s2 favicon URL'i client-side fetch için.
+    Server-side hiçbir HTTP isteği yapmaz, sadece URL'i hesaplar."""
+    if not product_url:
+        return None
+    try:
+        from urllib.parse import urlparse, quote
+        p = urlparse(product_url.strip())
+        domain = (p.netloc or "").lower()
+        if domain.startswith("www."):
+            domain = domain[4:]
+        if not domain:
+            return None
+        return f"https://www.google.com/s2/favicons?domain={quote(domain)}&sz={size}"
+    except Exception:
+        return None
+
+
+# Jinja global olarak kaydet — template'lerde {{ favicon_url(r.product_url) }} ile kullanılır
+app.jinja_env.globals["favicon_url"] = _favicon_url
+
+
+@app.route("/arastirma")
+def arastirma_page():
+    """Ön Çalışma ana sayfa: ekleme paneli + filtreli liste."""
+    brands = get_brands_registry()
+    # Listede gösterilecek satırlar — default pending
+    rows = store.research_list(status="pending")
+    # Country code → name eşleştirmesi için brand registry'den
+    return render_template(
+        "arastirma.html",
+        brands=brands,
+        country_suggestions=COUNTRY_SUGGESTIONS,
+        rows=rows,
+    )
+
+
+@app.route("/api/arastirma/list")
+def api_arastirma_list():
+    """Filtreli ön çalışma listesi.
+    Query params: status (pending|imported|dismissed|all), brand_slug, country_code"""
+    status = request.args.get("status", "pending")
+    brand_slug = request.args.get("brand_slug") or None
+    country_code = request.args.get("country_code") or None
+    rows = store.research_list(status=status, brand_slug=brand_slug, country_code=country_code)
+    return jsonify({"ok": True, "rows": rows, "count": len(rows)})
+
+
+@app.route("/api/arastirma/ekle", methods=["POST"])
+def api_arastirma_ekle():
+    """Yeni ön çalışma satırı ekle.
+    Body (JSON): {master_url, product_url, brand_slug? | brand+country, notes?}
+
+    Dedup: aynı URL hash daha önce eklenmişse:
+      - status='pending' veya 'imported' ise hata
+      - status='dismissed' ise "geri açayım mı?" hint
+    products tablosunda aynı URL hash varsa "zaten ürün olarak kayıtlı" hatası.
+    """
+    data = request.get_json(silent=True) or {}
+    purl = (data.get("product_url") or "").strip()
+    if not purl:
+        return jsonify({"ok": False, "error": "product_url zorunlu"}), 400
+
+    h = store.url_hash(purl)
+    if not h:
+        return jsonify({"ok": False, "error": "product_url geçersiz"}), 400
+
+    # 1) Aynı URL daha önce ürün olmuş mu?
+    existing_prod = store.product_find_by_url_hash(h)
+    if existing_prod:
+        return jsonify({
+            "ok": False, "error": "duplicate_product",
+            "message": f"Bu URL zaten ürün olarak kayıtlı: {existing_prod.get('product_name') or existing_prod.get('urun_id')}",
+            "urun_id": existing_prod.get("urun_id"),
+        }), 409
+
+    # 2) Aynı URL ön çalışmada var mı?
+    existing_res = store.research_find_by_hash(h)
+    if existing_res:
+        if existing_res["status"] == "dismissed":
+            return jsonify({
+                "ok": False, "error": "previously_dismissed",
+                "message": "Bu URL daha önce reddedilmişti. Geri açmak ister misin?",
+                "research_id": existing_res["id"],
+            }), 409
+        return jsonify({
+            "ok": False, "error": "duplicate_research",
+            "message": f"Bu URL zaten ön çalışmada: {existing_res.get('brand')} / {existing_res.get('country')}",
+            "research_id": existing_res["id"],
+        }), 409
+
+    # 3) Firma + ülke çözümle
+    brand_slug = (data.get("brand_slug") or "").strip().lower()
+    brand_name = (data.get("brand") or "").strip()
+    country = (data.get("country") or "").strip()
+
+    if brand_slug:
+        # Registry'den firma bilgisi
+        reg_brand = next((b for b in get_brands_registry() if b.get("slug") == brand_slug), None)
+        if reg_brand:
+            brand_name = brand_name or reg_brand.get("name") or brand_slug
+            country = country or reg_brand.get("country") or ""
+    elif brand_name:
+        # Yeni firma — slug üret
+        existing_slugs = {b.get("slug") for b in get_brands_registry()}
+        brand_slug = _unique_brand_slug(brand_name, existing_slugs)
+
+    if not brand_name or not country:
+        return jsonify({"ok": False, "error": "brand + country zorunlu"}), 400
+
+    country_normalized = norm_country(country)
+
+    # 4) v4.0-part-2 Sprint 5 — Server-side og:image fetch artık yapılmaz.
+    # Client-side favicon URL'i hesaplar (her sitenin Google s2 servisi favicon'u).
+    # thumb_url alanı ileride manuel görsel override için boş bırakılır.
+    payload = {
+        "master_url": (data.get("master_url") or "").strip(),
+        "product_url": purl,
+        "brand": brand_name,
+        "brand_slug": brand_slug,
+        "country": country_normalized,
+        "country_code": _country_iso(country_normalized),
+        "thumb_url": None,
+        "notes": (data.get("notes") or "").strip() or None,
+    }
+
+    try:
+        row = store.research_add(payload)
+    except ValueError as e:
+        return jsonify({"ok": False, "error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"ok": False, "error": f"DB hatası: {e}"}), 500
+
+    return jsonify({"ok": True, "row": row})
+
+
+@app.route("/api/arastirma/<research_id>/status", methods=["POST"])
+def api_arastirma_status(research_id: str):
+    """Status değiştir: pending | dismissed (geri aç). 'imported' otomatik (import flow)."""
+    data = request.get_json(silent=True) or {}
+    new_status = (data.get("status") or "").strip()
+    if new_status not in ("pending", "dismissed"):
+        return jsonify({"ok": False, "error": "Geçersiz status (pending|dismissed)"}), 400
+    row = store.research_update_status(research_id, new_status)
+    if not row:
+        return jsonify({"ok": False, "error": "Bulunamadı"}), 404
+    return jsonify({"ok": True, "row": row})
+
+
+@app.route("/api/arastirma/<research_id>", methods=["DELETE"])
+def api_arastirma_delete(research_id: str):
+    """Soft delete (status='dismissed'). Hard delete için ?hard=1."""
+    if request.args.get("hard") == "1":
+        store.research_hard_delete(research_id)
+        return jsonify({"ok": True, "hard": True})
+    store.research_delete(research_id)
+    return jsonify({"ok": True, "hard": False})
+
+
+@app.route("/api/arastirma/<research_id>", methods=["POST"])
+def api_arastirma_update(research_id: str):
+    """v4.0-part-2 Sprint 6 — Düzenleme.
+    Body (JSON): {master_url?, product_url?, brand?, brand_slug?, country?, notes?}
+
+    Marka değişirse brand_slug otomatik türetilir (override edilebilir).
+    URL değişirse hash yeniden hesaplanır; aynı hash'te başka satır varsa 409.
+    """
+    data = request.get_json(silent=True) or {}
+    row = store.research_get(research_id)
+    if not row:
+        return jsonify({"ok": False, "error": "Bulunamadı"}), 404
+
+    patch: dict = {}
+
+    if "product_url" in data:
+        new_purl = (data.get("product_url") or "").strip()
+        if not new_purl:
+            return jsonify({"ok": False, "error": "product_url boş olamaz"}), 400
+        new_hash = store.url_hash(new_purl)
+        if new_hash and new_hash != row.get("product_url_hash"):
+            # Çakışma kontrol — başka bir satırda bu hash var mı
+            other = store.research_find_by_hash(new_hash)
+            if other and other.get("id") != research_id:
+                return jsonify({
+                    "ok": False, "error": "duplicate_research",
+                    "message": "Bu URL zaten başka bir satırda kayıtlı.",
+                    "research_id": other.get("id"),
+                }), 409
+            # Ürünlerde de var mı?
+            existing_prod = store.product_find_by_url_hash(new_hash)
+            if existing_prod:
+                return jsonify({
+                    "ok": False, "error": "duplicate_product",
+                    "message": f"Bu URL zaten ürün olarak kayıtlı: {existing_prod.get('product_name') or existing_prod.get('urun_id')}",
+                    "urun_id": existing_prod.get("urun_id"),
+                }), 409
+            patch["product_url_hash"] = new_hash
+        patch["product_url"] = new_purl
+
+    if "master_url" in data:
+        patch["master_url"] = (data.get("master_url") or "").strip()
+
+    if "notes" in data:
+        patch["notes"] = (data.get("notes") or "").strip() or None
+
+    # Brand + country: kullanıcı brand_slug verirse registry'den, vermezse text+otomatik slug
+    if "brand_slug" in data and data.get("brand_slug"):
+        new_slug = (data.get("brand_slug") or "").strip().lower()
+        reg_brand = next((b for b in get_brands_registry() if b.get("slug") == new_slug), None)
+        if reg_brand:
+            patch["brand_slug"] = new_slug
+            patch["brand"] = data.get("brand") or reg_brand.get("name") or new_slug
+            country_raw = data.get("country") or reg_brand.get("country")
+            if country_raw:
+                country_norm = norm_country(country_raw)
+                patch["country"] = country_norm
+                patch["country_code"] = _country_iso(country_norm)
+    elif "brand" in data and data.get("brand"):
+        brand_name = (data.get("brand") or "").strip()
+        existing_slugs = {b.get("slug") for b in get_brands_registry()}
+        patch["brand"] = brand_name
+        patch["brand_slug"] = _unique_brand_slug(brand_name, existing_slugs)
+
+    if "country" in data and data.get("country") and "country" not in patch:
+        country_norm = norm_country((data.get("country") or "").strip())
+        patch["country"] = country_norm
+        patch["country_code"] = _country_iso(country_norm)
+
+    if not patch:
+        return jsonify({"ok": True, "row": row, "noop": True})
+
+    try:
+        updated = store.research_update(research_id, patch)
+    except Exception as e:
+        return jsonify({"ok": False, "error": f"DB hatası: {e}"}), 500
+
+    return jsonify({"ok": True, "row": updated})
+
+
+@app.route("/api/arastirma/<research_id>/favorite", methods=["POST"])
+def api_arastirma_favorite(research_id: str):
+    """v4.0-part-2 Sprint 6 — Favori toggle.
+    Body: {value: true|false}. Eksikse mevcut değer terslenir."""
+    row = store.research_get(research_id)
+    if not row:
+        return jsonify({"ok": False, "error": "Bulunamadı"}), 404
+    data = request.get_json(silent=True) or {}
+    if "value" in data:
+        new_val = bool(data.get("value"))
+    else:
+        new_val = not bool(row.get("is_favorite"))
+    updated = store.research_set_favorite(research_id, new_val)
+    return jsonify({"ok": True, "row": updated, "is_favorite": new_val})
+
+
+@app.route("/api/arastirma/<research_id>/import", methods=["POST"])
+def api_arastirma_import_mark(research_id: str):
+    """Bu satırı 'imported' olarak işaretle. Ürün oluşturma akışı sonunda çağrılır.
+    Body: {urun_id: '...'}"""
+    data = request.get_json(silent=True) or {}
+    urun_id = (data.get("urun_id") or "").strip()
+    if not urun_id:
+        return jsonify({"ok": False, "error": "urun_id zorunlu"}), 400
+    row = store.research_update_status(research_id, "imported", imported_product_id=urun_id)
+    if not row:
+        return jsonify({"ok": False, "error": "Bulunamadı"}), 404
+    return jsonify({"ok": True, "row": row})
+
+
+# ============================================================
+# v4.0-part-2 Adım 8 — Ürün status toggle (active/archived)
+# ============================================================
+
+@app.route("/api/urun/<urun_id>/status", methods=["POST"])
+def api_urun_status(urun_id: str):
+    """Ürünü 'archived' (çalışma yapıldı) veya 'active' yap.
+    Body: {status: 'active' | 'archived'}"""
+    data = request.get_json(silent=True) or {}
+    status = (data.get("status") or "").strip()
+    if status not in ("active", "archived"):
+        return jsonify({"ok": False, "error": "status active|archived olmalı"}), 400
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    try:
+        store.update_status(urun_id, status)
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+    return jsonify({"ok": True, "status": status})
 
 
 if __name__ == "__main__":

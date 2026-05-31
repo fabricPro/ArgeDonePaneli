@@ -45,6 +45,14 @@
         saveTimer = setTimeout(save, 3000);
     }
 
+    // v4.0-part-2 Adım 8 — Aktif sürüme yaz (yoksa ürün-seviyesine fallback)
+    function getSaveUrl() {
+        const state = window.URUN_TEKNIK_STATE || {};
+        const sid = state.activeSurumId;
+        if (sid) return `/api/urun/${URUN_ID}/teknik/${encodeURIComponent(sid)}/notlar`;
+        return `/api/urun/${URUN_ID}/notlar`;
+    }
+
     async function save() {
         if (saving) return;
         const html = editor.innerHTML;
@@ -55,7 +63,7 @@
         saving = true;
         setStatus("Kaydediliyor…", "saving");
         try {
-            const res = await fetch(`/api/urun/${URUN_ID}/notlar`, {
+            const res = await fetch(getSaveUrl(), {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({html: html}),
@@ -69,6 +77,9 @@
                 if (data.html !== html) {
                     editor.innerHTML = data.html;
                 }
+                // Fallback hint'i kaldır (artık sürüm-spesifik not var)
+                const hint = document.querySelector('.notlar-fallback-hint');
+                if (hint) hint.remove();
                 setStatus("Kaydedildi ✓", "ok");
             } else {
                 setStatus("Hata: " + (data.error || "?"), "error");
@@ -80,6 +91,34 @@
             saving = false;
         }
     }
+
+    // v4.0-part-2 Adım 8 — Aktif sürüm değişince notları reload
+    async function reloadFromActiveSurum() {
+        const state = window.URUN_TEKNIK_STATE || {};
+        const sid = state.activeSurumId;
+        if (!sid) return;  // sürüm yoksa, mevcut content'i bırak
+        // Kayıtlanmamış değişiklik varsa kullanıcıyı uyar
+        const hasDirty = editor.innerHTML !== lastSaved;
+        if (hasDirty) {
+            if (!confirm("Mevcut sürümün notlarında kaydedilmemiş değişiklik var. Yeni sürüme geçince kaybolacak. Devam edilsin mi?")) {
+                return;
+            }
+        }
+        try {
+            setStatus("Yükleniyor…", "saving");
+            const res = await fetch(`/api/urun/${URUN_ID}/teknik/${encodeURIComponent(sid)}/notlar`);
+            const data = await res.json();
+            if (data.ok) {
+                editor.innerHTML = data.html || "";
+                lastSaved = editor.innerHTML;
+                setStatus(data.fallback ? "Ürün-seviyesinden gösteriliyor" : "Kaydedildi", "ok");
+            }
+        } catch (e) {
+            setStatus("Yüklenemedi", "error");
+        }
+    }
+    // teknik.js bir sürüm değişikliği yayınladığında dinle
+    document.addEventListener('teknik-surum-changed', reloadFromActiveSurum);
 
     // === Toolbar handlers ===
     toolbar.addEventListener("mousedown", (e) => {

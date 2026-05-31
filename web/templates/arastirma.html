@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% block title %}Ön Çalışma — Link havuzu{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Ön Çalışma</h1>
+    <p class="page-subtitle">Keşif fazı: link biriktir, sonra boş zamanda ürüne çevir. Aynı URL bir kere kaydedilir.</p>
+</div>
+
+<!-- ============================================================ -->
+<!-- EKLEME PANELİ                                                   -->
+<!-- ============================================================ -->
+<section class="arastirma-add">
+    <header class="ar-section-head">
+        <h2>Yeni link havuzu</h2>
+        <span class="ar-hint">Önce master URL, sonra altına satır satır ürün linkleri.</span>
+    </header>
+
+    <!-- Master URL (zorunlu, hepsinin başında) -->
+    <div class="ar-master-row">
+        <label for="master-url">
+            <span class="ar-label">MASTER URL</span>
+            <span class="ar-required">*</span>
+            <span class="ar-master-hint">Sitenin filtreli sayfası (örn. Dedar min 300cm Curtain)</span>
+        </label>
+        <input type="url" id="master-url" placeholder="https://www.dedar.com/curtains?w_min=300" required>
+    </div>
+
+    <!-- Dinamik satırlar -->
+    <div class="ar-rows" id="ar-rows">
+        <!-- ar-row template'inden klonlanır -->
+    </div>
+
+    <div class="ar-add-row-actions">
+        <button type="button" id="btn-add-row" class="btn btn-secondary">
+            <svg class="icon"><use href="#ic-plus"/></svg> Yeni satır
+        </button>
+        <button type="button" id="btn-save-all" class="btn btn-primary">
+            <svg class="icon"><use href="#ic-check"/></svg> Tümünü kaydet
+        </button>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- KAYITLI LİSTE                                                  -->
+<!-- ============================================================ -->
+<section class="arastirma-list">
+    <header class="ar-section-head">
+        <h2>Havuz</h2>
+        <div class="ar-list-filters">
+            <select id="filter-status">
+                <option value="pending">Bekleyenler</option>
+                <option value="imported">İmport edilmiş</option>
+                <option value="dismissed">Reddedilenler</option>
+                <option value="all">Tümü</option>
+            </select>
+            <label class="filter-fav-toggle" title="Sadece favorileri göster">
+                <input type="checkbox" id="filter-favorites-only">
+                <svg class="icon"><use href="#ic-star"/></svg>
+                <span>Favori</span>
+            </label>
+            <select id="filter-brand">
+                <option value="">Tüm firmalar</option>
+                {% for b in brands %}
+                <option value="{{ b.slug }}">{{ b.name }}{% if b.country %} · {{ b.country }}{% endif %}</option>
+                {% endfor %}
+            </select>
+            <select id="filter-country">
+                <option value="">Tüm ülkeler</option>
+                <!-- JS dolduracak -->
+            </select>
+            <button type="button" id="btn-refresh-list" class="btn btn-secondary" title="Yenile">
+                <svg class="icon"><use href="#ic-search"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <div class="ar-list" id="ar-list">
+        <!-- JS render eder; ilk yüklemede backend'ten rows ile init -->
+    </div>
+
+    <div class="ar-empty" id="ar-empty" hidden>
+        <p>Bu filtreyle eşleşen kayıt yok. Yukarıdan yeni link ekle.</p>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- TEMPLATES (görünmez, JS klonlar)                                -->
+<!-- ============================================================ -->
+<template id="tpl-ar-row">
+    <div class="ar-row" data-state="draft">
+        <div class="ar-row-cells">
+            <input type="url" class="ar-row-url" placeholder="https://… (ürün linki)" required>
+            <select class="ar-row-brand">
+                <option value="">— Firma seç —</option>
+                {% for b in brands %}
+                <option value="{{ b.slug }}" data-country="{{ b.country or '' }}">{{ b.name }}</option>
+                {% endfor %}
+                <option value="__new__">+ Yeni firma…</option>
+            </select>
+            <input type="text" class="ar-row-brand-new" placeholder="Yeni firma adı" hidden>
+            <input type="text" class="ar-row-country" placeholder="Ülke" list="country-suggestions">
+            <input type="text" class="ar-row-notes" placeholder="Kısa not (opsiyonel)">
+        </div>
+        <div class="ar-row-actions">
+            <button type="button" class="btn-icon ar-row-del" title="Bu satırı kaldır">
+                <svg class="icon"><use href="#ic-x"/></svg>
+            </button>
+        </div>
+        <div class="ar-row-status"></div>
+    </div>
+</template>
+
+<datalist id="country-suggestions">
+    {% for c in country_suggestions %}
+    <option value="{{ c }}">
+    {% endfor %}
+</datalist>
+
+<template id="tpl-ar-list-item">
+    <article class="ar-item" data-status="" data-favorite="false">
+        <button type="button" class="ar-fav-star" title="Favori (yıldız)" aria-pressed="false">
+            <svg class="icon"><use href="#ic-star"/></svg>
+        </button>
+        <div class="ar-item-thumb">
+            <img src="" alt="" loading="lazy" referrerpolicy="no-referrer">
+            <div class="ar-thumb-placeholder">
+                <svg class="icon"><use href="#ic-image"/></svg>
+            </div>
+        </div>
+        <div class="ar-item-body">
+            <div class="ar-item-title"></div>
+            <div class="ar-item-meta"></div>
+            {# v4.0-part-2 Sprint 7 — master URL tıklanabilir #}
+            <a class="ar-item-master" target="_blank" rel="noopener"></a>
+            <div class="ar-item-notes"></div>
+
+            {# v4.0-part-2 Sprint 6 — inline düzenleme formu (default gizli) #}
+            <div class="ar-item-edit" hidden>
+                <label>Ürün URL <input type="url" data-field="product_url"></label>
+                <label>Master URL <input type="url" data-field="master_url"></label>
+                <div class="ar-edit-row-2">
+                    <label>Marka <select data-field="brand_slug">
+                        <option value="">— firma seç —</option>
+                        {% for b in brands %}
+                        <option value="{{ b.slug }}" data-country="{{ b.country or '' }}">{{ b.name }}</option>
+                        {% endfor %}
+                        <option value="__new__">+ Yeni firma…</option>
+                    </select></label>
+                    <label>Ülke <input type="text" data-field="country" list="country-suggestions"></label>
+                </div>
+                <label class="ar-edit-newbrand" hidden>Yeni firma adı <input type="text" data-field="brand"></label>
+                <label>Not <input type="text" data-field="notes"></label>
+                <div class="ar-edit-actions">
+                    <button type="button" class="btn btn-secondary ar-edit-cancel">İptal</button>
+                    <button type="button" class="btn btn-primary ar-edit-save">Kaydet</button>
+                </div>
+            </div>
+        </div>
+        <div class="ar-item-actions">
+            <a class="btn btn-ghost ar-item-open" target="_blank" rel="noopener" title="Linki aç">
+                <svg class="icon"><use href="#ic-search"/></svg>
+            </a>
+            <button type="button" class="btn btn-ghost ar-item-edit-btn" title="Düzenle">
+                <svg class="icon"><use href="#ic-pencil"/></svg>
+            </button>
+            <a class="btn btn-primary ar-item-import" title="Ürüne çevir">
+                <svg class="icon"><use href="#ic-plus"/></svg>
+                <span>Ürüne çevir</span>
+            </a>
+            <button type="button" class="btn btn-ghost ar-item-restore" title="Geri aç" hidden>
+                Geri aç
+            </button>
+            <button type="button" class="btn btn-ghost ar-item-dismiss" title="Reddet (gizle)">
+                <svg class="icon"><use href="#ic-x"/></svg>
+            </button>
+        </div>
+    </article>
+</template>
+
+<script id="initial-rows" type="application/json">{{ rows|tojson }}</script>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/arastirma.js') }}"></script>
+{% endblock %}

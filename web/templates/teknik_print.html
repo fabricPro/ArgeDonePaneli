@@ -915,13 +915,22 @@ table.pdf-table tr.weft-row td:first-child { border-left: 3pt solid #7fb37f; }
 </section>
 {% endif %}
 
-<!-- ========== SAYFA 6 — NOTLAR ========== -->
-{% if product.notlar_html and product.notlar_html|trim %}
+<!-- ========== SAYFA 6 — NOTLAR (v4.0-part-2 Adım 8 — sürüm-spesifik) ========== -->
+{# Aktif sürümün notu varsa onu, yoksa ürün-seviyesi nota fallback. #}
+{% set _surum_notlar = (surum.notlar_html or '')|trim %}
+{% set _urun_notlar = (product.notlar_html or '')|trim %}
+{% set _print_notlar = _surum_notlar or _urun_notlar %}
+{% if _print_notlar %}
 <section class="pdf-page">
     <h2>Notlar</h2>
     <div class="pdf-notes-content">
-        {{ product.notlar_html|safe }}
+        {{ _print_notlar|safe }}
     </div>
+    {% if not _surum_notlar and _urun_notlar %}
+    <p class="pdf-notes-fallback-hint" style="margin-top:8px; font-size:10px; color:#999;">
+        (Bu sürüme özel not yok — ürün-seviyesi nottan gösterildi.)
+    </p>
+    {% endif %}
 
     <div class="pdf-footer">
         <span>{{ product.brand or '—' }} · {{ product.product_name or '—' }}</span>

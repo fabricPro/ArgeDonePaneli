@@ -36,6 +36,9 @@
             <a href="{{ url_for('ekle') }}" class="nav-link nav-add {% if request.endpoint == 'ekle' %}active{% endif %}">
                 <svg class="icon"><use href="#ic-plus"/></svg> Yeni Ürün
             </a>
+            <a href="{{ url_for('arastirma_page') }}" class="nav-link {% if request.endpoint == 'arastirma_page' %}active{% endif %}">
+                <svg class="icon"><use href="#ic-list"/></svg> Ön Çalışma
+            </a>
             <a href="{{ url_for('analiz') }}" class="nav-link {% if request.endpoint == 'analiz' %}active{% endif %}">
                 <svg class="icon"><use href="#ic-bar-chart"/></svg> Analiz
             </a>

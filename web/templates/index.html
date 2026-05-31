@@ -18,6 +18,18 @@
         <option value="{{ b }}">{{ b }}</option>
         {% endfor %}
     </select>
+    {# v4.0-part-2 Adım 8 — Ülke + Status filtreleri #}
+    <select id="filter-country" class="filter-select">
+        <option value="">Tüm ülkeler</option>
+        {% for country, items in country_groups %}
+        <option value="{{ country }}">{{ country }}</option>
+        {% endfor %}
+    </select>
+    <select id="filter-status" class="filter-select">
+        <option value="">Tümü</option>
+        <option value="active">Aktif</option>
+        <option value="archived">Çalışma Yapıldı</option>
+    </select>
     <div class="view-toggle" role="group" aria-label="Görüntüleme modu">
         <button class="view-btn" data-mode="grid" title="Kart grid"><svg class="icon"><use href="#ic-grid"/></svg></button>
         <button class="view-btn" data-mode="list" title="Liste"><svg class="icon"><use href="#ic-list"/></svg></button>
@@ -65,7 +77,9 @@
            data-name-label="{{ p.product_name }}"
            data-brand="{{ p.brand|lower }}"
            data-name="{{ p.product_name|lower }}"
-           data-country="{{ (p.country or '')|lower }}">
+           data-country="{{ (p.country or '')|lower }}"
+           data-country-raw="{{ p.country or '' }}"
+           data-status="{{ p.status or 'active' }}">
             <button type="button" class="card-delete-btn" data-urunid="{{ p.urun_id }}" data-name-label="{{ p.product_name }}" aria-label="Bu ürünü sil" title="Bu ürünü sil"><svg class="icon"><use href="#ic-x"/></svg></button>
             <span class="card-select-check" aria-hidden="true"><svg class="icon"><use href="#ic-check"/></svg></span>
             {% if p.has_color_album %}
@@ -94,6 +108,23 @@
                     {% if p.weave_type %} · {{ p.weave_type }}{% endif %}
                 </div>
                 <div class="card-variants">{{ p.variant_count }} görsel/varyant</div>
+                {# v4.0-part-2 Adım 8 — Kart altı durum indikatörleri #}
+                <div class="card-indicators" aria-label="Veri durumu">
+                    <span class="ind {% if p.has_teknik %}on{% else %}off{% endif %}" title="Teknik Çalışma{% if not p.has_teknik %} (boş){% endif %}">
+                        <svg class="icon"><use href="#ic-grid"/></svg>
+                    </span>
+                    <span class="ind {% if p.has_pdf %}on{% else %}off{% endif %}" title="PDF Dokümanlar{% if not p.has_pdf %} (yok){% endif %}">
+                        <svg class="icon"><use href="#ic-file"/></svg>
+                    </span>
+                    <span class="ind {% if p.has_notlar %}on{% else %}off{% endif %}" title="Notlar{% if not p.has_notlar %} (boş){% endif %}">
+                        <svg class="icon"><use href="#ic-pencil"/></svg>
+                    </span>
+                    {% if p.status == 'archived' %}
+                    <span class="ind ind-archived" title="Çalışma yapıldı (arşivde)">
+                        <svg class="icon"><use href="#ic-check"/></svg>
+                    </span>
+                    {% endif %}
+                </div>
             </div>
         </a>
         {% endfor %}
@@ -106,20 +137,28 @@
 <script>
 const searchInput = document.getElementById('search-input');
 const brandSelect = document.getElementById('filter-brand');
+const countrySelect = document.getElementById('filter-country');
+const statusSelect = document.getElementById('filter-status');
 const groups = document.querySelectorAll('.country-group');
 
 function applyFilters() {
     const q = (searchInput.value || '').toLowerCase();
     const brand = (brandSelect.value || '').toLowerCase();
+    const country = countrySelect ? (countrySelect.value || '') : '';
+    const status = statusSelect ? (statusSelect.value || '') : '';
     groups.forEach(group => {
         let anyVisible = false;
         group.querySelectorAll('.product-card').forEach(card => {
             const cb = card.dataset.brand;
             const cn = card.dataset.name;
             const cc = card.dataset.country;
+            const ccRaw = card.dataset.countryRaw || '';
+            const cs = card.dataset.status || 'active';
             const matchesQ = !q || cb.includes(q) || cn.includes(q) || cc.includes(q);
             const matchesBrand = !brand || cb === brand;
-            const show = matchesQ && matchesBrand;
+            const matchesCountry = !country || ccRaw === country;
+            const matchesStatus = !status || cs === status;
+            const show = matchesQ && matchesBrand && matchesCountry && matchesStatus;
             card.style.display = show ? '' : 'none';
             if (show) anyVisible = true;
         });
@@ -128,6 +167,8 @@ function applyFilters() {
 }
 searchInput.addEventListener('input', applyFilters);
 brandSelect.addEventListener('change', applyFilters);
+countrySelect?.addEventListener('change', applyFilters);
+statusSelect?.addEventListener('change', applyFilters);
 
 // --- Tekil kart silme (sağ-üst X butonu) ---
 async function deleteProduct(uid, name) {

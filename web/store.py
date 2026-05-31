@@ -19,6 +19,7 @@ SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
 BUCKET = "gorseller"
 BUCKET_PDFS = "pdfler"  # v4.0-part-2 Adim 7
 TABLE = "products"
+TABLE_RESEARCH = "research_pool"  # v4.0-part-2 Adim 8
 
 PRODUCT_COLUMNS = [
     "urun_id", "brand", "brand_slug", "country", "collection", "product_name",
@@ -26,7 +27,16 @@ PRODUCT_COLUMNS = [
     "repeat_vertical_cm", "repeat_horizontal_cm", "arge_notu", "notes",
     "source_url", "images", "albums", "teknik", "dashboard_order",
     "pdfs", "notlar_html",  # v4.0-part-2 Adim 7
+    "status", "country_code", "source_url_hash",  # v4.0-part-2 Adim 8
     "created_at", "updated_at",
+]
+
+RESEARCH_COLUMNS = [
+    "id", "master_url", "product_url", "product_url_hash",
+    "brand", "brand_slug", "country", "country_code",
+    "thumb_url", "status", "imported_product_id",
+    "added_at", "imported_at", "notes",
+    "is_favorite",  # v4.0-part-2 Sprint 6
 ]
 
 
@@ -157,3 +167,254 @@ def ensure_bucket_pdfs() -> None:
         # 409 Conflict = zaten var, OK; başka hata varsa logla
         if "already exists" not in str(e).lower() and "duplicate" not in str(e).lower():
             print(f"[ensure_bucket_pdfs] uyarı: {e}")
+
+
+# =================================================================
+# v4.0-part-2 Adim 8 — URL normalize + research_pool + product status
+# =================================================================
+
+import hashlib
+import re
+from datetime import datetime, timezone
+from urllib.parse import urlparse, urlunparse
+from urllib.request import Request, urlopen
+
+
+def normalize_url(url: str | None) -> str:
+    """Dedup için URL'i normalize et: scheme+host lowercase, www. drop,
+    trailing slash drop, fragment drop, query KORUNUR."""
+    if not url:
+        return ""
+    try:
+        p = urlparse(url.strip())
+        scheme = (p.scheme or "https").lower()
+        host = (p.netloc or "").lower()
+        if host.startswith("www."):
+            host = host[4:]
+        path = p.path.rstrip("/") or "/"
+        return urlunparse((scheme, host, path, p.params, p.query, ""))
+    except Exception:
+        return url.strip().lower()
+
+
+def url_hash(url: str | None) -> str | None:
+    n = normalize_url(url)
+    if not n:
+        return None
+    return hashlib.md5(n.encode("utf-8")).hexdigest()
+
+
+def fetch_og_image(url: str, timeout: float = 5.0) -> str | None:
+    """Sayfanın <meta property="og:image" content="..."> değerini döner.
+    Yoksa veya hata olursa None. Hafif, sadece stdlib (requests yok)."""
+    if not url:
+        return None
+    try:
+        req = Request(
+            url,
+            headers={
+                "User-Agent": "Mozilla/5.0 (compatible; MobidikARGE/1.0; +research-pool)",
+                "Accept": "text/html,application/xhtml+xml",
+            },
+        )
+        with urlopen(req, timeout=timeout) as resp:
+            # İlk 200KB yeterli — og tagları head'da olur
+            html = resp.read(200_000).decode("utf-8", errors="ignore")
+    except Exception:
+        return None
+
+    # og:image (öncelikli)
+    m = re.search(
+        r'<meta[^>]+property=["\']og:image["\'][^>]+content=["\']([^"\']+)["\']',
+        html, re.IGNORECASE,
+    )
+    if not m:
+        # twitter:image fallback
+        m = re.search(
+            r'<meta[^>]+name=["\']twitter:image["\'][^>]+content=["\']([^"\']+)["\']',
+            html, re.IGNORECASE,
+        )
+    if not m:
+        return None
+    img = m.group(1).strip()
+    # Relative → absolute
+    if img.startswith("//"):
+        img = "https:" + img
+    elif img.startswith("/"):
+        try:
+            p = urlparse(url)
+            img = f"{p.scheme}://{p.netloc}{img}"
+        except Exception:
+            return None
+    return img
+
+
+# ---- Products: status ----
+
+def update_status(urun_id: str, status: str) -> None:
+    """Ürün status'unu değiştir: 'active' veya 'archived'."""
+    if status not in ("active", "archived"):
+        raise ValueError(f"Geçersiz status: {status}")
+    client().table(TABLE).update({"status": status}).eq("urun_id", urun_id).execute()
+
+
+# ---- Research Pool CRUD ----
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+
+
+def research_list(
+    status: str | None = "pending",
+    brand_slug: str | None = None,
+    country_code: str | None = None,
+    limit: int = 500,
+) -> list[dict]:
+    """Ön çalışma havuzu listele (filtreli)."""
+    q = client().table(TABLE_RESEARCH).select("*")
+    if status:
+        if status == "all":
+            pass  # tümü
+        else:
+            q = q.eq("status", status)
+    if brand_slug:
+        q = q.eq("brand_slug", brand_slug)
+    if country_code:
+        q = q.eq("country_code", country_code)
+    res = q.order("added_at", desc=True).limit(limit).execute()
+    return res.data or []
+
+
+def research_get(research_id: str) -> dict | None:
+    res = client().table(TABLE_RESEARCH).select("*").eq("id", research_id).limit(1).execute()
+    return res.data[0] if res.data else None
+
+
+def research_find_by_hash(hash_: str) -> dict | None:
+    res = client().table(TABLE_RESEARCH).select("*").eq("product_url_hash", hash_).limit(1).execute()
+    return res.data[0] if res.data else None
+
+
+def product_find_by_url_hash(hash_: str) -> dict | None:
+    """Aynı URL hash'li ürün var mı (research → product dedup)."""
+    res = client().table(TABLE).select("urun_id,product_name,brand").eq("source_url_hash", hash_).limit(1).execute()
+    return res.data[0] if res.data else None
+
+
+def research_add(payload: dict) -> dict:
+    """Yeni ön çalışma satırı ekle. payload zorunlu alanları:
+    master_url, product_url, brand, brand_slug, country.
+    Otomatik: product_url_hash, country_code (varsa), thumb_url (best-effort)."""
+    purl = (payload.get("product_url") or "").strip()
+    if not purl:
+        raise ValueError("product_url zorunlu")
+    h = url_hash(purl)
+    if not h:
+        raise ValueError("product_url geçersiz")
+
+    row = {
+        "master_url": (payload.get("master_url") or "").strip(),
+        "product_url": purl,
+        "product_url_hash": h,
+        "brand": (payload.get("brand") or "").strip(),
+        "brand_slug": (payload.get("brand_slug") or "").strip().lower(),
+        "country": (payload.get("country") or "").strip(),
+        "country_code": (payload.get("country_code") or None),
+        "thumb_url": payload.get("thumb_url"),
+        "status": "pending",
+        "notes": payload.get("notes") or None,
+        "added_at": _now_iso(),
+    }
+    if not row["master_url"] or not row["brand"] or not row["country"]:
+        raise ValueError("master_url + brand + country zorunlu")
+
+    res = client().table(TABLE_RESEARCH).insert(row).execute()
+    return (res.data or [row])[0]
+
+
+def research_update_status(research_id: str, new_status: str, imported_product_id: str | None = None) -> dict | None:
+    """Status değiştir: pending | imported | dismissed."""
+    if new_status not in ("pending", "imported", "dismissed"):
+        raise ValueError(f"Geçersiz status: {new_status}")
+    patch: dict = {"status": new_status}
+    if new_status == "imported":
+        patch["imported_at"] = _now_iso()
+        if imported_product_id:
+            patch["imported_product_id"] = imported_product_id
+    res = client().table(TABLE_RESEARCH).update(patch).eq("id", research_id).execute()
+    return (res.data or [None])[0]
+
+
+def research_delete(research_id: str) -> None:
+    """Soft delete: status='dismissed'."""
+    research_update_status(research_id, "dismissed")
+
+
+def research_hard_delete(research_id: str) -> None:
+    """Fiziksel silme (admin)."""
+    client().table(TABLE_RESEARCH).delete().eq("id", research_id).execute()
+
+
+# v4.0-part-2 Sprint 6 — Düzenleme + Favori
+
+# Düzenlenebilir alanlar (whitelist) — diğer alanları PATCH eden istek atlanır.
+RESEARCH_EDITABLE_FIELDS = {
+    "master_url", "product_url", "product_url_hash",
+    "brand", "brand_slug", "country", "country_code",
+    "notes", "thumb_url", "is_favorite",
+}
+
+
+def research_update(research_id: str, patch: dict) -> dict | None:
+    """Whitelist'li alanları güncelle. Boş patch hata değil — no-op."""
+    safe = {k: v for k, v in patch.items() if k in RESEARCH_EDITABLE_FIELDS}
+    if not safe:
+        return research_get(research_id)
+    res = client().table(TABLE_RESEARCH).update(safe).eq("id", research_id).execute()
+    return (res.data or [None])[0]
+
+
+def research_set_favorite(research_id: str, value: bool) -> dict | None:
+    """Favori (yıldız) toggle."""
+    return research_update(research_id, {"is_favorite": bool(value)})
+
+
+def research_list_favorites(limit: int = 500) -> list[dict]:
+    """Sadece favori (is_favorite=true) satırlar."""
+    res = (client().table(TABLE_RESEARCH).select("*")
+           .eq("is_favorite", True)
+           .order("added_at", desc=True).limit(limit).execute())
+    return res.data or []
+
+
+# ---- Product summary helpers (galeri kart indikatörleri) ----
+
+def has_teknik_calisma(product: dict) -> bool:
+    """En az bir sürümde iplikler/parametreler dolu mu?"""
+    teknik = product.get("teknik") or {}
+    for s in teknik.get("surumler") or []:
+        iplikler = s.get("iplikler") or {}
+        cozgu = iplikler.get("cozgu") or []
+        atki = iplikler.get("atki") or []
+        if cozgu or atki:
+            return True
+        # ya da parametrelerde dolu alan
+        params = s.get("parametreler") or {}
+        if any(params.get(k) for k in ("ham_en", "mamul_en", "atki_sikligi")):
+            return True
+    return False
+
+
+def has_pdfs(product: dict) -> bool:
+    return bool(product.get("pdfs"))
+
+
+def has_notlar(product: dict) -> bool:
+    """Ürün-seviyesi VEYA herhangi sürüm-seviyesi not dolu mu?"""
+    if (product.get("notlar_html") or "").strip():
+        return True
+    teknik = product.get("teknik") or {}
+    for s in teknik.get("surumler") or []:
+        if (s.get("notlar_html") or "").strip():
+            return True
+    return False

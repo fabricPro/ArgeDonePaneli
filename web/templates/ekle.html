@@ -4,117 +4,198 @@
 {% block content %}
 <div class="page-header">
     <h1>Yeni Kumaş Ekle</h1>
-    <p class="page-subtitle">Görselleri seç, etiketle, kaydet. Kapak görselini sonra ürün sayfasında seçebilirsin.</p>
+    <p class="page-subtitle">Görselleri seç, etiketle, kaydet. PDF'leri de aynı anda ekleyebilirsin.</p>
 </div>
 
-<form id="ekle-form" class="edit-form">
-    <div class="form-grid">
-        <div class="form-row">
-            <label>Marka *</label>
-            <select id="brand-select" required>
-                <option value="" disabled selected>Marka seç…</option>
-                {% for b in brands_registry %}
-                <option value="{{ b.slug }}" data-name="{{ b.name }}"
-                        data-country="{{ b.country or '' }}"
-                        data-website="{{ b.website or '' }}">{{ b.name }}</option>
+<div class="ekle-layout">
+    <!-- =================== SOL: FORM =================== -->
+    <form id="ekle-form" class="edit-form ekle-form-col">
+        {% if prefill %}
+        <div class="prefill-banner">
+            ✓ Ön Çalışmadan: <strong>{{ prefill.brand }}</strong> · {{ prefill.country }}
+            <a class="prefill-url" href="{{ prefill.product_url }}" target="_blank" rel="noopener">{{ prefill.product_url }}</a>
+            <input type="hidden" name="from_research_id" value="{{ prefill.id }}">
+        </div>
+        {% endif %}
+        <input type="hidden" id="hidden-from-research" name="from_research_id" value="{{ prefill.id if prefill else '' }}">
+
+        <div class="form-grid">
+            <div class="form-row">
+                <label>Marka *</label>
+                <select id="brand-select" required>
+                    <option value="" disabled {% if not prefill %}selected{% endif %}>Marka seç…</option>
+                    {% for b in brands_registry %}
+                    <option value="{{ b.slug }}" data-name="{{ b.name }}"
+                            data-country="{{ b.country or '' }}"
+                            data-website="{{ b.website or '' }}"
+                            {% if prefill and prefill.brand_slug == b.slug %}selected{% endif %}>{{ b.name }}</option>
+                    {% endfor %}
+                    <option value="__other__">Diğer (elle yaz)…</option>
+                </select>
+                <input type="text" id="brand-other" placeholder="Marka adı yaz" style="display:none; margin-top:8px;">
+                <small class="form-hint">Yeni firma eklemek için <a href="{{ url_for('ayarlar') }}" style="color:var(--accent-cool);">⚙ Ayarlar</a></small>
+            </div>
+
+            <div class="form-row">
+                <label>Ürün Adı *</label>
+                <input type="text" name="product_name" required placeholder="örn. Air Line">
+            </div>
+
+            <div class="form-row">
+                <label>Ürün Kodu</label>
+                <input type="text" name="product_code" placeholder="örn. 5539 (opsiyonel)">
+            </div>
+
+            <div class="form-row">
+                <label>Koleksiyon</label>
+                <input type="text" name="collection" placeholder="opsiyonel">
+            </div>
+
+            <div class="form-row">
+                <label>Ülke</label>
+                <select id="country-select">
+                    <option value="" disabled {% if not prefill %}selected{% endif %}>Ülke seç…</option>
+                    {% for c in countries %}
+                    <option value="{{ c }}" {% if prefill and prefill.country == c %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                    <option value="__other__">Diğer (elle yaz)…</option>
+                </select>
+                <input type="text" id="country-other" placeholder="Ülke adı yaz" style="display:none; margin-top:8px;">
+            </div>
+
+            <div class="form-row">
+                <label>Kompozisyon</label>
+                <input type="text" name="composition" placeholder="örn. %100 Keten">
+            </div>
+
+            <div class="form-row">
+                <label>En (cm)</label>
+                <input type="number" name="width_cm" min="0" placeholder="örn. 315">
+            </div>
+
+            <div class="form-row">
+                <label>Gramaj (g/m²)</label>
+                <input type="number" name="weight_gsm" min="0" placeholder="örn. 180 (opsiyonel)">
+            </div>
+
+            <div class="form-row">
+                <label>Dokuma</label>
+                <input type="text" name="weave_type" list="weave-list" placeholder="örn. dobby">
+                <datalist id="weave-list">
+                    {% for w in weave_suggestions %}<option value="{{ w }}">{% endfor %}
+                </datalist>
+            </div>
+
+            <div class="form-row">
+                <label>Rapor — boyuna (cm)</label>
+                <input type="number" name="repeat_vertical_cm" min="0" step="0.1" placeholder="örn. 27">
+            </div>
+
+            <div class="form-row">
+                <label>Rapor — enine (cm)</label>
+                <input type="number" name="repeat_horizontal_cm" min="0" step="0.1" placeholder="opsiyonel">
+            </div>
+
+            <div class="form-row form-row-wide">
+                <label>Kaynak Bağlantısı (URL)</label>
+                <input type="url" id="source-url" name="source_url"
+                       value="{{ prefill.product_url if prefill else '' }}"
+                       placeholder="Pinterest / Instagram / firma sitesi linki (opsiyonel)">
+            </div>
+
+            <div class="form-row form-row-wide">
+                <label>ARGE Notu</label>
+                <textarea name="arge_notu" rows="3" placeholder="Stäubli yapılabilirlik, pazar fırsatı, stratejik not…"></textarea>
+            </div>
+
+            <div class="form-row form-row-wide">
+                <label>Not</label>
+                <textarea name="notes" rows="2" placeholder="Serbest not (nereden bulundu, örnek mevcut mu, vb.)">{{ prefill.notes if prefill and prefill.notes else '' }}</textarea>
+            </div>
+        </div>
+
+        <!-- Görsel upload -->
+        <div class="upload-section">
+            <label class="upload-label">
+                Görseller
+                <span class="hint">— bilgisayardan seç veya telefonda kamerayla çek (birden fazla seçilebilir)</span>
+            </label>
+            <input type="file" id="file-input" accept="image/*" capture="environment" multiple>
+            <div id="preview" class="upload-preview"></div>
+        </div>
+
+        <!-- v4.0-part-2 Adım 8 — PDF upload (opsiyonel) -->
+        <div class="upload-section">
+            <label class="upload-label">
+                PDF / Teknik Doküman (opsiyonel)
+                <span class="hint">— spec, teknik resim, datasheet vs. (max 25 MB)</span>
+            </label>
+            <input type="file" id="pdf-input" accept="application/pdf,.pdf" multiple>
+            <ul id="pdf-preview" class="pdf-preview-list"></ul>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="submit-btn">Kaydet</button>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">İptal</a>
+            <span id="form-msg" class="form-msg"></span>
+        </div>
+    </form>
+
+    <!-- =================== SAĞ: AS-IDE =================== -->
+    <aside class="ekle-aside">
+        <header class="ekle-aside-head">
+            <h3>Ön Çalışmadan Seç</h3>
+            <a href="{{ url_for('arastirma_page') }}" class="aside-more-link">tümü →</a>
+        </header>
+        <input type="search" id="aside-search" placeholder="Hızlı ara…" class="aside-search">
+        <div class="ekle-aside-tree" id="aside-tree">
+            {% if research_rows %}
+                {# Server-side grupla: ülke → firma #}
+                {% set groups = {} %}
+                {% for r in research_rows %}
+                    {% set key = (r.country or 'Belirtilmemiş') ~ ' / ' ~ (r.brand or '—') %}
+                    {% if key not in groups %}{% set _ = groups.update({key: []}) %}{% endif %}
+                    {% set _ = groups[key].append(r) %}
                 {% endfor %}
-                <option value="__other__">Diğer (elle yaz)…</option>
-            </select>
-            <input type="text" id="brand-other" placeholder="Marka adı yaz" style="display:none; margin-top:8px;">
-            <small class="form-hint">Yeni firma eklemek için <a href="{{ url_for('ayarlar') }}" style="color:var(--accent-cool);">⚙ Ayarlar</a></small>
-        </div>
-
-        <div class="form-row">
-            <label>Ürün Adı *</label>
-            <input type="text" name="product_name" required placeholder="örn. Air Line">
-        </div>
-
-        <div class="form-row">
-            <label>Ürün Kodu</label>
-            <input type="text" name="product_code" placeholder="örn. 5539 (opsiyonel)">
-        </div>
-
-        <div class="form-row">
-            <label>Koleksiyon</label>
-            <input type="text" name="collection" placeholder="opsiyonel">
-        </div>
-
-        <div class="form-row">
-            <label>Ülke</label>
-            <select id="country-select">
-                <option value="" disabled selected>Ülke seç…</option>
-                {% for c in countries %}
-                <option value="{{ c }}">{{ c }}</option>
+                {% for key, rows in groups.items() %}
+                <details {% if loop.first %}open{% endif %}>
+                    <summary>
+                        <span class="aside-group-title">{{ key }}</span>
+                        <span class="aside-group-count">{{ rows|length }}</span>
+                    </summary>
+                    <ul class="aside-items">
+                        {% for r in rows %}
+                        {# v4.0-part-2 Sprint 5 — Manuel thumb_url öncelikli, yoksa Google s2 favicon #}
+                        {% set _thumb = r.thumb_url or favicon_url(r.product_url, 64) %}
+                        <li class="aside-item"
+                            data-research-id="{{ r.id }}"
+                            data-url="{{ r.product_url }}"
+                            data-brand-slug="{{ r.brand_slug }}"
+                            data-brand="{{ r.brand }}"
+                            data-country="{{ r.country }}">
+                            {% if _thumb %}
+                            <img src="{{ _thumb }}" alt="" loading="lazy" referrerpolicy="no-referrer"
+                                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <div class="aside-thumb-ph" style="display:none"><svg class="icon"><use href="#ic-image"/></svg></div>
+                            {% else %}
+                            <div class="aside-thumb-ph"><svg class="icon"><use href="#ic-image"/></svg></div>
+                            {% endif %}
+                            <div class="aside-item-text">
+                                <span class="aside-item-title"></span>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </details>
                 {% endfor %}
-                <option value="__other__">Diğer (elle yaz)…</option>
-            </select>
-            <input type="text" id="country-other" placeholder="Ülke adı yaz" style="display:none; margin-top:8px;">
+            {% else %}
+                <div class="ekle-aside-empty">
+                    <p>Ön çalışma havuzu boş. <a href="{{ url_for('arastirma_page') }}">Ön Çalışma</a> sayfasından link ekle.</p>
+                </div>
+            {% endif %}
         </div>
-
-        <div class="form-row">
-            <label>Kompozisyon</label>
-            <input type="text" name="composition" placeholder="örn. %100 Keten">
-        </div>
-
-        <div class="form-row">
-            <label>En (cm)</label>
-            <input type="number" name="width_cm" min="0" placeholder="örn. 315">
-        </div>
-
-        <div class="form-row">
-            <label>Gramaj (g/m²)</label>
-            <input type="number" name="weight_gsm" min="0" placeholder="örn. 180 (opsiyonel)">
-        </div>
-
-        <div class="form-row">
-            <label>Dokuma</label>
-            <input type="text" name="weave_type" list="weave-list" placeholder="örn. dobby">
-            <datalist id="weave-list">
-                {% for w in weave_suggestions %}<option value="{{ w }}">{% endfor %}
-            </datalist>
-        </div>
-
-        <div class="form-row">
-            <label>Rapor — boyuna (cm)</label>
-            <input type="number" name="repeat_vertical_cm" min="0" step="0.1" placeholder="örn. 27">
-        </div>
-
-        <div class="form-row">
-            <label>Rapor — enine (cm)</label>
-            <input type="number" name="repeat_horizontal_cm" min="0" step="0.1" placeholder="opsiyonel">
-        </div>
-
-        <div class="form-row form-row-wide">
-            <label>Kaynak Bağlantısı (URL)</label>
-            <input type="url" name="source_url" placeholder="Pinterest / Instagram / firma sitesi linki (opsiyonel)">
-        </div>
-
-        <div class="form-row form-row-wide">
-            <label>ARGE Notu</label>
-            <textarea name="arge_notu" rows="3" placeholder="Stäubli yapılabilirlik, pazar fırsatı, stratejik not…"></textarea>
-        </div>
-
-        <div class="form-row form-row-wide">
-            <label>Not</label>
-            <textarea name="notes" rows="2" placeholder="Serbest not (nereden bulundu, örnek mevcut mu, vb.)"></textarea>
-        </div>
-    </div>
-
-    <div class="upload-section">
-        <label class="upload-label">
-            Görseller
-            <span class="hint">— bilgisayardan seç veya telefonda kamerayla çek (birden fazla seçilebilir)</span>
-        </label>
-        <input type="file" id="file-input" accept="image/*" capture="environment" multiple>
-        <div id="preview" class="upload-preview"></div>
-    </div>
-
-    <div class="form-actions">
-        <button type="submit" class="btn btn-primary" id="submit-btn">Kaydet</button>
-        <a href="{{ url_for('index') }}" class="btn btn-secondary">İptal</a>
-        <span id="form-msg" class="form-msg"></span>
-    </div>
-</form>
+    </aside>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -125,9 +206,13 @@ const countrySelect = document.getElementById('country-select');
 const countryOther = document.getElementById('country-other');
 const fileInput = document.getElementById('file-input');
 const preview = document.getElementById('preview');
+const pdfInput = document.getElementById('pdf-input');
+const pdfPreview = document.getElementById('pdf-preview');
 const form = document.getElementById('ekle-form');
 const msg = document.getElementById('form-msg');
 const submitBtn = document.getElementById('submit-btn');
+const sourceUrlInput = document.getElementById('source-url');
+const hiddenFromResearch = document.getElementById('hidden-from-research');
 
 brandSelect.addEventListener('change', () => {
     brandOther.style.display = brandSelect.value === '__other__' ? 'block' : 'none';
@@ -175,6 +260,93 @@ function renderPreview() {
     });
 }
 
+// v4.0-part-2 Adım 8 — PDF preview listesi
+let selectedPdfs = [];
+pdfInput.addEventListener('change', () => {
+    selectedPdfs = Array.from(pdfInput.files);
+    renderPdfPreview();
+});
+function renderPdfPreview() {
+    pdfPreview.innerHTML = '';
+    selectedPdfs.forEach((f, i) => {
+        const li = document.createElement('li');
+        const sizeKb = (f.size / 1024).toFixed(1);
+        li.innerHTML = `<span>📄 ${f.name}</span><span class="pdf-size">${sizeKb} KB</span>
+            <button type="button" class="btn-icon pdf-remove" data-i="${i}" aria-label="Kaldır">✕</button>`;
+        li.querySelector('.pdf-remove').addEventListener('click', () => {
+            selectedPdfs.splice(i, 1);
+            renderPdfPreview();
+        });
+        pdfPreview.appendChild(li);
+    });
+}
+
+// v4.0-part-2 Adım 8 — Sağ aside: tıkla → form doldur
+function fillFromAside(item) {
+    const url = item.dataset.url;
+    const brandSlug = item.dataset.brandSlug;
+    const brandName = item.dataset.brand;
+    const country = item.dataset.country;
+    const researchId = item.dataset.researchId;
+
+    if (url) sourceUrlInput.value = url;
+    if (hiddenFromResearch) hiddenFromResearch.value = researchId || '';
+
+    // Marka: registry'de varsa seç, yoksa "Diğer" + isim
+    if (brandSlug) {
+        const opt = [...brandSelect.options].find(o => o.value === brandSlug);
+        if (opt) {
+            brandSelect.value = brandSlug;
+        } else {
+            brandSelect.value = '__other__';
+            brandOther.style.display = 'block';
+            brandOther.value = brandName || '';
+        }
+        brandSelect.dispatchEvent(new Event('change'));
+    }
+    // Ülke
+    if (country) {
+        const cOpt = [...countrySelect.options].find(o => o.value === country);
+        if (cOpt) {
+            countrySelect.value = country;
+            countryOther.style.display = 'none';
+            countryOther.value = '';
+        } else {
+            countrySelect.value = '__other__';
+            countryOther.style.display = 'block';
+            countryOther.value = country;
+        }
+    }
+    // Aside item highlight
+    document.querySelectorAll('.aside-item.is-selected').forEach(el => el.classList.remove('is-selected'));
+    item.classList.add('is-selected');
+    (window.toast || alert)(`Ön Çalışmadan dolduruldu: ${brandName}`, 'success');
+}
+
+document.querySelectorAll('.aside-item').forEach(item => {
+    item.addEventListener('click', () => fillFromAside(item));
+    // Başlık: URL'in son parçası
+    const titleEl = item.querySelector('.aside-item-title');
+    if (titleEl) {
+        try {
+            const u = new URL(item.dataset.url);
+            titleEl.textContent = decodeURIComponent(u.pathname).split('/').filter(Boolean).pop() || u.host;
+        } catch (e) { titleEl.textContent = item.dataset.url; }
+    }
+});
+
+// Aside arama
+const asideSearch = document.getElementById('aside-search');
+if (asideSearch) {
+    asideSearch.addEventListener('input', () => {
+        const q = asideSearch.value.trim().toLowerCase();
+        document.querySelectorAll('.aside-item').forEach(item => {
+            const text = (item.dataset.brand + ' ' + item.dataset.country + ' ' + item.dataset.url).toLowerCase();
+            item.style.display = !q || text.includes(q) ? '' : 'none';
+        });
+    });
+}
+
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
     msg.textContent = '';
@@ -206,6 +378,9 @@ form.addEventListener('submit', async (e) => {
         fd.append('files', file);
         fd.append('variant_labels', labelInputs[i] ? labelInputs[i].value.trim() : '');
     });
+
+    // PDF dosyaları
+    selectedPdfs.forEach(f => fd.append('pdf_files', f));
 
     submitBtn.disabled = true;
     submitBtn.textContent = 'Kaydediliyor…';
