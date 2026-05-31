@@ -1090,7 +1090,6 @@ def _tarak_summary(tarak):
 
 
 @app.route("/urun/<urun_id>/teknik/<surum_id>/print", methods=["GET"])
-@require_login
 def teknik_print(urun_id, surum_id):
     """Print-friendly HTML — Ctrl+P / window.print() ile PDF'e dökülür.
     Yeni sekmede açılır, otomatik print diyaloğu tetiklenir.
