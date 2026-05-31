@@ -1,6 +1,6 @@
 // Minimal service worker — installability + offline fallback
-// v4.0-part-2 Sprint 8: cache bust (v1 → v8) + eski cache temizliği
-const CACHE = 'fas-v8';
+// v4.0-part-2 Sprint 8.1: manifest orientation any (landscape destek) — cache bust v9
+const CACHE = 'fas-v9';
 const CORE = ['/'];
 
 self.addEventListener('install', (e) => {

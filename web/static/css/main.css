@@ -6658,8 +6658,8 @@ body.teknik-fullscreen {
     background: var(--bg);
 }
 
-/* ---- Mobil portrait fallback: stacked (üst rail + tek pane) ---- */
-@media (max-width: 900px) {
+/* ---- Mobil portrait fallback: stacked (sadece dik tutulduğunda) ---- */
+@media (max-width: 900px) and (orientation: portrait) {
     .cw-split {
         grid-template-columns: 1fr;
         grid-template-rows: auto 1fr 1fr;
@@ -6680,6 +6680,25 @@ body.teknik-fullscreen {
     .cw-back {
         flex-shrink: 0;
     }
+}
+
+/* ---- Telefon landscape: yatay split korunur, rail daralır, tabbar gizli ---- */
+@media (max-width: 900px) and (orientation: landscape) {
+    .cw-split {
+        grid-template-columns: 56px 1fr 1fr;
+        height: calc(100vh - 60px);   /* topbar alanı küçük */
+    }
+    .cw-rail { padding: 4px; }
+    .cw-rail-item img,
+    .cw-rail-noimg {
+        width: 40px;
+        height: 40px;
+    }
+    .cw-rail-brand { display: none; }   /* yer yok */
+    .cw-rail-name { font-size: 9px; }
+    /* Tabbar yer kaplar; landscape modunda gizle, çıkış için topbar var */
+    .mobile-tabbar { display: none; }
+    body { padding-bottom: 0 !important; }
 }
 
 /* ---- Embed mode (urun.html iframe içinde gösterilirken) ---- */
