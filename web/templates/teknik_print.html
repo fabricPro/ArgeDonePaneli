@@ -412,6 +412,55 @@ table.pdf-table tr.weft-row td:first-child { border-left: 3pt solid #7fb37f; }
 .pdf-rle-row b { font-weight: 700; color: #b9791a; }
 .pdf-rle-row .result { color: #e07260; font-weight: 700; }
 
+/* ========== NOTLAR (rich-text) ========== */
+.pdf-notes-content {
+    font-size: 11pt;
+    line-height: 1.55;
+    color: #1a1a1a;
+    margin-top: 4mm;
+}
+.pdf-notes-content p { margin: 0 0 3mm; }
+.pdf-notes-content p:last-child { margin-bottom: 0; }
+.pdf-notes-content h2 {
+    font-size: 14pt;
+    margin: 5mm 0 2mm;
+    color: #1a1a1a;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.pdf-notes-content h3 {
+    font-size: 12pt;
+    margin: 4mm 0 2mm;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+.pdf-notes-content ul, .pdf-notes-content ol {
+    margin: 0 0 3mm 0;
+    padding-left: 8mm;
+}
+.pdf-notes-content li { margin-bottom: 1mm; }
+.pdf-notes-content a { color: #5b8def; text-decoration: underline; }
+.pdf-notes-content strong, .pdf-notes-content b { font-weight: 700; }
+.pdf-notes-content em, .pdf-notes-content i { font-style: italic; }
+.pdf-notes-content u { text-decoration: underline; }
+.pdf-notes-content blockquote {
+    margin: 3mm 0;
+    padding: 2mm 4mm;
+    border-left: 0.6pt solid #d4af7f;
+    color: #555;
+    font-style: italic;
+    background: #faf8f4;
+}
+.pdf-notes-content code {
+    font-family: 'Courier New', monospace;
+    font-size: 9.5pt;
+    background: #f3f3f3;
+    padding: 0.5mm 1mm;
+    border-radius: 1pt;
+}
+/* font tag (execCommand legacy) - color attribute */
+.pdf-notes-content font[color] { /* renk attribute zaten inline geçer */ }
+
 /* ========== PRİNT FOOTER ========== */
 .pdf-footer {
     margin-top: 6mm;
@@ -467,9 +516,10 @@ table.pdf-table tr.weft-row td:first-child { border-left: 3pt solid #7fb37f; }
 
     <h2>Numune Künyesi</h2>
     <div class="pdf-meta-grid">
-        <div class="pdf-meta-cell"><dt>Numune Adı / Kodu</dt><dd>{{ surum.kunye.ad or '—' }}</dd></div>
-        <div class="pdf-meta-cell"><dt>Müşteri</dt><dd>{{ surum.kunye.musteri or '—' }}</dd></div>
-        <div class="pdf-meta-cell"><dt>Tarih</dt><dd>{{ surum.kunye.tarih or '—' }}</dd></div>
+        {% set kunye = surum.kunye or {} %}
+        <div class="pdf-meta-cell"><dt>Numune Adı / Kodu</dt><dd>{{ kunye.ad or '—' }}</dd></div>
+        <div class="pdf-meta-cell"><dt>Müşteri</dt><dd>{{ kunye.musteri or '—' }}</dd></div>
+        <div class="pdf-meta-cell"><dt>Tarih</dt><dd>{{ kunye.tarih or '—' }}</dd></div>
     </div>
 
     <h2>Dokuma Parametreleri</h2>
@@ -861,6 +911,22 @@ table.pdf-table tr.weft-row td:first-child { border-left: 3pt solid #7fb37f; }
         <span>{{ product.brand or '—' }} · {{ product.product_name or '—' }}</span>
         <span>Sürüm: {{ surum.ad }}</span>
         <span>Sayfa 5 — Tarak</span>
+    </div>
+</section>
+{% endif %}
+
+<!-- ========== SAYFA 6 — NOTLAR ========== -->
+{% if product.notlar_html and product.notlar_html|trim %}
+<section class="pdf-page">
+    <h2>Notlar</h2>
+    <div class="pdf-notes-content">
+        {{ product.notlar_html|safe }}
+    </div>
+
+    <div class="pdf-footer">
+        <span>{{ product.brand or '—' }} · {{ product.product_name or '—' }}</span>
+        <span>Sürüm: {{ surum.ad }}</span>
+        <span>Sayfa 6 — Notlar</span>
     </div>
 </section>
 {% endif %}
