@@ -18,6 +18,33 @@
     .no-print { display: none !important; }
     body { background: #fff !important; }
     .pdf-page { box-shadow: none !important; padding: 0 !important; margin: 0 !important; background: #fff !important; }
+
+    /* KRİTİK — tarayıcının "arka planları yazdır" seçeneği kapalı olsa bile
+       background renklerini zorla göster (Tahar/Armür/İro hücreleri için) */
+    *, *::before, *::after {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+}
+
+/* Tüm tarayıcılarda her zaman color-adjust exact (Firefox default different) */
+.pdf-dgrid-cell,
+.pdf-tarak-cell,
+.pdf-icerik-chip,
+.pdf-stat,
+.pdf-meta-cell,
+.pdf-marker-pill,
+.pdf-armur-row,
+.pdf-armur-row-marker,
+.pdf-rle-row,
+.pdf-maliyet-row,
+.tip-badge,
+.fason-badge,
+table.pdf-table th {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
 }
 
 /* ========== EKRAN GÖRÜNÜMÜ ========== */
