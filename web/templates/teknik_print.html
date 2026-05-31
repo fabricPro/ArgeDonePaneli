@@ -270,26 +270,54 @@ table.pdf-table tr.weft-row td:first-child { border-left: 3pt solid #7fb37f; }
 .pdf-dgrid-cell.is-iro-7 { background: #a78bfa; border-color: #7e63cf; }
 .pdf-dgrid-cell.is-iro-8 { background: #ec4899; border-color: #b53473; }
 
-/* Armür + DO/NEXT — pick label + cells + marker tag tek satır */
+/* ─── ARMÜR + ATKI RAPORU (birleşik, dashboard pattern) ─── */
+.pdf-armur-headers {
+    display: flex;
+    align-items: center;
+    gap: 0.4mm;
+    padding-left: 10mm;  /* bracket 4mm + pick 6mm */
+    margin-bottom: 0.8mm;
+}
+.pdf-armur-hdr {
+    width: 3.5mm;
+    text-align: center;
+    font-size: 6pt;
+    color: #666;
+    font-variant-numeric: tabular-nums;
+}
+.pdf-armur-hdr-gap { width: 2mm; }
+
+.pdf-armur-wrap {
+    position: relative;
+    padding-left: 4mm; /* bracket SVG alanı */
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 1pt;
+    padding-top: 1mm;
+    padding-bottom: 1mm;
+}
+.pdf-armur-bracket {
+    position: absolute;
+    left: 0;
+    top: 1mm;
+    pointer-events: none;
+}
 .pdf-armur-rows {
     display: flex;
     flex-direction: column;
     gap: 0.4mm;
-    padding: 1mm;
-    border: 1px solid #ccc;
-    border-radius: 1pt;
-    background: #fff;
 }
 .pdf-armur-row {
     display: flex;
     align-items: center;
-    gap: 1.5mm;
+    gap: 0;
     height: 3.7mm;
 }
 .pdf-armur-pick {
     width: 6mm;
     text-align: right;
-    font-size: 7pt;
+    padding-right: 1mm;
+    font-size: 6pt;
     color: #888;
     font-variant-numeric: tabular-nums;
 }
@@ -297,25 +325,28 @@ table.pdf-table tr.weft-row td:first-child { border-left: 3pt solid #7fb37f; }
     display: grid;
     gap: 0.4mm;
 }
-.pdf-marker-tag {
-    margin-left: 2mm;
-    padding: 0.3mm 2mm;
+.pdf-armur-iro-gap { width: 2mm; }
+
+/* Marker satır — kırmızı pill yan yana */
+.pdf-armur-row-marker {
+    background: rgba(232, 103, 79, 0.10);
+    border-radius: 1pt;
+}
+.pdf-armur-row-marker .pdf-armur-pick { color: #e8674f; font-weight: 700; }
+.pdf-marker-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 2mm;
+    height: 3.7mm;
     font-size: 6.5pt;
     font-weight: 700;
     border-radius: 1pt;
     color: #fff;
-    background: #e8674f;
     letter-spacing: 0.03em;
     white-space: nowrap;
 }
-.pdf-marker-do { background: #e8674f; }
-.pdf-marker-next { background: #b94835; }
-.pdf-armur-row.is-marker-row {
-    background: rgba(232, 103, 79, 0.10);
-    border-radius: 1pt;
-    padding-left: 0.5mm;
-}
-.pdf-armur-row.is-marker-row .pdf-armur-pick { color: #e8674f; font-weight: 700; }
+.pdf-marker-pill.is-do { background: #e8674f; }
+.pdf-marker-pill.is-next { background: #b94835; }
 
 /* ========== TARAK ========== */
 .pdf-tarak-grid {
@@ -634,8 +665,8 @@ table.pdf-table tr.weft-row td:first-child { border-left: 3pt solid #7fb37f; }
         Rapor: <b>{{ desen.raporX }}×{{ desen.raporY }}</b>
     </div>
 
-    <div style="display:flex; gap:6mm; flex-wrap:wrap">
-        <!-- Tahar -->
+    <div style="display:flex; gap:6mm; flex-wrap:wrap; align-items:flex-start">
+        <!-- Tahar grid (solda ayrı) -->
         <div class="pdf-desen-block">
             <div class="pdf-desen-block-title">Tahar (çözgü → çerçeve)</div>
             <div class="pdf-dgrid" style="grid-template-columns: repeat({{ desen.warpCount }}, 3.5mm)">
@@ -647,39 +678,64 @@ table.pdf-table tr.weft-row td:first-child { border-left: 3pt solid #7fb37f; }
             </div>
         </div>
 
-        <!-- Armür + DO/NEXT döngüler -->
+        <!-- Birleşik Armür + Atkı Raporu (bracket SVG + DO/NEXT marker satırları) -->
         <div class="pdf-desen-block">
-            <div class="pdf-desen-block-title">Armür + DO/NEXT</div>
-            <div class="pdf-armur-rows">
-                {% set marker_map = (desen_computed.marker_map if desen_computed else {}) or {} %}
-                {% for p in range(desen.weftCount - 1, -1, -1) %}
-                    {% set m = marker_map.get(p) %}
-                    <div class="pdf-armur-row {% if m %}is-marker-row{% endif %}">
-                        <span class="pdf-armur-pick">{{ p + 1 }}</span>
-                        <div class="pdf-armur-cells" style="grid-template-columns: repeat({{ desen.frameCount }}, 3.5mm)">
-                            {% for f in range(desen.frameCount) %}
-                                <div class="pdf-dgrid-cell {% if desen.armur[f] and desen.armur[f][p] %}is-on-armur{% endif %}"></div>
-                            {% endfor %}
-                        </div>
-                        {% if m and m.kind == 'DO' %}
-                            <span class="pdf-marker-tag pdf-marker-do">↻ DO {{ m.count }}× döngü başlar</span>
-                        {% elif m and m.kind == 'NEXT' %}
-                            <span class="pdf-marker-tag pdf-marker-next">↻ NEXT döngü biter</span>
-                        {% endif %}
-                    </div>
+            <div class="pdf-desen-block-title">Armür + Atkı Raporu + DO/NEXT</div>
+            <!-- Header: F1..Fn | i1..in -->
+            <div class="pdf-armur-headers">
+                {% for f in range(desen.frameCount) %}
+                    <span class="pdf-armur-hdr">F{{ f + 1 }}</span>
+                {% endfor %}
+                <span class="pdf-armur-hdr-gap"></span>
+                {% for i in range(desen.iroCount) %}
+                    <span class="pdf-armur-hdr">i{{ i + 1 }}</span>
                 {% endfor %}
             </div>
-        </div>
-
-        <!-- Atkı raporu (iro) -->
-        <div class="pdf-desen-block">
-            <div class="pdf-desen-block-title">Atkı Raporu</div>
-            <div class="pdf-dgrid" style="grid-template-columns: repeat({{ desen.iroCount }}, 3.5mm)">
-                {% for p in range(desen.weftCount - 1, -1, -1) %}
-                    {% for i in range(desen.iroCount) %}
-                        <div class="pdf-dgrid-cell {% if desen.iroData[p] == i + 1 %}is-iro-{{ ((i % 8) + 1) }}{% endif %}"></div>
+            <!-- Bracket SVG + satırlar wrapper -->
+            <div class="pdf-armur-wrap">
+                {% set loops = desen.loops or [] %}
+                {% if loops %}
+                {% set CELL = 3.7 %}{# mm — desen-armur-row height #}
+                {% set GAP = 0.4 %}{# mm — row gap #}
+                {% set total_h = desen.weftCount * (CELL + GAP) - GAP %}
+                <svg class="pdf-armur-bracket" width="4mm" height="{{ total_h }}mm" viewBox="0 0 4 {{ total_h }}" preserveAspectRatio="none">
+                    {% for loop in loops %}
+                        {% set y_top = (desen.weftCount - 1 - loop.endPick) * (CELL + GAP) + CELL / 2 %}
+                        {% set y_bot = (desen.weftCount - 1 - loop.startPick) * (CELL + GAP) + CELL / 2 %}
+                        <path d="M3 {{ y_top }} L0.5 {{ y_top }} L0.5 {{ y_bot }} L3 {{ y_bot }}"
+                              fill="none" stroke="#e8674f" stroke-width="0.3" stroke-linecap="round"/>
                     {% endfor %}
-                {% endfor %}
+                </svg>
+                {% endif %}
+                <div class="pdf-armur-rows">
+                    {% set marker_map = (desen_computed.marker_map if desen_computed else {}) or {} %}
+                    {% for p in range(desen.weftCount - 1, -1, -1) %}
+                        {% set m = marker_map.get(p) %}
+                        {% if m %}
+                            <div class="pdf-armur-row pdf-armur-row-marker">
+                                <span class="pdf-armur-pick">{{ p + 1 }}</span>
+                                <span class="pdf-marker-pill {% if m.kind == 'DO' %}is-do{% else %}is-next{% endif %}">
+                                    {% if m.kind == 'DO' %}↻ DO {{ m.count }}× döngü başlar{% else %}↻ NEXT döngü biter{% endif %}
+                                </span>
+                            </div>
+                        {% else %}
+                            <div class="pdf-armur-row">
+                                <span class="pdf-armur-pick">{{ p + 1 }}</span>
+                                <div class="pdf-armur-cells" style="grid-template-columns: repeat({{ desen.frameCount }}, 3.5mm)">
+                                    {% for f in range(desen.frameCount) %}
+                                        <div class="pdf-dgrid-cell {% if desen.armur[f] and desen.armur[f][p] %}is-on-armur{% endif %}"></div>
+                                    {% endfor %}
+                                </div>
+                                <span class="pdf-armur-iro-gap"></span>
+                                <div class="pdf-armur-cells" style="grid-template-columns: repeat({{ desen.iroCount }}, 3.5mm)">
+                                    {% for i in range(desen.iroCount) %}
+                                        <div class="pdf-dgrid-cell {% if desen.iroData[p] == i + 1 %}is-iro-{{ ((i % 8) + 1) }}{% endif %}"></div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>
