@@ -13,12 +13,15 @@
             <label>Marka *</label>
             <select id="brand-select" required>
                 <option value="" disabled selected>Marka seç…</option>
-                {% for name, slug in tracked_brands %}
-                <option value="{{ slug }}" data-name="{{ name }}">{{ name }}</option>
+                {% for b in brands_registry %}
+                <option value="{{ b.slug }}" data-name="{{ b.name }}"
+                        data-country="{{ b.country or '' }}"
+                        data-website="{{ b.website or '' }}">{{ b.name }}</option>
                 {% endfor %}
                 <option value="__other__">Diğer (elle yaz)…</option>
             </select>
             <input type="text" id="brand-other" placeholder="Marka adı yaz" style="display:none; margin-top:8px;">
+            <small class="form-hint">Yeni firma eklemek için <a href="{{ url_for('ayarlar') }}" style="color:var(--accent-cool);">⚙ Ayarlar</a></small>
         </div>
 
         <div class="form-row">
@@ -128,6 +131,24 @@ const submitBtn = document.getElementById('submit-btn');
 
 brandSelect.addEventListener('change', () => {
     brandOther.style.display = brandSelect.value === '__other__' ? 'block' : 'none';
+    // v4.0-part-2 Adım 6 — Firma seçilince ülke auto-fill (sadece boşsa, override etmiyor).
+    if (brandSelect.value && brandSelect.value !== '__other__') {
+        const opt = brandSelect.selectedOptions[0];
+        const c = (opt && opt.dataset.country) ? opt.dataset.country.trim() : '';
+        const ulkeBos = !countrySelect.value && !countryOther.value.trim();
+        if (c && ulkeBos) {
+            const matchOpt = [...countrySelect.options].find(o => o.value === c);
+            if (matchOpt) {
+                countrySelect.value = c;
+                countryOther.style.display = 'none';
+                countryOther.value = '';
+            } else {
+                countrySelect.value = '__other__';
+                countryOther.style.display = 'block';
+                countryOther.value = c;
+            }
+        }
+    }
 });
 
 countrySelect.addEventListener('change', () => {

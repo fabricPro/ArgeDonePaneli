@@ -121,6 +121,109 @@ def country_list() -> list[str]:
     return sorted(cs, key=lambda s: s.lower())
 
 
+# ============================================================
+# v4.0-part-2 Adım 6 — Firma Kütüphanesi (brands_registry)
+# ============================================================
+
+# Bilinen markaların seed sırasında ülke ipuçları (manuel doğrulanmış)
+BRAND_COUNTRY_HINT = {
+    "kvadrat": "Danimarka", "dedar": "İtalya", "rubelli": "İtalya",
+    "sahco": "İsveç", "nya_nordiska": "Almanya",
+    "creation_baumann": "İsviçre", "zimmer_rohde": "Almanya",
+    "ado_goldkante": "Almanya", "etamine": "Fransa", "travers": "ABD",
+}
+
+BRANDS_REGISTRY_KEY = "brands_registry"
+BRANDS_REGISTRY_VERSION = "v4.0-part-2-adim6"
+
+
+def _unique_brand_slug(name: str, existing: set[str]) -> str:
+    """brand_slugify'dan unique slug üretir (-2, -3 suffix gerekirse)."""
+    base = brand_slugify(name) or "diger"
+    if base not in existing:
+        return base
+    i = 2
+    while f"{base}-{i}" in existing:
+        i += 1
+    return f"{base}-{i}"
+
+
+def save_brands_registry(brands: list[dict]) -> None:
+    """Registry'yi app_state'e yazar."""
+    try:
+        store.set_app_state(BRANDS_REGISTRY_KEY, {
+            "_seed_version": BRANDS_REGISTRY_VERSION,
+            "_seeded_at": now_iso(),
+            "brands": brands,
+        })
+    except Exception:
+        pass
+
+
+def seed_brands_registry() -> list[dict]:
+    """İlk açılışta TRACKED_BRANDS + ürün brand'lerinden otomatik seed.
+    Ülke tahmini: TRACKED için BRAND_COUNTRY_HINT, ürünlerden gelenler için
+    Counter most_common ülke (majority vote)."""
+    seen: set[str] = set()
+    brands: list[dict] = []
+    ts = now_iso()
+    # 1. TRACKED_BRANDS — sabit liste (ülke MAP'ten)
+    for name, slug in TRACKED_BRANDS:
+        brands.append({
+            "slug": slug, "name": name,
+            "country": BRAND_COUNTRY_HINT.get(slug),
+            "website": None,
+            "created_at": ts, "updated_at": ts,
+        })
+        seen.add(slug)
+    # 2. Ürünlerden ek markalar (slug bazında dedup, ülke majority vote)
+    try:
+        products = store.get_all()
+    except Exception:
+        products = []
+    by_slug: dict[str, dict] = {}
+    for p in products:
+        s = p.get("brand_slug")
+        if not s or s in seen:
+            continue
+        info = by_slug.setdefault(s, {"names": [], "countries": []})
+        if p.get("brand"):
+            info["names"].append(p["brand"])
+        if p.get("country"):
+            info["countries"].append(p["country"])
+    for slug, info in by_slug.items():
+        name_winner = Counter(info["names"]).most_common(1)[0][0] if info["names"] else slug
+        country_winner = Counter(info["countries"]).most_common(1)[0][0] if info["countries"] else None
+        brands.append({
+            "slug": slug, "name": name_winner,
+            "country": country_winner, "website": None,
+            "created_at": ts, "updated_at": ts,
+        })
+    save_brands_registry(brands)
+    return brands
+
+
+def get_brands_registry() -> list[dict]:
+    """Registry'den firmaları döner; boşsa otomatik seed çalıştırır."""
+    try:
+        reg = store.get_app_state(BRANDS_REGISTRY_KEY) or {}
+    except Exception:
+        reg = {}
+    brands = reg.get("brands") if isinstance(reg, dict) else None
+    if not brands:
+        return seed_brands_registry()
+    return brands
+
+
+def get_brand_product_counts() -> dict[str, int]:
+    """settings.html'de 'Ürün #' kolonu için: her brand_slug için ürün sayısı."""
+    try:
+        products = store.get_all()
+    except Exception:
+        return {}
+    return dict(Counter(p.get("brand_slug") for p in products if p.get("brand_slug")))
+
+
 def save_image(file_storage, dest_prefix: str, order: int) -> str:
     """Gorseli jpg'e normalize edip Supabase Storage'a yukle. Bucket-yolu doner."""
     img = Image.open(file_storage.stream)
@@ -289,6 +392,7 @@ def api_reorder_dashboard():
 def ekle():
     return render_template(
         "ekle.html", tracked_brands=TRACKED_BRANDS,
+        brands_registry=get_brands_registry(),
         countries=country_list(),
         country_suggestions=COUNTRY_SUGGESTIONS, weave_suggestions=WEAVE_SUGGESTIONS,
     )
@@ -355,8 +459,89 @@ def urun_detail(urun_id: str):
         albums=albums,
         album_counts=album_counts,
         countries=country_list(),
+        brands_registry=get_brands_registry(),
         country_suggestions=COUNTRY_SUGGESTIONS, weave_suggestions=WEAVE_SUGGESTIONS,
     )
+
+
+# ============================================================
+# v4.0-part-2 Adım 6 — Ayarlar sayfası + Firma CRUD API
+# ============================================================
+
+@app.route("/ayarlar")
+def ayarlar():
+    brands = get_brands_registry()
+    return render_template(
+        "settings.html",
+        brands=brands,
+        brand_product_counts=get_brand_product_counts(),
+        countries=country_list(),
+    )
+
+
+@app.route("/api/brands", methods=["GET"])
+def api_brands_list():
+    return jsonify({"ok": True, "brands": get_brands_registry()})
+
+
+@app.route("/api/brands", methods=["POST"])
+def api_brands_create():
+    body = request.get_json(silent=True) or {}
+    name = (body.get("name") or "").strip()
+    if not name:
+        return jsonify({"ok": False, "error": "Ad zorunlu"}), 400
+    country = norm_country(body.get("country"))
+    website = (body.get("website") or "").strip() or None
+    brands = get_brands_registry()
+    existing_slugs = {b.get("slug") for b in brands}
+    new_slug = _unique_brand_slug(name, existing_slugs)
+    ts = now_iso()
+    new_brand = {
+        "slug": new_slug, "name": name,
+        "country": country, "website": website,
+        "created_at": ts, "updated_at": ts,
+    }
+    brands.append(new_brand)
+    save_brands_registry(brands)
+    return jsonify({"ok": True, "brand": new_brand})
+
+
+@app.route("/api/brands/<slug>", methods=["POST"])
+def api_brands_update(slug: str):
+    body = request.get_json(silent=True) or {}
+    name = (body.get("name") or "").strip()
+    if not name:
+        return jsonify({"ok": False, "error": "Ad zorunlu"}), 400
+    country = norm_country(body.get("country"))
+    website = (body.get("website") or "").strip() or None
+    brands = get_brands_registry()
+    match = next((b for b in brands if b.get("slug") == slug), None)
+    if not match:
+        return jsonify({"ok": False, "error": "Firma bulunamadı"}), 404
+    match["name"] = name
+    match["country"] = country
+    match["website"] = website
+    match["updated_at"] = now_iso()
+    save_brands_registry(brands)
+    return jsonify({"ok": True, "brand": match})
+
+
+@app.route("/api/brands/<slug>", methods=["DELETE"])
+def api_brands_delete(slug: str):
+    brands = get_brands_registry()
+    before = len(brands)
+    brands = [b for b in brands if b.get("slug") != slug]
+    if len(brands) == before:
+        return jsonify({"ok": False, "error": "Firma bulunamadı"}), 404
+    save_brands_registry(brands)
+    return jsonify({"ok": True, "removed": True})
+
+
+@app.route("/api/brands/reseed", methods=["POST"])
+def api_brands_reseed():
+    """Registry'yi sıfırla + TRACKED_BRANDS + ürün markalarından tekrar tara."""
+    brands = seed_brands_registry()
+    return jsonify({"ok": True, "count": len(brands)})
 
 
 # ============================================================

@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Ayarlar · Mobidik Kumaş Paneli{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Ayarlar</h1>
+    <p class="subtitle">Firma kütüphanesi · ülke + web sitesi</p>
+</div>
+
+<section class="settings-section">
+    <header class="settings-header">
+        <h2>Firmalar <span class="cnt">{{ brands|length }}</span></h2>
+        <div class="settings-actions">
+            <button id="brand-add-btn" class="btn btn-primary" type="button">
+                <svg class="icon"><use href="#ic-plus"/></svg> Yeni Firma
+            </button>
+            <button id="brand-reseed-btn" class="btn" type="button"
+                    title="Sistemde tanımlı + ürünlerde geçen markalardan registry'yi yeniden tara">
+                <svg class="icon"><use href="#ic-refresh"/></svg> Yeniden Tara
+            </button>
+        </div>
+    </header>
+
+    {% if brands %}
+    <div class="brands-table-wrap">
+        <table class="brands-table">
+            <thead>
+                <tr>
+                    <th>Ad</th>
+                    <th>Slug</th>
+                    <th>Ülke</th>
+                    <th>Web</th>
+                    <th>Ürün</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="brands-tbody">
+                {% for b in brands %}
+                <tr data-slug="{{ b.slug }}"
+                    data-name="{{ b.name }}"
+                    data-country="{{ b.country or '' }}"
+                    data-website="{{ b.website or '' }}">
+                    <td class="b-name" data-label="Ad">{{ b.name }}</td>
+                    <td class="b-slug" data-label="Slug"><code>{{ b.slug }}</code></td>
+                    <td class="b-country" data-label="Ülke">{{ b.country or '—' }}</td>
+                    <td class="b-website" data-label="Web">
+                        {% if b.website %}
+                        <a href="{{ b.website }}" target="_blank" rel="noopener noreferrer">
+                            <svg class="icon"><use href="#ic-external-link"/></svg>
+                            <span class="b-website-text">{{ b.website }}</span>
+                        </a>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td class="b-count" data-label="Ürün">{{ brand_product_counts.get(b.slug, 0) }}</td>
+                    <td class="b-actions" data-label="">
+                        <button class="btn-mini" data-action="edit" type="button" title="Düzenle">
+                            <svg class="icon"><use href="#ic-pencil"/></svg>
+                        </button>
+                        <button class="btn-mini btn-danger" data-action="delete" type="button" title="Sil">
+                            <svg class="icon"><use href="#ic-trash"/></svg>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <svg class="icon icon-xl"><use href="#ic-target"/></svg>
+        <h3>Firma kütüphanesi boş</h3>
+        <p>"Yeniden Tara" butonuna basarak sistemden ve mevcut ürünlerden otomatik yükleme yapabilirsiniz.</p>
+    </div>
+    {% endif %}
+</section>
+
+{# Modal: Yeni / Düzenle firma #}
+<div class="modal" id="brand-modal" hidden role="dialog" aria-label="Firma düzenle" aria-modal="true">
+    <div class="modal-body">
+        <h3 id="brand-modal-title">Yeni Firma</h3>
+        <div class="form-row">
+            <label for="brand-input-name">Ad <span class="req">*</span></label>
+            <input id="brand-input-name" type="text" required autocomplete="off" placeholder="örn. Pierre Frey">
+        </div>
+        <div class="form-row">
+            <label for="brand-input-slug">Slug</label>
+            <input id="brand-input-slug" type="text" readonly placeholder="Adan otomatik üretilir">
+            <small>Slug değiştirilemez (ürün referansını korumak için).</small>
+        </div>
+        <div class="form-row">
+            <label for="brand-input-country">Ülke</label>
+            <input id="brand-input-country" type="text" list="country-list-modal" autocomplete="off" placeholder="örn. Fransa">
+            <datalist id="country-list-modal">
+                {% for c in countries %}<option value="{{ c }}">{% endfor %}
+            </datalist>
+        </div>
+        <div class="form-row">
+            <label for="brand-input-website">Web sitesi</label>
+            <input id="brand-input-website" type="url" autocomplete="off" placeholder="https://...">
+        </div>
+        <div class="modal-actions">
+            <button id="brand-modal-cancel" class="btn" type="button">İptal</button>
+            <button id="brand-modal-save" class="btn btn-primary" type="button">Kaydet</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+{% endblock %}

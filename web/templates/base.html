@@ -39,6 +39,9 @@
             <a href="{{ url_for('analiz') }}" class="nav-link {% if request.endpoint == 'analiz' %}active{% endif %}">
                 <svg class="icon"><use href="#ic-bar-chart"/></svg> Analiz
             </a>
+            <a href="{{ url_for('ayarlar') }}" class="nav-link {% if request.endpoint == 'ayarlar' %}active{% endif %}">
+                <svg class="icon"><use href="#ic-gear"/></svg> Ayarlar
+            </a>
             <a href="{{ url_for('logout') }}" class="nav-link nav-logout">
                 <svg class="icon"><use href="#ic-log-out"/></svg> Çıkış
             </a>
