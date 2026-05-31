@@ -22,8 +22,9 @@ load_dotenv(Path(__file__).resolve().parent.parent / ".env")  # yereldeyse .env 
 
 import os
 
+import math
 from flask import (
-    Flask, jsonify, redirect, render_template, request, session, url_for,
+    Flask, abort, jsonify, redirect, render_template, request, session, url_for,
 )
 from PIL import Image, ImageOps
 
@@ -837,10 +838,297 @@ def api_teknik_set_active(urun_id: str):
     return jsonify({"ok": True, "active_surum_id": surum_id})
 
 
+# ============================================================
+# v4.0-part-2 Adım 5 Faz 1 — Teknik PDF (client-side print)
+# ============================================================
+
+def _num_or_none(v):
+    """Güvenli sayısal parse. Boş/geçersizse None."""
+    if v is None or v == "":
+        return None
+    try:
+        n = float(str(v).replace(",", "."))
+        return n if math.isfinite(n) else None
+    except (ValueError, TypeError):
+        return None
+
+
+def _parse_iplik(raw, tip):
+    """JS parseIplikValue port — kat tip-aware.
+    * / × / x → her zaman kat. / → NM/NE'de kat, DENYE/DTEX'te filament (kat=1).
+    """
+    if raw is None or raw == "":
+        return {"value": None, "kat": 1}
+    s = str(raw).strip()
+    m = re.match(r"^\s*([0-9]+(?:[.,][0-9]+)?)\s*[\*xX×]\s*([0-9]+)\s*$", s)
+    if m:
+        val = float(m.group(1).replace(",", "."))
+        kat = int(m.group(2)) or 1
+        return {"value": val if math.isfinite(val) else None, "kat": kat}
+    m = re.match(r"^\s*([0-9]+(?:[.,][0-9]+)?)\s*\/\s*([0-9]+)\s*$", s)
+    if m:
+        val = float(m.group(1).replace(",", "."))
+        kat = int(m.group(2)) or 1
+        if tip in ("NM", "NE"):
+            return {"value": val if math.isfinite(val) else None, "kat": kat}
+        return {"value": val if math.isfinite(val) else None, "kat": 1}
+    try:
+        n = float(s.replace(",", "."))
+        return {"value": n if math.isfinite(n) else None, "kat": 1}
+    except (ValueError, TypeError):
+        return {"value": None, "kat": 1}
+
+
+def _nm_eq(tip, val):
+    """JS nmEquivalent port — DENYE/DTEX/NM/NE → m/g."""
+    if val is None or val <= 0:
+        return None
+    if tip == "DENYE":
+        return 9000 / val
+    if tip == "DTEX":
+        return 10000 / val
+    if tip == "NM":
+        return val
+    if tip == "NE":
+        return val * 1.693
+    return None
+
+
+def _g_per_mt_row(row):
+    """Bir iplik satırı için g/m (kat dahil) — tek tel ağırlığı."""
+    tip = row.get("tip", "DENYE")
+    parsed = _parse_iplik(row.get("iplik"), tip)
+    nm = _nm_eq(tip, parsed["value"])
+    if nm is None or nm <= 0:
+        return None, parsed
+    return parsed["kat"] / nm, parsed
+
+
+def _calc_teknik_summary(surum):
+    """Sürümün tüm hesaplanan değerlerini döner — JS calc karşılığı."""
+    params = surum.get("parametreler") or {}
+    iplikler = surum.get("iplikler") or {}
+    cozgu = iplikler.get("cozgu") or []
+    atki = iplikler.get("atki") or []
+
+    ham_en = _num_or_none(params.get("ham_en_cm"))
+    mamul_en = _num_or_none(params.get("mamul_en_cm"))
+    atki_sikligi = _num_or_none(params.get("atki_sikligi"))
+
+    # Çözgü/Atkı satırları için chip değerleri (g/mt, $/mt)
+    def satir_summary(r, yon):
+        g, parsed = _g_per_mt_row(r)
+        f = _num_or_none(r.get("fiyat"))
+        s = _num_or_none(r.get("siklik"))
+        g_mt = None
+        if g and s and ham_en and ham_en > 0:
+            g_mt = s * ham_en * g if yon == "cozgu" else s * (ham_en / 100) * g
+        d_mt = (g_mt * f) / 1000 if g_mt is not None and f and f > 0 else None
+        return {
+            "tip": r.get("tip", "DENYE"),
+            "iplik": r.get("iplik", ""),
+            "kat": parsed["kat"],
+            "siklik": s,
+            "fiyat": f,
+            "g_per_mt": g_mt,
+            "dollar_per_mt": d_mt,
+            "icerikler": ((r.get("olcum") or {}).get("icerikler")) or [],
+            "bilgi": r.get("bilgi") or {},
+            "renk_ad": r.get("renk_ad", ""),
+            "renk_hex": r.get("renk_hex", ""),
+        }
+
+    cozgu_s = [satir_summary(r, "cozgu") for r in cozgu]
+    atki_s = [satir_summary(r, "atki") for r in atki]
+
+    cozgu_g_mt = sum(s["g_per_mt"] for s in cozgu_s if s["g_per_mt"])
+    atki_g_mt = sum(s["g_per_mt"] for s in atki_s if s["g_per_mt"])
+    toplam_g_mt = cozgu_g_mt + atki_g_mt
+
+    cekme = {"factor": 1.0, "pct": 0.0}
+    if ham_en and mamul_en and ham_en > 0 and mamul_en > 0:
+        cekme = {"factor": ham_en / mamul_en, "pct": ((ham_en - mamul_en) / ham_en) * 100}
+
+    iplik_cozgu = sum(s["dollar_per_mt"] for s in cozgu_s if s["dollar_per_mt"])
+    iplik_atki = sum(s["dollar_per_mt"] for s in atki_s if s["dollar_per_mt"])
+    iplik_total = iplik_cozgu + iplik_atki
+
+    # Kapasite
+    rpm = _num_or_none(params.get("tezgah_devri"))
+    randiman = _num_or_none(params.get("randiman"))
+    kapasite_mt_saat = None
+    kapasite_mt_ay = None
+    if rpm and randiman and atki_sikligi and rpm > 0 and randiman > 0 and atki_sikligi > 0:
+        mt_dk = (rpm * (randiman / 100)) / (atki_sikligi * 100)
+        kapasite_mt_saat = mt_dk * 60
+        kapasite_mt_ay = kapasite_mt_saat * 24 * 30
+
+    # İşçilik (saat ücreti 30 $/saat sabit varsayım + 1.18 KDV)
+    iscilik = (30 / kapasite_mt_saat) * 1.18 if kapasite_mt_saat and kapasite_mt_saat > 0 else 0
+
+    # Terbiye
+    terbiye_fiyat = _num_or_none(params.get("terbiye_fiyat")) or 0
+    terbiye = (toplam_g_mt / 1000) * terbiye_fiyat if toplam_g_mt > 0 else 0
+
+    # Fire
+    fire_pct = _num_or_none(params.get("genel_fire")) or 0
+    fire = (iplik_total + iscilik + terbiye) * (fire_pct / 100) if fire_pct > 0 else 0
+
+    # Kurşum
+    kursun = (_num_or_none(params.get("kursun_sabit")) or 0) + (_num_or_none(params.get("ek_malzeme")) or 0)
+
+    maliyet_total = iplik_total + iscilik + terbiye + fire + kursun
+
+    # Kumaş içeriği — elyaf bazlı g/mt dağılımı
+    icerikler_map = {}
+    def add_satir_icerigi(rows, satir_sums):
+        for r, s_dat in zip(rows, satir_sums):
+            g_contrib = s_dat["g_per_mt"]
+            if not g_contrib or g_contrib <= 0:
+                continue
+            ics = ((r.get("olcum") or {}).get("icerikler")) or []
+            if not ics:
+                icerikler_map["Belirsiz"] = icerikler_map.get("Belirsiz", 0) + g_contrib
+                continue
+            for it in ics:
+                if not it or not it.get("elyaf"):
+                    continue
+                oran = _num_or_none(it.get("oran_yuzde"))
+                if not oran or oran <= 0:
+                    continue
+                key = it["elyaf"].strip().upper()
+                icerikler_map[key] = icerikler_map.get(key, 0) + g_contrib * (oran / 100)
+    add_satir_icerigi(cozgu, cozgu_s)
+    add_satir_icerigi(atki, atki_s)
+    icerikler = sorted(
+        ({"name": k, "gram_per_mt": v, "percent": (v / toplam_g_mt * 100) if toplam_g_mt > 0 else 0}
+         for k, v in icerikler_map.items()),
+        key=lambda x: -x["percent"]
+    )
+
+    return {
+        "ham_en": ham_en, "mamul_en": mamul_en, "atki_sikligi": atki_sikligi,
+        "cozgu_g_mt": cozgu_g_mt, "atki_g_mt": atki_g_mt, "toplam_g_mt": toplam_g_mt,
+        "cekme": cekme,
+        "iplik_cozgu": iplik_cozgu, "iplik_atki": iplik_atki, "iplik_total": iplik_total,
+        "iscilik": iscilik, "terbiye": terbiye, "fire": fire, "kursun": kursun,
+        "maliyet_total": maliyet_total,
+        "kapasite_mt_saat": kapasite_mt_saat, "kapasite_mt_ay": kapasite_mt_ay,
+        "kumas_icerigi": icerikler,
+        "cozgu_satir": cozgu_s, "atki_satir": atki_s,
+        "params": params,
+    }
+
+
+def _desen_compute(desen):
+    """JS computeDesen + expandPicks port — print için sadece okuma."""
+    if not desen or not isinstance(desen, dict):
+        return None
+    tahar = desen.get("tahar") or []
+    armur = desen.get("armur") or []
+    weft = desen.get("weftCount") or 0
+    warp = desen.get("warpCount") or 0
+    if weft <= 0 or warp <= 0:
+        return None
+    matrix = []
+    for w in range(warp):
+        f = tahar[w] if w < len(tahar) else None
+        src = armur[f] if (f is not None and 0 <= f < len(armur)) else None
+        row = [bool(src[p]) if (src and p < len(src)) else False for p in range(weft)]
+        matrix.append(row)
+    loops = desen.get("loops") or []
+    start_map = {l.get("startPick"): l for l in loops if "startPick" in l}
+    expanded = []
+    p = 0
+    while p < weft:
+        loop = start_map.get(p)
+        if loop:
+            for _ in range(loop.get("count", 2)):
+                for q in range(loop.get("startPick", p) + 1, loop.get("endPick", p)):
+                    expanded.append(q)
+            p = loop.get("endPick", p) + 1
+        else:
+            expanded.append(p)
+            p += 1
+    return {"matrix": matrix, "expanded_picks": expanded}
+
+
+def _tarak_rle(tarak):
+    """tarak.js rle() port — diş gruplarını döner."""
+    if not tarak or not isinstance(tarak, dict):
+        return []
+    threads = tarak.get("dentThreads") or []
+    if not threads:
+        return []
+    groups = []
+    cur_tel, cur_count, cur_start = threads[0], 1, 0
+    for i in range(1, len(threads)):
+        if threads[i] == cur_tel:
+            cur_count += 1
+        else:
+            groups.append({"dis": cur_count, "tel": cur_tel, "start": cur_start})
+            cur_tel, cur_count, cur_start = threads[i], 1, i
+    groups.append({"dis": cur_count, "tel": cur_tel, "start": cur_start})
+    return groups
+
+
+def _tarak_summary(tarak):
+    """tarak.js calcTarakSummary port."""
+    if not tarak or not isinstance(tarak, dict):
+        return None
+    siklik = _num_or_none(tarak.get("siklik"))
+    threads = tarak.get("dentThreads") or []
+    dis = len(threads)
+    toplam_tel = sum(int(t) for t in threads if isinstance(t, (int, float)) and t > 0)
+    ort_tel_dis = (toplam_tel / dis) if dis > 0 else 0
+    cozgu_siklik = (siklik or 0) * ort_tel_dis
+    rapor_cm = (dis / siklik) if (siklik and siklik > 0) else 0
+    return {
+        "siklik": siklik or 0, "dis": dis, "toplam_tel": toplam_tel,
+        "ort_tel_dis": ort_tel_dis, "cozgu_siklik": cozgu_siklik, "rapor_cm": rapor_cm
+    }
+
+
+@app.route("/urun/<urun_id>/teknik/<surum_id>/print", methods=["GET"])
+@require_login
+def teknik_print(urun_id, surum_id):
+    """Print-friendly HTML — Ctrl+P / window.print() ile PDF'e dökülür.
+    Yeni sekmede açılır, otomatik print diyaloğu tetiklenir.
+    """
+    d = store.get(urun_id)
+    if not d:
+        abort(404)
+    teknik = d.get("teknik") or {}
+    surumler = teknik.get("surumler") or []
+    surum = next((s for s in surumler if s.get("id") == surum_id), None)
+    if not surum:
+        abort(404)
+    summary = _calc_teknik_summary(surum)
+    desen_data = surum.get("desen") or {}
+    tarak_data = surum.get("tarak") or {}
+    desen_computed = _desen_compute(desen_data)
+    tarak_groups = _tarak_rle(tarak_data)
+    tarak_sum = _tarak_summary(tarak_data)
+    return render_template(
+        "teknik_print.html",
+        product=d,
+        surum=surum,
+        summary=summary,
+        desen=desen_data,
+        desen_computed=desen_computed,
+        tarak=tarak_data,
+        tarak_groups=tarak_groups,
+        tarak_sum=tarak_sum,
+        cover_image=store.public_url(cover_path(d)),
+        now_iso=now_iso(),
+    )
+
+
 @app.route("/api/urun/<urun_id>/teknik/<surum_id>/pdf", methods=["GET"])
 def api_teknik_pdf(urun_id: str, surum_id: str):
-    """PDF çıktısı — v3.8 Faz 4'te WeasyPrint ile uygulanacak."""
-    return jsonify({"ok": False, "error": "PDF üretimi v3.8 Faz 4'te eklenecek"}), 501
+    """v4.0-part-2 Adım 5 Faz 1 — print sayfasına redirect (eski URL backward-compat).
+    Faz 2'de WeasyPrint binary PDF dönecek."""
+    return redirect(url_for("teknik_print", urun_id=urun_id, surum_id=surum_id))
 
 
 # ============================================================
