@@ -103,9 +103,20 @@
     // --- Service Worker kayıt (PWA installable) ---
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js').catch(() => {});
+            navigator.serviceWorker.register('/sw.js').then(reg => {
+                // Sprint 8.2 — manifest değişti, eski SW'yi atla, yeniyi hemen aktive et
+                reg.update().catch(() => {});
+                if (reg.waiting) reg.waiting.postMessage({type: 'SKIP_WAITING'});
+            }).catch(() => {});
         });
     }
+    // --- Sprint 8.2 — Orientation unlock (manifest portrait kilidi varsa kır) ---
+    // PWA olarak yüklüyse veya tarayıcı portrait'a kilitlemişse, yatay kullanım için açar.
+    try {
+        if (screen.orientation && typeof screen.orientation.unlock === 'function') {
+            screen.orientation.unlock();
+        }
+    } catch (e) { /* iOS ve eski browser'lar desteklemez — sorun değil */ }
     </script>
 
     <script>
