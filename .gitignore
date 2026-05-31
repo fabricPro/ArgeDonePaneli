@@ -23,5 +23,8 @@ __pycache__/
 .DS_Store
 *.bak
 
+# v3.9 numune-react — eski React Vite deneme, artık kullanılmıyor (vanilla JS port edildi)
+numune-react/
+
 # Ust git repo'nun worktree mekanizmasi
 .claude/

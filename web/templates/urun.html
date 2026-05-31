@@ -386,6 +386,11 @@
         <button id="teknik-surum-rename" class="btn-mini" type="button" {% if not teknik.surumler %}disabled{% endif %}>✎ Adlandır</button>
         <button id="teknik-surum-sil" class="btn-mini btn-danger" type="button" {% if not teknik.surumler %}disabled{% endif %}>× Sil</button>
         <span class="flex-spacer"></span>
+        <button id="teknik-fullscreen" class="btn-mini" type="button"
+                title="Teknik çalışmayı tam ekran aç / kapat (form doldururken aşağı-yukarı scroll'u azaltır)">
+            <span class="fs-on">⛶ Tam Ekran</span>
+            <span class="fs-off">⛶ Çıkış</span>
+        </button>
         <a id="teknik-pdf" class="btn btn-secondary" href="#" target="_blank" rel="noopener" {% if not teknik.surumler %}hidden{% endif %}>📄 PDF</a>
         <button id="teknik-kaydet" class="btn btn-primary" type="button" {% if not teknik.surumler %}disabled{% endif %}>Kaydet</button>
     </div>
@@ -398,9 +403,592 @@
     {% endif %}
 
     <div class="teknik-grid" id="teknik-grid" {% if not teknik.surumler %}hidden{% endif %}>
-        {# v4.0-part-2: tüm Faz 1 placeholder kartlar (Temel Parametreler, İplikler,
-           Tahar Grid, Tarak, Notlar) kaldırıldı. Sıfırdan inşa noktası — yeni
-           içerik buraya eklenir. #}
+        {# v4.0-part-2 Adım 1 — Numune Master üst bar (status + iç sekme) #}
+        <div class="numune-bar">
+            <div class="numune-status">
+                <span id="numune-status-text">Kaydedilmemiş numune</span>
+            </div>
+            <nav class="numune-tabs" role="tablist" aria-label="Numune Master sekmeleri">
+                <button class="numune-tab is-active" data-numune-tab="analiz" type="button" role="tab" aria-selected="true">
+                    <svg class="icon"><use href="#ic-pencil"/></svg>
+                    <span class="numune-tab-label">1 · Analiz</span>
+                </button>
+                <button class="numune-tab" data-numune-tab="desen" type="button" role="tab" aria-selected="false">
+                    <svg class="icon"><use href="#ic-grid"/></svg>
+                    <span class="numune-tab-label">2 · Desen</span>
+                </button>
+                <button class="numune-tab" data-numune-tab="tarak" type="button" role="tab" aria-selected="false">
+                    <svg class="icon"><use href="#ic-list"/></svg>
+                    <span class="numune-tab-label">3 · Tarak</span>
+                </button>
+            </nav>
+        </div>
+
+        {# 1 · Analiz — NUMUNE KÜNYESİ #}
+        <section data-numune-section="analiz" class="numune-section" role="tabpanel" aria-label="Analiz">
+            {# v4.0-part-2 Adım 2.11 — Künye + Dokuma yan yana (kompakt) #}
+            <div class="analiz-top-row">
+                <fieldset class="kunye-card">
+                    <legend>
+                        <svg class="icon"><use href="#ic-target"/></svg>
+                        <span>NUMUNE KÜNYESİ</span>
+                    </legend>
+                    <div class="kunye-grid">
+                        <div class="form-row">
+                            <label for="kunye-ad">Numune adı / kodu</label>
+                            <input type="text" id="kunye-ad" data-kunye-key="ad"
+                                   placeholder="örn. NUM-2026-014" autocomplete="off">
+                        </div>
+                        <div class="form-row">
+                            <label for="kunye-musteri">Müşteri</label>
+                            <input type="text" id="kunye-musteri" data-kunye-key="musteri"
+                                   placeholder="opsiyonel" autocomplete="off">
+                        </div>
+                        <div class="form-row">
+                            <label for="kunye-tarih">Tarih</label>
+                            <input type="date" id="kunye-tarih" data-kunye-key="tarih">
+                        </div>
+                    </div>
+                </fieldset>
+
+                {# v4.0-part-2 Adım 2.3 — DOKUMA PARAMETRELERİ (ipliklerin üstünde) #}
+                <fieldset class="kunye-card dokuma-card">
+                    <legend>
+                        <svg class="icon"><use href="#ic-grid"/></svg>
+                        <span>DOKUMA PARAMETRELERİ</span>
+                    </legend>
+                    <div class="kunye-grid dokuma-grid">
+                        <div class="form-row">
+                            <label for="dok-ham-en">Ham En <em>(cm)</em></label>
+                            <input type="text" id="dok-ham-en" data-dokuma-key="ham_en_cm"
+                                   inputmode="decimal" placeholder="0" autocomplete="off">
+                        </div>
+                        <div class="form-row">
+                            <label for="dok-mamul-en">Mamül En <em>(cm)</em></label>
+                            <input type="text" id="dok-mamul-en" data-dokuma-key="mamul_en_cm"
+                                   inputmode="decimal" placeholder="0" autocomplete="off">
+                        </div>
+                        <div class="form-row">
+                            <label for="dok-atki-sikligi">Atkı Sıklığı <em>(tel/cm)</em></label>
+                            <input type="text" id="dok-atki-sikligi" data-dokuma-key="atki_sikligi"
+                                   inputmode="decimal" placeholder="0" autocomplete="off">
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+
+            {# v4.0-part-2 Adım 2 — ÇÖZGÜ + ATKI İPLİKLERİ kartları #}
+            <div class="iplik-cards">
+                {# ÇÖZGÜ (Warp) — sarı border #}
+                <fieldset class="iplik-card iplik-card-warp" data-yon="cozgu">
+                    <legend>
+                        <span class="iplik-dot iplik-dot-warp" aria-hidden="true"></span>
+                        ÇÖZGÜ İPLİKLERİ
+                        <span class="iplik-count" data-iplik-count="cozgu">0</span>
+                    </legend>
+                    <div class="iplik-rows" data-iplik-rows="cozgu"></div>
+                    <div class="iplik-footer">
+                        <button type="button" class="btn-iplik-add" data-iplik-add="cozgu">
+                            <svg class="icon"><use href="#ic-plus"/></svg>
+                            <span>Çözgü Ekle</span>
+                        </button>
+                    </div>
+                </fieldset>
+
+                {# ATKI (Weft) — yeşil border #}
+                <fieldset class="iplik-card iplik-card-weft" data-yon="atki">
+                    <legend>
+                        <span class="iplik-dot iplik-dot-weft" aria-hidden="true"></span>
+                        ATKI İPLİKLERİ
+                        <span class="iplik-count" data-iplik-count="atki">0</span>
+                    </legend>
+                    <div class="iplik-rows" data-iplik-rows="atki"></div>
+                    <div class="iplik-footer iplik-footer-weft">
+                        <button type="button" class="btn-iplik-add" data-iplik-add="atki">
+                            <svg class="icon"><use href="#ic-plus"/></svg>
+                            <span>Atkı Ekle</span>
+                        </button>
+                        <span class="iplik-validator" id="atki-tel-validator" data-state="empty">
+                            <svg class="icon iplik-validator-icon"><use href="#ic-check"/></svg>
+                            <span class="iplik-validator-text">Tel adedi: 0 / 0</span>
+                        </span>
+                    </div>
+                </fieldset>
+            </div>
+
+            {# İplik satır şablonu (JS klonlar) — gizli template #}
+            <template id="tpl-iplik-row">
+                <div class="iplik-row" data-iplik-id="">
+                    <div class="iplik-row-main">
+                        <label class="iplik-field iplik-field-tip">
+                            <span class="iplik-label">Tip</span>
+                            <select data-iplik-key="tip">
+                                <option value="DENYE">DENYE</option>
+                                <option value="DTEX">DTEX</option>
+                                <option value="NM">NM</option>
+                                <option value="NE">NE</option>
+                            </select>
+                        </label>
+                        <label class="iplik-field iplik-field-iplik">
+                            <span class="iplik-label">İplik <em>(kat için *)</em></span>
+                            <input type="text" data-iplik-key="iplik" placeholder="örn. 300, 300*2"
+                                   title="DENYE/DTEX: 300 (tek) · 300*2 (2 kat) · 300/96 (96 filament, kat=1).&#10;NM/NE: 30 (tek) · 30/2 (2 kat) · 30*2 (2 kat). Yıldız her zaman kat, slash DENYE'de filament.">
+                        </label>
+                        <label class="iplik-field iplik-field-siklik">
+                            <span class="iplik-label" data-label-siklik>Sıklık <em>(tel/cm)</em></span>
+                            <input type="text" data-iplik-key="siklik" inputmode="decimal" placeholder="0">
+                        </label>
+                        <label class="iplik-field iplik-field-fiyat">
+                            <span class="iplik-label">Fiyat <em>($/kg)</em></span>
+                            <input type="text" data-iplik-key="fiyat" inputmode="decimal" placeholder="0">
+                        </label>
+                        <div class="iplik-actions">
+                            <button type="button" class="iplik-act iplik-act-info" data-iplik-action="info" title="İplik bilgisi (ad / firma / fason)">
+                                <svg class="icon"><use href="#ic-pencil"/></svg>
+                            </button>
+                            <button type="button" class="iplik-act iplik-act-scale" data-iplik-action="scale" title="Kompozisyon (içerik + oran)">
+                                <svg class="icon"><use href="#ic-bar-chart"/></svg>
+                            </button>
+                            <button type="button" class="iplik-act iplik-act-delete" data-iplik-action="delete" title="Sil">
+                                <svg class="icon"><use href="#ic-x"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="iplik-row-calc">
+                        <span class="iplik-calc-chip" data-calc="no" title="İplik numarası">
+                            <em>no</em><b data-calc-out="no">—</b>
+                        </span>
+                        <span class="iplik-calc-chip" data-calc="kat" title="Kat sayısı">
+                            <em>kat</em><b data-calc-out="kat">1</b>
+                        </span>
+                        <span class="iplik-calc-chip" data-calc="gmt" title="Bu ipliğin 1 metre kumaşa toplam gram katkısı (sıklık × ham_en × g/m)">
+                            <em>g/mt</em><b data-calc-out="gmt">—</b>
+                        </span>
+                        <span class="iplik-calc-chip" data-calc="dmt" title="Bu ipliğin 1 metre kumaş maliyeti (g/mt × fiyat / 1000)">
+                            <em>$/mt</em><b data-calc-out="dmt">—</b>
+                        </span>
+                        <span class="iplik-calc-chip iplik-calc-note" data-calc="note" hidden>
+                            <em>içerik</em><b data-calc-out="kompozisyon">—</b>
+                        </span>
+                        <span class="iplik-calc-chip iplik-calc-oran" data-calc="oran" hidden>
+                            <em>oran</em><b data-calc-out="oran">—</b>
+                        </span>
+                    </div>
+
+                    {# 📊 KOMPOZİSYON panel — içerik dizisi (max 6) + oran + 4 tip referans #}
+                    <div class="iplik-panel iplik-panel-scale" data-panel="scale" hidden>
+                        <header class="iplik-panel-head">
+                            <span class="iplik-panel-title">
+                                <svg class="icon"><use href="#ic-bar-chart"/></svg>
+                                KOMPOZİSYON
+                            </span>
+                            <span class="iplik-panel-hint">elyaf cinsi · oran · iplik tip eşdeğerleri</span>
+                        </header>
+                        <div class="iplik-icerikler-wrap">
+                            <div class="iplik-icerikler-head">
+                                <span class="iplik-label">İçerik (elyaf cinsi ve oranı)</span>
+                                <span class="iplik-panel-hint">max 6 içerik</span>
+                            </div>
+                            <div class="iplik-icerikler" data-icerikler></div>
+                            <button type="button" class="btn-icerik-add" data-icerik-add>
+                                <svg class="icon"><use href="#ic-plus"/></svg>
+                                <span>İçerik ekle</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {# ⓘ INFO panel — iplik bilgisi (sade) #}
+                    <div class="iplik-panel iplik-panel-info" data-panel="info" hidden>
+                        <header class="iplik-panel-head">
+                            <span class="iplik-panel-title">
+                                <svg class="icon"><use href="#ic-pencil"/></svg>
+                                İPLİK BİLGİSİ
+                            </span>
+                            <span class="iplik-panel-hint iplik-panel-hint-cool">ana maliyeti etkilemez</span>
+                        </header>
+                        <div class="iplik-panel-grid iplik-panel-grid-2">
+                            <label class="iplik-field">
+                                <span class="iplik-label">İplik adı</span>
+                                <input type="text" data-bilgi-key="iplik_adi" placeholder="örn. pamuk 30/1">
+                            </label>
+                            <label class="iplik-field">
+                                <span class="iplik-label">Firma adı</span>
+                                <input type="text" data-bilgi-key="firma_adi" placeholder="opsiyonel">
+                            </label>
+                        </div>
+                        <label class="iplik-check">
+                            <input type="checkbox" data-bilgi-key="fason_var">
+                            <span>Fason işlem var</span>
+                        </label>
+                    </div>
+                </div>
+            </template>
+
+            {# v4.0-part-2 Adım 2.4 — GRAMAJ DOĞRULAMA + KUMAŞ İÇERİĞİ + MALİYET + DAĞILIM + ÜRETİM PARAMETRELERİ #}
+
+            {# GRAMAJ DOĞRULAMA — sadece Hesaplanan + çekme faktörü hint #}
+            <fieldset class="maliyet-card gramaj-card">
+                <legend>
+                    <svg class="icon"><use href="#ic-bar-chart"/></svg>
+                    <span>HESAPLANAN GRAMAJ</span>
+                </legend>
+                <div class="gramaj-grid-single">
+                    <div class="gramaj-cell gramaj-cell-result">
+                        <span class="gramaj-label">Toplam</span>
+                        <span class="gramaj-value" id="gramaj-hesaplanan">0,0</span>
+                        <span class="gramaj-unit">g/mt</span>
+                    </div>
+                    <div class="gramaj-cell">
+                        <span class="gramaj-label">Çözgü</span>
+                        <span class="gramaj-value gramaj-value-sm" id="gramaj-cozgu">0,0</span>
+                        <span class="gramaj-unit">g/mt</span>
+                    </div>
+                    <div class="gramaj-cell">
+                        <span class="gramaj-label">Atkı</span>
+                        <span class="gramaj-value gramaj-value-sm" id="gramaj-atki">0,0</span>
+                        <span class="gramaj-unit">g/mt</span>
+                    </div>
+                </div>
+                <div class="gramaj-hint" id="gramaj-cekme-hint">
+                    Çekme faktörü → atkı ×<b id="cekme-atki">1,000</b> (<span id="cekme-atki-yuzde">%0,00</span>)
+                </div>
+            </fieldset>
+
+            {# KUMAŞ İÇERİĞİ — elyaf dağılımı #}
+            <fieldset class="maliyet-card icerik-card">
+                <legend>
+                    <svg class="icon"><use href="#ic-target"/></svg>
+                    <span>KUMAŞ İÇERİĞİ</span>
+                </legend>
+                <div class="icerik-empty" id="icerik-empty">
+                    İpliklere içerik (elyaf cinsi/oran) eklenmedi — kompozisyon panelinden ekleyin.
+                </div>
+                <div class="icerik-list" id="icerik-list" hidden></div>
+            </fieldset>
+
+            {# MALİYET DÖKÜMÜ + DAĞILIM — yan yana grid #}
+            <div class="maliyet-row">
+                <fieldset class="maliyet-card maliyet-card-dokumu">
+                    <legend>
+                        <svg class="icon"><use href="#ic-bar-chart"/></svg>
+                        <span>MALİYET DÖKÜMÜ</span>
+                    </legend>
+                    <ul class="maliyet-list" id="maliyet-list">
+                        <li data-cost="iplik"><span class="dot" style="--c:#5b8def"></span>İplik (çözgü+atkı)<b><span data-cost-out="iplik">0,000</span> $</b></li>
+                        <li data-cost="iscilik"><span class="dot" style="--c:#d4af7f"></span>İşçilik (KDV dahil)<b><span data-cost-out="iscilik">0,000</span> $</b></li>
+                        <li data-cost="terbiye"><span class="dot" style="--c:#7fb37f"></span>Terbiye<b><span data-cost-out="terbiye">0,000</span> $</b></li>
+                        <li data-cost="fire"><span class="dot" style="--c:#e07260"></span>Fire<b><span data-cost-out="fire">0,000</span> $</b></li>
+                        <li data-cost="kursun"><span class="dot" style="--c:#8b8a87"></span>Kurşum + Ek malzeme<b><span data-cost-out="kursun">0,000</span> $</b></li>
+                    </ul>
+                    <div class="maliyet-total">
+                        <span>TOPLAM</span>
+                        <b><span id="maliyet-toplam">0,000</span> $/mt</b>
+                    </div>
+                    <div class="maliyet-foot">
+                        Toplam gramaj: <b id="foot-gramaj">0,0</b> g/mt ·
+                        Çözgü: <b id="foot-cozgu">0,0</b> ·
+                        Atkı: <b id="foot-atki">0,0</b> ·
+                        Kapasite: <b id="foot-kapasite">—</b> mt/ay
+                    </div>
+                </fieldset>
+
+                <fieldset class="maliyet-card maliyet-card-dagilim">
+                    <legend>
+                        <svg class="icon"><use href="#ic-target"/></svg>
+                        <span>DAĞILIM</span>
+                    </legend>
+                    <div class="dagilim-wrap">
+                        <svg viewBox="0 0 200 200" class="dagilim-donut" id="dagilim-donut" aria-label="Maliyet dağılımı">
+                            <circle cx="100" cy="100" r="80" fill="none" stroke="var(--bg-elev)" stroke-width="32"/>
+                            <g id="dagilim-segments"></g>
+                        </svg>
+                        <div class="dagilim-legend" id="dagilim-legend">
+                            <span><span class="dot" style="--c:#5b8def"></span>İplik</span>
+                            <span><span class="dot" style="--c:#d4af7f"></span>İşçilik</span>
+                            <span><span class="dot" style="--c:#7fb37f"></span>Terbiye</span>
+                            <span><span class="dot" style="--c:#e07260"></span>Fire</span>
+                            <span><span class="dot" style="--c:#8b8a87"></span>Kurşum+Ek</span>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+
+            {# ÜRETİM & FİNİSAJ PARAMETRELERİ #}
+            <fieldset class="maliyet-card uretim-card">
+                <legend>
+                    <svg class="icon"><use href="#ic-pencil"/></svg>
+                    <span>ÜRETİM & FİNİSAJ PARAMETRELERİ</span>
+                </legend>
+                <div class="uretim-grid">
+                    <label class="iplik-field">
+                        <span class="iplik-label">Tezgah devri</span>
+                        <div class="iplik-input-suffix">
+                            <input type="text" data-uretim-key="tezgah_devri" inputmode="decimal" placeholder="0">
+                            <span class="iplik-input-unit">rpm</span>
+                        </div>
+                    </label>
+                    <label class="iplik-field">
+                        <span class="iplik-label">Randıman</span>
+                        <div class="iplik-input-suffix">
+                            <input type="text" data-uretim-key="randiman" inputmode="decimal" placeholder="0">
+                            <span class="iplik-input-unit">%</span>
+                        </div>
+                    </label>
+                    <label class="iplik-field">
+                        <span class="iplik-label">Terbiye fiyat</span>
+                        <div class="iplik-input-suffix">
+                            <input type="text" data-uretim-key="terbiye_fiyat" inputmode="decimal" placeholder="0">
+                            <span class="iplik-input-unit">$/kg</span>
+                        </div>
+                    </label>
+                    <label class="iplik-field">
+                        <span class="iplik-label">Genel fire</span>
+                        <div class="iplik-input-suffix">
+                            <input type="text" data-uretim-key="genel_fire" inputmode="decimal" placeholder="0">
+                            <span class="iplik-input-unit">%</span>
+                        </div>
+                    </label>
+                    <label class="iplik-field">
+                        <span class="iplik-label">Kurşum + paket</span>
+                        <div class="iplik-input-suffix">
+                            <input type="text" data-uretim-key="kursun_sabit" inputmode="decimal" placeholder="0">
+                            <span class="iplik-input-unit">$/mt</span>
+                        </div>
+                    </label>
+                    <label class="iplik-field">
+                        <span class="iplik-label">Ek malzeme</span>
+                        <div class="iplik-input-suffix">
+                            <input type="text" data-uretim-key="ek_malzeme" inputmode="decimal" placeholder="0">
+                            <span class="iplik-input-unit">$/mt</span>
+                        </div>
+                    </label>
+                </div>
+            </fieldset>
+
+            {# İçerik satırı template (info paneli içinde dinamik) #}
+            <template id="tpl-iplik-icerik">
+                <div class="iplik-icerik-row">
+                    <input type="text" class="iplik-icerik-elyaf" placeholder="elyaf (örn. PES)">
+                    <div class="iplik-input-suffix iplik-input-suffix-tight">
+                        <input type="text" class="iplik-icerik-oran" inputmode="decimal" placeholder="0">
+                        <span class="iplik-input-unit">%</span>
+                    </div>
+                    <button type="button" class="iplik-icerik-del" aria-label="Sil">
+                        <svg class="icon"><use href="#ic-x"/></svg>
+                    </button>
+                </div>
+            </template>
+
+        </section>
+
+        {# 2 · Desen — placeholder #}
+        <section data-numune-section="desen" class="numune-section" role="tabpanel" aria-label="Desen" hidden>
+            {# v4.0-part-2 Adım 3 — Desen Modülü (5 kart) #}
+            <div class="desen-grid" id="desen-grid">
+
+                {# Kart 1 — Desen Boyutları (tek satır, 6 stepper + 2 quick action) #}
+                <fieldset class="desen-card desen-card-dim">
+                    <legend>
+                        <svg class="icon"><use href="#ic-grid"/></svg>
+                        <span>DESEN BOYUTLARI</span>
+                    </legend>
+                    <div class="desen-dim-row">
+                        {% for key, label, unit in [
+                            ('warpCount', 'Çözgü', 'tel'),
+                            ('weftCount', 'Atkı', 'pick'),
+                            ('frameCount', 'Çerçeve', 'frame'),
+                            ('iroCount', 'İro', 'motor'),
+                            ('raporX', 'Rapor X', '×'),
+                            ('raporY', 'Rapor Y', '×')
+                        ] %}
+                        <div class="desen-stepper-wrap">
+                            <span class="desen-stepper-label">{{ label }}<em>({{ unit }})</em></span>
+                            <span class="stepper" data-desen-stepper="{{ key }}">
+                                <button type="button" data-step="-1" aria-label="{{ label }} azalt">−</button>
+                                <output data-step-value="{{ key }}">—</output>
+                                <button type="button" data-step="+1" aria-label="{{ label }} artır">+</button>
+                            </span>
+                        </div>
+                        {% endfor %}
+                        <span class="desen-dim-sep"></span>
+                        <button type="button" class="btn-mini" id="desen-duz-tahar">Düz Tahar</button>
+                        <button type="button" class="btn-mini" id="desen-armur-temizle">Armür Temizle</button>
+                    </div>
+                </fieldset>
+
+                {# Kart 2 — TAHAR #}
+                <fieldset class="desen-card desen-card-tahar">
+                    <legend>
+                        <svg class="icon"><use href="#ic-pencil"/></svg>
+                        <span>TAHAR — Çözgü → Çerçeve</span>
+                    </legend>
+                    <div class="desen-tahar-wrap" id="desen-tahar-grid"></div>
+                </fieldset>
+
+                {# Kart 3 — ARMÜR + ATKI RAPORU (Döngülü) #}
+                <fieldset class="desen-card desen-card-armur">
+                    <legend>
+                        <svg class="icon"><use href="#ic-bar-chart"/></svg>
+                        <span>ARMÜR + ATKI RAPORU</span>
+                    </legend>
+                    <div class="desen-armur-wrap" id="desen-armur-grid"></div>
+                </fieldset>
+
+                {# Kart 4 — DÖNGÜLER #}
+                <fieldset class="desen-card desen-card-loops">
+                    <legend>
+                        <svg class="icon"><use href="#ic-list"/></svg>
+                        <span>DÖNGÜLER (DO N … NEXT)</span>
+                    </legend>
+                    <div class="desen-loop-form">
+                        <label class="desen-loop-field">
+                            <span>DO atkı no</span>
+                            <input type="number" id="loop-do" min="1" step="1" placeholder="örn. 2">
+                        </label>
+                        <label class="desen-loop-field">
+                            <span>NEXT atkı no</span>
+                            <input type="number" id="loop-next" min="1" step="1" placeholder="örn. 5">
+                        </label>
+                        <label class="desen-loop-field">
+                            <span>Tekrar</span>
+                            <input type="number" id="loop-count" min="2" max="99" step="1" value="2">
+                        </label>
+                        <button type="button" class="btn-mini btn-primary" id="loop-add">+ Döngü Ekle</button>
+                    </div>
+                    <div class="desen-loop-error" id="loop-error" hidden></div>
+                    <div class="desen-loop-list" id="loop-list"></div>
+                    <div class="desen-loop-foot">
+                        <button type="button" class="btn-mini btn-danger" id="loop-clear" hidden>Tümünü Temizle</button>
+                    </div>
+                </fieldset>
+
+                {# Kart 5 — DESEN ÖNİZLEME #}
+                <fieldset class="desen-card desen-card-preview">
+                    <legend>
+                        <svg class="icon"><use href="#ic-target"/></svg>
+                        <span>DESEN ÖNİZLEME</span>
+                    </legend>
+                    <div class="desen-preview-head">
+                        <span class="desen-preview-stats" id="desen-preview-stats">—</span>
+                        <label class="desen-color-toggle">
+                            <input type="checkbox" id="desen-renkli">
+                            <span>Renkli</span>
+                        </label>
+                    </div>
+                    <div class="desen-preview-wrap" id="desen-preview-grid"></div>
+                </fieldset>
+            </div>
+        </section>
+
+        {# 4 · Tarak — placeholder #}
+        <section data-numune-section="tarak" class="numune-section" role="tabpanel" aria-label="Tarak" hidden>
+            {# v4.0-part-2 Adım 4 — Tarak Modülü (4 kart) #}
+            <div class="tarak-grid" id="tarak-grid">
+
+                {# Kart 1 — TARAK PARAMETRELERİ #}
+                <fieldset class="tarak-card tarak-card-params">
+                    <legend>
+                        <svg class="icon"><use href="#ic-pencil"/></svg>
+                        <span>TARAK PARAMETRELERİ</span>
+                    </legend>
+                    <div class="tarak-params-row">
+                        <label class="tarak-field">
+                            <span class="tarak-label">Sıklık <em>(diş/cm)</em></span>
+                            <input type="text" id="tarak-siklik" inputmode="decimal" placeholder="örn. 8" autocomplete="off">
+                        </label>
+                        <label class="tarak-field" data-tarak-rapor="dis">
+                            <span class="tarak-label">Rapor diş</span>
+                            <input type="text" id="tarak-rapor-dis" inputmode="numeric" placeholder="örn. 32" autocomplete="off">
+                        </label>
+                        <label class="tarak-field" data-tarak-rapor="cm" hidden>
+                            <span class="tarak-label">Rapor <em>(cm)</em></span>
+                            <input type="text" id="tarak-rapor-cm" inputmode="decimal" placeholder="örn. 4.0000" autocomplete="off">
+                        </label>
+                        <div class="tarak-field tarak-mode-wrap">
+                            <span class="tarak-label">Mod</span>
+                            <span class="tarak-mode-toggle" role="tablist">
+                                <button type="button" class="tarak-mode-btn is-active" data-tarak-mode="dis">Diş</button>
+                                <button type="button" class="tarak-mode-btn" data-tarak-mode="cm">cm</button>
+                            </span>
+                        </div>
+                        <div class="tarak-field tarak-actions">
+                            <span class="tarak-label">&nbsp;</span>
+                            <button type="button" class="btn-mini" id="tarak-reset" title="Tüm dişleri 0'la (uzunluk korunur)">
+                                <svg class="icon"><use href="#ic-x"/></svg> Reset
+                            </button>
+                        </div>
+                    </div>
+                    <div class="tarak-hint" id="tarak-hint" hidden></div>
+                </fieldset>
+
+                {# Kart 2 — HESAPLANAN DEĞERLER #}
+                <fieldset class="tarak-card tarak-card-stats">
+                    <legend>
+                        <svg class="icon"><use href="#ic-bar-chart"/></svg>
+                        <span>HESAPLANAN DEĞERLER</span>
+                    </legend>
+                    <div class="tarak-stats-grid">
+                        <div class="tarak-stat">
+                            <span class="tarak-stat-label">Sıklık</span>
+                            <span class="tarak-stat-value" id="tarak-stat-siklik">—</span>
+                            <span class="tarak-stat-unit">diş/cm</span>
+                        </div>
+                        <div class="tarak-stat">
+                            <span class="tarak-stat-label">Rapor diş</span>
+                            <span class="tarak-stat-value" id="tarak-stat-dis">—</span>
+                            <span class="tarak-stat-unit">diş</span>
+                        </div>
+                        <div class="tarak-stat tarak-stat-hero">
+                            <span class="tarak-stat-label">Toplam tel</span>
+                            <span class="tarak-stat-value" id="tarak-stat-toplam">—</span>
+                            <span class="tarak-stat-unit">tel</span>
+                        </div>
+                        <div class="tarak-stat">
+                            <span class="tarak-stat-label">Ort. tel/diş</span>
+                            <span class="tarak-stat-value" id="tarak-stat-ort">—</span>
+                            <span class="tarak-stat-unit">tel</span>
+                        </div>
+                        <div class="tarak-stat tarak-stat-green">
+                            <span class="tarak-stat-label">Çözgü sıklığı</span>
+                            <span class="tarak-stat-value" id="tarak-stat-cozgu">—</span>
+                            <span class="tarak-stat-unit">tel/cm</span>
+                        </div>
+                        <div class="tarak-stat">
+                            <span class="tarak-stat-label">Rapor cm</span>
+                            <span class="tarak-stat-value" id="tarak-stat-cm">—</span>
+                            <span class="tarak-stat-unit">cm</span>
+                        </div>
+                    </div>
+                </fieldset>
+
+                {# Kart 3 — DİŞ DİZİMİ #}
+                <fieldset class="tarak-card tarak-card-grid">
+                    <legend>
+                        <svg class="icon"><use href="#ic-grid"/></svg>
+                        <span>DİŞ DİZİMİ</span>
+                    </legend>
+                    <div class="tarak-grid-hint">Sol tık → <b>+1 tel</b> · Sağ tık → <b>−1 tel</b></div>
+                    <div class="tarak-dent-wrap" id="tarak-dent-grid"></div>
+                </fieldset>
+
+                {# Kart 4 — TARAK RAPORU (koşullu — siklik > 0 && dis > 0) #}
+                <fieldset class="tarak-card tarak-card-report" id="tarak-report-card" hidden>
+                    <legend>
+                        <svg class="icon"><use href="#ic-list"/></svg>
+                        <span>TARAK RAPORU</span>
+                    </legend>
+                    <div class="tarak-report-summary" id="tarak-report-summary">—</div>
+                    <div class="tarak-rle-list" id="tarak-rle-list"></div>
+                    <div class="tarak-report-stats" id="tarak-report-stats"></div>
+                    <div class="tarak-report-actions">
+                        <button type="button" class="btn-mini" id="tarak-rle-copy">
+                            <svg class="icon"><use href="#ic-external-link"/></svg>
+                            <span id="tarak-rle-copy-label">RLE Kopyala</span>
+                        </button>
+                    </div>
+                </fieldset>
+            </div>
+        </section>
     </div>
 
     {# Tüm sürüm verisi — JS okumak için #}
@@ -428,6 +1016,13 @@
 <script>
 const URUN_ID = {{ urun_id|tojson }};
 window.URUN_ID = URUN_ID;  // teknik.js ve diğer dış modüller erişebilsin
+
+// v4.0-part-2 Adım 2.4 — ürün metadata (künye auto-fill için)
+window.PRODUCT_CONTEXT = {{ {
+    "brand": product.brand or "",
+    "product_code": product.product_code or "",
+    "product_name": product.product_name or ""
+} | tojson }};
 
 async function postJson(url, body) {
     const res = await fetch(url, {
@@ -1335,6 +1930,10 @@ grid.addEventListener('dragover', (e) => {
     setTab(['galeri', 'teknik'].includes(initial) ? initial : 'galeri');
 })();
 </script>
+<script src="{{ url_for('static', filename='js/desen.js') }}"></script>
+<script src="{{ url_for('static', filename='js/desen-ui.js') }}"></script>
+<script src="{{ url_for('static', filename='js/tarak.js') }}"></script>
+<script src="{{ url_for('static', filename='js/tarak-ui.js') }}"></script>
 <script src="{{ url_for('static', filename='js/teknik.js') }}"></script>
 
 {% endif %}

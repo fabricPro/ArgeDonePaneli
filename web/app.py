@@ -686,16 +686,33 @@ def api_teknik_surum_create(urun_id: str):
         "ad": ad,
         "olusturma_tarihi": now,
         "guncelleme_tarihi": now,
+        "kunye": {
+            # v4.0-part-2 Adım 2.4 — ürün metadata'sından auto-fill
+            "ad": d.get("product_code") or d.get("product_name") or "",
+            "musteri": d.get("brand") or "",
+            "tarih": now[:10],   # YYYY-MM-DD (ISO)
+        },
         "parametreler": {
             "cozgu_sikligi": None,
             "atki_sikligi": None,
             "ham_en_cm": None,
             "mamul_en_cm": d.get("width_cm"),     # mevcut metadata'dan default
             "gramaj_gsm": d.get("weight_gsm"),
+            # v4.0-part-2 Adım 2.5 — üretim & finisaj parametreleri default'ları
+            "tezgah_devri": 280,
+            "randiman": 85,
+            "terbiye_fiyat": 1,
+            "genel_fire": 5,
+            "kursun_sabit": 0.25,
+            "ek_malzeme": None,
         },
         "iplikler": {"cozgu": [], "atki": []},
         "tahar_grid": {},
         "tarak_raporu": {},
+        # v4.0-part-2 Adım 3 — Desen modülü (tahar+armür+iro+döngü+rapor)
+        "desen": {},
+        # v4.0-part-2 Adım 4 — Tarak modülü (sıklık+rapor+dentThreads)
+        "tarak": {},
         "notlar": "",
     }
     teknik["surumler"].append(surum)
@@ -718,10 +735,21 @@ def api_teknik_surum_update(urun_id: str, surum_id: str):
     if not surum:
         return jsonify({"ok": False, "error": "Sürüm bulunamadı"}), 404
     body = request.get_json(force=True) or {}
+    # Künye (Numune Master — ad/müşteri/tarih)
+    if "kunye" in body and isinstance(body["kunye"], dict):
+        cur_kunye = surum.get("kunye") or {}
+        for key in ("ad", "musteri", "tarih"):
+            if key in body["kunye"]:
+                v = body["kunye"][key]
+                cur_kunye[key] = clean(v) if isinstance(v, str) else ""
+        surum["kunye"] = cur_kunye
     # Parametreler
     if "parametreler" in body and isinstance(body["parametreler"], dict):
         cur_param = surum.get("parametreler") or {}
-        for key in ("cozgu_sikligi", "atki_sikligi", "ham_en_cm", "mamul_en_cm", "gramaj_gsm"):
+        # v4.0-part-2 Adım 2.4 — üretim & finisaj parametreleri eklendi
+        for key in ("cozgu_sikligi", "atki_sikligi", "ham_en_cm", "mamul_en_cm", "gramaj_gsm",
+                    "tezgah_devri", "randiman", "terbiye_fiyat", "genel_fire",
+                    "kursun_sabit", "ek_malzeme"):
             if key in body["parametreler"]:
                 v = body["parametreler"][key]
                 if v is None or v == "":
@@ -741,8 +769,8 @@ def api_teknik_surum_update(urun_id: str, surum_id: str):
                 if isinstance(lst, list):
                     cur_ipl[yon] = lst[:8]
         surum["iplikler"] = cur_ipl
-    # Tahar grid + tarak raporu (UI gelince netleşir, jsonb passthrough)
-    for k in ("tahar_grid", "tarak_raporu"):
+    # Tahar grid + tarak raporu + desen + tarak (jsonb passthrough)
+    for k in ("tahar_grid", "tarak_raporu", "desen", "tarak"):
         if k in body:
             surum[k] = body[k] if isinstance(body[k], (dict, list)) else {}
     # Notlar
