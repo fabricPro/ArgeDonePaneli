@@ -699,9 +699,9 @@ table.pdf-table tr.weft-row td:first-child { border-left: 3pt solid #7fb37f; }
                 {% set GAP = 0.4 %}{# mm — row gap #}
                 {% set total_h = desen.weftCount * (CELL + GAP) - GAP %}
                 <svg class="pdf-armur-bracket" width="4mm" height="{{ total_h }}mm" viewBox="0 0 4 {{ total_h }}" preserveAspectRatio="none">
-                    {% for loop in loops %}
-                        {% set y_top = (desen.weftCount - 1 - loop.endPick) * (CELL + GAP) + CELL / 2 %}
-                        {% set y_bot = (desen.weftCount - 1 - loop.startPick) * (CELL + GAP) + CELL / 2 %}
+                    {% for lp in loops %}
+                        {% set y_top = (desen.weftCount - 1 - lp.endPick) * (CELL + GAP) + CELL / 2 %}
+                        {% set y_bot = (desen.weftCount - 1 - lp.startPick) * (CELL + GAP) + CELL / 2 %}
                         <path d="M3 {{ y_top }} L0.5 {{ y_top }} L0.5 {{ y_bot }} L3 {{ y_bot }}"
                               fill="none" stroke="#e8674f" stroke-width="0.3" stroke-linecap="round"/>
                     {% endfor %}
