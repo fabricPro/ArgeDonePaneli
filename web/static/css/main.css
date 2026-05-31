@@ -6411,6 +6411,12 @@ body.teknik-fullscreen {
     gap: 10px;
 }
 
+/* Sprint 8.6 — Manuel "Yatay Aç" butonu: sadece mobil portrait'ta görünür */
+.cw-rotate-btn { display: none; }
+@media (max-width: 900px) and (orientation: portrait) {
+    .cw-rotate-btn { display: inline-flex; }
+}
+
 /* ---- Pin button (galeri kartı + detay header) ---- */
 .card-pin-btn {
     position: absolute;

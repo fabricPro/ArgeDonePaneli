@@ -1,6 +1,6 @@
 // Minimal service worker — installability + offline fallback
-// v4.0-part-2 Sprint 8.2: skipWaiting + orientation unlock — cache bust v10
-const CACHE = 'fas-v10';
+// v4.0-part-2 Sprint 8.6: PWA shortcuts + manuel yatay buton — cache bust v11
+const CACHE = 'fas-v11';
 const CORE = ['/'];
 
 self.addEventListener('install', (e) => {

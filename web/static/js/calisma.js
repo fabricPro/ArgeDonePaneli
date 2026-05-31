@@ -24,21 +24,32 @@
            window.matchMedia('(orientation: portrait)').matches;
   }
 
+  function isPwaStandalone() {
+    return window.matchMedia('(display-mode: standalone)').matches ||
+           window.matchMedia('(display-mode: fullscreen)').matches ||
+           // iOS Safari standalone
+           (window.navigator && window.navigator.standalone === true);
+  }
+
   function tryLockLandscape() {
     // Sadece mobile portrait'ta dene; desktop'ta gereksiz
     if (!isMobilePortrait()) return;
-    const el = document.documentElement;
-    const reqFs = el.requestFullscreen || el.webkitRequestFullscreen ||
-                  el.mozRequestFullScreen || el.msRequestFullscreen;
-    if (!reqFs) return;
-    try {
-      const p = reqFs.call(el);
-      Promise.resolve(p).then(() => {
-        if (screen.orientation && screen.orientation.lock) {
-          screen.orientation.lock('landscape').catch(() => {/* iOS / desteklemiyor */});
-        }
-      }).catch(() => {/* user gesture eksikse veya engellendi */});
-    } catch (e) {/* ignore */}
+    if (!(screen.orientation && screen.orientation.lock)) return;
+
+    // PWA standalone: lock'u doğrudan dene (fullscreen şart değil)
+    screen.orientation.lock('landscape').catch(() => {
+      // Browser tab'ında lock'a izin yok — fullscreen alıp tekrar dene
+      const el = document.documentElement;
+      const reqFs = el.requestFullscreen || el.webkitRequestFullscreen ||
+                    el.mozRequestFullScreen || el.msRequestFullscreen;
+      if (!reqFs) return;
+      try {
+        const p = reqFs.call(el);
+        Promise.resolve(p).then(() => {
+          screen.orientation.lock('landscape').catch(() => {/* iOS no-op */});
+        }).catch(() => {});
+      } catch (e) {/* ignore */}
+    });
   }
 
   function tryUnlock() {
@@ -167,6 +178,14 @@
       closeSplit();
     }
   });
+
+  // Sprint 8.6 — Manuel "Yatay Aç" butonu (mobil portrait'ta görünür)
+  const rotateBtn = $('#cw-rotate-btn');
+  if (rotateBtn) {
+    rotateBtn.addEventListener('click', () => {
+      tryLockLandscape();
+    });
+  }
 
   // İlk yüklemede URL hash varsa o ürünü aç (örn. #urun-kvadrat_qs3847)
   const hash = location.hash.slice(1);

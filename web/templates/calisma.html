@@ -11,6 +11,11 @@
             <p class="page-subtitle">{{ total }} pinlenmiş kumaş — split ekranla hızlı çalışma</p>
         </div>
         <div class="calisma-head-actions">
+            {# Sprint 8.6 — Mobile portrait'ta manuel yatay aç butonu #}
+            <button type="button" class="btn btn-secondary cw-rotate-btn" id="cw-rotate-btn" title="Yatay moda geç">
+                <svg class="icon"><use href="#ic-refresh"/></svg>
+                Yatay Aç
+            </button>
             <a class="btn btn-secondary" href="{{ url_for('index') }}">
                 <svg class="icon"><use href="#ic-plus"/></svg>
                 Galeriden Ekle

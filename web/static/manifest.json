@@ -10,6 +10,29 @@
   "theme_color": "#0a0b0d",
   "lang": "tr",
   "categories": ["business", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Çalışma Alanı",
+      "short_name": "Çalışma",
+      "description": "Pinli kumaşlarla split-screen çalışma",
+      "url": "/calisma",
+      "icons": [{ "src": "/static/img/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Ön Çalışma",
+      "short_name": "Ön Ç.",
+      "description": "Link havuzu — araştırma linkleri",
+      "url": "/arastirma",
+      "icons": [{ "src": "/static/img/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Yeni Kumaş",
+      "short_name": "Ekle",
+      "description": "Yeni kumaş ekle",
+      "url": "/ekle",
+      "icons": [{ "src": "/static/img/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
   "icons": [
     {
       "src": "/static/img/icon-192.png",
