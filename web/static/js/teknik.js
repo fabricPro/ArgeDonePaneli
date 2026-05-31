@@ -1424,10 +1424,10 @@
         }, toplam);
     }
 
-    // === v4.0-part-2 Adım 1 — İç sekme switch (1·Analiz | 2·Desen | 3·Tarak) ===
+    // === v4.0-part-2 Adım 1 — İç sekme switch (1·Analiz | 2·Desen | 3·Tarak | 4·Notlar) ===
     const NUMUNE_TAB_KEY = 'numune_tab';
-    // v4.0-part-2 Adım 2.4 — Maliyet sekmesi kaldırıldı, Analiz'e taşındı
-    const NUMUNE_VALID_TABS = ['analiz', 'desen', 'tarak'];
+    // v4.0-part-2 Sprint 8.4 — Notlar 4. alt-sekme olarak eklendi (sürüm-spesifik)
+    const NUMUNE_VALID_TABS = ['analiz', 'desen', 'tarak', 'notlar'];
     const numuneTabBtns = document.querySelectorAll('.numune-tab');
     const numuneSections = document.querySelectorAll('.numune-section');
 

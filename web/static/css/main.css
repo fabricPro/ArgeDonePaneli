@@ -6740,7 +6740,9 @@ body.embed-calisma-left [data-tab="notlar"] {
     display: none !important;
 }
 
-/* Sağ pane: galeri sekmesi + nav'daki "Galeri" butonu gizli */
+/* Sağ pane: galeri sekmesi + nav'daki "Galeri" butonu + sticky hero gizli
+   (Sticky hero ana tab'lardan bağımsız, üstte sabit duruyor — burada gerek yok) */
+body.embed-calisma-right .urun-sticky-hero,
 body.embed-calisma-right .detail-header,
 body.embed-calisma-right .meta-list,
 body.embed-calisma-right .arge-note,

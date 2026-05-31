@@ -89,10 +89,7 @@
         <span>Dokümanlar</span>
         {% if product.pdfs %}<span class="utab-cnt">{{ product.pdfs|length }}</span>{% endif %}
     </button>
-    <button type="button" class="utab-btn" data-tab="notlar">
-        <svg class="icon"><use href="#ic-pencil"/></svg>
-        <span>Notlar</span>
-    </button>
+    {# v4.0-part-2 Sprint 8.4 — Notlar artık Teknik > 4·Notlar alt-sekmesinde (sürüm-spesifik) #}
 </nav>
 
 {# === GALERİ SEKMESİ — mevcut tüm yapı === #}
@@ -484,6 +481,11 @@
                 <button class="numune-tab" data-numune-tab="tarak" type="button" role="tab" aria-selected="false">
                     <svg class="icon"><use href="#ic-list"/></svg>
                     <span class="numune-tab-label">3 · Tarak</span>
+                </button>
+                {# v4.0-part-2 Sprint 8.4 — Notlar artık burada (sürüm-spesifik) #}
+                <button class="numune-tab" data-numune-tab="notlar" type="button" role="tab" aria-selected="false">
+                    <svg class="icon"><use href="#ic-pencil"/></svg>
+                    <span class="numune-tab-label">4 · Notlar</span>
                 </button>
             </nav>
         </div>
@@ -1053,6 +1055,51 @@
                 </fieldset>
             </div>
         </section>
+
+        {# v4.0-part-2 Sprint 8.4 — 4·Notlar (sürüm-spesifik, ana tab'dan buraya taşındı) #}
+        <section data-numune-section="notlar" class="numune-section" role="tabpanel" aria-label="Notlar" hidden>
+            <header class="notlar-head">
+                <h2>Notlar</h2>
+                <div class="notlar-actions">
+                    <span class="notlar-status" id="notlar-status">Kaydedildi</span>
+                    <button class="btn btn-primary" id="notlar-save-btn" type="button">Kaydet</button>
+                </div>
+            </header>
+
+            <div class="rich-editor">
+                <div class="rich-toolbar" id="rich-toolbar">
+                    <button type="button" data-cmd="bold" title="Kalın (Ctrl+B)"><b>B</b></button>
+                    <button type="button" data-cmd="italic" title="İtalik (Ctrl+I)"><i>I</i></button>
+                    <button type="button" data-cmd="underline" title="Altı çizili (Ctrl+U)"><u>U</u></button>
+                    <span class="rich-sep"></span>
+                    <select id="rich-fontsize" title="Yazı boyutu">
+                        <option value="2">Küçük</option>
+                        <option value="3" selected>Normal</option>
+                        <option value="5">Büyük</option>
+                        <option value="6">Çok Büyük</option>
+                    </select>
+                    <span class="rich-sep"></span>
+                    <div class="rich-colors" role="toolbar" aria-label="Renk paleti">
+                        <button type="button" data-color="#e8e6e2" title="Beyaz (default)" style="--c:#e8e6e2"></button>
+                        <button type="button" data-color="#d4af7f" title="Champagne (vurgu)" style="--c:#d4af7f"></button>
+                        <button type="button" data-color="#5b8def" title="Mavi (link/info)" style="--c:#5b8def"></button>
+                        <button type="button" data-color="#7fb37f" title="Yeşil (olumlu)" style="--c:#7fb37f"></button>
+                        <button type="button" data-color="#e07260" title="Kırmızı (uyarı)" style="--c:#e07260"></button>
+                    </div>
+                    <span class="rich-sep"></span>
+                    <button type="button" data-cmd="insertUnorderedList" title="Liste">•</button>
+                    <button type="button" data-cmd="removeFormat" title="Format temizle">⌫</button>
+                </div>
+                {# Aktif sürümün notlar_html'i; yoksa product.notlar_html fallback #}
+                {% set _active_surum = (teknik.surumler or [])|selectattr('id', 'equalto', teknik.active_surum_id)|first %}
+                {% set _initial_notlar = (_active_surum.notlar_html if _active_surum and _active_surum.notlar_html else product.notlar_html) or '' %}
+                <div id="rich-content" class="rich-content" contenteditable="true"
+                     aria-label="Notlar düzenleme alanı">{{ _initial_notlar|safe }}</div>
+                {% if _active_surum and not _active_surum.notlar_html and product.notlar_html %}
+                <small class="notlar-fallback-hint">⚠ Ürün-seviyesi nottan gösteriliyor. Düzenleyip kaydedersen <strong>{{ _active_surum.ad }}</strong> sürümüne özel olur.</small>
+                {% endif %}
+            </div>
+        </section>
     </div>
 
     {# Tüm sürüm verisi — JS okumak için #}
@@ -1112,50 +1159,7 @@
     </div>
 </section>{# /Dokümanlar sekmesi #}
 
-{# === v4.0-part-2 Adım 7 — NOTLAR SEKMESİ === #}
-<section data-tab="notlar" class="utab-section" hidden>
-    <header class="notlar-head">
-        <h2>Notlar</h2>
-        <div class="notlar-actions">
-            <span class="notlar-status" id="notlar-status">Kaydedildi</span>
-            <button class="btn btn-primary" id="notlar-save-btn" type="button">Kaydet</button>
-        </div>
-    </header>
-
-    <div class="rich-editor">
-        <div class="rich-toolbar" id="rich-toolbar">
-            <button type="button" data-cmd="bold" title="Kalın (Ctrl+B)"><b>B</b></button>
-            <button type="button" data-cmd="italic" title="İtalik (Ctrl+I)"><i>I</i></button>
-            <button type="button" data-cmd="underline" title="Altı çizili (Ctrl+U)"><u>U</u></button>
-            <span class="rich-sep"></span>
-            <select id="rich-fontsize" title="Yazı boyutu">
-                <option value="2">Küçük</option>
-                <option value="3" selected>Normal</option>
-                <option value="5">Büyük</option>
-                <option value="6">Çok Büyük</option>
-            </select>
-            <span class="rich-sep"></span>
-            <div class="rich-colors" role="toolbar" aria-label="Renk paleti">
-                <button type="button" data-color="#e8e6e2" title="Beyaz (default)" style="--c:#e8e6e2"></button>
-                <button type="button" data-color="#d4af7f" title="Champagne (vurgu)" style="--c:#d4af7f"></button>
-                <button type="button" data-color="#5b8def" title="Mavi (link/info)" style="--c:#5b8def"></button>
-                <button type="button" data-color="#7fb37f" title="Yeşil (olumlu)" style="--c:#7fb37f"></button>
-                <button type="button" data-color="#e07260" title="Kırmızı (uyarı)" style="--c:#e07260"></button>
-            </div>
-            <span class="rich-sep"></span>
-            <button type="button" data-cmd="insertUnorderedList" title="Liste">•</button>
-            <button type="button" data-cmd="removeFormat" title="Format temizle">⌫</button>
-        </div>
-        {# v4.0-part-2 Adım 8 — Aktif sürümün notlar_html'i; yoksa product.notlar_html fallback #}
-        {% set _active_surum = (teknik.surumler or [])|selectattr('id', 'equalto', teknik.active_surum_id)|first %}
-        {% set _initial_notlar = (_active_surum.notlar_html if _active_surum and _active_surum.notlar_html else product.notlar_html) or '' %}
-        <div id="rich-content" class="rich-content" contenteditable="true"
-             aria-label="Notlar düzenleme alanı">{{ _initial_notlar|safe }}</div>
-        {% if _active_surum and not _active_surum.notlar_html and product.notlar_html %}
-        <small class="notlar-fallback-hint">⚠ Ürün-seviyesi nottan gösteriliyor. Düzenleyip kaydedersen <strong>{{ _active_surum.ad }}</strong> sürümüne özel olur.</small>
-        {% endif %}
-    </div>
-</section>{# /Notlar sekmesi #}
+{# v4.0-part-2 Sprint 8.4 — eski standalone Notlar sekmesi kaldırıldı, içerik Teknik > 4·Notlar'a taşındı #}
 
 <!-- Lightbox -->
 <div class="lightbox-overlay" id="lightbox" hidden>
@@ -2148,9 +2152,15 @@ grid.addEventListener('dragover', (e) => {
         }
     }
     tabs.forEach(t => t.addEventListener('click', () => setTab(t.dataset.tab)));
-    const VALID_TABS = ['galeri', 'teknik', 'dokuman', 'notlar'];
+    // v4.0-part-2 Sprint 8.4 — 'notlar' ana sekmeden Teknik > 4·Notlar alt sekmesine taşındı
+    const VALID_TABS = ['galeri', 'teknik', 'dokuman'];
     // v4.0-part-2 Sprint 8 — embed modunda zorunlu varsayılan tab
     let initial = (location.hash || '#galeri').slice(1);
+    // Eski hash'lerden gelenler için bekç: '#notlar' → teknik aç, JS sub-tab Notlar'ı seçer
+    if (initial === 'notlar') {
+        initial = 'teknik';
+        try { localStorage.setItem('numune_tab', 'notlar'); } catch (e) {}
+    }
     const body = document.body;
     if (body.classList.contains('embed-calisma-left')) {
         initial = 'galeri';  // sol pane: sadece galeri
