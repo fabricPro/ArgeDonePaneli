@@ -6544,9 +6544,21 @@ body.teknik-fullscreen {
 .cw-split {
     display: grid;
     grid-template-columns: 80px 1fr 1fr;
-    gap: 8px;
-    height: calc(100vh - 140px);
+    /* Sprint 8.3 — iki pane arası belirgin nefes + üst başlık gizli */
+    gap: 24px;
+    height: calc(100vh - 70px);
     background: var(--bg);
+}
+
+/* Sprint 8.3 — Focus modu: main padding'ini bypass et + başlığı gizle, panel'lere yer aç */
+.calisma-page[data-mode="focus"] {
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    width: 100vw;
+    padding: 0 24px;
+}
+.calisma-page[data-mode="focus"] .calisma-head {
+    display: none;
 }
 .cw-rail {
     background: var(--bg-card);
