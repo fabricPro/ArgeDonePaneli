@@ -149,6 +149,31 @@ table.pdf-table td {
 table.pdf-table .num { text-align: right; font-variant-numeric: tabular-nums; }
 table.pdf-table tr.warp-row td:first-child { border-left: 3pt solid #d4b15a; }
 table.pdf-table tr.weft-row td:first-child { border-left: 3pt solid #7fb37f; }
+
+/* Detay hücresi: içerik + iplik bilgisi 2 satır */
+.detay-cell { line-height: 1.4; }
+.detay-cell .icerik-line {
+    color: #1a1a1a;
+    font-size: 9pt;
+}
+.detay-cell .icerik-line b { color: #7fb37f; font-weight: 700; }
+.detay-cell .bilgi-line {
+    margin-top: 1mm;
+    color: #777;
+    font-size: 7.5pt;
+    font-style: normal;
+}
+.detay-cell .bilgi-line em { font-style: normal; color: #555; }
+.detay-cell .fason-badge {
+    display: inline-block;
+    background: #5b8def; color: #fff;
+    padding: 0 4px;
+    border-radius: 2px;
+    font-size: 7pt;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    margin-left: 2px;
+}
 .tip-badge {
     display: inline-block;
     padding: 1px 5px;
@@ -379,7 +404,7 @@ table.pdf-table tr.weft-row td:first-child { border-left: 3pt solid #7fb37f; }
                 <th class="num">Fiyat<br>$/kg</th>
                 <th class="num">g/mt</th>
                 <th class="num">$/mt</th>
-                <th>İçerik</th>
+                <th>İçerik / İplik Bilgisi</th>
             </tr>
         </thead>
         <tbody>
@@ -393,10 +418,22 @@ table.pdf-table tr.weft-row td:first-child { border-left: 3pt solid #7fb37f; }
                 <td class="num">{{ '%.2f'|format(r.fiyat)|replace('.', ',') if r.fiyat else '—' }}</td>
                 <td class="num">{{ '%.2f'|format(r.g_per_mt)|replace('.', ',') if r.g_per_mt else '—' }}</td>
                 <td class="num">{{ '%.3f'|format(r.dollar_per_mt)|replace('.', ',') if r.dollar_per_mt else '—' }}</td>
-                <td>
-                    {% for it in r.icerikler %}
-                        {% if it.elyaf %}{{ it.elyaf }}{% if it.oran_yuzde %} %{{ '%.0f'|format(it.oran_yuzde) }}{% endif %}{% if not loop.last %} · {% endif %}{% endif %}
-                    {% endfor %}
+                <td class="detay-cell">
+                    {% set has_icerik = r.icerikler and (r.icerikler|selectattr('elyaf')|list)|length > 0 %}
+                    {% if has_icerik %}
+                        <div class="icerik-line">
+                            {% for it in r.icerikler %}{% if it.elyaf %}<b>{{ it.elyaf }}</b>{% if it.oran_yuzde %} %{{ '%.0f'|format(it.oran_yuzde) }}{% endif %}{% if not loop.last %} · {% endif %}{% endif %}{% endfor %}
+                        </div>
+                    {% endif %}
+                    {% set b = r.bilgi or {} %}
+                    {% if b.iplik_adi or b.firma_adi or b.fason_var %}
+                        <div class="bilgi-line">
+                            {% if b.iplik_adi %}{{ b.iplik_adi }}{% endif %}
+                            {% if b.firma_adi %}{% if b.iplik_adi %} · {% endif %}<em>{{ b.firma_adi }}</em>{% endif %}
+                            {% if b.fason_var %}{% if b.iplik_adi or b.firma_adi %} · {% endif %}<span class="fason-badge">Fason ✓</span>{% endif %}
+                        </div>
+                    {% endif %}
+                    {% if not has_icerik and not (b.iplik_adi or b.firma_adi or b.fason_var) %}—{% endif %}
                 </td>
             </tr>
             {% endfor %}
@@ -419,7 +456,7 @@ table.pdf-table tr.weft-row td:first-child { border-left: 3pt solid #7fb37f; }
                 <th class="num">Fiyat<br>$/kg</th>
                 <th class="num">g/mt</th>
                 <th class="num">$/mt</th>
-                <th>İçerik</th>
+                <th>İçerik / İplik Bilgisi</th>
             </tr>
         </thead>
         <tbody>
@@ -433,10 +470,22 @@ table.pdf-table tr.weft-row td:first-child { border-left: 3pt solid #7fb37f; }
                 <td class="num">{{ '%.2f'|format(r.fiyat)|replace('.', ',') if r.fiyat else '—' }}</td>
                 <td class="num">{{ '%.2f'|format(r.g_per_mt)|replace('.', ',') if r.g_per_mt else '—' }}</td>
                 <td class="num">{{ '%.3f'|format(r.dollar_per_mt)|replace('.', ',') if r.dollar_per_mt else '—' }}</td>
-                <td>
-                    {% for it in r.icerikler %}
-                        {% if it.elyaf %}{{ it.elyaf }}{% if it.oran_yuzde %} %{{ '%.0f'|format(it.oran_yuzde) }}{% endif %}{% if not loop.last %} · {% endif %}{% endif %}
-                    {% endfor %}
+                <td class="detay-cell">
+                    {% set has_icerik = r.icerikler and (r.icerikler|selectattr('elyaf')|list)|length > 0 %}
+                    {% if has_icerik %}
+                        <div class="icerik-line">
+                            {% for it in r.icerikler %}{% if it.elyaf %}<b>{{ it.elyaf }}</b>{% if it.oran_yuzde %} %{{ '%.0f'|format(it.oran_yuzde) }}{% endif %}{% if not loop.last %} · {% endif %}{% endif %}{% endfor %}
+                        </div>
+                    {% endif %}
+                    {% set b = r.bilgi or {} %}
+                    {% if b.iplik_adi or b.firma_adi or b.fason_var %}
+                        <div class="bilgi-line">
+                            {% if b.iplik_adi %}{{ b.iplik_adi }}{% endif %}
+                            {% if b.firma_adi %}{% if b.iplik_adi %} · {% endif %}<em>{{ b.firma_adi }}</em>{% endif %}
+                            {% if b.fason_var %}{% if b.iplik_adi or b.firma_adi %} · {% endif %}<span class="fason-badge">Fason ✓</span>{% endif %}
+                        </div>
+                    {% endif %}
+                    {% if not has_icerik and not (b.iplik_adi or b.firma_adi or b.fason_var) %}—{% endif %}
                 </td>
             </tr>
             {% endfor %}
