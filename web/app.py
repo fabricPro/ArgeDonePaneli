@@ -29,31 +29,41 @@ from flask import (
 from PIL import Image, ImageOps
 from werkzeug.utils import secure_filename
 
-# v4.0-part-2 Adım 7 — Notlar HTML sanitize
-import bleach
-from bleach.css_sanitizer import CSSSanitizer
-
 import store
 
 
-# v4.0-part-2 Adım 7 — Notlar bleach whitelist
-NOTLAR_ALLOWED_TAGS = [
-    "p", "br", "strong", "b", "em", "i", "u", "span", "font",
-    "h2", "h3", "h4", "ul", "ol", "li", "a", "div", "blockquote", "code"
-]
-NOTLAR_ALLOWED_ATTRS = {
-    "span": ["style"],
-    "div": ["style"],
-    "p": ["style"],
-    "font": ["color", "size", "face"],
-    "a": ["href", "target", "rel"],
-}
-NOTLAR_CSS_SANITIZER = CSSSanitizer(
-    allowed_css_properties=[
-        "color", "background-color", "font-size", "font-weight",
-        "font-style", "text-decoration", "font-family"
-    ]
+# v4.0-part-2 Adım 7 — Sade Notlar HTML sanitize (regex tabanlı, bleach'siz)
+#
+# Tek-kullanıcılı admin paneli (APP_PASSWORD ile korumalı) — XSS risk düşük.
+# Asıl risk: yapıştırılan içerikten gelen <script>, <iframe>, on* event handler'lar.
+# Bunları regex ile temizliyoruz (whitelist yerine blocklist — daha esnek + tag'leri tutar).
+_DANGEROUS_TAGS = re.compile(
+    r"</?(?:script|iframe|object|embed|form|input|button|link|style|meta|svg|math|base|frame|frameset)\b[^>]*>",
+    re.IGNORECASE | re.DOTALL,
 )
+# Tüm event handler attribute'ları (onload, onclick, onerror, vb.)
+_EVENT_HANDLERS = re.compile(
+    r"""\s+on[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)""",
+    re.IGNORECASE,
+)
+# javascript: ve data: URL'leri (data:image hariç)
+_JS_URLS = re.compile(
+    r"""(href|src)\s*=\s*(?:"\s*javascript:[^"]*"|'\s*javascript:[^']*'|"\s*data:(?!image/)[^"]*"|'\s*data:(?!image/)[^']*')""",
+    re.IGNORECASE,
+)
+
+
+def _sanitize_notlar_html(html: str) -> str:
+    """Tehlikeli HTML elemanlarını temizle (script, iframe, event handlers, js: URLs).
+    Tag whitelist YOK — admin kullanıcının yazdığı her şey kabul edilir, sadece
+    XSS vektörleri silinir."""
+    if not html:
+        return ""
+    s = _DANGEROUS_TAGS.sub("", html)
+    s = _EVENT_HANDLERS.sub("", s)
+    s = _JS_URLS.sub(r"\1=''", s)
+    return s
+
 
 # v4.0-part-2 Adım 7 — PDF upload limitleri
 PDF_MAX_BYTES = 25 * 1024 * 1024  # 25 MB
@@ -1620,16 +1630,7 @@ def api_notlar(urun_id: str):
     raw_html = body.get("html") or ""
     if len(raw_html) > 200_000:  # 200 KB pratik üst sınır
         return jsonify({"ok": False, "error": "Not içeriği çok büyük"}), 400
-    try:
-        clean_html = bleach.clean(
-            raw_html,
-            tags=NOTLAR_ALLOWED_TAGS,
-            attributes=NOTLAR_ALLOWED_ATTRS,
-            css_sanitizer=NOTLAR_CSS_SANITIZER,
-            strip=True,
-        )
-    except Exception as e:
-        return jsonify({"ok": False, "error": f"Sanitize hatası: {e}"}), 400
+    clean_html = _sanitize_notlar_html(raw_html)
     d["notlar_html"] = clean_html
     d["updated_at"] = now_iso()
     store.upsert(d)
