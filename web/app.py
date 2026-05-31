@@ -1541,7 +1541,8 @@ def api_album_assign(urun_id: str):
 
 def save_pdf(file_storage, urun_id: str) -> dict:
     """PDF'i pdfler bucket'a yükle ve metadata dict'i döndür.
-    Path: <urun_id>/<uuid8>_<güvenli_ad>.pdf"""
+    Path: <urun_id>/<uuid8>_<güvenli_ad>.pdf
+    Bucket yoksa otomatik oluşturmaya çalışır (Supabase 'Bucket not found' fallback)."""
     raw_name = file_storage.filename or "doc.pdf"
     safe_name = secure_filename(raw_name) or "doc.pdf"
     if not safe_name.lower().endswith(".pdf"):
@@ -1556,7 +1557,16 @@ def save_pdf(file_storage, urun_id: str) -> dict:
     # MIME ipucu — magic header %PDF
     if not data.startswith(b"%PDF"):
         raise ValueError("Geçerli bir PDF dosyası değil")
-    store.upload_pdf(path, data)
+    try:
+        store.upload_pdf(path, data)
+    except Exception as e:
+        msg = str(e).lower()
+        if "bucket not found" in msg or "404" in msg or "not_found" in msg:
+            # v4.0-part-2 Adım 7 hotfix: bucket yoksa otomatik oluştur + yeniden dene
+            store.ensure_bucket_pdfs()
+            store.upload_pdf(path, data)
+        else:
+            raise
     return {
         "path": path,
         "name": raw_name,  # orijinal ad (görüntülemek için)

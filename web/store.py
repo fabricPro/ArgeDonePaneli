@@ -146,8 +146,14 @@ def download_pdf(path: str) -> bytes:
 
 
 def ensure_bucket_pdfs() -> None:
-    """pdfler bucket yoksa olustur (manuel kurulum tercih edilir — Dashboard'dan)."""
+    """pdfler bucket yoksa olustur (service_role key ile her zaman yetkili)."""
     try:
-        client().storage.create_bucket(BUCKET_PDFS, options={"public": "true"})
-    except Exception:
-        pass  # zaten var veya yetki yok
+        # supabase-py 2.x: create_bucket(id, options={...})
+        client().storage.create_bucket(
+            BUCKET_PDFS,
+            options={"public": True, "file_size_limit": 25 * 1024 * 1024},
+        )
+    except Exception as e:
+        # 409 Conflict = zaten var, OK; başka hata varsa logla
+        if "already exists" not in str(e).lower() and "duplicate" not in str(e).lower():
+            print(f"[ensure_bucket_pdfs] uyarı: {e}")
