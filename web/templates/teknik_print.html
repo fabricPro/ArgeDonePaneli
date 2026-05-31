@@ -440,6 +440,7 @@ table.pdf-table tr.weft-row td:first-child { border-left: 3pt solid #7fb37f; }
 <!-- Print toolbar (sadece ekranda) -->
 <div class="pdf-toolbar no-print">
     <span>📄 Teknik Çalışma PDF</span>
+    <span style="font-size:11px;opacity:0.7;">Önce göz at, hazırsan ↓</span>
     <button onclick="window.print()">PDF olarak Kaydet</button>
     <button onclick="window.close()" style="background:#444;color:#fff">Kapat</button>
 </div>
@@ -865,26 +866,11 @@ table.pdf-table tr.weft-row td:first-child { border-left: 3pt solid #7fb37f; }
 {% endif %}
 
 <script>
-// Sayfa yüklendikten + görseller hazır olduktan sonra print diyaloğunu otomatik aç.
-window.addEventListener('load', () => {
-    // Görseller (kapak) için ekstra bekleme
-    const imgs = document.querySelectorAll('img');
-    let pending = imgs.length;
-    if (pending === 0) {
-        setTimeout(() => window.print(), 300);
-        return;
-    }
-    imgs.forEach(img => {
-        if (img.complete) {
-            if (--pending === 0) setTimeout(() => window.print(), 300);
-        } else {
-            img.addEventListener('load', () => { if (--pending === 0) setTimeout(() => window.print(), 300); });
-            img.addEventListener('error', () => { if (--pending === 0) setTimeout(() => window.print(), 300); });
-        }
-    });
-    // Güvenlik fallback: max 2 sn bekle
-    setTimeout(() => window.print(), 2000);
-});
+// v4.0-part-2 Adım 5 — auto-print KALDIRILDI.
+// Kullanıcı önce önizler, sonra sağ üst köşedeki "PDF olarak Kaydet" butonuna basıp
+// tarayıcının print diyaloğunu açar → "Save as PDF" / "Microsoft Print to PDF" seçer.
+//
+// Ctrl+P klavye kısayolu da çalışır.
 </script>
 </body>
 </html>
