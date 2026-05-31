@@ -18,6 +18,43 @@
   let items = (window.CW_ITEMS || []).slice();
   let activeId = null;
 
+  // ---- Sprint 8.5 — Telefon yatay otomatik kilit ----
+  function isMobilePortrait() {
+    return window.matchMedia('(max-width: 900px)').matches &&
+           window.matchMedia('(orientation: portrait)').matches;
+  }
+
+  function tryLockLandscape() {
+    // Sadece mobile portrait'ta dene; desktop'ta gereksiz
+    if (!isMobilePortrait()) return;
+    const el = document.documentElement;
+    const reqFs = el.requestFullscreen || el.webkitRequestFullscreen ||
+                  el.mozRequestFullScreen || el.msRequestFullscreen;
+    if (!reqFs) return;
+    try {
+      const p = reqFs.call(el);
+      Promise.resolve(p).then(() => {
+        if (screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock('landscape').catch(() => {/* iOS / desteklemiyor */});
+        }
+      }).catch(() => {/* user gesture eksikse veya engellendi */});
+    } catch (e) {/* ignore */}
+  }
+
+  function tryUnlock() {
+    try {
+      if (screen.orientation && screen.orientation.unlock) {
+        screen.orientation.unlock();
+      }
+    } catch (e) {/* ignore */}
+    try {
+      const exitFs = document.exitFullscreen || document.webkitExitFullscreen ||
+                     document.mozCancelFullScreen || document.msExitFullscreen;
+      const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+      if (exitFs && fsEl) exitFs.call(document).catch(() => {});
+    } catch (e) {/* ignore */}
+  }
+
   // ---- Mode geçişleri ----
   function selectFabric(urun_id) {
     if (!urun_id) return;
@@ -32,6 +69,8 @@
     // Title'ı güncelle
     const item = items.find(i => i.urun_id === urun_id);
     if (item) document.title = `${item.product_name} — Çalışma Alanı`;
+    // Sprint 8.5 — telefonda otomatik yatay aç (kullanıcı tap'i = user gesture)
+    tryLockLandscape();
   }
 
   function closeSplit() {
@@ -42,6 +81,8 @@
     leftIframe.src = 'about:blank';
     rightIframe.src = 'about:blank';
     document.title = 'Çalışma Alanı';
+    // Sprint 8.5 — split kapanınca dik moda dön
+    tryUnlock();
   }
 
   function renderRail() {
