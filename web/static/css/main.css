@@ -5731,3 +5731,267 @@ body.teknik-fullscreen {
         flex: 1; justify-content: center; min-height: 44px;
     }
 }
+
+
+/* ============================================================
+   v4.0-part-2 Adım 7 — Dokümanlar (PDF) + Notlar (Rich-Text)
+   ============================================================ */
+
+/* === Dokümanlar sekmesi === */
+.pdf-tab-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; margin-bottom: 16px; flex-wrap: wrap;
+}
+.pdf-tab-head h2 { margin: 0; font-size: var(--type-h2); }
+
+.pdf-upload-label {
+    position: relative; overflow: hidden;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+}
+.pdf-upload-label input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer;
+}
+
+.pdf-list {
+    display: grid; gap: 10px; margin-bottom: 16px;
+}
+
+.pdf-card {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: background var(--t-fast) var(--ease),
+                border-color var(--t-fast) var(--ease);
+}
+.pdf-card:hover {
+    background: var(--bg-elev);
+}
+.pdf-card.is-active {
+    border-color: var(--accent);
+    border-left-color: var(--accent);
+    background: var(--bg-elev);
+}
+.pdf-icon {
+    width: 32px; height: 32px;
+    color: var(--red);
+    flex-shrink: 0;
+}
+.pdf-info {
+    flex: 1; min-width: 0;
+}
+.pdf-name {
+    font-weight: 600; font-size: 14px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    color: var(--text);
+}
+.pdf-meta {
+    font-size: 11px; color: var(--text-dim);
+    display: flex; gap: 14px; margin-top: 3px;
+    font-variant-numeric: tabular-nums;
+}
+.pdf-actions {
+    display: flex; gap: 4px; flex-shrink: 0;
+}
+
+.pdf-viewer-wrap {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    height: 70vh;
+    min-height: 500px;
+    margin-top: 12px;
+}
+#pdf-viewer { width: 100%; height: 100%; border: 0; background: #2a2a2a; }
+
+.pdf-empty {
+    text-align: center;
+    padding: 60px 20px;
+    background: var(--bg-card);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-lg);
+    color: var(--text-dim);
+}
+.pdf-empty .icon { width: 48px; height: 48px; opacity: 0.5; margin-bottom: 12px; }
+.pdf-empty p { font-size: 16px; margin: 0 0 6px; color: var(--text); }
+.pdf-empty small { font-size: 12px; opacity: 0.7; display: block; max-width: 400px; margin: 0 auto; }
+
+/* === Notlar sekmesi (rich-text editor) === */
+.notlar-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; margin-bottom: 14px; flex-wrap: wrap;
+}
+.notlar-head h2 { margin: 0; font-size: var(--type-h2); }
+
+.notlar-actions {
+    display: flex; align-items: center; gap: 12px;
+}
+
+.notlar-status {
+    font-size: 12px;
+    color: var(--text-dim);
+    padding: 4px 10px;
+    background: var(--bg-elev);
+    border-radius: var(--radius-pill);
+    font-variant-numeric: tabular-nums;
+    transition: color var(--t-fast) var(--ease);
+}
+.notlar-status[data-kind="dirty"]  { color: var(--accent); }
+.notlar-status[data-kind="saving"] { color: var(--accent-cool); }
+.notlar-status[data-kind="ok"]     { color: var(--green); }
+.notlar-status[data-kind="error"]  { color: var(--red); }
+
+.rich-editor {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.rich-toolbar {
+    display: flex; align-items: center; gap: 4px;
+    padding: 8px 10px;
+    background: var(--bg-elev);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    position: sticky; top: 0; z-index: 10;
+}
+.rich-toolbar button {
+    width: 32px; height: 32px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: background var(--t-fast) var(--ease),
+                border-color var(--t-fast) var(--ease);
+    font-size: 14px; font-family: var(--font-sans);
+    display: inline-flex; align-items: center; justify-content: center;
+}
+.rich-toolbar button:hover {
+    background: var(--bg-card);
+    border-color: var(--border);
+}
+.rich-toolbar button:active {
+    transform: scale(0.95);
+}
+.rich-toolbar select {
+    height: 32px;
+    padding: 0 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-sans); font-size: 13px;
+    cursor: pointer;
+}
+.rich-sep {
+    width: 1px; height: 20px;
+    background: var(--border);
+    margin: 0 4px;
+}
+
+.rich-colors {
+    display: flex; align-items: center; gap: 4px;
+}
+.rich-colors button {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--c, var(--text));
+    border: 2px solid var(--border);
+    padding: 0;
+    transition: transform var(--t-fast) var(--ease),
+                border-color var(--t-fast) var(--ease);
+}
+.rich-colors button:hover {
+    border-color: var(--accent);
+    transform: scale(1.15);
+}
+
+.rich-content {
+    padding: 18px 22px;
+    min-height: 420px;
+    max-height: 70vh;
+    overflow-y: auto;
+    outline: none;
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--text);
+}
+.rich-content:focus { background: rgba(255, 255, 255, 0.01); }
+.rich-content p { margin: 0 0 0.8em; }
+.rich-content p:last-child { margin-bottom: 0; }
+.rich-content h2 { font-size: 20px; margin: 1em 0 0.4em; font-weight: 600; }
+.rich-content h3 { font-size: 16px; margin: 0.8em 0 0.3em; font-weight: 600; }
+.rich-content ul, .rich-content ol { padding-left: 24px; margin: 0 0 0.8em; }
+.rich-content li { margin-bottom: 0.2em; }
+.rich-content a { color: var(--accent-cool); text-decoration: underline; }
+.rich-content strong, .rich-content b { font-weight: 700; }
+.rich-content blockquote {
+    padding: 8px 14px;
+    border-left: 3px solid var(--accent);
+    margin: 0.8em 0;
+    color: var(--text-dim);
+    font-style: italic;
+}
+.rich-content code {
+    background: var(--bg-elev);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 13px;
+}
+
+/* === Mobile (≤720px) === */
+@media (max-width: 720px) {
+    .pdf-tab-head, .notlar-head {
+        flex-direction: column; align-items: stretch; gap: 10px;
+    }
+    .pdf-tab-head .btn, .notlar-head .btn {
+        justify-content: center;
+        min-height: 44px;
+    }
+    .pdf-card { padding: 10px 12px; }
+    .pdf-name { font-size: 13px; }
+    .pdf-meta { font-size: 10px; gap: 10px; }
+    .pdf-actions .btn-mini {
+        min-height: 36px; min-width: 36px;
+    }
+    .pdf-viewer-wrap {
+        height: 60vh;
+        min-height: 380px;
+    }
+    .pdf-empty { padding: 40px 16px; }
+
+    .notlar-actions {
+        justify-content: space-between;
+    }
+    .notlar-status { font-size: 11px; padding: 3px 8px; }
+
+    .rich-toolbar {
+        padding: 6px;
+        gap: 2px;
+    }
+    .rich-toolbar button {
+        width: 36px; height: 36px;
+        font-size: 13px;
+    }
+    .rich-toolbar select {
+        height: 36px;
+        font-size: 16px;  /* iOS zoom önle */
+    }
+    .rich-colors button {
+        width: 28px; height: 28px;
+    }
+    .rich-sep { margin: 0 2px; }
+
+    .rich-content {
+        padding: 14px 16px;
+        min-height: 60vh;
+        font-size: 16px;  /* iOS zoom önle */
+    }
+}

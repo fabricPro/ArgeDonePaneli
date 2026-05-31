@@ -17,6 +17,7 @@ from supabase import Client, create_client
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
 SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
 BUCKET = "gorseller"
+BUCKET_PDFS = "pdfler"  # v4.0-part-2 Adim 7
 TABLE = "products"
 
 PRODUCT_COLUMNS = [
@@ -24,6 +25,7 @@ PRODUCT_COLUMNS = [
     "product_code", "composition", "width_cm", "weight_gsm", "weave_type",
     "repeat_vertical_cm", "repeat_horizontal_cm", "arge_notu", "notes",
     "source_url", "images", "albums", "teknik", "dashboard_order",
+    "pdfs", "notlar_html",  # v4.0-part-2 Adim 7
     "created_at", "updated_at",
 ]
 
@@ -43,6 +45,13 @@ def public_url(path: str | None) -> str | None:
     if not path:
         return None
     return f"{SUPABASE_URL}/storage/v1/object/public/{BUCKET}/{path}"
+
+
+def public_url_pdf(path: str | None) -> str | None:
+    """v4.0-part-2 Adim 7 — pdfler bucket'i icin acik URL."""
+    if not path:
+        return None
+    return f"{SUPABASE_URL}/storage/v1/object/public/{BUCKET_PDFS}/{path}"
 
 
 # ---- Products ----
@@ -111,3 +120,34 @@ def ensure_bucket() -> None:
         client().storage.create_bucket(BUCKET, options={"public": "true"})
     except Exception:
         pass  # zaten var
+
+
+# ---- v4.0-part-2 Adim 7: PDF Storage ----
+
+def upload_pdf(path: str, data: bytes) -> None:
+    """PDF'i pdfler bucket'a yukle."""
+    client().storage.from_(BUCKET_PDFS).upload(
+        path, data, {"content-type": "application/pdf", "upsert": "true"}
+    )
+
+
+def delete_pdfs(paths: list[str]) -> None:
+    paths = [p for p in paths if p]
+    if paths:
+        try:
+            client().storage.from_(BUCKET_PDFS).remove(paths)
+        except Exception:
+            pass  # dosya yoksa sorun degil
+
+
+def download_pdf(path: str) -> bytes:
+    """PDF'i bytes olarak indir (proxy serve icin)."""
+    return client().storage.from_(BUCKET_PDFS).download(path)
+
+
+def ensure_bucket_pdfs() -> None:
+    """pdfler bucket yoksa olustur (manuel kurulum tercih edilir — Dashboard'dan)."""
+    try:
+        client().storage.create_bucket(BUCKET_PDFS, options={"public": "true"})
+    except Exception:
+        pass  # zaten var veya yetki yok

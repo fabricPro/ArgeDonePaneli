@@ -70,7 +70,7 @@
 {% endif %}
 </div>{# /urun-sticky-hero #}
 
-{# v3.8 — Ana sekme navigasyonu #}
+{# v3.8 — Ana sekme navigasyonu (v4.0-part-2 Adım 7: + Dokümanlar + Notlar) #}
 <nav class="urun-main-tabs" id="urun-main-tabs" aria-label="Ana sekmeler">
     <button type="button" class="utab-btn is-active" data-tab="galeri">
         <svg class="icon"><use href="#ic-image"/></svg>
@@ -80,6 +80,15 @@
         <svg class="icon"><use href="#ic-pencil"/></svg>
         <span>Teknik Çalışma</span>
         {% if teknik and teknik.surumler %}<span class="utab-cnt">{{ teknik.surumler|length }}</span>{% endif %}
+    </button>
+    <button type="button" class="utab-btn" data-tab="dokuman">
+        <svg class="icon"><use href="#ic-file"/></svg>
+        <span>Dokümanlar</span>
+        {% if product.pdfs %}<span class="utab-cnt">{{ product.pdfs|length }}</span>{% endif %}
+    </button>
+    <button type="button" class="utab-btn" data-tab="notlar">
+        <svg class="icon"><use href="#ic-pencil"/></svg>
+        <span>Notlar</span>
     </button>
 </nav>
 
@@ -156,8 +165,7 @@
         <div class="form-row"><label>Ülke</label><input data-key="country" list="country-list" value="{{ product.country or '' }}">
             <datalist id="country-list">{% for c in countries %}<option value="{{ c }}">{% endfor %}</datalist></div>
         <div class="form-row"><label>Ürün Adı</label><input data-key="product_name" value="{{ product.product_name or '' }}"></div>
-        <div class="form-row"><label>Ürün Kodu</label><input data-key="product_code" value="{{ product.product_code or '' }}"></div>
-        <div class="form-row"><label>Koleksiyon</label><input data-key="collection" value="{{ product.collection or '' }}"></div>
+        {# v4.0-part-2 Adım 7: Ürün Kodu + Koleksiyon kaldırıldı (kaynak URL yeterli; eski veriler DB'de korunur) #}
         <div class="form-row"><label>Kompozisyon</label><input data-key="composition" value="{{ product.composition or '' }}"></div>
         <div class="form-row"><label>En (cm)</label><input data-key="width_cm" type="number" value="{{ product.width_cm if product.width_cm is not none else '' }}"></div>
         <div class="form-row"><label>Gramaj (g/m²)</label><input data-key="weight_gsm" type="number" min="0" value="{{ product.weight_gsm if product.weight_gsm is not none else '' }}"></div>
@@ -994,6 +1002,98 @@
     {# Tüm sürüm verisi — JS okumak için #}
     <script type="application/json" id="teknik-data">{{ teknik|tojson }}</script>
 </section>{# /Teknik sekmesi #}
+
+{# === v4.0-part-2 Adım 7 — DOKÜMANLAR SEKMESİ === #}
+<section data-tab="dokuman" class="utab-section" hidden>
+    <header class="pdf-tab-head">
+        <h2>Dokümanlar</h2>
+        <label class="btn btn-primary pdf-upload-label">
+            <svg class="icon"><use href="#ic-plus"/></svg>
+            <span>PDF Yükle</span>
+            <input type="file" id="pdf-upload-input" accept="application/pdf,.pdf" multiple hidden>
+        </label>
+    </header>
+
+    <div class="pdf-list" id="pdf-list">
+        {% for p in product.pdfs or [] %}
+        <article class="pdf-card {% if loop.first %}is-active{% endif %}"
+                 data-path="{{ p.path }}" data-url="{{ p.url }}" data-name="{{ p.name }}">
+            <svg class="pdf-icon"><use href="#ic-file"/></svg>
+            <div class="pdf-info">
+                <div class="pdf-name">{{ p.name }}</div>
+                <div class="pdf-meta">
+                    <span>{{ (p.size / 1024 / 1024)|round(2) }} MB</span>
+                    <span>{{ (p.uploaded_at or '')[:10] }}</span>
+                </div>
+            </div>
+            <div class="pdf-actions">
+                <a href="{{ p.url }}" target="_blank" rel="noopener" class="btn-mini" title="Yeni sekmede aç" data-action="open">
+                    <svg class="icon"><use href="#ic-external-link"/></svg>
+                </a>
+                <a href="{{ p.url }}" download="{{ p.name }}" class="btn-mini" title="İndir" data-action="download">
+                    <svg class="icon"><use href="#ic-download"/></svg>
+                </a>
+                <button type="button" class="btn-mini btn-danger" title="Sil" data-action="delete">
+                    <svg class="icon"><use href="#ic-trash"/></svg>
+                </button>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+
+    {% if not product.pdfs %}
+    <div class="pdf-empty" id="pdf-empty">
+        <svg class="icon icon-xl"><use href="#ic-file"/></svg>
+        <p>Henüz doküman yüklenmedi.</p>
+        <small>Firma sitelerinden indirdiğin PDF specsheet, döşeme rehberi vb. dosyaları buraya yükleyebilirsin (max 25 MB).</small>
+    </div>
+    {% endif %}
+
+    <div class="pdf-viewer-wrap" id="pdf-viewer-wrap" {% if not product.pdfs %}hidden{% endif %}>
+        <iframe id="pdf-viewer"
+                src="{% if product.pdfs %}{{ product.pdfs[0].url }}{% endif %}"
+                title="PDF görüntüleyici"></iframe>
+    </div>
+</section>{# /Dokümanlar sekmesi #}
+
+{# === v4.0-part-2 Adım 7 — NOTLAR SEKMESİ === #}
+<section data-tab="notlar" class="utab-section" hidden>
+    <header class="notlar-head">
+        <h2>Notlar</h2>
+        <div class="notlar-actions">
+            <span class="notlar-status" id="notlar-status">Kaydedildi</span>
+            <button class="btn btn-primary" id="notlar-save-btn" type="button">Kaydet</button>
+        </div>
+    </header>
+
+    <div class="rich-editor">
+        <div class="rich-toolbar" id="rich-toolbar">
+            <button type="button" data-cmd="bold" title="Kalın (Ctrl+B)"><b>B</b></button>
+            <button type="button" data-cmd="italic" title="İtalik (Ctrl+I)"><i>I</i></button>
+            <button type="button" data-cmd="underline" title="Altı çizili (Ctrl+U)"><u>U</u></button>
+            <span class="rich-sep"></span>
+            <select id="rich-fontsize" title="Yazı boyutu">
+                <option value="2">Küçük</option>
+                <option value="3" selected>Normal</option>
+                <option value="5">Büyük</option>
+                <option value="6">Çok Büyük</option>
+            </select>
+            <span class="rich-sep"></span>
+            <div class="rich-colors" role="toolbar" aria-label="Renk paleti">
+                <button type="button" data-color="#e8e6e2" title="Beyaz (default)" style="--c:#e8e6e2"></button>
+                <button type="button" data-color="#d4af7f" title="Champagne (vurgu)" style="--c:#d4af7f"></button>
+                <button type="button" data-color="#5b8def" title="Mavi (link/info)" style="--c:#5b8def"></button>
+                <button type="button" data-color="#7fb37f" title="Yeşil (olumlu)" style="--c:#7fb37f"></button>
+                <button type="button" data-color="#e07260" title="Kırmızı (uyarı)" style="--c:#e07260"></button>
+            </div>
+            <span class="rich-sep"></span>
+            <button type="button" data-cmd="insertUnorderedList" title="Liste">•</button>
+            <button type="button" data-cmd="removeFormat" title="Format temizle">⌫</button>
+        </div>
+        <div id="rich-content" class="rich-content" contenteditable="true"
+             aria-label="Notlar düzenleme alanı">{{ product.notlar_html|safe }}</div>
+    </div>
+</section>{# /Notlar sekmesi #}
 
 <!-- Lightbox -->
 <div class="lightbox-overlay" id="lightbox" hidden>
@@ -1926,8 +2026,9 @@ grid.addEventListener('dragover', (e) => {
         }
     }
     tabs.forEach(t => t.addEventListener('click', () => setTab(t.dataset.tab)));
+    const VALID_TABS = ['galeri', 'teknik', 'dokuman', 'notlar'];
     const initial = (location.hash || '#galeri').slice(1);
-    setTab(['galeri', 'teknik'].includes(initial) ? initial : 'galeri');
+    setTab(VALID_TABS.includes(initial) ? initial : 'galeri');
 })();
 </script>
 <script src="{{ url_for('static', filename='js/desen.js') }}"></script>
@@ -1935,6 +2036,8 @@ grid.addEventListener('dragover', (e) => {
 <script src="{{ url_for('static', filename='js/tarak.js') }}"></script>
 <script src="{{ url_for('static', filename='js/tarak-ui.js') }}"></script>
 <script src="{{ url_for('static', filename='js/teknik.js') }}"></script>
+<script src="{{ url_for('static', filename='js/pdf-tab.js') }}"></script>
+<script src="{{ url_for('static', filename='js/notlar.js') }}"></script>
 
 {% endif %}
 {% endblock %}

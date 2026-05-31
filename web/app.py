@@ -27,8 +27,36 @@ from flask import (
     Flask, abort, jsonify, redirect, render_template, request, session, url_for,
 )
 from PIL import Image, ImageOps
+from werkzeug.utils import secure_filename
+
+# v4.0-part-2 Adım 7 — Notlar HTML sanitize
+import bleach
+from bleach.css_sanitizer import CSSSanitizer
 
 import store
+
+
+# v4.0-part-2 Adım 7 — Notlar bleach whitelist
+NOTLAR_ALLOWED_TAGS = [
+    "p", "br", "strong", "b", "em", "i", "u", "span", "font",
+    "h2", "h3", "h4", "ul", "ol", "li", "a", "div", "blockquote", "code"
+]
+NOTLAR_ALLOWED_ATTRS = {
+    "span": ["style"],
+    "div": ["style"],
+    "p": ["style"],
+    "font": ["color", "size", "face"],
+    "a": ["href", "target", "rel"],
+}
+NOTLAR_CSS_SANITIZER = CSSSanitizer(
+    allowed_css_properties=[
+        "color", "background-color", "font-size", "font-weight",
+        "font-style", "text-decoration", "font-family"
+    ]
+)
+
+# v4.0-part-2 Adım 7 — PDF upload limitleri
+PDF_MAX_BYTES = 25 * 1024 * 1024  # 25 MB
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
 app.secret_key = os.environ.get("SECRET_KEY", "dev-insecure-change-me")
@@ -407,6 +435,11 @@ def urun_detail(urun_id: str):
     for im in images:
         im["url"] = store.public_url(im.get("path"))
     d["images"] = images
+    # v4.0-part-2 Adım 7: PDF'lere public URL ekle
+    pdfs = d.get("pdfs") or []
+    for p in pdfs:
+        p["url"] = store.public_url_pdf(p.get("path"))
+    d["pdfs"] = pdfs
     # Gorselleri varyant etiketine gore grupla (ayni varyantlar bitisik).
     # Grup sirasi: ilk gorulus sirasi (orders korur), grup ici sirasi: order.
     groups: dict[str, list[dict]] = {}
@@ -612,7 +645,9 @@ def api_update_meta(urun_id: str):
     if not d:
         return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
     data = request.get_json(force=True)
-    for key in ("brand", "collection", "product_name", "product_code",
+    # v4.0-part-2 Adım 7: collection + product_code UI'dan kaldırıldı —
+    # whitelist'te yok artık (eski jsonb verisi DB'de kalır, sadece düzenlenmez).
+    for key in ("brand", "product_name",
                 "composition", "weave_type", "arge_notu", "notes", "source_url"):
         if key in data:
             d[key] = clean(data[key])
@@ -762,13 +797,17 @@ def _is_mobile_ua(req) -> bool:
 
 
 def _delete_product_atomic(uid: str) -> bool:
-    """Bir ürünü ve tüm görsellerini atomik olarak siler. Yoksa False döner."""
+    """Bir ürünü ve tüm görsellerini + PDF'lerini atomik olarak siler. Yoksa False döner."""
     d = store.get(uid)
     if not d:
         return False
     paths = [im.get("path") for im in (d.get("images") or []) if im.get("path")]
     if paths:
         store.delete_images(paths)
+    # v4.0-part-2 Adım 7: PDF cascade
+    pdf_paths = [p.get("path") for p in (d.get("pdfs") or []) if p.get("path")]
+    if pdf_paths:
+        store.delete_pdfs(pdf_paths)
     store.delete(uid)
     return True
 
@@ -1484,6 +1523,117 @@ def api_album_assign(urun_id: str):
         d["updated_at"] = now_iso()
         store.upsert(d)
     return jsonify({"ok": True, "affected": affected})
+
+
+# ============================================================
+# v4.0-part-2 Adım 7 — PDF Dokümanlar + Rich-Text Notlar
+# ============================================================
+
+def save_pdf(file_storage, urun_id: str) -> dict:
+    """PDF'i pdfler bucket'a yükle ve metadata dict'i döndür.
+    Path: <urun_id>/<uuid8>_<güvenli_ad>.pdf"""
+    raw_name = file_storage.filename or "doc.pdf"
+    safe_name = secure_filename(raw_name) or "doc.pdf"
+    if not safe_name.lower().endswith(".pdf"):
+        safe_name += ".pdf"
+    uid8 = uuid.uuid4().hex[:8]
+    path = f"{urun_id}/{uid8}_{safe_name}"
+    data = file_storage.read()
+    if not data:
+        raise ValueError("Dosya boş")
+    if len(data) > PDF_MAX_BYTES:
+        raise ValueError(f"Dosya çok büyük (max {PDF_MAX_BYTES // (1024*1024)} MB)")
+    # MIME ipucu — magic header %PDF
+    if not data.startswith(b"%PDF"):
+        raise ValueError("Geçerli bir PDF dosyası değil")
+    store.upload_pdf(path, data)
+    return {
+        "path": path,
+        "name": raw_name,  # orijinal ad (görüntülemek için)
+        "size": len(data),
+        "uploaded_at": now_iso(),
+    }
+
+
+@app.route("/api/urun/<urun_id>/pdf-ekle", methods=["POST"])
+def api_pdf_ekle(urun_id: str):
+    """Bir veya daha fazla PDF yükle. Multipart: files=PDF[]"""
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    files = [x for x in request.files.getlist("files") if x and x.filename]
+    if not files:
+        return jsonify({"ok": False, "error": "Dosya yok"}), 400
+    pdfs = d.get("pdfs") or []
+    added = []
+    for fs in files:
+        try:
+            meta = save_pdf(fs, urun_id)
+        except Exception as e:
+            return jsonify({"ok": False, "error": f"{fs.filename}: {e}"}), 400
+        pdfs.append(meta)
+        meta_with_url = dict(meta)
+        meta_with_url["url"] = store.public_url_pdf(meta["path"])
+        added.append(meta_with_url)
+    d["pdfs"] = pdfs
+    d["updated_at"] = now_iso()
+    store.upsert(d)
+    return jsonify({"ok": True, "added": added, "count": len(pdfs)})
+
+
+@app.route("/api/urun/<urun_id>/pdf-sil", methods=["POST"])
+def api_pdf_sil(urun_id: str):
+    """Tek PDF sil. Body: {path}"""
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    body = request.get_json(force=True) or {}
+    target = body.get("path")
+    if not target:
+        return jsonify({"ok": False, "error": "path zorunlu"}), 400
+    # Path traversal koruması: silinecek path mutlaka <urun_id>/ ile başlamalı
+    if not target.startswith(f"{urun_id}/"):
+        return jsonify({"ok": False, "error": "Geçersiz path"}), 400
+    pdfs = d.get("pdfs") or []
+    before = len(pdfs)
+    pdfs = [p for p in pdfs if p.get("path") != target]
+    if len(pdfs) == before:
+        return jsonify({"ok": False, "error": "PDF bulunamadı"}), 404
+    # Storage'tan da sil
+    try:
+        store.delete_pdfs([target])
+    except Exception:
+        pass  # liste'den çıkardık, Storage'ta yoksa OK
+    d["pdfs"] = pdfs
+    d["updated_at"] = now_iso()
+    store.upsert(d)
+    return jsonify({"ok": True, "count": len(pdfs)})
+
+
+@app.route("/api/urun/<urun_id>/notlar", methods=["POST"])
+def api_notlar(urun_id: str):
+    """Rich-text notlar kaydet. Body: {html}. Server-side sanitize."""
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    body = request.get_json(force=True) or {}
+    raw_html = body.get("html") or ""
+    if len(raw_html) > 200_000:  # 200 KB pratik üst sınır
+        return jsonify({"ok": False, "error": "Not içeriği çok büyük"}), 400
+    try:
+        clean_html = bleach.clean(
+            raw_html,
+            tags=NOTLAR_ALLOWED_TAGS,
+            attributes=NOTLAR_ALLOWED_ATTRS,
+            css_sanitizer=NOTLAR_CSS_SANITIZER,
+            strip=True,
+        )
+    except Exception as e:
+        return jsonify({"ok": False, "error": f"Sanitize hatası: {e}"}), 400
+    d["notlar_html"] = clean_html
+    d["updated_at"] = now_iso()
+    store.upsert(d)
+    return jsonify({"ok": True, "html": clean_html})
 
 
 @app.route("/api/urunler")
