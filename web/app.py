@@ -1050,7 +1050,16 @@ def _desen_compute(desen):
         else:
             expanded.append(p)
             p += 1
-    return {"matrix": matrix, "expanded_picks": expanded}
+    # Marker map (DO/NEXT işaretleri): pick → {kind, count?}
+    marker_map = {}
+    for l in loops:
+        sp = l.get("startPick")
+        ep = l.get("endPick")
+        if sp is not None and 0 <= sp < weft:
+            marker_map[sp] = {"kind": "DO", "count": l.get("count", 2)}
+        if ep is not None and 0 <= ep < weft:
+            marker_map[ep] = {"kind": "NEXT"}
+    return {"matrix": matrix, "expanded_picks": expanded, "marker_map": marker_map}
 
 
 def _tarak_rle(tarak):

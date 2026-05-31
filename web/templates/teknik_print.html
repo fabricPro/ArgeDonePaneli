@@ -270,6 +270,53 @@ table.pdf-table tr.weft-row td:first-child { border-left: 3pt solid #7fb37f; }
 .pdf-dgrid-cell.is-iro-7 { background: #a78bfa; border-color: #7e63cf; }
 .pdf-dgrid-cell.is-iro-8 { background: #ec4899; border-color: #b53473; }
 
+/* Armür + DO/NEXT — pick label + cells + marker tag tek satır */
+.pdf-armur-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4mm;
+    padding: 1mm;
+    border: 1px solid #ccc;
+    border-radius: 1pt;
+    background: #fff;
+}
+.pdf-armur-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5mm;
+    height: 3.7mm;
+}
+.pdf-armur-pick {
+    width: 6mm;
+    text-align: right;
+    font-size: 7pt;
+    color: #888;
+    font-variant-numeric: tabular-nums;
+}
+.pdf-armur-cells {
+    display: grid;
+    gap: 0.4mm;
+}
+.pdf-marker-tag {
+    margin-left: 2mm;
+    padding: 0.3mm 2mm;
+    font-size: 6.5pt;
+    font-weight: 700;
+    border-radius: 1pt;
+    color: #fff;
+    background: #e8674f;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+}
+.pdf-marker-do { background: #e8674f; }
+.pdf-marker-next { background: #b94835; }
+.pdf-armur-row.is-marker-row {
+    background: rgba(232, 103, 79, 0.10);
+    border-radius: 1pt;
+    padding-left: 0.5mm;
+}
+.pdf-armur-row.is-marker-row .pdf-armur-pick { color: #e8674f; font-weight: 700; }
+
 /* ========== TARAK ========== */
 .pdf-tarak-grid {
     display: flex; flex-wrap: wrap; gap: 0.4mm;
@@ -600,14 +647,26 @@ table.pdf-table tr.weft-row td:first-child { border-left: 3pt solid #7fb37f; }
             </div>
         </div>
 
-        <!-- Armür -->
+        <!-- Armür + DO/NEXT döngüler -->
         <div class="pdf-desen-block">
-            <div class="pdf-desen-block-title">Armür</div>
-            <div class="pdf-dgrid" style="grid-template-columns: repeat({{ desen.frameCount }}, 3.5mm)">
+            <div class="pdf-desen-block-title">Armür + DO/NEXT</div>
+            <div class="pdf-armur-rows">
+                {% set marker_map = (desen_computed.marker_map if desen_computed else {}) or {} %}
                 {% for p in range(desen.weftCount - 1, -1, -1) %}
-                    {% for f in range(desen.frameCount) %}
-                        <div class="pdf-dgrid-cell {% if desen.armur[f] and desen.armur[f][p] %}is-on-armur{% endif %}"></div>
-                    {% endfor %}
+                    {% set m = marker_map.get(p) %}
+                    <div class="pdf-armur-row {% if m %}is-marker-row{% endif %}">
+                        <span class="pdf-armur-pick">{{ p + 1 }}</span>
+                        <div class="pdf-armur-cells" style="grid-template-columns: repeat({{ desen.frameCount }}, 3.5mm)">
+                            {% for f in range(desen.frameCount) %}
+                                <div class="pdf-dgrid-cell {% if desen.armur[f] and desen.armur[f][p] %}is-on-armur{% endif %}"></div>
+                            {% endfor %}
+                        </div>
+                        {% if m and m.kind == 'DO' %}
+                            <span class="pdf-marker-tag pdf-marker-do">↻ DO {{ m.count }}× döngü başlar</span>
+                        {% elif m and m.kind == 'NEXT' %}
+                            <span class="pdf-marker-tag pdf-marker-next">↻ NEXT döngü biter</span>
+                        {% endif %}
+                    </div>
                 {% endfor %}
             </div>
         </div>
