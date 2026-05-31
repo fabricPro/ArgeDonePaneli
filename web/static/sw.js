@@ -1,5 +1,6 @@
 // Minimal service worker — installability + offline fallback
-const CACHE = 'fas-v1';
+// v4.0-part-2 Sprint 8: cache bust (v1 → v8) + eski cache temizliği
+const CACHE = 'fas-v8';
 const CORE = ['/'];
 
 self.addEventListener('install', (e) => {
@@ -8,7 +9,11 @@ self.addEventListener('install', (e) => {
 });
 
 self.addEventListener('activate', (e) => {
-    e.waitUntil(self.clients.claim());
+    e.waitUntil(
+        caches.keys().then(keys => Promise.all(
+            keys.filter(k => k !== CACHE).map(k => caches.delete(k))
+        )).then(() => self.clients.claim())
+    );
 });
 
 self.addEventListener('fetch', (e) => {

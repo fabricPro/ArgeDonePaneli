@@ -1699,7 +1699,16 @@ body.design-on .product-card:active { cursor: grabbing; }
         line-height: 1;
         transition: transform var(--t-fast) var(--ease);
     }
-    .tab-item .tab-label { font-size: 11px; letter-spacing: 0.3px; text-transform: uppercase; }
+    .tab-item .tab-label {
+        font-size: 11px;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        /* 5 sekme + uzun "ÖN ÇALIŞMA" label — taşmasın */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
     .tab-item:active .tab-icon { transform: scale(0.92); }
     .tab-item.is-active { color: var(--accent); }
     .tab-item.is-active .tab-icon { color: var(--accent); }
@@ -2043,7 +2052,10 @@ body.design-on .product-card:active { cursor: grabbing; }
 }
 
 @media (max-width: 380px) {
-    .tab-item .tab-label { font-size: 10px; }
+    .tab-item .tab-label {
+        font-size: 9px;
+        letter-spacing: 0.2px;
+    }
     .country-group-title { font-size: 16px; }
     .card-title { font-size: 12px; }
     .product-card img,
@@ -6372,6 +6384,350 @@ body.teknik-fullscreen {
     }
     .ar-group-add-form input {
         grid-column: 1 / -1;
+    }
+}
+
+/* ============================================================
+ * v4.0-part-2 Sprint 8 — Çalışma Alanı (workspace) + embed modu
+ * ============================================================ */
+
+/* ---- Çalışma Alanı ana sayfa ---- */
+.calisma-page {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 200px);
+}
+.calisma-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.calisma-head-text h1 { margin: 0 0 4px; }
+.calisma-head-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* ---- Pin button (galeri kartı + detay header) ---- */
+.card-pin-btn {
+    position: absolute;
+    top: 8px;
+    right: 36px;       /* delete btn'in solunda */
+    z-index: 4;
+    background: rgba(15, 17, 20, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-dim);
+    opacity: 0;
+    transition: opacity 0.2s, color 0.15s, transform 0.15s;
+}
+.product-card:hover .card-pin-btn,
+.card-pin-btn.is-pinned {
+    opacity: 1;
+}
+.card-pin-btn:hover {
+    color: var(--accent);
+    transform: scale(1.1);
+}
+.card-pin-btn.is-pinned {
+    color: var(--accent);
+    background: rgba(212, 175, 127, 0.18);
+    border-color: var(--accent);
+}
+.card-pin-btn .icon {
+    width: 14px;
+    height: 14px;
+}
+
+/* ---- Çalışma kart grid'i ---- */
+.cw-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+}
+.cw-card {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.15s, transform 0.15s;
+}
+.cw-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+}
+.cw-card-main {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text);
+}
+.cw-card-thumb {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: var(--bg-elev);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.cw-card-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.cw-card-noimg { color: var(--text-muted); opacity: 0.4; }
+.cw-card-body {
+    padding: 10px 12px;
+}
+.cw-brand {
+    color: var(--text-dim);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.cw-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 2px 0;
+}
+.cw-meta {
+    color: var(--text-dim);
+    font-size: 11px;
+}
+.cw-unpin {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(15, 17, 20, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-dim);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.cw-unpin:hover {
+    color: var(--red, #e07260);
+    border-color: var(--red, #e07260);
+}
+.cw-unpin .icon { width: 12px; height: 12px; }
+
+.cw-empty {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--text-dim);
+}
+.cw-empty h2 { color: var(--text); margin: 16px 0 8px; }
+.cw-empty p { max-width: 480px; margin: 0 auto 24px; line-height: 1.5; }
+
+/* ---- SPLIT view ---- */
+.cw-split {
+    display: grid;
+    grid-template-columns: 80px 1fr 1fr;
+    gap: 8px;
+    height: calc(100vh - 140px);
+    background: var(--bg);
+}
+.cw-rail {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow-y: auto;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.cw-back {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 6px;
+    cursor: pointer;
+    color: var(--text-dim);
+    font-size: 10px;
+    transition: all 0.15s;
+}
+.cw-back:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+.cw-back .icon {
+    width: 16px;
+    height: 16px;
+    transform: rotate(90deg);   /* sol ok gibi */
+}
+.cw-rail-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.cw-rail-item {
+    padding: 6px 4px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid transparent;
+}
+.cw-rail-item:hover { background: var(--bg-elev); }
+.cw-rail-item.is-active {
+    background: rgba(212, 175, 127, 0.12);
+    border-color: var(--accent);
+}
+.cw-rail-item img,
+.cw-rail-noimg {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 4px;
+    background: var(--bg-elev);
+}
+.cw-rail-noimg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    opacity: 0.4;
+}
+.cw-rail-text {
+    width: 100%;
+    text-align: center;
+    overflow: hidden;
+}
+.cw-rail-brand {
+    font-size: 9px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.cw-rail-name {
+    font-size: 10px;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cw-left-pane,
+.cw-right-pane {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+.cw-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+    background: var(--bg);
+}
+
+/* ---- Mobil portrait fallback: stacked (üst rail + tek pane) ---- */
+@media (max-width: 900px) {
+    .cw-split {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr 1fr;
+        height: calc(100vh - 120px);
+    }
+    .cw-rail {
+        flex-direction: row;
+        height: 84px;
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+    .cw-rail-list {
+        flex-direction: row;
+    }
+    .cw-rail-item {
+        min-width: 64px;
+    }
+    .cw-back {
+        flex-shrink: 0;
+    }
+}
+
+/* ---- Embed mode (urun.html iframe içinde gösterilirken) ---- */
+body.embed-calisma .topbar,
+body.embed-calisma .mobile-tabbar,
+body.embed-calisma .flash-bar {
+    display: none !important;
+}
+body.embed-calisma {
+    padding-bottom: 0 !important;
+}
+body.embed-calisma main {
+    padding: 8px 12px !important;
+    max-width: 100%;
+}
+
+/* Sol pane: sadece galeri sekmesi içeriği (header + tab nav + diğer sekmeler gizli) */
+body.embed-calisma-left .urun-main-tabs,
+body.embed-calisma-left .detail-header,
+body.embed-calisma-left .meta-list,
+body.embed-calisma-left .arge-note,
+body.embed-calisma-left .meta-edit,
+body.embed-calisma-left .pinned-strip,
+body.embed-calisma-left [data-tab="teknik"],
+body.embed-calisma-left [data-tab="dokuman"],
+body.embed-calisma-left [data-tab="notlar"] {
+    display: none !important;
+}
+
+/* Sağ pane: galeri sekmesi + nav'daki "Galeri" butonu gizli */
+body.embed-calisma-right .detail-header,
+body.embed-calisma-right .meta-list,
+body.embed-calisma-right .arge-note,
+body.embed-calisma-right .meta-edit,
+body.embed-calisma-right .pinned-strip,
+body.embed-calisma-right [data-tab="galeri"],
+body.embed-calisma-right .urun-main-tabs .utab-btn[data-tab="galeri"] {
+    display: none !important;
+}
+
+/* ============================================================
+ * Ön Çalışma mobile bug fix — küçük ekranda label kıs (PWA cache değil,
+ * gerçek CSS-side overflow ihtimaline karşı)
+ * ============================================================ */
+@media (max-width: 360px) {
+    .tab-item .tab-label {
+        font-size: 8px;
+        letter-spacing: 0;
     }
 }
 .ar-item[data-status="dismissed"] {

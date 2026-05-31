@@ -377,8 +377,11 @@ def index():
     products = [product_summary(p) for p in raw]
     # dashboard_order'i ozetlere ekle (siralama icin)
     order_map = {p.get("urun_id"): p.get("dashboard_order") for p in raw}
+    # v4.0-part-2 Sprint 8 — workspace pin durumu (galeri kartlarında ikon için)
+    workspace_ids = set(store.workspace_get_ids())
     for s in products:
         s["dashboard_order"] = order_map.get(s["urun_id"])
+        s["in_workspace"] = s.get("urun_id") in workspace_ids
     # Ulkelere grupla
     groups: dict[str, list] = {}
     for p in products:
@@ -509,6 +512,12 @@ def urun_detail(urun_id: str):
     # v3.8: Teknik çalışma sekme verisi + mobile UA detect
     teknik = d.get("teknik") or {}
     is_mobile_ua = _is_mobile_ua(request)
+    # v4.0-part-2 Sprint 8 — Embed modu (Çalışma Alanı iframe'lerinden)
+    embed = (request.args.get("embed") or "").strip().lower() or None
+    if embed not in {"calisma", "calisma-left", "calisma-right"}:
+        embed = None
+    # In-workspace flag (header pin butonu durumu için)
+    in_workspace = urun_id in set(store.workspace_get_ids())
     return render_template(
         "urun.html", product=d, urun_id=urun_id,
         cover_image=store.public_url(cover_path(d)),
@@ -525,6 +534,8 @@ def urun_detail(urun_id: str):
         countries=country_list(),
         brands_registry=get_brands_registry(),
         country_suggestions=COUNTRY_SUGGESTIONS, weave_suggestions=WEAVE_SUGGESTIONS,
+        embed=embed,
+        in_workspace=in_workspace,
     )
 
 
@@ -2201,6 +2212,73 @@ def api_urun_status(urun_id: str):
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
     return jsonify({"ok": True, "status": status})
+
+
+# ============================================================
+# v4.0-part-2 Sprint 8 — Çalışma Alanı (workspace)
+# ============================================================
+
+def _workspace_summary_list() -> list[dict]:
+    """Workspace'deki ürünleri sıraya uygun olarak özetle döndür."""
+    ids = store.workspace_get_ids()
+    if not ids:
+        return []
+    all_products = store.get_all()
+    by_id = {p["urun_id"]: p for p in all_products}
+    items = []
+    for uid in ids:
+        if uid in by_id:
+            items.append(product_summary(by_id[uid]))
+    return items
+
+
+@app.route("/calisma")
+def calisma_page():
+    """Çalışma Alanı ana sayfa. Pinli kumaşlar grid'i + split-screen."""
+    items = _workspace_summary_list()
+    return render_template("calisma.html", items=items, total=len(items))
+
+
+@app.route("/api/calisma/list")
+def api_calisma_list():
+    """Workspace listesi (JSON)."""
+    items = _workspace_summary_list()
+    return jsonify({"ok": True, "items": items, "count": len(items)})
+
+
+@app.route("/api/calisma/ekle", methods=["POST"])
+def api_calisma_ekle():
+    """Body: {urun_id} — workspace'e ekle."""
+    data = request.get_json(silent=True) or {}
+    urun_id = (data.get("urun_id") or "").strip()
+    if not urun_id:
+        return jsonify({"ok": False, "error": "urun_id zorunlu"}), 400
+    if not store.get(urun_id):
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    ids = store.workspace_add(urun_id)
+    return jsonify({"ok": True, "ids": ids, "count": len(ids)})
+
+
+@app.route("/api/calisma/cikar", methods=["POST"])
+def api_calisma_cikar():
+    """Body: {urun_id} — workspace'ten çıkar."""
+    data = request.get_json(silent=True) or {}
+    urun_id = (data.get("urun_id") or "").strip()
+    if not urun_id:
+        return jsonify({"ok": False, "error": "urun_id zorunlu"}), 400
+    ids = store.workspace_remove(urun_id)
+    return jsonify({"ok": True, "ids": ids, "count": len(ids)})
+
+
+@app.route("/api/calisma/sirala", methods=["POST"])
+def api_calisma_sirala():
+    """Body: {urun_ids: [str]} — workspace sırasını güncelle."""
+    data = request.get_json(silent=True) or {}
+    ids = data.get("urun_ids") or []
+    if not isinstance(ids, list) or not all(isinstance(x, str) for x in ids):
+        return jsonify({"ok": False, "error": "urun_ids string listesi olmalı"}), 400
+    new_ids = store.workspace_reorder(ids)
+    return jsonify({"ok": True, "ids": new_ids, "count": len(new_ids)})
 
 
 if __name__ == "__main__":

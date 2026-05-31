@@ -387,6 +387,45 @@ def research_list_favorites(limit: int = 500) -> list[dict]:
     return res.data or []
 
 
+# =================================================================
+# v4.0-part-2 Sprint 8 — Çalışma Alanı (workspace) helper'ları
+# =================================================================
+
+WORKSPACE_KEY = "workspace_fabric_ids"
+
+
+def workspace_get_ids() -> list[str]:
+    """Çalışma alanına pinlenmiş ürün id'leri (sıraya bağlı)."""
+    state = get_app_state(WORKSPACE_KEY) or {}
+    if not isinstance(state, dict):
+        return []
+    return list(state.get("fabric_ids") or [])
+
+
+def workspace_add(urun_id: str) -> list[str]:
+    """Bir ürünü workspace'e ekle (yoksa). Mevcut sıra korunur."""
+    ids = workspace_get_ids()
+    if urun_id and urun_id not in ids:
+        ids.append(urun_id)
+        set_app_state(WORKSPACE_KEY, {"fabric_ids": ids, "updated_at": _now_iso()})
+    return ids
+
+
+def workspace_remove(urun_id: str) -> list[str]:
+    """Bir ürünü workspace'ten çıkar."""
+    ids = [i for i in workspace_get_ids() if i != urun_id]
+    set_app_state(WORKSPACE_KEY, {"fabric_ids": ids, "updated_at": _now_iso()})
+    return ids
+
+
+def workspace_reorder(ids: list[str]) -> list[str]:
+    """Workspace sırasını değiştir. Sadece mevcut id'ler korunur, ek id'ler atlanır."""
+    current = set(workspace_get_ids())
+    cleaned = [i for i in ids if i in current]
+    set_app_state(WORKSPACE_KEY, {"fabric_ids": cleaned, "updated_at": _now_iso()})
+    return cleaned
+
+
 # ---- Product summary helpers (galeri kart indikatörleri) ----
 
 def has_teknik_calisma(product: dict) -> bool:

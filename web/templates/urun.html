@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% block title %}{{ product.product_name if product else 'Ürün bulunamadı' }}{% endblock %}
 
+{# v4.0-part-2 Sprint 8 — embed modu: Çalışma Alanı'ndaki iframe'lerden gelir #}
+{% block body_class %}{% if embed %}embed-calisma {% if embed != 'calisma' %}embed-{{ embed }}{% endif %}{% endif %}{% endblock %}
+
 {% block content %}
 {% if not product %}
 <div class="empty-state">
@@ -128,6 +131,13 @@
                 title="Bu ürün için çalışma tamamlandıysa arşive al — ana ekranda Aktif filtresi ile gizlenir">
             <svg class="icon"><use href="#ic-check"/></svg>
             <span class="status-toggle-label">{% if product.status == 'archived' %}Aktif Et{% else %}Çalışma Tamamlandı{% endif %}</span>
+        </button>
+        {# v4.0-part-2 Sprint 8 — Çalışma Alanı pin/unpin #}
+        <button class="btn btn-secondary" id="workspace-pin-btn"
+                data-pinned="{{ 'true' if in_workspace else 'false' }}"
+                title="Bu ürünü Çalışma Alanı tab'ında listele (hızlı erişim için)">
+            <svg class="icon"><use href="#ic-pin"/></svg>
+            <span class="pin-label">{% if in_workspace %}Çalışmadan Çıkar{% else %}Çalışmaya Ekle{% endif %}</span>
         </button>
         <button class="btn btn-danger" id="delete-product-btn"><svg class="icon"><use href="#ic-trash"/></svg> Ürünü Sil</button>
     </div>
@@ -1337,6 +1347,29 @@ document.getElementById('delete-product-btn').addEventListener('click', async ()
     if (data.ok) window.location.href = '{{ url_for("index") }}'; else window.toast(data.error || 'Hata', 'error');
 });
 
+// --- v4.0-part-2 Sprint 8 — Çalışma Alanı pin/unpin ---
+const workspacePinBtn = document.getElementById('workspace-pin-btn');
+if (workspacePinBtn) {
+    workspacePinBtn.addEventListener('click', async () => {
+        const isPinned = workspacePinBtn.dataset.pinned === 'true';
+        const endpoint = isPinned ? '/api/calisma/cikar' : '/api/calisma/ekle';
+        try {
+            const data = await postJson(endpoint, { urun_id: URUN_ID });
+            if (data.ok) {
+                const newPinned = !isPinned;
+                workspacePinBtn.dataset.pinned = newPinned ? 'true' : 'false';
+                const label = workspacePinBtn.querySelector('.pin-label');
+                if (label) label.textContent = newPinned ? 'Çalışmadan Çıkar' : 'Çalışmaya Ekle';
+                window.toast(newPinned ? 'Çalışma Alanına eklendi' : 'Çalışmadan çıkarıldı', 'success');
+            } else {
+                window.toast(data.error || 'Hata', 'error');
+            }
+        } catch (e) {
+            window.toast('Bağlantı hatası', 'error');
+        }
+    });
+}
+
 // --- v4.0-part-2 Adım 8 — Çalışma yapıldı toggle (active ↔ archived) ---
 const statusToggleBtn = document.getElementById('status-toggle-btn');
 if (statusToggleBtn) {
@@ -2116,7 +2149,14 @@ grid.addEventListener('dragover', (e) => {
     }
     tabs.forEach(t => t.addEventListener('click', () => setTab(t.dataset.tab)));
     const VALID_TABS = ['galeri', 'teknik', 'dokuman', 'notlar'];
-    const initial = (location.hash || '#galeri').slice(1);
+    // v4.0-part-2 Sprint 8 — embed modunda zorunlu varsayılan tab
+    let initial = (location.hash || '#galeri').slice(1);
+    const body = document.body;
+    if (body.classList.contains('embed-calisma-left')) {
+        initial = 'galeri';  // sol pane: sadece galeri
+    } else if (body.classList.contains('embed-calisma-right')) {
+        initial = 'teknik';  // sağ pane: default teknik (galeri gizli)
+    }
     setTab(VALID_TABS.includes(initial) ? initial : 'galeri');
 })();
 </script>

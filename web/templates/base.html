@@ -23,7 +23,7 @@
 
     {% block extra_head %}{% endblock %}
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
     {% include "_icons.html" %}
     <nav class="topbar">
         <a href="{{ url_for('index') }}" class="topbar-brand" aria-label="Fabric Agent System ana sayfa">
@@ -38,6 +38,9 @@
             </a>
             <a href="{{ url_for('arastirma_page') }}" class="nav-link {% if request.endpoint == 'arastirma_page' %}active{% endif %}">
                 <svg class="icon"><use href="#ic-list"/></svg> Ön Çalışma
+            </a>
+            <a href="{{ url_for('calisma_page') }}" class="nav-link {% if request.endpoint == 'calisma_page' %}active{% endif %}">
+                <svg class="icon"><use href="#ic-pin"/></svg> Çalışma
             </a>
             <a href="{{ url_for('analiz') }}" class="nav-link {% if request.endpoint == 'analiz' %}active{% endif %}">
                 <svg class="icon"><use href="#ic-bar-chart"/></svg> Analiz
@@ -71,15 +74,20 @@
             <span class="tab-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="#ic-grid"/></svg></span>
             <span class="tab-label">Galeri</span>
         </a>
-        <a href="{{ url_for('analiz') }}"
-           class="tab-item {% if request.endpoint == 'analiz' %}is-active{% endif %}">
-            <span class="tab-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="#ic-bar-chart"/></svg></span>
-            <span class="tab-label">Analiz</span>
+        <a href="{{ url_for('arastirma_page') }}"
+           class="tab-item {% if request.endpoint == 'arastirma_page' %}is-active{% endif %}">
+            <span class="tab-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="#ic-list"/></svg></span>
+            <span class="tab-label">Ön Çalışma</span>
         </a>
         <a href="{{ url_for('ekle') }}"
            class="tab-item tab-item-center {% if request.endpoint == 'ekle' %}is-active{% endif %}">
             <span class="tab-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="#ic-plus"/></svg></span>
             <span class="tab-label">Ekle</span>
+        </a>
+        <a href="{{ url_for('calisma_page') }}"
+           class="tab-item {% if request.endpoint == 'calisma_page' %}is-active{% endif %}">
+            <span class="tab-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="#ic-pin"/></svg></span>
+            <span class="tab-label">Çalışma</span>
         </a>
         <a href="{{ url_for('logout') }}" class="tab-item tab-item-logout">
             <span class="tab-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="#ic-log-out"/></svg></span>

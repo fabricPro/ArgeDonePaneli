@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Çalışma Alanı — {{ total }} kumaş{% endblock %}
+
+{% block content %}
+<div class="calisma-page" data-mode="grid" id="calisma-page">
+
+    <!-- BAŞLIK -->
+    <header class="calisma-head">
+        <div class="calisma-head-text">
+            <h1>Çalışma Alanı</h1>
+            <p class="page-subtitle">{{ total }} pinlenmiş kumaş — split ekranla hızlı çalışma</p>
+        </div>
+        <div class="calisma-head-actions">
+            <a class="btn btn-secondary" href="{{ url_for('index') }}">
+                <svg class="icon"><use href="#ic-plus"/></svg>
+                Galeriden Ekle
+            </a>
+        </div>
+    </header>
+
+    {% if total == 0 %}
+    <!-- BOŞ DURUM -->
+    <div class="cw-empty">
+        <div class="empty-icon-wrap">
+            <svg class="empty-icon"><use href="#ic-pin"/></svg>
+        </div>
+        <h2>Çalışma Alanı Boş</h2>
+        <p>Galeriden kumaş kartlarındaki <strong>pin</strong> ikonuna basarak buraya ekleyebilirsin.<br>
+           Bir kumaşa tıklayınca sol yarıda görseller, sağ yarıda teknik/dokümanlar/notlar görünür.</p>
+        <a class="btn btn-primary" href="{{ url_for('index') }}">Galeriye git</a>
+    </div>
+    {% endif %}
+
+    <!-- STATE 1: GRID -->
+    <div class="cw-grid" id="cw-grid" {% if total == 0 %}hidden{% endif %}>
+        {% for p in items %}
+        <article class="cw-card" data-urunid="{{ p.urun_id }}">
+            <button type="button" class="cw-card-main" data-urunid="{{ p.urun_id }}">
+                <div class="cw-card-thumb">
+                    {% if p.cover_image %}
+                    <img src="{{ p.cover_image }}" loading="lazy" alt="{{ p.product_name }}">
+                    {% else %}
+                    <div class="cw-card-noimg"><svg class="icon"><use href="#ic-image"/></svg></div>
+                    {% endif %}
+                </div>
+                <div class="cw-card-body">
+                    <div class="cw-brand">{{ p.brand }}{% if p.country %} · {{ p.country }}{% endif %}</div>
+                    <div class="cw-name">{{ p.product_name }}</div>
+                    <div class="cw-meta">
+                        {% if p.collection %}{{ p.collection }}{% endif %}
+                        {% if p.width_cm %} · {{ p.width_cm }}cm{% endif %}
+                        {% if p.weave_type %} · {{ p.weave_type }}{% endif %}
+                    </div>
+                    {# Mevcut indikatörlerini de göster #}
+                    <div class="card-indicators">
+                        <span class="ind {% if p.has_teknik %}on{% else %}off{% endif %}" title="Teknik Çalışma">
+                            <svg class="icon"><use href="#ic-grid"/></svg>
+                        </span>
+                        <span class="ind {% if p.has_pdf %}on{% else %}off{% endif %}" title="PDF">
+                            <svg class="icon"><use href="#ic-file"/></svg>
+                        </span>
+                        <span class="ind {% if p.has_notlar %}on{% else %}off{% endif %}" title="Notlar">
+                            <svg class="icon"><use href="#ic-pencil"/></svg>
+                        </span>
+                    </div>
+                </div>
+            </button>
+            <button type="button" class="cw-unpin" data-urunid="{{ p.urun_id }}"
+                    title="Çalışmadan çıkar" aria-label="Çalışmadan çıkar">
+                <svg class="icon"><use href="#ic-x"/></svg>
+            </button>
+        </article>
+        {% endfor %}
+    </div>
+
+    <!-- STATE 2: SPLIT -->
+    <div class="cw-split" id="cw-split" hidden>
+        <aside class="cw-rail" id="cw-rail">
+            <button type="button" class="cw-back" id="cw-back" title="Tüm liste">
+                <svg class="icon"><use href="#ic-chevron-down"/></svg>
+                <span>Liste</span>
+            </button>
+            <ul class="cw-rail-list" id="cw-rail-list">
+                {# JS doldurur — mini liste, aktif olan vurgulanır #}
+            </ul>
+        </aside>
+        <section class="cw-left-pane" id="cw-left-pane">
+            <iframe class="cw-iframe cw-left-iframe" id="cw-left-iframe" src=""
+                    title="Kumaş Görselleri" loading="lazy"></iframe>
+        </section>
+        <section class="cw-right-pane" id="cw-right-pane">
+            <iframe class="cw-iframe cw-right-iframe" id="cw-right-iframe" src=""
+                    title="Teknik / Dokümanlar / Notlar" loading="lazy"></iframe>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.CW_ITEMS = {{ items|tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/calisma.js') }}"></script>
+{% endblock %}

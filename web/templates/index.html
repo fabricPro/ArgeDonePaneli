@@ -81,6 +81,14 @@
            data-country-raw="{{ p.country or '' }}"
            data-status="{{ p.status or 'active' }}">
             <button type="button" class="card-delete-btn" data-urunid="{{ p.urun_id }}" data-name-label="{{ p.product_name }}" aria-label="Bu ürünü sil" title="Bu ürünü sil"><svg class="icon"><use href="#ic-x"/></svg></button>
+            {# v4.0-part-2 Sprint 8 — Çalışma Alanına pin/unpin #}
+            <button type="button" class="card-pin-btn {% if p.in_workspace %}is-pinned{% endif %}"
+                    data-urunid="{{ p.urun_id }}"
+                    data-pinned="{{ 'true' if p.in_workspace else 'false' }}"
+                    aria-label="Çalışma Alanına ekle/çıkar"
+                    title="{% if p.in_workspace %}Çalışmadan çıkar{% else %}Çalışmaya ekle{% endif %}">
+                <svg class="icon"><use href="#ic-pin"/></svg>
+            </button>
             <span class="card-select-check" aria-hidden="true"><svg class="icon"><use href="#ic-check"/></svg></span>
             {% if p.has_color_album %}
             <span class="card-color-flag {% if p.palette_size %}has-palette{% endif %}"
@@ -196,6 +204,36 @@ document.querySelectorAll('.card-delete-btn').forEach(btn => {
             (window.toast || alert)('Ürün silindi', 'success');
         } else {
             (window.toast || alert)('Silinemedi', 'error');
+        }
+    });
+});
+
+// --- v4.0-part-2 Sprint 8 — Çalışma Alanı pin/unpin ---
+document.querySelectorAll('.card-pin-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const uid = btn.dataset.urunid;
+        const isPinned = btn.dataset.pinned === 'true';
+        const endpoint = isPinned ? '/api/calisma/cikar' : '/api/calisma/ekle';
+        try {
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ urun_id: uid }),
+            });
+            const data = await res.json();
+            if (data.ok) {
+                const newPinned = !isPinned;
+                btn.dataset.pinned = newPinned ? 'true' : 'false';
+                btn.classList.toggle('is-pinned', newPinned);
+                btn.title = newPinned ? 'Çalışmadan çıkar' : 'Çalışmaya ekle';
+                (window.toast || alert)(newPinned ? 'Çalışma Alanına eklendi' : 'Çalışmadan çıkarıldı', 'success');
+            } else {
+                (window.toast || alert)(data.error || 'Hata', 'error');
+            }
+        } catch (err) {
+            (window.toast || alert)('Bağlantı hatası', 'error');
         }
     });
 });
