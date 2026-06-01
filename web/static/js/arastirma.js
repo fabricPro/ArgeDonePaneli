@@ -433,22 +433,35 @@
 
     const img = node.querySelector('.ar-item-thumb img');
     const placeholder = node.querySelector('.ar-thumb-placeholder');
-    // v4.0-part-2 Sprint 5 — Önce manuel thumb_url, yoksa Google s2 favicon
+    // v4.0-part-2 Sprint 10 — Öncelik: cover_url (yakalanan görsel) → thumb_url → favicon
     const fallbackFavicon = googleFaviconUrl(r.product_url, 64);
-    const finalSrc = r.thumb_url || fallbackFavicon || '';
+    const finalSrc = r.cover_url || r.thumb_url || fallbackFavicon || '';
     if (finalSrc) {
       img.src = finalSrc;
       img.alt = r.product_url;
       img.referrerPolicy = 'no-referrer';
       placeholder.style.display = 'none';
       img.onerror = () => { img.style.display = 'none'; placeholder.style.display = ''; };
+      // Gerçek galeri görseli ise cover-stilini ver (favicon değil)
+      if (r.cover_url) {
+        img.parentElement?.classList.add('has-cover');
+      }
     } else {
       img.style.display = 'none';
     }
 
     const urlShort = shortUrl(r.product_url);
     node.querySelector('.ar-item-title').textContent = urlShort.path || r.product_url;
-    node.querySelector('.ar-item-meta').textContent = `${r.brand} · ${r.country}${r.country_code ? ' (' + r.country_code + ')' : ''}`;
+    const imgCountStr = r.images_count > 0 ? ` · × ${r.images_count} görsel` : '';
+    node.querySelector('.ar-item-meta').textContent = `${r.brand} · ${r.country}${r.country_code ? ' (' + r.country_code + ')' : ''}${imgCountStr}`;
+
+    // v4.0-part-2 Sprint 10 — Karta tıklayınca detay sayfasına git
+    // (interactive child element'lere değil — buton/link/input/star)
+    article.classList.add('is-clickable');
+    article.addEventListener('click', (e) => {
+      if (e.target.closest('button, a, input, select, textarea, .ar-fav-star, .ar-item-edit')) return;
+      window.location.href = `/arastirma/${encodeURIComponent(r.id)}`;
+    });
     // v4.0-part-2 Sprint 7 — Master URL tıklanabilir anchor
     const masterCell = node.querySelector('.ar-item-master');
     if (r.master_url) {

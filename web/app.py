@@ -24,10 +24,15 @@ import os
 
 import math
 from flask import (
-    Flask, abort, jsonify, redirect, render_template, request, session, url_for,
+    Flask, abort, jsonify, make_response, redirect, render_template, request, session, url_for,
 )
 from PIL import Image, ImageOps
 from werkzeug.utils import secure_filename
+
+import hashlib
+import hmac
+from urllib.error import HTTPError, URLError
+from urllib.request import Request as UrlRequest, urlopen
 
 import store
 
@@ -76,6 +81,9 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.jinja_env.auto_reload = True
 
 APP_PASSWORD = os.environ.get("APP_PASSWORD", "")
+# v4.0-part-2 Sprint 9 — Tarayıcı eklentisi yakalama endpoint'i için token
+MOBIDIK_API_TOKEN = os.environ.get("MOBIDIK_API_TOKEN", "")
+EXTENSION_MAX_BYTES = 25 * 1024 * 1024  # 25 MB
 
 TRACKED_BRANDS = [
     ("Kvadrat", "kvadrat"), ("Dedar", "dedar"), ("Rubelli", "rubelli"),
@@ -342,7 +350,11 @@ def product_summary(d: dict) -> dict:
 
 @app.before_request
 def require_login():
-    if request.endpoint in ("login", "static", "health", "service_worker", "web_manifest"):
+    if request.endpoint in (
+        "login", "static", "health", "service_worker", "web_manifest",
+        "api_arastirma_yakala",            # v4.0-part-2 Sprint 9 — token ile korunur
+        "api_arastirma_entries_summary",   # v4.0-part-2 Sprint 10 — eklenti modal listesi
+    ):
         return
     if not APP_PASSWORD:
         return  # sifre tanimli degil -> acik (yerel gelistirme)
@@ -1958,18 +1970,59 @@ def _favicon_url(product_url: str | None, size: int = 64) -> str | None:
 app.jinja_env.globals["favicon_url"] = _favicon_url
 
 
+def _enrich_research_row(row: dict) -> dict:
+    """v4.0-part-2 Sprint 10 — Row'a galeri özellikleri ekle: images_count, cover_url.
+    Mevcut field'lar korunur, sadece read-only ek alanlar yazılır."""
+    if not row:
+        return row
+    images = row.get("images") or []
+    cover_path = None
+    if images and isinstance(images, list) and isinstance(images[0], dict):
+        cover_path = images[0].get("storage_path")
+    elif row.get("image_storage_path"):  # legacy fallback
+        cover_path = row.get("image_storage_path")
+    row["images_count"] = len(images) if isinstance(images, list) else 0
+    row["cover_url"] = store.public_url(cover_path) if cover_path else None
+    return row
+
+
 @app.route("/arastirma")
 def arastirma_page():
     """Ön Çalışma ana sayfa: ekleme paneli + filtreli liste."""
     brands = get_brands_registry()
-    # Listede gösterilecek satırlar — default pending
     rows = store.research_list(status="pending")
-    # Country code → name eşleştirmesi için brand registry'den
+    rows = [_enrich_research_row(r) for r in rows]
     return render_template(
         "arastirma.html",
         brands=brands,
         country_suggestions=COUNTRY_SUGGESTIONS,
         rows=rows,
+    )
+
+
+@app.route("/arastirma/<research_id>")
+def arastirma_detail(research_id: str):
+    """v4.0-part-2 Sprint 10 — Detay sayfası: bir entry'nin galerisi + meta."""
+    entry = store.research_get(research_id)
+    if not entry:
+        return render_template("arastirma_detail.html", entry=None, research_id=research_id), 404
+    entry = _enrich_research_row(entry)
+    # Görseller için public URL'leri hazırla
+    images = entry.get("images") or []
+    images_with_urls = []
+    for im in images:
+        if not isinstance(im, dict):
+            continue
+        path = im.get("storage_path")
+        images_with_urls.append({
+            **im,
+            "url": store.public_url(path) if path else None,
+        })
+    return render_template(
+        "arastirma_detail.html",
+        entry=entry,
+        images=images_with_urls,
+        research_id=research_id,
     )
 
 
@@ -1981,6 +2034,7 @@ def api_arastirma_list():
     brand_slug = request.args.get("brand_slug") or None
     country_code = request.args.get("country_code") or None
     rows = store.research_list(status=status, brand_slug=brand_slug, country_code=country_code)
+    rows = [_enrich_research_row(r) for r in rows]
     return jsonify({"ok": True, "rows": rows, "count": len(rows)})
 
 
@@ -2173,6 +2227,358 @@ def api_arastirma_update(research_id: str):
         return jsonify({"ok": False, "error": f"DB hatası: {e}"}), 500
 
     return jsonify({"ok": True, "row": updated})
+
+
+# ============================================================
+# v4.0-part-2 Sprint 9 — Tarayıcı eklentisi: görsel yakalama
+# ============================================================
+
+def _download_image_bytes(url: str, timeout: float = 10.0) -> bytes:
+    """Eklentiden gelen imageUrl'i sunucu tarafında indir.
+    Boyut sınırı: EXTENSION_MAX_BYTES. Hata durumunda exception fırlatır."""
+    req = UrlRequest(url, headers={
+        "User-Agent": "Mozilla/5.0 (MobidikARGE Extension Capture)",
+        "Accept": "image/*,*/*;q=0.8",
+    })
+    with urlopen(req, timeout=timeout) as resp:
+        cl = resp.headers.get("Content-Length")
+        if cl:
+            try:
+                if int(cl) > EXTENSION_MAX_BYTES:
+                    raise ValueError(f"Görsel çok büyük: Content-Length={cl}")
+            except ValueError:
+                pass  # malformed Content-Length — yine de okuruz, +1 byte ile yakalarız
+        data = resp.read(EXTENSION_MAX_BYTES + 1)
+        if not data:
+            raise ValueError("Boş response")
+        if len(data) > EXTENSION_MAX_BYTES:
+            raise ValueError(f"Görsel çok büyük: > {EXTENSION_MAX_BYTES} byte")
+        return data
+
+
+def _extension_token_ok(req) -> bool:
+    """X-Mobidik-Token header'ını sabit-zamanlı karşılaştır.
+    Token tanımlı değilse False (yanlışlıkla open kalmasın)."""
+    if not MOBIDIK_API_TOKEN:
+        return False
+    sent = req.headers.get("X-Mobidik-Token", "") or ""
+    return hmac.compare_digest(sent, MOBIDIK_API_TOKEN)
+
+
+def _extension_cors_headers() -> dict:
+    """Eklentiden gelen istekler için CORS header'ları.
+    Origin '*' — token zaten koruma sağlıyor."""
+    return {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, X-Mobidik-Token",
+        "Access-Control-Max-Age": "86400",
+    }
+
+
+def _ext_response(payload: dict, status_code: int = 200):
+    """jsonify + CORS header'larını birlikte set eden yardımcı."""
+    resp = make_response(jsonify(payload), status_code)
+    for k, v in _extension_cors_headers().items():
+        resp.headers[k] = v
+    return resp
+
+
+def _resolve_brand_from_input(brand_in: str) -> tuple[str, str, str, str, str | None]:
+    """Marka girdisini registry ile karşılaştırıp standart 5'liyi döndür.
+    Returns: (brand_name, brand_slug, default_master_url|"", country, country_code)
+    """
+    brand_slug = brand_slugify(brand_in) if brand_in else "diger"
+    reg = get_brands_registry()
+    reg_brand = next((b for b in reg if b.get("slug") == brand_slug), None)
+    if reg_brand:
+        brand_name = reg_brand.get("name") or brand_in or brand_slug
+        default_master = reg_brand.get("default_master_url") or ""
+        country = reg_brand.get("country") or "Bilinmiyor"
+        country_code = _country_iso(country)
+    else:
+        brand_name = brand_in or brand_slug
+        default_master = ""
+        country = "Bilinmiyor"
+        country_code = None
+    return brand_name, brand_slug, default_master, country, country_code
+
+
+@app.route("/api/arastirma/entries-summary", methods=["GET", "OPTIONS"])
+def api_arastirma_entries_summary():
+    """v4.0-part-2 Sprint 10 — Eklenti modal'ı için hafif entry listesi.
+    Query: ?host=<page-host> veya ?brand_slug=<slug> ile marka-filtreli.
+    Token zorunlu (eklenti çağırır).
+    Response: { ok, entries: [{id, brand, brand_slug, country, master_url,
+                                images_count, cover_url, added_at}, ...] }
+    """
+    # CORS preflight
+    if request.method == "OPTIONS":
+        resp = make_response("", 204)
+        for k, v in _extension_cors_headers().items():
+            resp.headers[k] = v
+        return resp
+
+    if not MOBIDIK_API_TOKEN:
+        return _ext_response({"ok": False, "error": "MOBIDIK_API_TOKEN tanımsız"}, 503)
+    if not _extension_token_ok(request):
+        return _ext_response({"ok": False, "error": "unauthorized"}, 401)
+
+    brand_slug = (request.args.get("brand_slug") or "").strip().lower() or None
+    host = (request.args.get("host") or "").strip().lower() or None
+    show_all = (request.args.get("all") or "").lower() in ("1", "true", "yes")
+
+    # host verilmişse → registry'den brand_slug çöz
+    if host and not brand_slug:
+        clean_host = host.replace("www.", "").lstrip(".")
+        # 1. denek: default_master_url'in domain'ine bak
+        for b in get_brands_registry():
+            dm = (b.get("default_master_url") or "").lower()
+            if not dm:
+                continue
+            try:
+                from urllib.parse import urlparse
+                p = urlparse(dm)
+                d = (p.netloc or "").replace("www.", "")
+                if d == clean_host or clean_host.endswith("." + d):
+                    brand_slug = b.get("slug")
+                    break
+            except Exception:
+                pass
+
+        # 2. denek: host'un ilk parçası registry slug'ına eşit mi?
+        # (ör. dedar.com → "dedar" → brand_slug="dedar" eşleşmesi)
+        if not brand_slug:
+            host_first = clean_host.split(".")[0]
+            for b in get_brands_registry():
+                if (b.get("slug") or "").lower() == host_first:
+                    brand_slug = b.get("slug")
+                    break
+
+    rows = store.research_list(status="pending", brand_slug=(None if show_all else brand_slug))
+
+    entries = []
+    for r in rows:
+        images = r.get("images") or []
+        cover_path = None
+        if images and isinstance(images[0], dict):
+            cover_path = images[0].get("storage_path")
+        elif r.get("image_storage_path"):  # legacy fallback
+            cover_path = r.get("image_storage_path")
+        entries.append({
+            "id": r.get("id"),
+            "brand": r.get("brand"),
+            "brand_slug": r.get("brand_slug"),
+            "country": r.get("country"),
+            "master_url": r.get("master_url"),
+            "images_count": len(images),
+            "cover_url": store.public_url(cover_path) if cover_path else None,
+            "added_at": r.get("added_at"),
+        })
+
+    return _ext_response({
+        "ok": True,
+        "entries": entries,
+        "filter": {"brand_slug": brand_slug, "host": host, "show_all": show_all},
+    }, 200)
+
+
+@app.route("/api/arastirma/yakala", methods=["POST", "OPTIONS"])
+def api_arastirma_yakala():
+    """v4.0-part-2 Sprint 10 — Tarayıcı eklentisinden görsel yakalama (revize).
+    Body: { imageUrl, pageUrl, pageTitle, brand, alt,
+            target_id?, create_new?, master_url?, country? }
+    Header: X-Mobidik-Token (zorunlu)
+
+    Akış:
+      - target_id verildi → mevcut entry'nin images[]'ine ekle (status: "added")
+      - target_id yok ve create_new=true → yeni satır (status: "created")
+      - İkisi de yok → 400
+      - SHA-256 dedup tüm rows'ta önce kontrol → varsa o entry (status: "duplicate")
+    """
+    # 1) CORS preflight
+    if request.method == "OPTIONS":
+        resp = make_response("", 204)
+        for k, v in _extension_cors_headers().items():
+            resp.headers[k] = v
+        return resp
+
+    # 2) Token env tanımsızsa endpoint kapalı
+    if not MOBIDIK_API_TOKEN:
+        return _ext_response({
+            "ok": False,
+            "error": "MOBIDIK_API_TOKEN tanımsız — endpoint pasif",
+        }, 503)
+
+    # 3) Auth
+    if not _extension_token_ok(request):
+        return _ext_response({"ok": False, "error": "unauthorized"}, 401)
+
+    # 4) Body parse
+    data = request.get_json(silent=True) or {}
+    image_url = (data.get("imageUrl") or "").strip()
+    page_url = (data.get("pageUrl") or "").strip()
+    page_title = (data.get("pageTitle") or "").strip() or None
+    brand_in = (data.get("brand") or "").strip()
+    alt = (data.get("alt") or "").strip() or None
+    target_id = (data.get("target_id") or "").strip() or None
+    create_new = bool(data.get("create_new"))
+    body_master_url = (data.get("master_url") or "").strip() or None
+    body_country = (data.get("country") or "").strip() or None
+
+    if not image_url or not page_url:
+        return _ext_response({"ok": False, "error": "imageUrl ve pageUrl zorunlu"}, 400)
+
+    if not target_id and not create_new:
+        return _ext_response({
+            "ok": False,
+            "error": "target_id veya create_new=true gerekli"
+        }, 400)
+
+    # 5) URL hash
+    product_url_hash = store.url_hash(page_url)
+    if not product_url_hash:
+        return _ext_response({"ok": False, "error": "pageUrl geçersiz"}, 400)
+
+    # 6) Görseli indir (SHA-256 orijinal bytes üzerinden)
+    try:
+        original_bytes = _download_image_bytes(image_url, timeout=10.0)
+    except HTTPError as e:
+        return _ext_response({
+            "ok": False, "error": f"Görsel indirilemedi (HTTP {e.code}): {e.reason}",
+        }, 502)
+    except URLError as e:
+        return _ext_response({"ok": False, "error": f"Görsel indirilemedi: {e.reason}"}, 502)
+    except Exception as e:
+        return _ext_response({"ok": False, "error": f"Görsel indirilemedi: {e}"}, 502)
+
+    sha = hashlib.sha256(original_bytes).hexdigest()
+    sha8 = sha[:8]
+
+    # 7) Dedup: tüm rows'ta JSONB ile sha lookup
+    existing = store.research_find_image_by_sha(sha)
+    if existing:
+        return _ext_response({
+            "ok": True, "status": "duplicate",
+            "row": existing, "target_id": existing.get("id"),
+            "message": f"Bu görsel zaten yakalandı: {existing.get('brand', '?')}",
+        }, 200)
+
+    # 8) Marka standart 5'lisini çöz
+    brand_name, brand_slug, default_master, country_reg, country_code_reg = \
+        _resolve_brand_from_input(brand_in)
+
+    # 9) target_id verildi → mevcut entry'ye ekle
+    if target_id:
+        target_row = store.research_get(target_id)
+        if not target_row:
+            return _ext_response({"ok": False, "error": "target_id geçersiz (entry bulunamadı)"}, 404)
+        # Target'ın brand_slug'ını kullan (sayfa markasıyla farklı olabilir — kullanıcı bilinçli seçti)
+        target_brand_slug = target_row.get("brand_slug") or brand_slug
+
+        # 9a) Storage upload
+        try:
+            img = Image.open(io.BytesIO(original_bytes))
+            img = ImageOps.exif_transpose(img).convert("RGB")
+            img.thumbnail((2000, 2000))
+            buf = io.BytesIO()
+            img.save(buf, "JPEG", quality=85, optimize=True)
+            jpeg_bytes = buf.getvalue()
+        except Exception as e:
+            return _ext_response({"ok": False, "error": f"Görsel işlenemedi: {e}"}, 422)
+
+        storage_path = f"_inbox/{target_brand_slug}/{sha8}.jpg"
+        try:
+            store.upload_image(storage_path, jpeg_bytes, "image/jpeg")
+        except Exception as e:
+            return _ext_response({"ok": False, "error": f"Storage upload hatası: {e}"}, 500)
+
+        image_meta = {
+            "sha256": sha,
+            "storage_path": storage_path,
+            "alt": alt,
+            "source_image_url": image_url,
+            "added_at": store._now_iso(),
+        }
+        try:
+            updated = store.research_append_image(target_id, image_meta)
+        except Exception as e:
+            return _ext_response({"ok": False, "error": f"DB append hatası: {e}"}, 500)
+
+        return _ext_response({
+            "ok": True, "status": "added",
+            "row": updated, "target_id": target_id,
+            "message": f"Eklendi: {target_row.get('brand', '?')}",
+        }, 200)
+
+    # 10) create_new=true → yeni satır
+    # Master URL öncelik sırası: body.master_url → registry default → page_url
+    master_url = body_master_url or default_master or page_url
+    country = body_country or country_reg
+    country_code = _country_iso(country) if body_country else country_code_reg
+
+    # 10a) Storage upload
+    try:
+        img = Image.open(io.BytesIO(original_bytes))
+        img = ImageOps.exif_transpose(img).convert("RGB")
+        img.thumbnail((2000, 2000))
+        buf = io.BytesIO()
+        img.save(buf, "JPEG", quality=85, optimize=True)
+        jpeg_bytes = buf.getvalue()
+    except Exception as e:
+        return _ext_response({"ok": False, "error": f"Görsel işlenemedi: {e}"}, 422)
+
+    storage_path = f"_inbox/{brand_slug}/{sha8}.jpg"
+    try:
+        store.upload_image(storage_path, jpeg_bytes, "image/jpeg")
+    except Exception as e:
+        return _ext_response({"ok": False, "error": f"Storage upload hatası: {e}"}, 500)
+
+    image_meta = {
+        "sha256": sha,
+        "storage_path": storage_path,
+        "alt": alt,
+        "source_image_url": image_url,
+        "added_at": store._now_iso(),
+    }
+    row = {
+        "master_url": master_url,
+        "product_url": page_url,
+        "product_url_hash": product_url_hash,
+        "brand": brand_name,
+        "brand_slug": brand_slug,
+        "country": country,
+        "country_code": country_code,
+        "thumb_url": None,
+        "status": "pending",
+        "notes": alt,
+        "is_favorite": False,
+        # Legacy tek-görsel (ilk eklenen) — geriye uyum için yazılır
+        "image_sha256": sha,
+        "page_title": page_title,
+        "image_storage_path": storage_path,
+        # Yeni JSONB array
+        "images": [image_meta],
+        "added_at": store._now_iso(),
+    }
+    try:
+        res = store.client().table(store.TABLE_RESEARCH).insert(row).execute()
+        inserted = (res.data or [row])[0]
+    except Exception as e:
+        msg = str(e).lower()
+        if "duplicate" in msg or "unique" in msg or "23505" in msg:
+            existing = store.research_find_image_by_sha(sha)
+            if existing:
+                return _ext_response({
+                    "ok": True, "status": "duplicate",
+                    "row": existing, "target_id": existing.get("id"),
+                }, 200)
+        return _ext_response({"ok": False, "error": f"DB insert hatası: {e}"}, 500)
+
+    return _ext_response({
+        "ok": True, "status": "created",
+        "row": inserted, "target_id": inserted.get("id"),
+    }, 201)
 
 
 @app.route("/api/arastirma/<research_id>/favorite", methods=["POST"])

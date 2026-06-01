@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block title %}{% if entry %}{{ entry.brand }} — {{ entry.product_url }}{% else %}Bulunamadı{% endif %}{% endblock %}
+
+{% block content %}
+{% if not entry %}
+<div class="empty-state">
+    <div class="empty-icon-wrap"><svg class="empty-icon"><use href="#ic-x"/></svg></div>
+    <h2>Bu galeri bulunamadı</h2>
+    <p>Aradığın entry silinmiş veya kimliği değişmiş olabilir: <code>{{ research_id }}</code></p>
+    <a href="{{ url_for('arastirma_page') }}" class="btn btn-secondary">← Ön Çalışmaya Dön</a>
+</div>
+{% else %}
+
+<div class="ardet-page">
+
+    <!-- Header -->
+    <header class="ardet-head">
+        <div class="ardet-head-text">
+            <div class="ardet-breadcrumb">
+                <a href="{{ url_for('arastirma_page') }}">← Ön Çalışma</a>
+            </div>
+            <h1>{{ entry.brand }}</h1>
+            <p class="ardet-meta">
+                {{ entry.country }}{% if entry.country_code %} ({{ entry.country_code }}){% endif %} ·
+                <a href="{{ entry.master_url }}" target="_blank" rel="noopener" class="ardet-master-link">
+                    Master: {{ entry.master_url[:60] }}{% if entry.master_url|length > 60 %}…{% endif %}
+                </a>
+            </p>
+            {% if entry.product_url %}
+            <p class="ardet-product-url">
+                <a href="{{ entry.product_url }}" target="_blank" rel="noopener">{{ entry.product_url }}</a>
+            </p>
+            {% endif %}
+            {% if entry.page_title %}
+            <p class="ardet-page-title">{{ entry.page_title }}</p>
+            {% endif %}
+            {% if entry.notes %}
+            <p class="ardet-notes">📝 {{ entry.notes }}</p>
+            {% endif %}
+        </div>
+        <div class="ardet-head-actions">
+            <a href="{{ url_for('ekle') }}?from_research={{ entry.id }}" class="btn btn-primary">
+                <svg class="icon"><use href="#ic-plus"/></svg>
+                Ürüne Çevir
+            </a>
+        </div>
+    </header>
+
+    <!-- Stat strip -->
+    <div class="ardet-stats">
+        <span class="ardet-stat">
+            <span class="ardet-stat-n">{{ images|length }}</span>
+            <span class="ardet-stat-l">görsel</span>
+        </span>
+        <span class="ardet-stat">
+            <span class="ardet-stat-n">{{ entry.status }}</span>
+            <span class="ardet-stat-l">durum</span>
+        </span>
+        {% if entry.is_favorite %}
+        <span class="ardet-stat ardet-stat-fav">
+            <svg class="icon"><use href="#ic-star"/></svg>
+            <span class="ardet-stat-l">favori</span>
+        </span>
+        {% endif %}
+        <span class="ardet-stat">
+            <span class="ardet-stat-l">eklenme: {{ entry.added_at[:10] if entry.added_at else '?' }}</span>
+        </span>
+    </div>
+
+    <!-- Galeri grid -->
+    {% if images %}
+    <div class="ardet-gallery" id="ardet-gallery">
+        {% for im in images %}
+        <article class="ardet-img-card" data-sha="{{ im.sha256 }}">
+            <div class="ardet-img-wrap">
+                {% if im.url %}
+                <img src="{{ im.url }}" loading="lazy" alt="{{ im.alt or '' }}"
+                     data-full="{{ im.url }}"
+                     data-idx="{{ loop.index0 }}">
+                {% else %}
+                <div class="ardet-img-missing"><svg class="icon"><use href="#ic-image"/></svg></div>
+                {% endif %}
+            </div>
+            <div class="ardet-img-meta">
+                {% if loop.first %}
+                <span class="ardet-img-badge ardet-img-cover">⭐ Kapak</span>
+                {% endif %}
+                {% if im.alt %}
+                <span class="ardet-img-alt">{{ im.alt }}</span>
+                {% endif %}
+                {% if im.source_image_url %}
+                <a class="ardet-img-source" href="{{ im.source_image_url }}" target="_blank" rel="noopener" title="Orijinal kaynak">↗</a>
+                {% endif %}
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="ardet-empty">
+        <p>Bu galeride henüz görsel yok. Tarayıcı eklentisinden bu entry'ye görsel ekleyebilirsin.</p>
+        {% if entry.product_url %}
+        <a href="{{ entry.product_url }}" target="_blank" rel="noopener" class="btn btn-secondary">Ürün sayfasına git ↗</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Lightbox (görsel büyütme) -->
+    <div class="ardet-lightbox" id="ardet-lightbox" hidden>
+        <button class="ardet-lb-close" id="ardet-lb-close" title="Kapat (Esc)">×</button>
+        <button class="ardet-lb-prev" id="ardet-lb-prev" title="Önceki (←)">‹</button>
+        <button class="ardet-lb-next" id="ardet-lb-next" title="Sonraki (→)">›</button>
+        <img id="ardet-lb-img" src="" alt="">
+        <div class="ardet-lb-caption" id="ardet-lb-caption"></div>
+    </div>
+
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if entry %}
+<script>
+(function(){
+    'use strict';
+    const gallery = document.getElementById('ardet-gallery');
+    const lightbox = document.getElementById('ardet-lightbox');
+    const lbImg = document.getElementById('ardet-lb-img');
+    const lbCap = document.getElementById('ardet-lb-caption');
+    const lbClose = document.getElementById('ardet-lb-close');
+    const lbPrev = document.getElementById('ardet-lb-prev');
+    const lbNext = document.getElementById('ardet-lb-next');
+    if (!gallery || !lightbox) return;
+
+    const imgs = Array.from(gallery.querySelectorAll('img[data-full]'));
+    let currentIdx = 0;
+
+    function open(idx) {
+        if (idx < 0 || idx >= imgs.length) return;
+        currentIdx = idx;
+        const im = imgs[idx];
+        lbImg.src = im.dataset.full;
+        lbCap.textContent = (im.alt || '') + ` — ${idx + 1} / ${imgs.length}`;
+        lightbox.hidden = false;
+        document.body.style.overflow = 'hidden';
+    }
+    function close() {
+        lightbox.hidden = true;
+        lbImg.src = '';
+        document.body.style.overflow = '';
+    }
+    function next() { open((currentIdx + 1) % imgs.length); }
+    function prev() { open((currentIdx - 1 + imgs.length) % imgs.length); }
+
+    imgs.forEach((im, i) => {
+        im.addEventListener('click', () => open(i));
+        im.style.cursor = 'zoom-in';
+    });
+    lbClose.addEventListener('click', close);
+    lbPrev.addEventListener('click', prev);
+    lbNext.addEventListener('click', next);
+    lightbox.addEventListener('click', (e) => {
+        if (e.target === lightbox) close();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (lightbox.hidden) return;
+        if (e.key === 'Escape') close();
+        else if (e.key === 'ArrowRight') next();
+        else if (e.key === 'ArrowLeft') prev();
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}

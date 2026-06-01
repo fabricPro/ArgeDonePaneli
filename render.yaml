@@ -17,3 +17,5 @@ services:
         sync: false                # Dashboard'dan elle gir (gizli!)
       - key: APP_PASSWORD
         sync: false                # Dashboard'dan elle gir (panel sifresi)
+      - key: MOBIDIK_API_TOKEN
+        sync: false                # Dashboard'dan elle gir (eklenti yakalama token'i — Sprint 9)
