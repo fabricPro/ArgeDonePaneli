@@ -37,6 +37,8 @@ RESEARCH_COLUMNS = [
     "thumb_url", "status", "imported_product_id",
     "added_at", "imported_at", "notes",
     "is_favorite",  # v4.0-part-2 Sprint 6
+    "image_sha256", "page_title", "image_storage_path",  # v4.0-part-2 Sprint 9 (eklenti yakalama)
+    "images",  # v4.0-part-2 Sprint 10 — JSONB array (galeri mantığı)
 ]
 
 
@@ -293,6 +295,71 @@ def research_get(research_id: str) -> dict | None:
 def research_find_by_hash(hash_: str) -> dict | None:
     res = client().table(TABLE_RESEARCH).select("*").eq("product_url_hash", hash_).limit(1).execute()
     return res.data[0] if res.data else None
+
+
+def research_find_by_sha256(sha: str) -> dict | None:
+    """v4.0-part-2 Sprint 9 — Aynı görsel (SHA-256) zaten yakalanmış mı?
+    Mevcut tek-görsel kolonu için legacy lookup."""
+    if not sha:
+        return None
+    res = (client().table(TABLE_RESEARCH).select("*")
+           .eq("image_sha256", sha).limit(1).execute())
+    return res.data[0] if res.data else None
+
+
+def research_find_image_by_sha(sha: str) -> dict | None:
+    """v4.0-part-2 Sprint 10 — JSONB images[] içinde sha256 ara.
+    Hem yeni galeri içeriklerini hem legacy tek-görsel satırlarını yakalar
+    (migration sonrası ikisi de images[]'de mevcut)."""
+    if not sha:
+        return None
+    # PostgreSQL JSONB containment: images @> '[{"sha256": "..."}]'
+    # postgrest-py .contains() dict kabul etmiyor → raw filter ile JSON string
+    import json
+    pattern = json.dumps([{"sha256": sha}])
+    res = (client().table(TABLE_RESEARCH).select("*")
+           .filter("images", "cs", pattern)
+           .limit(1).execute())
+    if res.data:
+        return res.data[0]
+    # Fallback: eski tek-görsel kolonu (migration koşmamış data için)
+    return research_find_by_sha256(sha)
+
+
+def research_get(research_id: str) -> dict | None:
+    """Tek bir research_pool satırını getir."""
+    if not research_id:
+        return None
+    res = (client().table(TABLE_RESEARCH).select("*")
+           .eq("id", research_id).limit(1).execute())
+    return res.data[0] if res.data else None
+
+
+def research_append_image(research_id: str, image_meta: dict) -> dict | None:
+    """v4.0-part-2 Sprint 10 — Mevcut entry'nin images[]'ine yeni görsel ekle.
+    Read-modify-write (PostgREST JSONB concat operator yok).
+    Race condition: SHA-256 dedup yukarı katmanda (research_find_image_by_sha) önler.
+    image_meta: {sha256, storage_path, alt, source_image_url, added_at}.
+    """
+    if not research_id or not image_meta:
+        return None
+    row = research_get(research_id)
+    if not row:
+        return None
+    images = row.get("images") or []
+    # Aynı sha zaten array'de ise idempotent (insert atma)
+    sha = image_meta.get("sha256")
+    if sha and any((im or {}).get("sha256") == sha for im in images):
+        return row
+    images.append(image_meta)
+    patch = {"images": images}
+    # Geriye uyum: ilk görselse legacy kolonları da yaz
+    if len(images) == 1:
+        patch["image_sha256"] = sha
+        patch["image_storage_path"] = image_meta.get("storage_path")
+    res = (client().table(TABLE_RESEARCH).update(patch)
+           .eq("id", research_id).execute())
+    return (res.data or [None])[0]
 
 
 def product_find_by_url_hash(hash_: str) -> dict | None:
