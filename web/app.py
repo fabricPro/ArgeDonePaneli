@@ -509,6 +509,18 @@ def urun_detail(urun_id: str):
         color_picker_images = [im for im in images if color_album_slug in (im.get("albums") or [])]
     else:
         color_picker_images = []
+    # v4.0-part-2 Sprint 8.8 — görsel-bazlı renk paleti (kolaj + rol filtreleri)
+    # Sadece "Renkler" albümündeki + en az bir rol atanmış görseller
+    image_color_map = {
+        im["path"]: {
+            "label": im.get("variant_label") or "",
+            "order": im.get("order", 0),
+            "url": im.get("url"),
+            "colors": im.get("colors") or {},
+        }
+        for im in color_picker_images
+        if im.get("colors") and any((im["colors"] or {}).get(k) for k in ("weft", "warp", "mix"))
+    }
     # v3.8: Teknik çalışma sekme verisi + mobile UA detect
     teknik = d.get("teknik") or {}
     is_mobile_ua = _is_mobile_ua(request)
@@ -526,6 +538,7 @@ def urun_detail(urun_id: str):
         color_palette=color_palette,
         color_picker_images=color_picker_images,
         color_album_slug=color_album_slug,
+        image_color_map=image_color_map,
         teknik=teknik,
         is_mobile_ua=is_mobile_ua,
         pinned_items=pinned_items,

@@ -407,3 +407,47 @@
         _medianRGB: medianRGB,
     };
 })();
+
+
+/* ============================================================
+ * v4.0-part-2 Sprint 8.8 — Renk paleti mode toggle
+ * (Tümü / Atkı / Çözgü / Toplam / Ayrı)
+ * ============================================================ */
+(function () {
+    const MODE_KEY = 'palette_mode';
+    const VALID = ['collage', 'weft', 'warp', 'mix', 'legacy'];
+    const legacyGrid = document.querySelector('.palette-grid[data-grid="legacy"]');
+    const imageGrid  = document.querySelector('.palette-grid-image[data-grid="image"]');
+    const modeBtns   = document.querySelectorAll('.palette-mode-btn');
+    if (!modeBtns.length || !imageGrid) return;  // mode bar yoksa (image_color_map boş) skip
+
+    function applyMode(mode) {
+        if (!VALID.includes(mode)) mode = 'collage';
+        try { localStorage.setItem(MODE_KEY, mode); } catch (e) {}
+        modeBtns.forEach(b => {
+            const active = b.dataset.mode === mode;
+            b.classList.toggle('is-active', active);
+            b.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        if (mode === 'legacy') {
+            if (legacyGrid) legacyGrid.hidden = false;
+            imageGrid.hidden = true;
+            imageGrid.removeAttribute('data-filter');
+        } else {
+            if (legacyGrid) legacyGrid.hidden = true;
+            imageGrid.hidden = false;
+            if (mode === 'collage') {
+                imageGrid.removeAttribute('data-filter');
+            } else {
+                imageGrid.dataset.filter = mode;   // weft|warp|mix
+            }
+        }
+    }
+
+    modeBtns.forEach(b => b.addEventListener('click', () => applyMode(b.dataset.mode)));
+
+    // İlk yüklemede localStorage'tan oku
+    let initial = 'collage';
+    try { initial = localStorage.getItem(MODE_KEY) || 'collage'; } catch (e) {}
+    applyMode(initial);
+})();

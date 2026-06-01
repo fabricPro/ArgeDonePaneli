@@ -7277,3 +7277,119 @@ body.embed-calisma-right .urun-main-tabs .utab-btn[data-tab="galeri"] {
     font-style: italic;
 }
 
+/* ============================================================
+ * v4.0-part-2 Sprint 8.8 — Renk paleti: görsel-bazlı kolaj + filtreler
+ * ============================================================ */
+
+.palette-mode-bar {
+    display: flex;
+    gap: 4px;
+    margin: 8px 0 10px;
+    flex-wrap: wrap;
+}
+.palette-mode-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.palette-mode-btn:hover {
+    color: var(--text);
+    border-color: var(--border-strong);
+}
+.palette-mode-btn.is-active {
+    background: rgba(212, 175, 127, 0.15);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+}
+
+/* Görsel-bazlı grid (kolaj modu) */
+.palette-grid-image {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 10px;
+    margin-top: 4px;
+}
+.palette-image-chip {
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    transition: transform 0.15s;
+}
+.palette-image-chip:hover { transform: translateY(-2px); }
+.palette-image-chip:hover .pic-swatch { border-color: var(--accent); }
+
+.pic-swatch {
+    width: 64px;
+    height: 64px;
+    border-radius: 6px;
+    overflow: hidden;
+    display: grid;
+    border: 1px solid var(--border);
+    transition: border-color 0.15s;
+}
+
+/* 3 rol: sol yarı = mix, sağ-üst = warp, sağ-alt = weft */
+.pic-collage-3 {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+}
+.pic-collage-3 .pic-mix  { grid-column: 1; grid-row: 1 / span 2; }
+.pic-collage-3 .pic-warp { grid-column: 2; grid-row: 1; }
+.pic-collage-3 .pic-weft { grid-column: 2; grid-row: 2; }
+
+/* 2 rol: yan yana (DOM sırası mix → warp → weft) */
+.pic-collage-2 {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+}
+.pic-collage-2 .pic-region { grid-row: 1; }
+
+/* 1 rol: tam alan solid */
+.pic-collage-1 .pic-region {
+    grid-column: 1 / -1;
+    grid-row: 1 / -1;
+}
+
+.pic-region { display: block; }
+
+.pic-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Filtre modları (weft/warp/mix) — sadece o rolün solid swatch'ı + diğer chip'leri gizle */
+.palette-grid-image[data-filter] .pic-region { display: none; }
+.palette-grid-image[data-filter="weft"] .pic-weft,
+.palette-grid-image[data-filter="warp"] .pic-warp,
+.palette-grid-image[data-filter="mix"]  .pic-mix {
+    display: block;
+    grid-column: 1 / -1;
+    grid-row: 1 / -1;
+}
+.palette-grid-image[data-filter="weft"] .palette-image-chip[data-has-weft="0"],
+.palette-grid-image[data-filter="warp"] .palette-image-chip[data-has-warp="0"],
+.palette-grid-image[data-filter="mix"]  .palette-image-chip[data-has-mix="0"] {
+    display: none;
+}
+
+/* Mobile — swatch küçült */
+@media (max-width: 720px) {
+    .pic-swatch { width: 48px; height: 48px; }
+    .pic-label { max-width: 60px; font-size: 10px; }
+}
+
