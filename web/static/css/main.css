@@ -3005,14 +3005,12 @@ body.image-select-on .img-manage-card .variant-label-input { pointer-events: non
 
 /* Sticky hero — scroll'da üstte kalır */
 .urun-sticky-hero {
-    position: sticky;
-    top: 56px;                  /* topbar altı */
-    z-index: 50;
+    /* Sprint 8.7 — sticky kaldırıldı; aşağı kaydırınca hero da gitsin (sınıf adı geriye uyum için duruyor) */
+    position: static;
     background: var(--bg);
     padding: 4px 0 8px;
     margin: 0 0 12px;
     border-bottom: 1px solid var(--border);
-    transition: padding var(--t-base) var(--ease);
 }
 
 /* Ana sekme nav (Galeri/Teknik) */
