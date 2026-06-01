@@ -117,6 +117,12 @@ def upload_image(path: str, data: bytes, content_type: str = "image/jpeg") -> No
     )
 
 
+def download_image_bytes(path: str) -> bytes:
+    """v4.0-part-2 Sprint 10.5 — Storage'tan binary oku.
+    Prefill kopyalama (_inbox → product folder) için kullanılır."""
+    return client().storage.from_(BUCKET).download(path)
+
+
 def delete_images(paths: list[str]) -> None:
     paths = [p for p in paths if p]
     if paths:

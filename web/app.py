@@ -457,6 +457,16 @@ def ekle():
             prefill = store.research_get(from_research_id)
         except Exception:
             prefill = None
+    # v4.0-part-2 Sprint 10.5 — research entry'sinin galerisi → önizleme listesi
+    prefill_images_with_urls = []
+    if prefill and prefill.get("images"):
+        for im in (prefill["images"] or []):
+            if isinstance(im, dict) and im.get("storage_path"):
+                prefill_images_with_urls.append({
+                    "path": im["storage_path"],
+                    "url": store.public_url(im["storage_path"]),
+                    "alt": im.get("alt") or "",
+                })
     # Sağ panel için: tüm pending research'leri grupla (ülke → firma)
     try:
         research_rows = store.research_list(status="pending", limit=200)
@@ -468,6 +478,7 @@ def ekle():
         countries=country_list(),
         country_suggestions=COUNTRY_SUGGESTIONS, weave_suggestions=WEAVE_SUGGESTIONS,
         prefill=prefill,
+        prefill_images_with_urls=prefill_images_with_urls,
         research_rows=research_rows,
     )
 
@@ -676,13 +687,36 @@ def api_create_urun():
     cover_index = parse_int(f.get("cover_index")) or 0
 
     images = []
+
+    # v4.0-part-2 Sprint 10.5 — Ön Çalışmadan gelen görselleri ÖNCE kopyala
+    # (sıra: prefill → yeni upload; cover default = ilk prefill = ilk yakalanan)
+    prefill_paths = request.form.getlist("prefill_image_paths")
+    prefill_alts  = request.form.getlist("prefill_image_alts")
+    for i, src_path in enumerate(prefill_paths):
+        if not src_path:
+            continue
+        try:
+            data = store.download_image_bytes(src_path)
+            dst_path = f"{dest_prefix}/{len(images)}_{uuid.uuid4().hex[:8]}.jpg"
+            store.upload_image(dst_path, data, "image/jpeg")
+            alt = prefill_alts[i].strip() if i < len(prefill_alts) and prefill_alts[i].strip() else None
+            images.append({
+                "path": dst_path,
+                "variant_label": alt,
+                "is_cover": False,
+                "order": len(images),
+            })
+        except Exception as e:
+            print(f"[Sprint 10.5] Prefill görsel kopyalanamadı ({src_path}): {e}")
+
+    # Yeni upload'lar (file-input'tan)
     for i, fs in enumerate(files):
         try:
-            path = save_image(fs, dest_prefix, i)
+            path = save_image(fs, dest_prefix, len(images))
         except Exception as e:
             return jsonify({"ok": False, "error": f"Görsel yüklenemedi ({fs.filename}): {e}"}), 400
         label = labels[i].strip() if i < len(labels) and labels[i].strip() else None
-        images.append({"path": path, "variant_label": label, "is_cover": False, "order": i})
+        images.append({"path": path, "variant_label": label, "is_cover": False, "order": len(images)})
     if images:
         ci = cover_index if 0 <= cover_index < len(images) else 0
         images[ci]["is_cover"] = True

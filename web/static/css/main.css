@@ -7690,3 +7690,70 @@ body.embed-calisma-right .urun-main-tabs .utab-btn[data-tab="galeri"] {
     .ardet-gallery { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
 }
 
+/* ============================================================
+ * v4.0-part-2 Sprint 10.5 — Ön Çalışma görselleri önizleme (ekle.html)
+ * ============================================================ */
+
+.prefill-images-section {
+    margin-bottom: 16px;
+}
+.prefill-images-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+    margin-top: 8px;
+}
+.prefill-img-card {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: opacity 0.15s, border-color 0.15s;
+}
+.prefill-img-card[data-removed="true"] {
+    opacity: 0.35;
+    border-color: #e07260;
+}
+.prefill-img-card[data-removed="true"] img {
+    filter: grayscale(0.6);
+}
+.prefill-img-card img {
+    width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    display: block;
+}
+.prefill-img-alt {
+    display: block;
+    padding: 4px 8px;
+    font-size: 11px;
+    color: var(--text-dim);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.prefill-img-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(15, 17, 20, 0.8);
+    color: var(--text);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.prefill-img-remove:hover {
+    background: #e07260;
+    border-color: #e07260;
+    color: #fff;
+}
+
