@@ -280,9 +280,21 @@
         <div class="aside-tab-panel" data-tab-panel="gemini" role="tabpanel" hidden>
             <div class="gemini-intro">
                 <p>Sol formdaki <strong>Kaynak Bağlantısı</strong> alanına ürün linkini yapıştır, butona bas.</p>
+                {# v4.0-part-2 Sprint 11.7 — Model seçici (localStorage'da saklanır, kota dolunca anında geçiş) #}
+                <div class="gemini-model-row">
+                    <label for="gemini-model-select">Model</label>
+                    <select id="gemini-model-select" class="gemini-model-select">
+                        <option value="">Varsayılan ({{ "Server'dan" }})</option>
+                        <option value="gemini-2.5-flash">Dengeli — gemini-2.5-flash</option>
+                        <option value="gemini-2.5-flash-lite">Hızlı/Ucuz — gemini-2.5-flash-lite</option>
+                        <option value="gemini-2.5-pro">En Doğru — gemini-2.5-pro</option>
+                        <option value="gemini-flash-latest">En Yeni — gemini-flash-latest</option>
+                    </select>
+                </div>
                 <button type="button" class="btn btn-primary gemini-trigger" id="gemini-trigger" disabled>
                     🔮 Linkten Doldur
                 </button>
+                <p class="gemini-model-status" id="gemini-model-status" hidden></p>
                 <p class="gemini-hint">Gemini SADECE sayfada açıkça yazan bilgileri çıkarır. Her öneride kaynak alıntısı görürsün — kabul edip etmemek senin kararın.</p>
             </div>
 
@@ -576,6 +588,26 @@ document.querySelectorAll('.prefill-img-remove').forEach(btn => {
     const acceptAll = document.getElementById('gemini-accept-all');
     if (!trigger) return;
 
+    // v4.0-part-2 Sprint 11.7 — Model seçici (localStorage)
+    const modelSelect = document.getElementById('gemini-model-select');
+    const modelStatus = document.getElementById('gemini-model-status');
+    const MODEL_STORAGE_KEY = 'mobidik_gemini_model';
+    function showModelStatus(usedModel, msg) {
+        if (!modelStatus) return;
+        if (!usedModel) { modelStatus.hidden = true; return; }
+        modelStatus.hidden = false;
+        modelStatus.textContent = (msg ? (msg + ' · ') : 'Son kullanılan: ') + usedModel;
+    }
+    if (modelSelect) {
+        try {
+            const saved = localStorage.getItem(MODEL_STORAGE_KEY);
+            if (saved !== null) modelSelect.value = saved;
+        } catch (e) {}
+        modelSelect.addEventListener('change', () => {
+            try { localStorage.setItem(MODEL_STORAGE_KEY, modelSelect.value); } catch (e) {}
+        });
+    }
+
     function updateTriggerState() {
         const v = (sourceUrlInput?.value || '').trim();
         trigger.disabled = !/^https?:\/\//i.test(v);
@@ -797,12 +829,21 @@ document.querySelectorAll('.prefill-img-remove').forEach(btn => {
         if (!url) return;
         showLoading();
         try {
+            // v4.0-part-2 Sprint 11.7 — Seçilen modeli body'ye ekle (boşsa server default)
+            const body = { url };
+            const chosenModel = modelSelect ? (modelSelect.value || '').trim() : '';
+            if (chosenModel) body.model = chosenModel;
             const res = await fetch('{{ url_for("api_urun_linkten_doldur") }}', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url }),
+                body: JSON.stringify(body),
             });
             const data = await res.json();
+            // Hangi model kullanıldı? (server cevabında her durumda gelir)
+            const used = data.model || '';
+            const invalidNote = data.model_invalid
+                ? '(geçersiz seçim → varsayılana düştü)' : null;
+            showModelStatus(used, invalidNote);
             if (!data.ok) {
                 showError(data.message || data.error || 'Gemini önerileri alınamadı.');
                 return;

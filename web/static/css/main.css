@@ -7108,6 +7108,44 @@ body.embed-calisma-right .urun-main-tabs .utab-btn[data-tab="galeri"] {
     color: var(--text-muted, var(--text-dim));
 }
 
+/* v4.0-part-2 Sprint 11.7 — Model seçici */
+.gemini-model-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0 6px;
+    font-size: 12px;
+}
+.gemini-model-row label {
+    color: var(--text-dim);
+    font-weight: 600;
+    flex: 0 0 auto;
+}
+.gemini-model-select {
+    flex: 1;
+    padding: 5px 8px;
+    background: var(--bg-elev);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: inherit;
+}
+.gemini-model-select:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+.gemini-model-status {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-style: italic;
+    margin: 6px 0;
+    padding: 4px 8px;
+    background: rgba(212, 175, 127, 0.06);
+    border-left: 2px solid var(--accent);
+    border-radius: 2px;
+}
+
 /* Loading / hata */
 .gemini-loading {
     padding: 18px 12px;

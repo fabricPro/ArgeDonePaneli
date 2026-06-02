@@ -904,10 +904,23 @@ def api_urun_linkten_doldur():
             "message": "url http:// veya https:// ile başlamalı",
         }), 400
 
+    # v4.0-part-2 Sprint 11.7 — Model override (UI dropdown'dan)
+    # Whitelist dışında kalan veya boş gönderilen değer → None (default'a düşer)
+    GEMINI_MODEL_WHITELIST = {
+        "gemini-2.5-flash",
+        "gemini-2.5-flash-lite",
+        "gemini-2.5-pro",
+        "gemini-flash-latest",
+        "gemini-flash-lite-latest",
+        "gemini-pro-latest",
+    }
+    requested_model = (data.get("model") or "").strip() or None
+    model_override = requested_model if requested_model in GEMINI_MODEL_WHITELIST else None
+
     # Tek-çağrı sarmalayıcı: fetch + extract.
     # Başarısızlık koşullarını `linkten_doldur` ok=False olarak döndürür.
     try:
-        result = gx.linkten_doldur(url)
+        result = gx.linkten_doldur(url, model=model_override)
     except Exception as e:
         return jsonify({
             "ok": False, "error": "unexpected",
@@ -922,6 +935,9 @@ def api_urun_linkten_doldur():
             "stage": result.get("stage"),
             "error": result.get("error"),
             "message": result.get("message") or "Bilinmeyen hata",
+            "model": result.get("model_used") or gx.MODEL_NAME,
+            "requested_model": requested_model,
+            "model_invalid": bool(requested_model and not model_override),
         }), 200
 
     return jsonify({
@@ -929,6 +945,9 @@ def api_urun_linkten_doldur():
         "suggestions": result.get("suggestions") or {},
         "title": result.get("title") or "",
         "truncated": bool(result.get("truncated")),
+        "model": result.get("model_used") or gx.MODEL_NAME,
+        "requested_model": requested_model,
+        "model_invalid": bool(requested_model and not model_override),
     }), 200
 
 

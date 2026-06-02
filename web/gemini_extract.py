@@ -300,8 +300,13 @@ PAGE_TEXT (temizlenmiş, max 8000 char):
 Bu sayfa bir kumaş ÜRÜN sayfası mı? Eğer evetse, sistem promptundaki kurallara göre alanları doldur. Eğer ürün sayfası değilse error: "page_not_product" döndür."""
 
 
-def extract_fabric_fields(content: dict) -> dict:
+def extract_fabric_fields(content: dict, model: str | None = None) -> dict:
     """Gemini ile sayfayı oku + form alanlarına eşle.
+
+    Args:
+      content: fetch_clean_content çıktısı
+      model:   opsiyonel model adı (kullanıcı UI'dan override edebilir);
+               None ise MODEL_NAME (env / default) kullanılır.
 
     Returns:
       {field: {value, evidence} | null, "error"?: str}
@@ -314,15 +319,16 @@ def extract_fabric_fields(content: dict) -> dict:
 
     genai.configure(api_key=GEMINI_API_KEY)
 
-    model = genai.GenerativeModel(
-        MODEL_NAME,
+    model_name = (model or MODEL_NAME or "").strip() or MODEL_NAME
+    gen_model = genai.GenerativeModel(
+        model_name,
         system_instruction=SYSTEM_PROMPT,
     )
 
     user_prompt = _build_user_prompt(content)
 
     try:
-        response = model.generate_content(
+        response = gen_model.generate_content(
             user_prompt,
             generation_config={
                 "response_mime_type": "application/json",
@@ -355,14 +361,19 @@ def extract_fabric_fields(content: dict) -> dict:
 # 3) Kullanışlı tek-çağrı sarmalayıcı
 # ============================================================
 
-def linkten_doldur(url: str) -> dict:
+def linkten_doldur(url: str, model: str | None = None) -> dict:
     """Tek çağrıda fetch + extract. Route'tan kullanılır.
 
+    Args:
+      url:   sayfa URL'i
+      model: opsiyonel model override; None ise MODEL_NAME (env/default)
+
     Returns:
-      {"ok": True, "suggestions": {...}, "title": "..."}
+      {"ok": True, "suggestions": {...}, "title": "...", "model_used": "..."}
       veya
-      {"ok": False, "error": "...", "stage": "fetch"|"extract"}
+      {"ok": False, "error": "...", "stage": "fetch"|"extract", "model_used": "..."}
     """
+    used = (model or MODEL_NAME or "").strip() or MODEL_NAME
     # 1) Fetch
     try:
         content = fetch_clean_content(url)
@@ -374,22 +385,25 @@ def linkten_doldur(url: str) -> dict:
             "ok": False, "stage": "fetch",
             "error": f"http_{code}",
             "message": f"Sayfa erişim hatası (HTTP {code})",
+            "model_used": used,
         }
     except requests.RequestException as e:
         return {
             "ok": False, "stage": "fetch",
             "error": "network",
             "message": f"Sayfa çekilemedi: {e}",
+            "model_used": used,
         }
     except Exception as e:
         return {
             "ok": False, "stage": "fetch",
             "error": "unknown",
             "message": f"Sayfa çekilemedi: {e}",
+            "model_used": used,
         }
 
     # 2) Extract
-    suggestions = extract_fabric_fields(content)
+    suggestions = extract_fabric_fields(content, model=model)
     if "error" in suggestions and not any(
         k for k in suggestions if k != "error"
     ):
@@ -398,6 +412,7 @@ def linkten_doldur(url: str) -> dict:
             "ok": False, "stage": "extract",
             "error": suggestions["error"],
             "message": _human_error(suggestions["error"]),
+            "model_used": used,
         }
 
     return {
@@ -405,6 +420,7 @@ def linkten_doldur(url: str) -> dict:
         "suggestions": suggestions,
         "title": content.get("title", ""),
         "truncated": content.get("truncated", False),
+        "model_used": used,
     }
 
 
