@@ -79,6 +79,11 @@ KESİN KURALLAR (uyulmazsa cevabın geçersizdir):
    - Sayı kesirli (137.5) ise integer'a yuvarlama YAPMA — null bırak ve evidence ver, kullanıcı karar versin
 
 5) ANAYASA KURAL #3 — bu alanlar AŞIRI HASSAS:
+   - brand: Sayfanın header / meta etiketi (og:site_name, application_name) / footer / page title / breadcrumb içinde AÇIKÇA YAZAN marka adını al. Domain (örn. "kvadrat.dk") TEK BAŞINA evidence olarak yetmez — sayfa metninde mutlaka geçmeli; geçtiği yeri evidence'a yaz.
+       * Multi-brand reseller (etoffe.com, romo.com vb.): ürün-spesifik marka açıkça yazıyorsa ("by Coordonné", "Coordonné collection") onu al; aksi halde NULL.
+       * Tasarımcı/kolaboratör (Patricia Urquiola, Marc Newson) MARKA DEĞİL — onlar arge_notu_taslak'a girer.
+       * Marka adı orijinal yazımıyla kalır (çevirme): "Coordonné", "Création Baumann", "Dedar", "Kvadrat".
+       * Birden fazla aday varsa (örn. reseller sitede hem "Etoffe" hem "Coordonné") ürünü ÜRETEN/TASARLAYAN markayı tercih et.
    - composition: tam alıntı yapamıyorsan NULL. "Mostly natural fibers" gibi belirsiz ifadeler NULL.
    - production_country: SAYFA "Made in Italy" gibi üretim yeri belirtiyorsa "İtalya". Marka HQ (firma merkezi) ile KARIŞTIRMA. Belirtmiyorsa NULL.
    - HİÇBİR şartla sertifika/FR/MOQ/teslim alanı doldurma — bunlar bu çıktıda zaten yok, ama metinden çıkarıp arge_notu_taslak'a da SIZDIRMA.
@@ -158,6 +163,7 @@ _PRICE_FIELD_OBJECT = {
 RESPONSE_SCHEMA: dict[str, Any] = {
     "type": "object",
     "properties": {
+        "brand":                 _FIELD_OBJECT,   # v4.0-part-2 Sprint 11.6 — YENİ
         "product_name":          _FIELD_OBJECT,
         "product_code":          _FIELD_OBJECT,
         "collection":            _FIELD_OBJECT,

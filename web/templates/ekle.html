@@ -584,9 +584,11 @@ document.querySelectorAll('.prefill-img-remove').forEach(btn => {
     updateTriggerState();
 
     // 3) Alan → form input eşleştirme
-    // v4.0-part-2 Sprint 11.5: 'country' (HQ) Gemini'den GELMEZ; brand seçilince
-    // auto-fill ile dolar. Gemini sadece production_country (Made in) ve reference_price önerir.
+    // v4.0-part-2 Sprint 11.5/11.6: brand + production_country + reference_price Gemini'den önerilir.
+    // Brand kabul edilince change event tetiklenir → brand-select change handler brand_country
+    // auto-fill yapar (zincirleme).
     const FIELD_INFO = {
+        brand:                { label: 'Marka',           sel: '#brand-select', isBrand: true },
         product_name:         { label: 'Ürün Adı',        sel: 'input[name="product_name"]' },
         product_code:         { label: 'Ürün Kodu',       sel: 'input[name="product_code"]' },
         collection:           { label: 'Koleksiyon',      sel: 'input[name="collection"]' },
@@ -603,7 +605,7 @@ document.querySelectorAll('.prefill-img-remove').forEach(btn => {
         arge_notu_taslak:     { label: 'ARGE Notu',       sel: 'textarea[name="arge_notu"]' },
     };
     const FIELD_ORDER = [
-        'product_name', 'product_code', 'collection', 'production_country',
+        'brand', 'product_name', 'product_code', 'collection', 'production_country',
         'composition', 'width_cm', 'weight_gsm', 'weave_type',
         'repeat_vertical_cm', 'repeat_horizontal_cm', 'reference_price', 'arge_notu_taslak',
     ];
@@ -717,7 +719,33 @@ document.querySelectorAll('.prefill-img-remove').forEach(btn => {
         if (!input) return;
         const v = String(value).trim();
 
-        if (info.isProdCountry) {
+        if (info.isBrand) {
+            // v4.0-part-2 Sprint 11.6 — Gemini brand önerisi:
+            // 1) Registry'de isim eşleşirse o slug'i seç (data-name veya slug match)
+            // 2) Yoksa __other__ + brand-other input'a yaz
+            // 3) change event tetikle → brand-select change handler brand_country auto-fill yapar
+            const lower = v.toLowerCase();
+            // slug normalize için basit kıyas: lowercase + boşluk/tire/altçizgi tek tip
+            const norm = (s) => (s || '').toLowerCase().replace(/[\s_]+/g, '-');
+            const opt = [...input.options].find(o =>
+                (o.dataset && o.dataset.name && o.dataset.name.toLowerCase() === lower) ||
+                (o.value && o.value.toLowerCase() === lower) ||
+                (o.value && norm(o.value) === norm(v))
+            );
+            if (opt) {
+                input.value = opt.value;
+                if (brandOther) {
+                    brandOther.style.display = 'none';
+                    brandOther.value = '';
+                }
+            } else {
+                input.value = '__other__';
+                if (brandOther) {
+                    brandOther.style.display = 'block';
+                    brandOther.value = v;
+                }
+            }
+        } else if (info.isProdCountry) {
             // v4.0-part-2 Sprint 11.5 — Uretim Ulkesi chip + hidden input
             input.value = v;
             if (prodCountryChip) {
