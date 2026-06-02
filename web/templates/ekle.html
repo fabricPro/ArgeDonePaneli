@@ -115,18 +115,39 @@
         </div>
 
         {# v4.0-part-2 Sprint 10.5 — Ön Çalışmadan gelen görseller önizleme #}
+        {# v4.0-part-2 Sprint 11 — albümlere ayır + renk paleti (ürün oluşunca taşınır) #}
         {% if prefill_images_with_urls %}
         <div class="upload-section prefill-images-section">
             <label class="upload-label">
                 Ön Çalışmadan Gelen Görseller
-                <span class="hint">— {{ prefill_images_with_urls|length }} adet, çıkarmak için × bas</span>
+                <span class="hint">— {{ prefill_images_with_urls|length }} adet · albümlere ayır + renk seç (ürün oluşunca taşınır), çıkarmak için × bas</span>
             </label>
+
+            {% set ac_total = prefill_images_with_urls|length %}
+            {% include "_album_color_tools.html" %}
+
             <div class="prefill-images-grid" id="prefill-grid">
                 {% for im in prefill_images_with_urls %}
-                <article class="prefill-img-card" data-path="{{ im.path }}" data-alt="{{ im.alt }}" data-removed="false">
+                <article class="prefill-img-card" data-path="{{ im.path }}" data-alt="{{ im.alt }}" data-removed="false"
+                         data-albums='{{ (im.albums or [])|tojson }}'>
+                    <span class="img-check-overlay" aria-hidden="true"><svg class="icon"><use href="#ic-check"/></svg></span>
                     <img src="{{ im.url }}" loading="lazy" alt="{{ im.alt }}">
                     <span class="prefill-img-alt">{{ im.alt or '—' }}</span>
                     <button type="button" class="prefill-img-remove" title="Bu görseli çıkar">×</button>
+                    {% if im.colors %}
+                    <div class="img-color-badges" data-path="{{ im.path }}">
+                        {% for role in ['weft','warp','mix'] %}
+                            {% set c = im.colors.get(role) %}
+                            {% if c %}
+                            <span class="color-badge color-badge-{{ role }}" style="--c:{{ c.hex }}"
+                                  title="{{ {'weft':'Atkı','warp':'Çözgü','mix':'Toplam'}[role] }}: {{ c.name or c.nearest }} ({{ c.hex }})">
+                                <em class="cb-role">{{ {'weft':'A','warp':'Ç','mix':'T'}[role] }}</em>
+                                <span class="cb-name">{{ c.name or c.nearest }}</span>
+                            </span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                 </article>
                 {% endfor %}
             </div>
@@ -440,4 +461,17 @@ document.querySelectorAll('.prefill-img-remove').forEach(btn => {
     });
 });
 </script>
+
+{# v4.0-part-2 Sprint 11 — Ürün öncesi albüm + renk paleti (research kaydına canlı yazar) #}
+{% if research_id %}
+<script>
+window.__AC_CONFIG__ = {
+    base: "/api/arastirma/{{ research_id }}",
+    cardSelector: ".prefill-img-card",
+    dictionaryUrl: "{{ url_for('static', filename='data/renkler.json') }}"
+};
+</script>
+<script src="{{ url_for('static', filename='js/color-picker.js') }}"></script>
+<script src="{{ url_for('static', filename='js/album-color-tools.js') }}"></script>
+{% endif %}
 {% endblock %}

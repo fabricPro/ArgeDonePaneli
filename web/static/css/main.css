@@ -7757,3 +7757,30 @@ body.embed-calisma-right .urun-main-tabs .utab-btn[data-tab="galeri"] {
     color: #fff;
 }
 
+/* ============================================================
+   v4.0-part-2 Sprint 11 — Ürün öncesi albüm + renk paleti aracı
+   (araştırma detayı + Ürüne Çevir ekranı — paylaşımlı bileşen)
+   ============================================================ */
+.ac-tools { margin: 18px 0 10px; }
+.ac-toolbar { display: flex; align-items: center; gap: 12px; margin: 10px 0; flex-wrap: wrap; }
+.ac-toolbar-hint { color: var(--text-dim); font-size: 13px; }
+
+/* Seçim modu — araştırma + Ürüne Çevir görsel kartları */
+.ardet-img-card { position: relative; }
+body.image-select-on .ardet-img-card,
+body.image-select-on .prefill-img-card { cursor: pointer; }
+body.image-select-on .ardet-img-card .img-check-overlay,
+body.image-select-on .prefill-img-card .img-check-overlay { display: flex; }
+.ardet-img-card.ac-selected,
+.prefill-img-card.ac-selected { outline: 2px solid var(--accent); outline-offset: -2px; }
+.ardet-img-card.ac-selected .img-check-overlay,
+.prefill-img-card.ac-selected .img-check-overlay {
+    background: var(--accent); border-color: var(--accent); color: #1a1410;
+}
+.ardet-img-card.ac-selected .img-check-overlay .icon,
+.prefill-img-card.ac-selected .img-check-overlay .icon { opacity: 1; }
+/* Seçim modunda kaldır (×) butonu pasif görünsün */
+body.image-select-on .prefill-img-remove { pointer-events: none; opacity: 0.4; }
+/* Renk rozetleri Ürüne Çevir kartında alt alta sığsın */
+.prefill-img-card .img-color-badges { padding: 0 6px 6px; }
+

@@ -458,14 +458,19 @@ def ekle():
         except Exception:
             prefill = None
     # v4.0-part-2 Sprint 10.5 — research entry'sinin galerisi → önizleme listesi
+    # v4.0-part-2 Sprint 11 — albüm + renk paleti bağlamı (canlı düzenleme)
     prefill_images_with_urls = []
+    research_ctx = None
     if prefill and prefill.get("images"):
-        for im in (prefill["images"] or []):
-            if isinstance(im, dict) and im.get("storage_path"):
+        research_ctx = _research_album_ctx(prefill)
+        for im in research_ctx["images_with_urls"]:
+            if im.get("storage_path"):
                 prefill_images_with_urls.append({
                     "path": im["storage_path"],
-                    "url": store.public_url(im["storage_path"]),
+                    "url": im.get("url"),
                     "alt": im.get("alt") or "",
+                    "albums": im.get("albums") or [],
+                    "colors": im.get("colors") or {},
                 })
     # Sağ panel için: tüm pending research'leri grupla (ülke → firma)
     try:
@@ -480,6 +485,13 @@ def ekle():
         prefill=prefill,
         prefill_images_with_urls=prefill_images_with_urls,
         research_rows=research_rows,
+        research_id=from_research_id if research_ctx else None,
+        albums=(research_ctx["albums"] if research_ctx else []),
+        album_counts=(research_ctx["album_counts"] if research_ctx else {}),
+        color_palette=(research_ctx["palette"] if research_ctx else []),
+        color_album_slug=(research_ctx["color_album_slug"] if research_ctx else None),
+        color_picker_images=(research_ctx["color_picker_images"] if research_ctx else []),
+        image_color_map=(research_ctx["image_color_map"] if research_ctx else {}),
     )
 
 
@@ -690,8 +702,22 @@ def api_create_urun():
 
     # v4.0-part-2 Sprint 10.5 — Ön Çalışmadan gelen görselleri ÖNCE kopyala
     # (sıra: prefill → yeni upload; cover default = ilk prefill = ilk yakalanan)
+    # v4.0-part-2 Sprint 11 — albüm + renk verisini de araştırmadan ürüne taşı
     prefill_paths = request.form.getlist("prefill_image_paths")
     prefill_alts  = request.form.getlist("prefill_image_alts")
+    from_research_id = clean(f.get("from_research_id"))
+    research_row = None
+    research_img_by_path: dict[str, dict] = {}
+    if from_research_id:
+        try:
+            research_row = store.research_get(from_research_id)
+        except Exception:
+            research_row = None
+        if research_row:
+            for im in (research_row.get("images") or []):
+                if isinstance(im, dict) and im.get("storage_path"):
+                    research_img_by_path[im["storage_path"]] = im
+    used_album_slugs: set[str] = set()
     for i, src_path in enumerate(prefill_paths):
         if not src_path:
             continue
@@ -700,12 +726,23 @@ def api_create_urun():
             dst_path = f"{dest_prefix}/{len(images)}_{uuid.uuid4().hex[:8]}.jpg"
             store.upload_image(dst_path, data, "image/jpeg")
             alt = prefill_alts[i].strip() if i < len(prefill_alts) and prefill_alts[i].strip() else None
-            images.append({
+            img_obj = {
                 "path": dst_path,
                 "variant_label": alt,
                 "is_cover": False,
                 "order": len(images),
-            })
+            }
+            # Araştırmadaki eşleşen görselin albüm + renk verisini taşı
+            r_im = research_img_by_path.get(src_path)
+            if r_im:
+                r_albums = [s for s in (r_im.get("albums") or []) if s]
+                if r_albums:
+                    img_obj["albums"] = sorted(set(r_albums))
+                    used_album_slugs.update(r_albums)
+                r_colors = r_im.get("colors") or {}
+                if r_colors:
+                    img_obj["colors"] = r_colors
+            images.append(img_obj)
         except Exception as e:
             print(f"[Sprint 10.5] Prefill görsel kopyalanamadı ({src_path}): {e}")
 
@@ -750,12 +787,18 @@ def api_create_urun():
         "country_code": _country_iso(norm_country(clean(f.get("country")))),
         "created_at": now, "updated_at": now, "images": images,
     }
+    # v4.0-part-2 Sprint 11 — Araştırmadaki albüm tanımlarını ürüne tohumla
+    # (sadece kopyalanan görsellerde kullanılan albümler — yetim boş albüm bırakma)
+    if research_row and used_album_slugs:
+        d["albums"] = [
+            a for a in (research_row.get("albums") or [])
+            if isinstance(a, dict) and a.get("slug") in used_album_slugs
+        ]
     if pdfs_meta:
         d["pdfs"] = pdfs_meta
     store.upsert(d)
 
     # v4.0-part-2 Adım 8 — Ön Çalışma kaydı varsa "imported" işaretle
-    from_research_id = clean(f.get("from_research_id"))
     if from_research_id:
         try:
             store.research_update_status(from_research_id, "imported", imported_product_id=urun_id)
@@ -950,7 +993,7 @@ def _derive_color_palette(images: list[dict]) -> list[dict]:
                 "name": c.get("name") or c.get("nearest") or "—",
                 "lab": c.get("lab") or [50, 0, 0],
                 "role": role,
-                "image_path": im.get("path"),
+                "image_path": im.get("path") or im.get("storage_path"),
             })
     by_hex: dict[str, list[dict]] = {}
     for it in items:
@@ -1547,6 +1590,87 @@ def _unique_album_slug(base: str, existing: list[str]) -> str:
     return f"{base}-{i}"
 
 
+# ------------------------------------------------------------
+# v4.0-part-2 Sprint 11 — Generik albüm/renk mutasyon yardımcıları
+# `d` herhangi bir kayıt: {images: [...], albums: [...]}.
+# key_field görsel anahtar alanı: ürün="path", araştırma="storage_path".
+# Hatalar ValueError ile yükselir; rotalar 400'e çevirir.
+# ------------------------------------------------------------
+
+def _albums_create(d: dict, name: str) -> str:
+    albums = d.get("albums") or []
+    existing = [a.get("slug") for a in albums if isinstance(a, dict)]
+    slug = _unique_album_slug(_album_slugify(name), existing)
+    albums.append({"slug": slug, "name": name})
+    d["albums"] = albums
+    return slug
+
+
+def _albums_delete(d: dict, slug: str) -> None:
+    d["albums"] = [a for a in (d.get("albums") or []) if a.get("slug") != slug]
+    for im in (d.get("images") or []):
+        tags = im.get("albums") or []
+        if slug in tags:
+            im["albums"] = [s for s in tags if s != slug]
+
+
+def _albums_rename(d: dict, slug: str, new_name: str) -> bool:
+    for a in (d.get("albums") or []):
+        if a.get("slug") == slug:
+            a["name"] = new_name
+            return True
+    return False
+
+
+def _albums_assign(d: dict, slug: str, keys: list[str], add: bool, key_field: str = "path") -> int:
+    if add:
+        known = [a.get("slug") for a in (d.get("albums") or [])]
+        if slug not in known:
+            raise ValueError("Albüm tanımlı değil")
+    key_set = set(keys)
+    affected = 0
+    for im in (d.get("images") or []):
+        if im.get(key_field) not in key_set:
+            continue
+        tags = set(im.get("albums") or [])
+        if add:
+            if slug not in tags:
+                tags.add(slug); affected += 1
+        else:
+            if slug in tags:
+                tags.discard(slug); affected += 1
+        im["albums"] = sorted(tags)
+    return affected
+
+
+def _image_set_colors(d: dict, key: str, payload: dict, key_field: str = "path") -> dict:
+    """Bir görselin atkı/çözgü/toplam renk atamasını günceller (kısmi).
+    null/{} -> o rol silinir. Güncellenmiş colors dict'ini döner."""
+    images = d.get("images") or []
+    match = next((im for im in images if im.get(key_field) == key), None)
+    if not match:
+        raise ValueError("Görsel bulunamadı")
+    cur = match.get("colors") or {}
+    for role in ("weft", "warp", "mix"):
+        if role not in payload:
+            continue
+        v = payload[role]
+        if v is None or v == {}:
+            cur.pop(role, None)
+            continue
+        if not isinstance(v, dict) or not v.get("hex"):
+            raise ValueError(f"{role} için hex zorunlu")
+        v["hex"] = str(v["hex"]).upper()
+        v["name"] = (str(v.get("name") or "")).strip() or "—"
+        v["picked_at"] = now_iso()
+        cur[role] = v
+    if cur:
+        match["colors"] = cur
+    else:
+        match.pop("colors", None)
+    return cur
+
+
 @app.route("/api/urun/<urun_id>/album-ekle", methods=["POST"])
 def api_album_create(urun_id: str):
     d = store.get(urun_id)
@@ -1555,11 +1679,7 @@ def api_album_create(urun_id: str):
     name = clean((request.get_json(force=True) or {}).get("name"))
     if not name:
         return jsonify({"ok": False, "error": "Albüm adı zorunlu"}), 400
-    albums = d.get("albums") or []
-    existing = [a.get("slug") for a in albums if isinstance(a, dict)]
-    slug = _unique_album_slug(_album_slugify(name), existing)
-    albums.append({"slug": slug, "name": name})
-    d["albums"] = albums
+    slug = _albums_create(d, name)
     d["updated_at"] = now_iso()
     store.upsert(d)
     return jsonify({"ok": True, "slug": slug, "name": name})
@@ -1573,13 +1693,7 @@ def api_album_delete(urun_id: str):
     slug = (request.get_json(force=True) or {}).get("slug")
     if not slug:
         return jsonify({"ok": False, "error": "slug zorunlu"}), 400
-    albums = [a for a in (d.get("albums") or []) if a.get("slug") != slug]
-    # Tüm images'tan slug'ı temizle
-    for im in (d.get("images") or []):
-        tags = im.get("albums") or []
-        if slug in tags:
-            im["albums"] = [s for s in tags if s != slug]
-    d["albums"] = albums
+    _albums_delete(d, slug)
     d["updated_at"] = now_iso()
     store.upsert(d)
     return jsonify({"ok": True})
@@ -1595,13 +1709,11 @@ def api_album_rename(urun_id: str):
     new_name = clean(body.get("new_name"))
     if not slug or not new_name:
         return jsonify({"ok": False, "error": "slug ve new_name zorunlu"}), 400
-    for a in (d.get("albums") or []):
-        if a.get("slug") == slug:
-            a["name"] = new_name
-            d["updated_at"] = now_iso()
-            store.upsert(d)
-            return jsonify({"ok": True})
-    return jsonify({"ok": False, "error": "Albüm bulunamadı"}), 404
+    if not _albums_rename(d, slug, new_name):
+        return jsonify({"ok": False, "error": "Albüm bulunamadı"}), 404
+    d["updated_at"] = now_iso()
+    store.upsert(d)
+    return jsonify({"ok": True})
 
 
 @app.route("/api/urun/<urun_id>/gorsel-renk", methods=["POST"])
@@ -1619,34 +1731,15 @@ def api_set_image_colors(urun_id: str):
     payload = body.get("colors") or {}
     if not target or not isinstance(payload, dict):
         return jsonify({"ok": False, "error": "path ve colors zorunlu"}), 400
-    images = d.get("images") or []
-    match = next((im for im in images if im.get("path") == target), None)
-    if not match:
-        return jsonify({"ok": False, "error": "Görsel bulunamadı"}), 400
-    cur = match.get("colors") or {}
-    for role in ("weft", "warp", "mix"):
-        if role not in payload:
-            continue
-        v = payload[role]
-        if v is None or v == {}:
-            cur.pop(role, None)
-            continue
-        if not isinstance(v, dict) or not v.get("hex"):
-            return jsonify({"ok": False, "error": f"{role} için hex zorunlu"}), 400
-        # Server-side normalize
-        v["hex"] = str(v["hex"]).upper()
-        v["name"] = (str(v.get("name") or "")).strip() or "—"
-        v["picked_at"] = now_iso()
-        cur[role] = v
-    if cur:
-        match["colors"] = cur
-    else:
-        match.pop("colors", None)
+    try:
+        cur = _image_set_colors(d, target, payload, key_field="path")
+    except ValueError as e:
+        return jsonify({"ok": False, "error": str(e)}), 400
     d["updated_at"] = now_iso()
     store.upsert(d)
     return jsonify({
         "ok": True,
-        "palette": _derive_color_palette(images),
+        "palette": _derive_color_palette(d.get("images") or []),
         "image_colors": cur,
     })
 
@@ -1664,24 +1757,10 @@ def api_album_assign(urun_id: str):
     add = bool(body.get("add", True))
     if not slug or not isinstance(paths, list):
         return jsonify({"ok": False, "error": "slug ve paths zorunlu"}), 400
-    # Slug ürünün albüm listesinde olmalı (add iken)
-    if add:
-        known = [a.get("slug") for a in (d.get("albums") or [])]
-        if slug not in known:
-            return jsonify({"ok": False, "error": "Albüm tanımlı değil"}), 400
-    path_set = set(paths)
-    affected = 0
-    for im in (d.get("images") or []):
-        if im.get("path") not in path_set:
-            continue
-        tags = set(im.get("albums") or [])
-        if add:
-            if slug not in tags:
-                tags.add(slug); affected += 1
-        else:
-            if slug in tags:
-                tags.discard(slug); affected += 1
-        im["albums"] = sorted(tags)
+    try:
+        affected = _albums_assign(d, slug, paths, add, key_field="path")
+    except ValueError as e:
+        return jsonify({"ok": False, "error": str(e)}), 400
     if affected:
         d["updated_at"] = now_iso()
         store.upsert(d)
@@ -2034,14 +2113,10 @@ def arastirma_page():
     )
 
 
-@app.route("/arastirma/<research_id>")
-def arastirma_detail(research_id: str):
-    """v4.0-part-2 Sprint 10 — Detay sayfası: bir entry'nin galerisi + meta."""
-    entry = store.research_get(research_id)
-    if not entry:
-        return render_template("arastirma_detail.html", entry=None, research_id=research_id), 404
-    entry = _enrich_research_row(entry)
-    # Görseller için public URL'leri hazırla
+def _research_album_ctx(entry: dict) -> dict:
+    """v4.0-part-2 Sprint 11 — Araştırma kaydının albüm + renk paleti bağlamı.
+    Ürün detayındaki (product_summary/urun_detail) mantığı aynalar; görsel
+    anahtarı storage_path. arastirma_detail + ekle (Ürüne Çevir) paylaşır."""
     images = entry.get("images") or []
     images_with_urls = []
     for im in images:
@@ -2052,12 +2127,168 @@ def arastirma_detail(research_id: str):
             **im,
             "url": store.public_url(path) if path else None,
         })
+    albums = entry.get("albums") or []
+    album_counts = {
+        a.get("slug"): sum(1 for im in images_with_urls if a.get("slug") in (im.get("albums") or []))
+        for a in albums
+    }
+    palette = _derive_color_palette(images_with_urls)
+    # "Renkler" albümü tespiti — renk seçici sadece bu albümdeki görsellerden
+    color_album_slug = None
+    for a in albums:
+        a_slug = (a.get("slug") or "").lower()
+        a_name = (a.get("name") or "").strip().lower()
+        if a_slug == "renkler" or a_name == "renkler":
+            color_album_slug = a.get("slug")
+            break
+    if color_album_slug:
+        color_picker_images = [im for im in images_with_urls if color_album_slug in (im.get("albums") or [])]
+    else:
+        color_picker_images = []
+    image_color_map = {
+        im["storage_path"]: {
+            "label": im.get("alt") or "",
+            "url": im.get("url"),
+            "colors": im.get("colors") or {},
+        }
+        for im in color_picker_images
+        if im.get("storage_path") and im.get("colors")
+        and any((im.get("colors") or {}).get(k) for k in ("weft", "warp", "mix"))
+    }
+    return {
+        "images_with_urls": images_with_urls,
+        "albums": albums,
+        "album_counts": album_counts,
+        "palette": palette,
+        "color_album_slug": color_album_slug,
+        "color_picker_images": color_picker_images,
+        "image_color_map": image_color_map,
+    }
+
+
+@app.route("/arastirma/<research_id>")
+def arastirma_detail(research_id: str):
+    """v4.0-part-2 Sprint 10 — Detay sayfası: bir entry'nin galerisi + meta."""
+    entry = store.research_get(research_id)
+    if not entry:
+        return render_template("arastirma_detail.html", entry=None, research_id=research_id), 404
+    entry = _enrich_research_row(entry)
+    ctx = _research_album_ctx(entry)
     return render_template(
         "arastirma_detail.html",
         entry=entry,
-        images=images_with_urls,
+        images=ctx["images_with_urls"],
         research_id=research_id,
+        albums=ctx["albums"],
+        album_counts=ctx["album_counts"],
+        color_palette=ctx["palette"],
+        color_album_slug=ctx["color_album_slug"],
+        color_picker_images=ctx["color_picker_images"],
+        image_color_map=ctx["image_color_map"],
     )
+
+
+# ============================================================
+# v4.0-part-2 Sprint 11 — Araştırma-kapsamlı albüm + renk rotaları
+# (ürün rotalarını aynalar; görsel anahtarı storage_path)
+# ============================================================
+
+def _research_or_404(research_id: str):
+    entry = store.research_get(research_id)
+    if not entry:
+        return None
+    if entry.get("albums") is None:
+        entry["albums"] = []
+    if entry.get("images") is None:
+        entry["images"] = []
+    return entry
+
+
+@app.route("/api/arastirma/<research_id>/album-ekle", methods=["POST"])
+def api_research_album_create(research_id: str):
+    entry = _research_or_404(research_id)
+    if not entry:
+        return jsonify({"ok": False, "error": "Araştırma bulunamadı"}), 404
+    name = clean((request.get_json(force=True) or {}).get("name"))
+    if not name:
+        return jsonify({"ok": False, "error": "Albüm adı zorunlu"}), 400
+    slug = _albums_create(entry, name)
+    store.research_save(research_id, {"albums": entry["albums"]})
+    return jsonify({"ok": True, "slug": slug, "name": name})
+
+
+@app.route("/api/arastirma/<research_id>/album-sil", methods=["POST"])
+def api_research_album_delete(research_id: str):
+    entry = _research_or_404(research_id)
+    if not entry:
+        return jsonify({"ok": False, "error": "Araştırma bulunamadı"}), 404
+    slug = (request.get_json(force=True) or {}).get("slug")
+    if not slug:
+        return jsonify({"ok": False, "error": "slug zorunlu"}), 400
+    _albums_delete(entry, slug)
+    store.research_save(research_id, {"albums": entry["albums"], "images": entry["images"]})
+    return jsonify({"ok": True})
+
+
+@app.route("/api/arastirma/<research_id>/album-yeniden-adlandir", methods=["POST"])
+def api_research_album_rename(research_id: str):
+    entry = _research_or_404(research_id)
+    if not entry:
+        return jsonify({"ok": False, "error": "Araştırma bulunamadı"}), 404
+    body = request.get_json(force=True) or {}
+    slug = body.get("slug")
+    new_name = clean(body.get("new_name"))
+    if not slug or not new_name:
+        return jsonify({"ok": False, "error": "slug ve new_name zorunlu"}), 400
+    if not _albums_rename(entry, slug, new_name):
+        return jsonify({"ok": False, "error": "Albüm bulunamadı"}), 404
+    store.research_save(research_id, {"albums": entry["albums"]})
+    return jsonify({"ok": True})
+
+
+@app.route("/api/arastirma/<research_id>/album-atama", methods=["POST"])
+def api_research_album_assign(research_id: str):
+    """Toplu görsel ↔ albüm atama. Body: {slug, paths: [storage_path], add: bool}."""
+    entry = _research_or_404(research_id)
+    if not entry:
+        return jsonify({"ok": False, "error": "Araştırma bulunamadı"}), 404
+    body = request.get_json(force=True) or {}
+    slug = body.get("slug")
+    paths = body.get("paths") or []
+    add = bool(body.get("add", True))
+    if not slug or not isinstance(paths, list):
+        return jsonify({"ok": False, "error": "slug ve paths zorunlu"}), 400
+    try:
+        affected = _albums_assign(entry, slug, paths, add, key_field="storage_path")
+    except ValueError as e:
+        return jsonify({"ok": False, "error": str(e)}), 400
+    if affected:
+        store.research_save(research_id, {"images": entry["images"]})
+    return jsonify({"ok": True, "affected": affected})
+
+
+@app.route("/api/arastirma/<research_id>/gorsel-renk", methods=["POST"])
+def api_research_set_image_colors(research_id: str):
+    """Bir araştırma görselinin atkı/çözgü/toplam renk atamasını günceller.
+    Body: {path: storage_path, colors: {weft|warp|mix: {...}|null|{}}}"""
+    entry = _research_or_404(research_id)
+    if not entry:
+        return jsonify({"ok": False, "error": "Araştırma bulunamadı"}), 404
+    body = request.get_json(force=True) or {}
+    target = body.get("path")
+    payload = body.get("colors") or {}
+    if not target or not isinstance(payload, dict):
+        return jsonify({"ok": False, "error": "path ve colors zorunlu"}), 400
+    try:
+        cur = _image_set_colors(entry, target, payload, key_field="storage_path")
+    except ValueError as e:
+        return jsonify({"ok": False, "error": str(e)}), 400
+    store.research_save(research_id, {"images": entry["images"]})
+    return jsonify({
+        "ok": True,
+        "palette": _derive_color_palette(entry.get("images") or []),
+        "image_colors": cur,
+    })
 
 
 @app.route("/api/arastirma/list")

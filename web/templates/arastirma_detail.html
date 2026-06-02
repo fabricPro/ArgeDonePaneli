@@ -67,11 +67,18 @@
         </span>
     </div>
 
+    {# v4.0-part-2 Sprint 11 — Ürün öncesi albüm + renk paleti aracı #}
+    {% set ac_total = images|length %}
+    {% include "_album_color_tools.html" %}
+
     <!-- Galeri grid -->
     {% if images %}
     <div class="ardet-gallery" id="ardet-gallery">
         {% for im in images %}
-        <article class="ardet-img-card" data-sha="{{ im.sha256 }}">
+        <article class="ardet-img-card" data-sha="{{ im.sha256 }}"
+                 data-path="{{ im.storage_path }}"
+                 data-albums='{{ (im.albums or [])|tojson }}'>
+            <span class="img-check-overlay" aria-hidden="true"><svg class="icon"><use href="#ic-check"/></svg></span>
             <div class="ardet-img-wrap">
                 {% if im.url %}
                 <img src="{{ im.url }}" loading="lazy" alt="{{ im.alt or '' }}"
@@ -92,6 +99,20 @@
                 <a class="ardet-img-source" href="{{ im.source_image_url }}" target="_blank" rel="noopener" title="Orijinal kaynak">↗</a>
                 {% endif %}
             </div>
+            {% if im.colors %}
+            <div class="img-color-badges" data-path="{{ im.storage_path }}">
+                {% for role in ['weft','warp','mix'] %}
+                    {% set c = im.colors.get(role) %}
+                    {% if c %}
+                    <span class="color-badge color-badge-{{ role }}" style="--c:{{ c.hex }}"
+                          title="{{ {'weft':'Atkı','warp':'Çözgü','mix':'Toplam'}[role] }}: {{ c.name or c.nearest }} ({{ c.hex }})">
+                        <em class="cb-role">{{ {'weft':'A','warp':'Ç','mix':'T'}[role] }}</em>
+                        <span class="cb-name">{{ c.name or c.nearest }}</span>
+                    </span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
         </article>
         {% endfor %}
     </div>
@@ -169,5 +190,16 @@
     });
 })();
 </script>
+
+{# v4.0-part-2 Sprint 11 — Ürün öncesi albüm + renk paleti #}
+<script>
+window.__AC_CONFIG__ = {
+    base: "/api/arastirma/{{ entry.id }}",
+    cardSelector: ".ardet-img-card",
+    dictionaryUrl: "{{ url_for('static', filename='data/renkler.json') }}"
+};
+</script>
+<script src="{{ url_for('static', filename='js/color-picker.js') }}"></script>
+<script src="{{ url_for('static', filename='js/album-color-tools.js') }}"></script>
 {% endif %}
 {% endblock %}

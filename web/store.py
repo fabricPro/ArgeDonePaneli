@@ -39,6 +39,7 @@ RESEARCH_COLUMNS = [
     "is_favorite",  # v4.0-part-2 Sprint 6
     "image_sha256", "page_title", "image_storage_path",  # v4.0-part-2 Sprint 9 (eklenti yakalama)
     "images",  # v4.0-part-2 Sprint 10 — JSONB array (galeri mantığı)
+    "albums",  # v4.0-part-2 Sprint 11 — ürün öncesi albüm + renk paleti
 ]
 
 
@@ -363,6 +364,17 @@ def research_append_image(research_id: str, image_meta: dict) -> dict | None:
     if len(images) == 1:
         patch["image_sha256"] = sha
         patch["image_storage_path"] = image_meta.get("storage_path")
+    res = (client().table(TABLE_RESEARCH).update(patch)
+           .eq("id", research_id).execute())
+    return (res.data or [None])[0]
+
+
+def research_save(research_id: str, patch: dict) -> dict | None:
+    """v4.0-part-2 Sprint 11 — research_pool satırına kısmi update (albums/images vb.).
+    Generik yazıcı: rotalar research_get ile okur, mutasyona uğratır, buraya
+    {"albums": [...], "images": [...]} gibi patch gönderir."""
+    if not research_id or not patch:
+        return None
     res = (client().table(TABLE_RESEARCH).update(patch)
            .eq("id", research_id).execute())
     return (res.data or [None])[0]

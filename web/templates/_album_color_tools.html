@@ -1,0 +1,175 @@
+{# v4.0-part-2 Sprint 11 — Ürün öncesi albüm + renk paleti aracı (paylaşımlı)
+   Beklenen değişkenler (route doldurur):
+     ac_total            : toplam görsel sayısı (Tümü sekmesi sayacı)
+     albums              : [{slug, name}]
+     album_counts        : {slug: adet}
+     color_palette       : _derive_color_palette çıktısı
+     color_picker_images : [{storage_path, url, alt, colors}]  ("Renkler" albümündekiler)
+     image_color_map     : {storage_path: {label, url, colors}}
+   Görsel kartlarını HOST sayfa render eder; her kart data-path + data-albums taşımalı.
+#}
+{% if ac_total and ac_total > 0 %}
+<div class="ac-tools">
+
+  <nav class="album-tabs" id="album-tabs" aria-label="Albümler">
+    <button type="button" class="album-tab is-active" data-album="">
+      Tümü <span class="cnt">{{ ac_total }}</span>
+    </button>
+    {% for a in albums %}
+    <button type="button" class="album-tab" data-album="{{ a.slug }}" data-name="{{ a.name }}">
+      {{ a.name }} <span class="cnt">{{ album_counts.get(a.slug, 0) }}</span>
+      <span class="album-edit" data-action="rename" title="Yeniden adlandır">✎</span>
+      <span class="album-edit" data-action="delete" title="Albümü sil">×</span>
+    </button>
+    {% endfor %}
+    <button type="button" class="album-tab album-new" id="album-new-btn" title="Yeni albüm">
+      <svg class="icon"><use href="#ic-plus"/></svg> Yeni Albüm
+    </button>
+  </nav>
+
+  <div class="ac-toolbar">
+    <button type="button" id="img-select-toggle" class="btn btn-secondary">
+      <svg class="icon"><use href="#ic-check"/></svg> Seç
+    </button>
+    <span class="ac-toolbar-hint">Görselleri albümlere ayır → "Renkler" galerisi + renk paleti</span>
+  </div>
+
+  <div id="img-select-actionbar" class="img-select-actionbar" hidden>
+    <span class="sel-count"><strong id="img-sel-count">0</strong> görsel seçili</span>
+    <div class="sel-actions">
+      <select id="album-assign" class="album-assign-select" aria-label="Albüme ekle">
+        <option value="">Albüme Ekle…</option>
+        {% for a in albums %}<option value="{{ a.slug }}">{{ a.name }}</option>{% endfor %}
+        <option value="__new__">+ Yeni albüm…</option>
+      </select>
+      {% if albums %}
+      <select id="album-unassign" class="album-assign-select" aria-label="Albümden kaldır">
+        <option value="">Albümden Kaldır…</option>
+        {% for a in albums %}<option value="{{ a.slug }}">{{ a.name }}</option>{% endfor %}
+      </select>
+      {% endif %}
+      <button type="button" id="img-sel-cancel" class="btn btn-secondary">İptal</button>
+    </div>
+  </div>
+
+  <section class="color-tools" id="color-tools" aria-label="Renk Çözümleme">
+    <div class="ct-palette-bar">
+      <header class="ct-side-head">
+        <h3>Renk Paleti</h3>
+        {% if color_palette %}<span class="cnt" id="palette-cnt">{{ color_palette|length }}</span>{% endif %}
+      </header>
+
+      {% if image_color_map %}
+      <div class="palette-mode-bar" role="tablist" aria-label="Renk paleti görünümü">
+        <button type="button" class="palette-mode-btn is-active" data-mode="collage" role="tab">Tümü</button>
+        <button type="button" class="palette-mode-btn" data-mode="weft" role="tab">Atkı</button>
+        <button type="button" class="palette-mode-btn" data-mode="warp" role="tab">Çözgü</button>
+        <button type="button" class="palette-mode-btn" data-mode="mix"  role="tab">Toplam</button>
+        <button type="button" class="palette-mode-btn" data-mode="legacy" role="tab">Ayrı</button>
+      </div>
+
+      <div class="palette-grid-image" data-grid="image">
+        {% for path, info in image_color_map.items() %}
+        {% set c = info.colors %}
+        {% set roles_count = (1 if c.weft else 0) + (1 if c.warp else 0) + (1 if c.mix else 0) %}
+        <button type="button" class="palette-image-chip"
+                data-path="{{ path }}"
+                data-has-weft="{{ '1' if c.weft else '0' }}"
+                data-has-warp="{{ '1' if c.warp else '0' }}"
+                data-has-mix="{{ '1' if c.mix else '0' }}"
+                title="{{ info.label or path.rsplit('/',1)[-1] }}">
+          <div class="pic-swatch pic-collage-{{ roles_count }}">
+            {% if c.mix  %}<span class="pic-region pic-mix"  style="background:{{ c.mix.hex }}"  title="Toplam · {{ c.mix.name }}"></span>{% endif %}
+            {% if c.warp %}<span class="pic-region pic-warp" style="background:{{ c.warp.hex }}" title="Çözgü · {{ c.warp.name }}"></span>{% endif %}
+            {% if c.weft %}<span class="pic-region pic-weft" style="background:{{ c.weft.hex }}" title="Atkı · {{ c.weft.name }}"></span>{% endif %}
+          </div>
+          <span class="pic-label">{{ info.label or '—' }}</span>
+        </button>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="palette-grid" id="palette-grid" data-grid="legacy" {% if image_color_map %}hidden{% endif %}>
+        {% for c in color_palette %}
+        <button type="button" class="palette-chip" data-hex="{{ c.hex }}"
+                title="{{ c.name }} · {{ c.hex }} · L {{ '%.0f'|format(c.lab[0]) }}">
+          <span class="chip-swatch" style="background:{{ c.hex }}"></span>
+          <span class="chip-info">
+            <span class="chip-name">{{ c.name }}</span>
+            <span class="chip-roles">
+              {% for r in c.roles %}<em class="chip-role chip-role-{{ r }}">{{ {'weft':'A','warp':'Ç','mix':'T'}[r] }}</em>{% endfor %}
+            </span>
+          </span>
+        </button>
+        {% endfor %}
+      </div>
+      {% if not color_palette %}
+      <p class="ct-empty">Henüz renk seçilmedi. Aşağıdan renk çözümleme yapabilirsin.</p>
+      {% endif %}
+    </div>
+
+    <details class="ct-picker-details" id="cp-details">
+      <summary class="ct-picker-summary">
+        <svg class="icon ct-summary-icon"><use href="#ic-chevron-down"/></svg>
+        <span>Renk Atama (Atkı · Çözgü · Toplam)</span>
+        {% if not color_picker_images %}
+        <span class="ct-summary-badge">⚠ "Renkler" albümü yok</span>
+        {% endif %}
+      </summary>
+
+      {% if color_picker_images %}
+      <div class="ct-picker-grid">
+        <div class="ct-canvas-side">
+          <select id="cp-image-sel" class="filter-select" aria-label="Renk görseli seç">
+            {% for im in color_picker_images %}
+            <option value="{{ im.url }}" data-path="{{ im.storage_path }}" {% if loop.first %}selected{% endif %}>
+              {{ im.alt or 'Görsel ' ~ loop.index }}
+            </option>
+            {% endfor %}
+          </select>
+          <div class="cp-canvas-box" id="cp-canvas-box">
+            <canvas id="cp-canvas"></canvas>
+            <canvas id="cp-magnifier" class="cp-mag" width="150" height="150" hidden></canvas>
+          </div>
+          <div class="cp-canvas-toolbar">
+            <label class="cp-opt"><input type="checkbox" id="cp-avg" checked> 5×5 ön-ortalama</label>
+            <span class="cp-count" id="cp-count">0 nokta</span>
+            <button id="cp-clear" class="btn-mini" type="button">Noktaları temizle</button>
+          </div>
+          <p class="cp-hint">Tıkla = tek nokta · <kbd>Ctrl</kbd>+tık = nokta ekle · Mobilde sürükle-bırak</p>
+        </div>
+
+        <aside class="ct-result-side">
+          <nav class="cp-role-tabs" role="tablist" aria-label="Renk rolü">
+            <button class="cp-role-tab is-active" data-role="weft" type="button">Atkı</button>
+            <button class="cp-role-tab" data-role="warp" type="button">Çözgü</button>
+            <button class="cp-role-tab" data-role="mix" type="button">Toplam</button>
+          </nav>
+          <div class="cp-result">
+            <div class="cp-swatch" id="cp-swatch" aria-label="Seçilen renk"></div>
+            <div class="cp-meta">
+              <div class="cp-name" id="cp-name">—</div>
+              <div class="cp-de" id="cp-de"></div>
+            </div>
+          </div>
+          <dl class="cp-fields">
+            <div><dt>HEX</dt><dd id="cp-hex">—</dd></div>
+            <div><dt>RGB</dt><dd id="cp-rgb">—</dd></div>
+            <div><dt>LAB</dt><dd id="cp-lab">—</dd></div>
+          </dl>
+          <div class="cp-quality" id="cp-quality" hidden></div>
+          <button id="cp-save" class="btn btn-primary" type="button" disabled>
+            <span id="cp-save-label">Atkı'ya Ata</span>
+          </button>
+        </aside>
+      </div>
+      {% else %}
+      <div class="ct-no-album">
+        <p>Renk çözümleme için <strong>"Renkler"</strong> adında bir albüm oluşturup içine kumaşın varyant/renk görsellerini eklemelisin.</p>
+        <p class="ct-no-album-hint">Yukarıdaki sekmelerden <em>+ Yeni Albüm</em> → <em>Renkler</em>, sonra <em>Seç</em> moduyla görselleri bu albüme ata.</p>
+      </div>
+      {% endif %}
+    </details>
+  </section>
+</div>
+{% endif %}
