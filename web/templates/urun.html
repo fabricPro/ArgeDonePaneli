@@ -232,22 +232,56 @@
         </div>
         {% endif %}
 
-        {# Görsel-bazlı grid (default: collage modu) #}
+        {# Görsel-bazlı grid (default: collage modu)
+           v4.0-part-2 Sprint 12: weft/warp array, mix tek; layout adaptive (solid/duo/quad/bands) #}
         {% if image_color_map %}
         <div class="palette-grid-image" data-grid="image">
             {% for path, info in image_color_map.items() %}
             {% set c = info.colors %}
-            {% set roles_count = (1 if c.weft else 0) + (1 if c.warp else 0) + (1 if c.mix else 0) %}
+            {% set weft_list = c.weft or [] %}
+            {% set warp_list = c.warp or [] %}
+            {% set mix_c = c.mix %}
             <button type="button" class="palette-image-chip"
                     data-path="{{ path }}"
-                    data-has-weft="{{ '1' if c.weft else '0' }}"
-                    data-has-warp="{{ '1' if c.warp else '0' }}"
-                    data-has-mix="{{ '1' if c.mix else '0' }}"
+                    data-weft-count="{{ weft_list|length }}"
+                    data-warp-count="{{ warp_list|length }}"
+                    data-has-mix="{{ '1' if mix_c else '0' }}"
                     title="{{ info.label or path.rsplit('/',1)[-1] }}">
-                <div class="pic-swatch pic-collage-{{ roles_count }}">
-                    {% if c.mix  %}<span class="pic-region pic-mix"  style="background:{{ c.mix.hex }}"  title="Toplam · {{ c.mix.name }}"></span>{% endif %}
-                    {% if c.warp %}<span class="pic-region pic-warp" style="background:{{ c.warp.hex }}" title="Çözgü · {{ c.warp.name }}"></span>{% endif %}
-                    {% if c.weft %}<span class="pic-region pic-weft" style="background:{{ c.weft.hex }}" title="Atkı · {{ c.weft.name }}"></span>{% endif %}
+                <div class="pic-swatch pic-layout-{{ info.layout }}">
+                    {% if info.layout == 'solid' %}
+                        {# Tek renk: weft / warp / mix'ten varolan #}
+                        {% set only = mix_c or (weft_list[0] if weft_list else (warp_list[0] if warp_list else None)) %}
+                        {% if only %}<span class="pic-region" style="background:{{ only.hex }}"></span>{% endif %}
+                    {% elif info.layout == 'duo' %}
+                        {# 2 renk: rol önceliği mix > warp > weft #}
+                        {% set parts = [] %}
+                        {% if mix_c %}{% set _ = parts.append(mix_c) %}{% endif %}
+                        {% for x in warp_list %}{% set _ = parts.append(x) %}{% endfor %}
+                        {% for x in weft_list %}{% set _ = parts.append(x) %}{% endfor %}
+                        {% for x in parts[:2] %}<span class="pic-region" style="background:{{ x.hex }}"></span>{% endfor %}
+                    {% elif info.layout == 'quad' %}
+                        {# Sprint 8.8 mevcut 4-quadrant (1+1+1): sol mix, sağ-üst warp, sağ-alt weft #}
+                        <span class="pic-region pic-mix"  style="background:{{ mix_c.hex }}"  title="Toplam · {{ mix_c.name }}"></span>
+                        <span class="pic-region pic-warp" style="background:{{ warp_list[0].hex }}" title="Çözgü · {{ warp_list[0].name }}"></span>
+                        <span class="pic-region pic-weft" style="background:{{ weft_list[0].hex }}" title="Atkı · {{ weft_list[0].name }}"></span>
+                    {% else %}
+                        {# bands: üst atkılar, orta mix (varsa), alt çözgüler #}
+                        {% if weft_list %}
+                        <div class="pic-band pic-band-weft">
+                            {% for x in weft_list %}<span style="background:{{ x.hex }}" title="Atkı · {{ x.name }}"></span>{% endfor %}
+                        </div>
+                        {% endif %}
+                        {% if mix_c %}
+                        <div class="pic-band pic-band-mix">
+                            <span style="background:{{ mix_c.hex }}" title="Toplam · {{ mix_c.name }}"></span>
+                        </div>
+                        {% endif %}
+                        {% if warp_list %}
+                        <div class="pic-band pic-band-warp">
+                            {% for x in warp_list %}<span style="background:{{ x.hex }}" title="Çözgü · {{ x.name }}"></span>{% endfor %}
+                        </div>
+                        {% endif %}
+                    {% endif %}
                 </div>
                 <span class="pic-label">{{ info.label or '—' }}</span>
             </button>
@@ -311,10 +345,14 @@
             <!-- SAĞ: Mod + sonuç + kaydet -->
             <aside class="ct-result-side">
                 <nav class="cp-role-tabs" role="tablist" aria-label="Renk rolü">
-                    <button class="cp-role-tab is-active" data-role="weft" type="button">Atkı</button>
-                    <button class="cp-role-tab" data-role="warp" type="button">Çözgü</button>
+                    <button class="cp-role-tab is-active" data-role="weft" type="button">Atkı <span class="cp-role-count" id="cp-tab-count-weft" hidden></span></button>
+                    <button class="cp-role-tab" data-role="warp" type="button">Çözgü <span class="cp-role-count" id="cp-tab-count-warp" hidden></span></button>
                     <button class="cp-role-tab" data-role="mix" type="button">Toplam</button>
                 </nav>
+                {# v4.0-part-2 Sprint 12 — Mevcut renk chip'leri (× ile sil); mix için sadece tek slot #}
+                <div class="cp-saved-strip" id="cp-saved-strip" data-role="weft">
+                    <span class="cp-saved-empty">Henüz renk yok — yeni nokta seç ve aşağıdan ekle</span>
+                </div>
                 <div class="cp-result">
                     <div class="cp-swatch" id="cp-swatch" aria-label="Seçilen renk"></div>
                     <div class="cp-meta">
@@ -1984,6 +2022,71 @@ grid.addEventListener('dragover', (e) => {
     const ROLE_TR = { weft: 'Atkı', warp: 'Çözgü', mix: 'Toplam' };
     let activeRole = 'weft';
 
+    /* v4.0-part-2 Sprint 12 — Çoklu atkı/çözgü renk yönetimi
+       Her görselin kayıtlı renkleri server'dan map olarak gelir; mutasyonlar lokal tutulur
+       ve API ile her save/sil sonrası senkron edilir. */
+    const IMAGE_COLORS = {{ image_color_map | tojson }};
+    function ensureImageColors(path) {
+        if (!IMAGE_COLORS[path]) {
+            IMAGE_COLORS[path] = { colors: {} };
+        } else if (!IMAGE_COLORS[path].colors) {
+            IMAGE_COLORS[path].colors = {};
+        }
+        return IMAGE_COLORS[path].colors;
+    }
+    function currentImagePath() {
+        const opt = imageSel.options[imageSel.selectedIndex];
+        return opt ? opt.dataset.path : null;
+    }
+    function getRoleArray(path, role) {
+        // weft/warp → array; mix → tek obje
+        if (role === 'mix') return null;
+        const c = ensureImageColors(path);
+        if (!Array.isArray(c[role])) c[role] = c[role] && c[role].hex ? [c[role]] : [];
+        return c[role];
+    }
+    function renderSavedStrip() {
+        const strip = document.getElementById('cp-saved-strip');
+        if (!strip) return;
+        strip.dataset.role = activeRole;
+        const path = currentImagePath();
+        if (!path) { strip.innerHTML = ''; return; }
+        const c = ensureImageColors(path);
+        // Atkı + çözgü tab count rozetlerini güncelle
+        ['weft','warp'].forEach(r => {
+            const span = document.getElementById('cp-tab-count-' + r);
+            if (!span) return;
+            const n = Array.isArray(c[r]) ? c[r].length : (c[r] && c[r].hex ? 1 : 0);
+            if (n > 1) { span.textContent = '×' + n; span.hidden = false; }
+            else { span.textContent = ''; span.hidden = true; }
+        });
+        // Şerit içeriği
+        if (activeRole === 'mix') {
+            if (c.mix && c.mix.hex) {
+                strip.innerHTML = '<span class="cp-saved-chip" title="' + escapeHtml(c.mix.name || c.mix.hex) + '">' +
+                    '<span class="cp-saved-sw" style="background:' + c.mix.hex + '"></span>' +
+                    '<span class="cp-saved-name">' + escapeHtml(c.mix.name || '—') + '</span>' +
+                    '<button type="button" class="cp-saved-del" data-role="mix" data-i="0" aria-label="Sil">×</button>' +
+                    '</span>';
+            } else {
+                strip.innerHTML = '<span class="cp-saved-empty">Tek slot — nokta seç ve aşağıdan ata</span>';
+            }
+        } else {
+            const arr = Array.isArray(c[activeRole]) ? c[activeRole] : (c[activeRole] && c[activeRole].hex ? [c[activeRole]] : []);
+            if (arr.length === 0) {
+                strip.innerHTML = '<span class="cp-saved-empty">Henüz ' + ROLE_TR[activeRole].toLowerCase() + ' rengi yok — nokta seç ve aşağıdan ekle</span>';
+            } else {
+                strip.innerHTML = arr.map((cl, i) =>
+                    '<span class="cp-saved-chip" title="' + escapeHtml(cl.name || cl.hex) + '">' +
+                    '<span class="cp-saved-sw" style="background:' + cl.hex + '"></span>' +
+                    '<span class="cp-saved-name">' + escapeHtml(cl.name || '—') + '</span>' +
+                    '<button type="button" class="cp-saved-del" data-role="' + activeRole + '" data-i="' + i + '" aria-label="Sil">×</button>' +
+                    '</span>'
+                ).join('');
+            }
+        }
+    }
+
     function updateUI(role, res, n) {
         if (countEl) countEl.textContent = (n || 0) + ' nokta';
         if (!res || !res.hex) {
@@ -2027,7 +2130,9 @@ grid.addEventListener('dragover', (e) => {
     function setActiveTab(role) {
         activeRole = role;
         tabs.forEach(t => t.classList.toggle('is-active', t.dataset.role === role));
-        saveLabel.textContent = ROLE_TR[role] + "'a Ata";
+        // v4.0-part-2 Sprint 12: weft/warp için "Renk Ekle", mix için "Ata"
+        saveLabel.textContent = role === 'mix' ? "Toplam'a Ata" : ROLE_TR[role] + ' Rengi Ekle';
+        renderSavedStrip();
     }
 
     tabs.forEach(t => {
@@ -2050,6 +2155,7 @@ grid.addEventListener('dragover', (e) => {
 
     imageSel.addEventListener('change', () => {
         loadImage(imageSel.value);
+        renderSavedStrip();   // v4.0-part-2 Sprint 12 — yeni görselin kayıtlı renkleri
     });
 
     // Image-grid kartlarına double-click → o görseli yükle + details'i aç + scroll
@@ -2109,14 +2215,33 @@ grid.addEventListener('dragover', (e) => {
             if (labelInput) labelInput.insertAdjacentElement('afterend', badgesEl);
             else card.appendChild(badgesEl);
         }
+        // v4.0-part-2 Sprint 12: weft/warp array, mix obje — her rolün baskın (ilk) rengini badge'de göster
+        // ve birden fazla varsa "A2" gibi sayım rozeti ekle.
         const ROLE_LONG = { weft: 'Atkı', warp: 'Çözgü', mix: 'Toplam' };
+        function _firstOf(role) {
+            const v = colors[role];
+            if (!v) return null;
+            if (Array.isArray(v)) return v[0] || null;
+            if (v.hex) return v;
+            return null;
+        }
+        function _countOf(role) {
+            const v = colors[role];
+            if (!v) return 0;
+            if (Array.isArray(v)) return v.length;
+            return v.hex ? 1 : 0;
+        }
         badgesEl.innerHTML = ['weft', 'warp', 'mix']
-            .filter(r => colors[r])
+            .filter(r => _countOf(r) > 0)
             .map(r => {
-                const c = colors[r];
+                const c = _firstOf(r);
+                const n = _countOf(r);
+                const label = ROLE_SHORT[r] || '?';
+                const suffix = n > 1 ? ('<sup class="cb-count">' + n + '</sup>') : '';
+                const titleMore = n > 1 ? (' (+' + (n-1) + ' renk daha)') : '';
                 return '<span class="color-badge color-badge-' + r + '" style="--c:' + c.hex + '" ' +
-                       'title="' + ROLE_LONG[r] + ': ' + escapeHtml(c.name) + ' (' + c.hex + ')">' +
-                       '<em class="cb-role">' + (ROLE_SHORT[r] || '?') + '</em>' +
+                       'title="' + ROLE_LONG[r] + ': ' + escapeHtml(c.name) + ' (' + c.hex + ')' + titleMore + '">' +
+                       '<em class="cb-role">' + label + suffix + '</em>' +
                        '<span class="cb-name">' + escapeHtml(c.name) + '</span>' +
                        '</span>';
             }).join('');
@@ -2137,20 +2262,61 @@ grid.addEventListener('dragover', (e) => {
         }
         const opt = imageSel.options[imageSel.selectedIndex];
         const path = opt.dataset.path;
-        const data = await postJson(`/api/urun/${URUN_ID}/gorsel-renk`, {
-            path,
-            colors: { [role]: result },
-        });
+        // v4.0-part-2 Sprint 12: weft/warp array, mix tek obje
+        let payload;
+        if (role === 'mix') {
+            payload = { mix: result };
+        } else {
+            const arr = (getRoleArray(path, role) || []).slice();
+            arr.push(result);
+            payload = { [role]: arr };
+        }
+        const data = await postJson(`/api/urun/${URUN_ID}/gorsel-renk`, { path, colors: payload });
         if (data.ok) {
-            (window.toast || alert)(ROLE_TR[role] + ' kaydedildi: ' + result.name, 'success');
+            (window.toast || alert)(ROLE_TR[role] + (role === 'mix' ? ' kaydedildi: ' : ' rengi eklendi: ') + result.name, 'success');
+            // Lokal cache güncelle (server'ın normalize edilmiş image_colors'unu kullan)
+            IMAGE_COLORS[path] = IMAGE_COLORS[path] || {};
+            IMAGE_COLORS[path].colors = data.image_colors || {};
             rebuildPalette(data.palette);
             updateImageBadges(path, data.image_colors);
+            renderSavedStrip();
             window.ColorPicker.clearPoints(role);
-            // Otomatik mod ilerleme
-            const next = { weft: 'warp', warp: 'mix', mix: null }[role];
-            if (next) window.ColorPicker.setRole(next);
+            // Mix kaydedince otomatik bitir; weft/warp aynı rolde kalır (kullanıcı yeni eklemek isteyebilir)
+            if (role === 'mix') {
+                // İlerleme yok — kullanıcı zaten 3 rolün hepsini gezdiğinde mix sonsuncu
+            }
         } else {
             (window.toast || alert)(data.error || 'Kayıt hatası', 'error');
+        }
+    });
+
+    // v4.0-part-2 Sprint 12 — Kayıtlı chip × silme
+    document.getElementById('cp-saved-strip')?.addEventListener('click', async (e) => {
+        const btn = e.target.closest('.cp-saved-del');
+        if (!btn) return;
+        const path = currentImagePath();
+        if (!path) return;
+        const role = btn.dataset.role;
+        const idx  = parseInt(btn.dataset.i, 10);
+        let payload;
+        if (role === 'mix') {
+            payload = { mix: null };
+        } else {
+            const arr = (getRoleArray(path, role) || []).slice();
+            if (isNaN(idx) || idx < 0 || idx >= arr.length) return;
+            arr.splice(idx, 1);
+            payload = { [role]: arr.length ? arr : null };
+        }
+        const data = await postJson(`/api/urun/${URUN_ID}/gorsel-renk`, { path, colors: payload });
+        if (data.ok) {
+            IMAGE_COLORS[path] = IMAGE_COLORS[path] || {};
+            IMAGE_COLORS[path].colors = data.image_colors || {};
+            rebuildPalette(data.palette);
+            updateImageBadges(path, data.image_colors);
+            renderSavedStrip();
+            (window.toast || alert)('Renk çıkarıldı', 'success');
+        } else {
+            (window.toast || alert)(data.error || 'Silme hatası', 'error');
         }
     });
 
@@ -2166,6 +2332,8 @@ grid.addEventListener('dragover', (e) => {
     }).then(info => {
         console.log('[ColorPicker] hazır:', info.dictionarySize, 'renk');
         pickerReady = true;
+        // v4.0-part-2 Sprint 12 — initial render of saved chip strip
+        renderSavedStrip();
         // Details zaten açıksa veya open attr varsa hemen yükle
         if (detailsEl && detailsEl.open && imageSel.value) {
             loadImage(imageSel.value);

@@ -562,18 +562,41 @@ def urun_detail(urun_id: str):
         color_picker_images = [im for im in images if color_album_slug in (im.get("albums") or [])]
     else:
         color_picker_images = []
-    # v4.0-part-2 Sprint 8.8 — görsel-bazlı renk paleti (kolaj + rol filtreleri)
+    # v4.0-part-2 Sprint 8.8 + 12 — görsel-bazlı renk paleti (kolaj + rol filtreleri)
     # Sadece "Renkler" albümündeki + en az bir rol atanmış görseller
-    image_color_map = {
-        im["path"]: {
+    # Sprint 12: çoklu atkı + çoklu çözgü → adaptive layout hesabı:
+    #   total renk = (1 if mix else 0) + len(weft) + len(warp)
+    #   layout: solid (1) | duo (2) | quad (3 ve 1+1+1) | bands (4+ veya 2 weft / 3 warp gibi)
+    image_color_map = {}
+    for im in color_picker_images:
+        norm = _normalize_role_colors(im.get("colors") or {})
+        if not norm:
+            continue
+        weft_n = len(norm.get("weft", []))
+        warp_n = len(norm.get("warp", []))
+        has_mix = bool(norm.get("mix"))
+        total = (1 if has_mix else 0) + weft_n + warp_n
+        if total == 0:
+            continue
+        if total == 1:
+            layout = "solid"
+        elif total == 2:
+            layout = "duo"
+        elif total == 3 and weft_n == 1 and warp_n == 1 and has_mix:
+            layout = "quad"  # Sprint 8.8 mevcut 4-quadrant (1+1+1)
+        else:
+            layout = "bands"
+        image_color_map[im["path"]] = {
             "label": im.get("variant_label") or "",
             "order": im.get("order", 0),
             "url": im.get("url"),
-            "colors": im.get("colors") or {},
+            "colors": norm,
+            "weft_count": weft_n,
+            "warp_count": warp_n,
+            "has_mix": has_mix,
+            "total_count": total,
+            "layout": layout,
         }
-        for im in color_picker_images
-        if im.get("colors") and any((im["colors"] or {}).get(k) for k in ("weft", "warp", "mix"))
-    }
     # v3.8: Teknik çalışma sekme verisi + mobile UA detect
     teknik = d.get("teknik") or {}
     is_mobile_ua = _is_mobile_ua(request)
@@ -1101,19 +1124,59 @@ def _delete_product_atomic(uid: str) -> bool:
     return True
 
 
+# v4.0-part-2 Sprint 12 — Çoklu atkı + çoklu çözgü renk atama
+# Veri modeli: colors.weft = [{hex,...}, ...] (array), colors.warp = [...] (array),
+# colors.mix = {hex,...} (tek obje). Mevcut görsellerin eski formatı (weft = {hex})
+# bu helper ile şeffaf şekilde array'e normalize edilir.
+def _normalize_role_colors(colors) -> dict:
+    """Eski {weft: {hex...}} → {weft: [{hex...}]} normalize. mix tek obje kalır.
+    Hem read path'lerinde hem API yazımında kullanılır."""
+    if not isinstance(colors, dict):
+        return {}
+    out: dict = {}
+    for role in ("weft", "warp"):
+        v = colors.get(role)
+        if v is None or v == {} or v == []:
+            continue
+        if isinstance(v, list):
+            cleaned = [c for c in v if isinstance(c, dict) and c.get("hex")]
+            if cleaned:
+                out[role] = cleaned
+        elif isinstance(v, dict) and v.get("hex"):
+            out[role] = [v]   # eski tek-renk → array'e wrap
+    mix = colors.get("mix")
+    if isinstance(mix, dict) and mix.get("hex"):
+        out["mix"] = mix
+    return out
+
+
 def _derive_color_palette(images: list[dict]) -> list[dict]:
-    """images[i].colors -> dedup hex palette, açıktan koyuya (LAB L desc)."""
+    """images[i].colors -> dedup hex palette, açıktan koyuya (LAB L desc).
+    v4.0-part-2 Sprint 12: weft/warp array iterasyonu (geriye uyumlu)."""
     items = []
     for im in images:
-        for role, c in (im.get("colors") or {}).items():
-            if not c or not c.get("hex"):
-                continue
+        colors = _normalize_role_colors(im.get("colors") or {})
+        # Atkı + çözgü: array içinden her renk
+        for role in ("weft", "warp"):
+            for c in colors.get(role, []):
+                if not c.get("hex"):
+                    continue
+                items.append({
+                    "hex": c["hex"].upper(),
+                    "name": c.get("name") or c.get("nearest") or "—",
+                    "lab": c.get("lab") or [50, 0, 0],
+                    "role": role,
+                    "image_path": im.get("path") or im.get("storage_path"),  # research_pool fallback
+                })
+        # Mix: tek obje (varsa)
+        mix = colors.get("mix")
+        if mix and mix.get("hex"):
             items.append({
-                "hex": c["hex"].upper(),
-                "name": c.get("name") or c.get("nearest") or "—",
-                "lab": c.get("lab") or [50, 0, 0],
-                "role": role,
-                "image_path": im.get("path") or im.get("storage_path"),
+                "hex": mix["hex"].upper(),
+                "name": mix.get("name") or mix.get("nearest") or "—",
+                "lab": mix.get("lab") or [50, 0, 0],
+                "role": "mix",
+                "image_path": im.get("path") or im.get("storage_path"),  # research_pool fallback
             })
     by_hex: dict[str, list[dict]] = {}
     for it in items:
@@ -1765,25 +1828,58 @@ def _albums_assign(d: dict, slug: str, keys: list[str], add: bool, key_field: st
 
 def _image_set_colors(d: dict, key: str, payload: dict, key_field: str = "path") -> dict:
     """Bir görselin atkı/çözgü/toplam renk atamasını günceller (kısmi).
-    null/{} -> o rol silinir. Güncellenmiş colors dict'ini döner."""
+    v4.0-part-2 Sprint 12: weft/warp ARRAY (çoklu renk), mix TEK obje.
+    - null/{}/[] -> o rol silinir
+    - weft/warp için tek obje gelirse array'e wrap (legacy istemci uyumu)
+    - mix sadece obje veya null kabul eder
+    Güncellenmiş colors dict'ini döner."""
     images = d.get("images") or []
     match = next((im for im in images if im.get(key_field) == key), None)
     if not match:
         raise ValueError("Görsel bulunamadı")
-    cur = match.get("colors") or {}
-    for role in ("weft", "warp", "mix"):
+    # Mevcut colors'u önce normalize et (eski tek-renk formatı varsa array'e çevir)
+    cur = _normalize_role_colors(match.get("colors") or {})
+    ts = now_iso()
+
+    # weft + warp: array tutulur
+    for role in ("weft", "warp"):
         if role not in payload:
             continue
         v = payload[role]
-        if v is None or v == {}:
+        if v is None or v == [] or v == {}:
             cur.pop(role, None)
             continue
-        if not isinstance(v, dict) or not v.get("hex"):
-            raise ValueError(f"{role} için hex zorunlu")
-        v["hex"] = str(v["hex"]).upper()
-        v["name"] = (str(v.get("name") or "")).strip() or "—"
-        v["picked_at"] = now_iso()
-        cur[role] = v
+        # Tek obje gelirse array'e wrap (legacy istemci uyumu)
+        if isinstance(v, dict):
+            v = [v]
+        if not isinstance(v, list):
+            raise ValueError(f"{role} için array (veya obje) bekleniyor")
+        cleaned = []
+        for i, item in enumerate(v):
+            if not isinstance(item, dict) or not item.get("hex"):
+                raise ValueError(f"{role}[{i}] için hex zorunlu")
+            item["hex"] = str(item["hex"]).upper()
+            item["name"] = (str(item.get("name") or "")).strip() or "—"
+            item["picked_at"] = ts
+            cleaned.append(item)
+        if cleaned:
+            cur[role] = cleaned
+        else:
+            cur.pop(role, None)
+
+    # mix: tek obje
+    if "mix" in payload:
+        v = payload["mix"]
+        if v is None or v == {} or v == []:
+            cur.pop("mix", None)
+        elif isinstance(v, dict) and v.get("hex"):
+            v["hex"] = str(v["hex"]).upper()
+            v["name"] = (str(v.get("name") or "")).strip() or "—"
+            v["picked_at"] = ts
+            cur["mix"] = v
+        else:
+            raise ValueError("mix için hex zorunlu")
+
     if cur:
         match["colors"] = cur
     else:
@@ -1839,9 +1935,16 @@ def api_album_rename(urun_id: str):
 @app.route("/api/urun/<urun_id>/gorsel-renk", methods=["POST"])
 def api_set_image_colors(urun_id: str):
     """Bir görselin atkı/çözgü/toplam renk atamasını günceller.
-    Body: {path: str, colors: {weft|warp|mix: {hex, rgb, lab, name, delta_e, points} | null | {}}}
-    - null veya {} -> o rol silinir
-    - Sadece gönderilen role'ler güncellenir (kısmi update)
+    v4.0-part-2 Sprint 12: weft/warp ARRAY (çoklu renk), mix TEK obje.
+    Body:
+        {path: str, colors: {
+            weft: [{hex, rgb, lab, name, delta_e, points}, ...]  ya da {hex,...} (legacy),
+            warp: [{...}, ...]  ya da {hex,...} (legacy),
+            mix:  {hex,...} | null | {}
+        }}
+    - weft/warp için: None/{}/[] → o rol silinir; array → tümü kayıt; tek obje → [obje]'ye normalize
+    - mix için: None/{} → silinir; obje → kaydedilir
+    - Sadece gönderilen rol(ler) güncellenir (kısmi update)
     """
     d = store.get(urun_id)
     if not d:

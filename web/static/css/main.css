@@ -7703,10 +7703,151 @@ body.embed-calisma-right .urun-main-tabs .utab-btn[data-tab="galeri"] {
     grid-column: 1 / -1;
     grid-row: 1 / -1;
 }
-.palette-grid-image[data-filter="weft"] .palette-image-chip[data-has-weft="0"],
-.palette-grid-image[data-filter="warp"] .palette-image-chip[data-has-warp="0"],
+/* v4.0-part-2 Sprint 12: data-has-* yerine data-*-count (>0 → görünür) */
+.palette-grid-image[data-filter="weft"] .palette-image-chip[data-weft-count="0"],
+.palette-grid-image[data-filter="warp"] .palette-image-chip[data-warp-count="0"],
 .palette-grid-image[data-filter="mix"]  .palette-image-chip[data-has-mix="0"] {
     display: none;
+}
+
+/* ============================================================
+ * v4.0-part-2 Sprint 12 — Adaptive layout (solid / duo / quad / bands)
+ * ============================================================ */
+/* solid: tek renk, tam alan */
+.pic-layout-solid {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+}
+.pic-layout-solid .pic-region {
+    grid-column: 1 / -1;
+    grid-row: 1 / -1;
+}
+
+/* duo: 2 yan yana renk */
+.pic-layout-duo {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+}
+.pic-layout-duo .pic-region { grid-row: 1; }
+
+/* quad: 1 mix + 1 warp + 1 weft (Sprint 8.8 4-quadrant ile aynı) */
+.pic-layout-quad {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+}
+.pic-layout-quad .pic-mix  { grid-column: 1; grid-row: 1 / span 2; }
+.pic-layout-quad .pic-warp { grid-column: 2; grid-row: 1; }
+.pic-layout-quad .pic-weft { grid-column: 2; grid-row: 2; }
+
+/* bands: yatay 3 band (atkı üst / mix orta / çözgü alt) — varsa */
+.pic-layout-bands {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.pic-layout-bands .pic-band {
+    flex: 1;
+    display: flex;
+    width: 100%;
+    min-height: 0;
+}
+.pic-layout-bands .pic-band > span {
+    flex: 1;
+    display: block;
+    min-width: 0;
+}
+
+/* bands filtre modları: ilgili band'ı tam ekran yap, diğerlerini gizle */
+.palette-grid-image[data-filter="weft"] .pic-layout-bands .pic-band-weft,
+.palette-grid-image[data-filter="warp"] .pic-layout-bands .pic-band-warp,
+.palette-grid-image[data-filter="mix"]  .pic-layout-bands .pic-band-mix {
+    flex: 1;
+}
+.palette-grid-image[data-filter="weft"] .pic-layout-bands .pic-band-warp,
+.palette-grid-image[data-filter="weft"] .pic-layout-bands .pic-band-mix,
+.palette-grid-image[data-filter="warp"] .pic-layout-bands .pic-band-weft,
+.palette-grid-image[data-filter="warp"] .pic-layout-bands .pic-band-mix,
+.palette-grid-image[data-filter="mix"]  .pic-layout-bands .pic-band-weft,
+.palette-grid-image[data-filter="mix"]  .pic-layout-bands .pic-band-warp {
+    display: none;
+}
+
+/* ============================================================
+ * v4.0-part-2 Sprint 12 — Renk Atama: saved chip şerit + tab count
+ * ============================================================ */
+.cp-saved-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 4px;
+    margin: 4px 0 8px;
+    border-bottom: 1px dashed var(--border);
+    min-height: 32px;
+    align-items: center;
+}
+.cp-saved-empty {
+    font-size: 11px;
+    font-style: italic;
+    color: var(--text-dim);
+    padding: 0 6px;
+}
+.cp-saved-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 4px 2px 2px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    font-size: 11px;
+}
+.cp-saved-sw {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    flex: 0 0 18px;
+}
+.cp-saved-name {
+    color: var(--text);
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.cp-saved-del {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0 4px;
+    border-radius: 50%;
+    transition: color 0.15s, background 0.15s;
+}
+.cp-saved-del:hover {
+    color: #e07260;
+    background: rgba(224, 114, 96, 0.1);
+}
+.cp-role-count {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 8px;
+    margin-left: 4px;
+}
+
+/* Görsel kart count superscript */
+.cb-count {
+    font-size: 9px;
+    font-weight: 700;
+    margin-left: 1px;
+    vertical-align: super;
+    line-height: 1;
 }
 
 /* Mobile — swatch küçült */
