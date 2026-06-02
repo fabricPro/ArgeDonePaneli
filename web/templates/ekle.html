@@ -51,16 +51,42 @@
                 <input type="text" name="collection" placeholder="opsiyonel">
             </div>
 
+            {# v4.0-part-2 Sprint 11.5 — Ulke ayrimi #}
             <div class="form-row">
-                <label>Ülke</label>
-                <select id="country-select">
+                <label>Firma Ülkesi</label>
+                <select id="brand-country-select">
                     <option value="" disabled {% if not prefill %}selected{% endif %}>Ülke seç…</option>
                     {% for c in countries %}
                     <option value="{{ c }}" {% if prefill and prefill.country == c %}selected{% endif %}>{{ c }}</option>
                     {% endfor %}
                     <option value="__other__">Diğer (elle yaz)…</option>
                 </select>
-                <input type="text" id="country-other" placeholder="Ülke adı yaz" style="display:none; margin-top:8px;">
+                <input type="text" id="brand-country-other" placeholder="Ülke adı yaz" style="display:none; margin-top:8px;">
+                <small class="form-hint">Marka seçilince otomatik dolar — istersen değiştirebilirsin.</small>
+            </div>
+
+            <div class="form-row">
+                <label>Üretim Ülkesi</label>
+                <div class="prod-country-chip" id="production-country-chip" data-value="">
+                    <span class="prod-country-value">—</span>
+                    <span class="prod-country-hint">Sayfadan Gemini ile gelir</span>
+                </div>
+                <input type="hidden" name="production_country" id="production-country-input">
+                <small class="form-hint">"Made in / Produced in" yazısı varsa Linkten Doldur otomatik bulur. Elle yazılmaz.</small>
+            </div>
+
+            <div class="form-row">
+                <label>Referans Fiyat</label>
+                <div class="ref-price-chip" id="reference-price-chip"
+                     data-value="" data-type="" data-evidence="">
+                    <span class="ref-price-value">—</span>
+                    <span class="ref-price-tag" hidden></span>
+                    <span class="ref-price-hint">Sayfadan Gemini ile gelir</span>
+                </div>
+                <input type="hidden" name="reference_price"          id="reference-price-input">
+                <input type="hidden" name="reference_price_type"     id="reference-price-type-input">
+                <input type="hidden" name="reference_price_evidence" id="reference-price-evidence-input">
+                <small class="form-hint">Sayfada açıkça yazan fiyat (kesin veya "from") + para birimi olmazsa boş kalır.</small>
             </div>
 
             <div class="form-row">
@@ -183,56 +209,105 @@
 
     <!-- =================== SAĞ: AS-IDE =================== -->
     <aside class="ekle-aside">
-        <header class="ekle-aside-head">
-            <h3>Ön Çalışmadan Seç</h3>
-            <a href="{{ url_for('arastirma_page') }}" class="aside-more-link">tümü →</a>
-        </header>
-        <input type="search" id="aside-search" placeholder="Hızlı ara…" class="aside-search">
-        <div class="ekle-aside-tree" id="aside-tree">
-            {% if research_rows %}
-                {# Server-side grupla: ülke → firma #}
-                {% set groups = {} %}
-                {% for r in research_rows %}
-                    {% set key = (r.country or 'Belirtilmemiş') ~ ' / ' ~ (r.brand or '—') %}
-                    {% if key not in groups %}{% set _ = groups.update({key: []}) %}{% endif %}
-                    {% set _ = groups[key].append(r) %}
-                {% endfor %}
-                {% for key, rows in groups.items() %}
-                <details {% if loop.first %}open{% endif %}>
-                    <summary>
-                        <span class="aside-group-title">{{ key }}</span>
-                        <span class="aside-group-count">{{ rows|length }}</span>
-                    </summary>
-                    <ul class="aside-items">
-                        {% for r in rows %}
-                        {# v4.0-part-2 Sprint 5 — Manuel thumb_url öncelikli, yoksa Google s2 favicon #}
-                        {% set _thumb = r.thumb_url or favicon_url(r.product_url, 64) %}
-                        <li class="aside-item"
-                            data-research-id="{{ r.id }}"
-                            data-url="{{ r.product_url }}"
-                            data-brand-slug="{{ r.brand_slug }}"
-                            data-brand="{{ r.brand }}"
-                            data-country="{{ r.country }}">
-                            {% if _thumb %}
-                            <img src="{{ _thumb }}" alt="" loading="lazy" referrerpolicy="no-referrer"
-                                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-                            <div class="aside-thumb-ph" style="display:none"><svg class="icon"><use href="#ic-image"/></svg></div>
-                            {% else %}
-                            <div class="aside-thumb-ph"><svg class="icon"><use href="#ic-image"/></svg></div>
-                            {% endif %}
-                            <div class="aside-item-text">
-                                <span class="aside-item-title"></span>
-                            </div>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </details>
-                {% endfor %}
-            {% else %}
-                <div class="ekle-aside-empty">
-                    <p>Ön çalışma havuzu boş. <a href="{{ url_for('arastirma_page') }}">Ön Çalışma</a> sayfasından link ekle.</p>
+        {# v4.0-part-2 Sprint 11 — Tab nav: Ön Çalışma + Linkten Doldur #}
+        <nav class="ekle-aside-tabs" role="tablist" aria-label="Yardımcılar">
+            <button type="button" class="aside-tab is-active"
+                    data-tab="research" role="tab" aria-selected="true">
+                Ön Çalışmadan Seç
+            </button>
+            <button type="button" class="aside-tab"
+                    data-tab="gemini" role="tab" aria-selected="false">
+                🔮 Linkten Doldur
+            </button>
+        </nav>
+
+        <!-- TAB 1: Ön Çalışmadan Seç -->
+        <div class="aside-tab-panel" data-tab-panel="research" role="tabpanel">
+            <header class="ekle-aside-head">
+                <h3>Ön Çalışmadan Seç</h3>
+                <a href="{{ url_for('arastirma_page') }}" class="aside-more-link">tümü →</a>
+            </header>
+            <input type="search" id="aside-search" placeholder="Hızlı ara…" class="aside-search">
+            <div class="ekle-aside-tree" id="aside-tree">
+                {% if research_rows %}
+                    {# Server-side grupla: ülke → firma #}
+                    {% set groups = {} %}
+                    {% for r in research_rows %}
+                        {% set key = (r.country or 'Belirtilmemiş') ~ ' / ' ~ (r.brand or '—') %}
+                        {% if key not in groups %}{% set _ = groups.update({key: []}) %}{% endif %}
+                        {% set _ = groups[key].append(r) %}
+                    {% endfor %}
+                    {% for key, rows in groups.items() %}
+                    <details {% if loop.first %}open{% endif %}>
+                        <summary>
+                            <span class="aside-group-title">{{ key }}</span>
+                            <span class="aside-group-count">{{ rows|length }}</span>
+                        </summary>
+                        <ul class="aside-items">
+                            {% for r in rows %}
+                            {# v4.0-part-2 Sprint 5 — Manuel thumb_url öncelikli, yoksa Google s2 favicon #}
+                            {% set _thumb = r.thumb_url or favicon_url(r.product_url, 64) %}
+                            <li class="aside-item"
+                                data-research-id="{{ r.id }}"
+                                data-url="{{ r.product_url }}"
+                                data-brand-slug="{{ r.brand_slug }}"
+                                data-brand="{{ r.brand }}"
+                                data-country="{{ r.country }}">
+                                {% if _thumb %}
+                                <img src="{{ _thumb }}" alt="" loading="lazy" referrerpolicy="no-referrer"
+                                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                                <div class="aside-thumb-ph" style="display:none"><svg class="icon"><use href="#ic-image"/></svg></div>
+                                {% else %}
+                                <div class="aside-thumb-ph"><svg class="icon"><use href="#ic-image"/></svg></div>
+                                {% endif %}
+                                <div class="aside-item-text">
+                                    <span class="aside-item-title"></span>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </details>
+                    {% endfor %}
+                {% else %}
+                    <div class="ekle-aside-empty">
+                        <p>Ön çalışma havuzu boş. <a href="{{ url_for('arastirma_page') }}">Ön Çalışma</a> sayfasından link ekle.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- TAB 2: Linkten Doldur (Gemini) -->
+        <div class="aside-tab-panel" data-tab-panel="gemini" role="tabpanel" hidden>
+            <div class="gemini-intro">
+                <p>Sol formdaki <strong>Kaynak Bağlantısı</strong> alanına ürün linkini yapıştır, butona bas.</p>
+                <button type="button" class="btn btn-primary gemini-trigger" id="gemini-trigger" disabled>
+                    🔮 Linkten Doldur
+                </button>
+                <p class="gemini-hint">Gemini SADECE sayfada açıkça yazan bilgileri çıkarır. Her öneride kaynak alıntısı görürsün — kabul edip etmemek senin kararın.</p>
+            </div>
+
+            <div class="gemini-loading" id="gemini-loading" hidden>
+                <p>Sayfa okunuyor… <small>(yaklaşık 10–20 sn)</small></p>
+            </div>
+
+            <div class="gemini-error" id="gemini-error" hidden></div>
+
+            <div class="gemini-suggestions" id="gemini-suggestions" hidden>
+                <header class="gemini-suggestions-head">
+                    <h4>Öneriler</h4>
+                    <button type="button" class="btn btn-secondary" id="gemini-accept-all">
+                        ✓ Tümünü Kabul
+                    </button>
+                </header>
+                <div class="gemini-suggestions-list" id="gemini-list">
+                    <!-- JS template ile dinamik kart -->
                 </div>
-            {% endif %}
+                <p class="gemini-disclaimer">
+                    <strong>Hatırlatma:</strong> Bu öneriler bir tahmin değil, sayfa metninden çıkarımdır.
+                    Anayasa #3 gereği <em>kompozisyon, ülke (üretim), sertifika, FR, fiyat, MOQ, teslim</em>
+                    alanları yalnızca sayfada birebir geçiyorsa doldurulur.
+                </p>
+            </div>
         </div>
     </aside>
 </div>
@@ -242,8 +317,17 @@
 <script>
 const brandSelect = document.getElementById('brand-select');
 const brandOther = document.getElementById('brand-other');
-const countrySelect = document.getElementById('country-select');
-const countryOther = document.getElementById('country-other');
+// v4.0-part-2 Sprint 11.5 — Firma Ulkesi (brand_country)
+const countrySelect = document.getElementById('brand-country-select');
+const countryOther = document.getElementById('brand-country-other');
+// Uretim Ulkesi chip + hidden input (yalniz Gemini doldurur)
+const prodCountryChip  = document.getElementById('production-country-chip');
+const prodCountryInput = document.getElementById('production-country-input');
+// Referans Fiyat chip + 3 hidden input
+const refPriceChip          = document.getElementById('reference-price-chip');
+const refPriceInput         = document.getElementById('reference-price-input');
+const refPriceTypeInput     = document.getElementById('reference-price-type-input');
+const refPriceEvidenceInput = document.getElementById('reference-price-evidence-input');
 const fileInput = document.getElementById('file-input');
 const preview = document.getElementById('preview');
 const pdfInput = document.getElementById('pdf-input');
@@ -410,7 +494,8 @@ form.addEventListener('submit', async (e) => {
     const fd = new FormData(form);
     fd.set('brand', brandName);
     fd.set('brand_slug', brandSlug);
-    fd.set('country', country);
+    fd.set('brand_country', country);   // v4.0-part-2 Sprint 11.5 — Firma Ulkesi
+    fd.set('country', country);          // geriye uyum alias
 
     // dosyalar + etiketler (sirali)
     const labelInputs = preview.querySelectorAll('.variant-label');
@@ -460,6 +545,261 @@ document.querySelectorAll('.prefill-img-remove').forEach(btn => {
         btn.title = isRemoved ? 'Bu görseli çıkar' : 'Geri ekle';
     });
 });
+
+/* ============================================================
+   v4.0-part-2 Sprint 11 — Gemini "Linkten Doldur"
+   ============================================================ */
+(function geminiLinktenDoldurInit() {
+    // 1) Tab geçişi
+    const tabs   = document.querySelectorAll('.aside-tab');
+    const panels = document.querySelectorAll('.aside-tab-panel');
+    tabs.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tab = btn.dataset.tab;
+            tabs.forEach(b => {
+                const isActive = b === btn;
+                b.classList.toggle('is-active', isActive);
+                b.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            });
+            panels.forEach(p => {
+                p.hidden = p.dataset.tabPanel !== tab;
+            });
+        });
+    });
+
+    // 2) Buton enable/disable (URL geçerli mi)
+    const trigger = document.getElementById('gemini-trigger');
+    const loading = document.getElementById('gemini-loading');
+    const errorEl = document.getElementById('gemini-error');
+    const sugBox  = document.getElementById('gemini-suggestions');
+    const sugList = document.getElementById('gemini-list');
+    const acceptAll = document.getElementById('gemini-accept-all');
+    if (!trigger) return;
+
+    function updateTriggerState() {
+        const v = (sourceUrlInput?.value || '').trim();
+        trigger.disabled = !/^https?:\/\//i.test(v);
+    }
+    sourceUrlInput?.addEventListener('input', updateTriggerState);
+    updateTriggerState();
+
+    // 3) Alan → form input eşleştirme
+    // v4.0-part-2 Sprint 11.5: 'country' (HQ) Gemini'den GELMEZ; brand seçilince
+    // auto-fill ile dolar. Gemini sadece production_country (Made in) ve reference_price önerir.
+    const FIELD_INFO = {
+        product_name:         { label: 'Ürün Adı',        sel: 'input[name="product_name"]' },
+        product_code:         { label: 'Ürün Kodu',       sel: 'input[name="product_code"]' },
+        collection:           { label: 'Koleksiyon',      sel: 'input[name="collection"]' },
+        production_country:   { label: 'Üretim Ülkesi',   sel: '#production-country-input',
+                                isProdCountry: true },
+        composition:          { label: 'Kompozisyon',     sel: 'input[name="composition"]' },
+        width_cm:             { label: 'En (cm)',         sel: 'input[name="width_cm"]' },
+        weight_gsm:           { label: 'Gramaj (g/m²)',   sel: 'input[name="weight_gsm"]' },
+        weave_type:           { label: 'Dokuma',          sel: 'input[name="weave_type"]' },
+        repeat_vertical_cm:   { label: 'Rapor — boyuna',  sel: 'input[name="repeat_vertical_cm"]' },
+        repeat_horizontal_cm: { label: 'Rapor — enine',   sel: 'input[name="repeat_horizontal_cm"]' },
+        reference_price:      { label: 'Referans Fiyat',  sel: '#reference-price-input',
+                                isRefPrice: true },
+        arge_notu_taslak:     { label: 'ARGE Notu',       sel: 'textarea[name="arge_notu"]' },
+    };
+    const FIELD_ORDER = [
+        'product_name', 'product_code', 'collection', 'production_country',
+        'composition', 'width_cm', 'weight_gsm', 'weave_type',
+        'repeat_vertical_cm', 'repeat_horizontal_cm', 'reference_price', 'arge_notu_taslak',
+    ];
+
+    function clearState() {
+        loading.hidden = true;
+        errorEl.hidden = true;
+        sugBox.hidden  = true;
+        sugList.innerHTML = '';
+    }
+    function showLoading() {
+        clearState();
+        loading.hidden = false;
+        trigger.disabled = true;
+    }
+    function showError(text) {
+        clearState();
+        errorEl.textContent = text || 'Bilinmeyen hata.';
+        errorEl.hidden = false;
+        updateTriggerState();
+    }
+    // Gemini schema'nın yan etkisi: boş alanlar literal "null" string olarak
+    // dönebiliyor. Hem JSON null, hem boş string, hem "null"/"none" stringini
+    // boş say.
+    function isEmptyValue(v) {
+        if (v === null || v === undefined) return true;
+        const s = String(v).trim().toLowerCase();
+        return s === '' || s === 'null' || s === 'none' || s === 'n/a';
+    }
+
+    function showSuggestions(suggestions, pageTitle) {
+        clearState();
+        // Önce error/page_not_product kontrolü (string "null" de boş)
+        const err = suggestions && suggestions.error;
+        if (err && !isEmptyValue(err)) {
+            const msg = err === 'page_not_product'
+                ? 'Bu link bir kumaş ürün sayfası gibi görünmüyor (kategori, blog veya anasayfa olabilir).'
+                : (err === 'page_empty' ? 'Sayfa boş veya okunamadı.' : 'Gemini bilgi: ' + err);
+            showError(msg);
+            return;
+        }
+        sugBox.hidden = false;
+        sugList.innerHTML = '';
+        let cardCount = 0;
+        if (pageTitle) {
+            const t = document.createElement('div');
+            t.className = 'gemini-page-title';
+            t.textContent = '📄 ' + pageTitle;
+            sugList.appendChild(t);
+        }
+        FIELD_ORDER.forEach(field => {
+            const info = FIELD_INFO[field];
+            if (!info) return;
+            const sug = suggestions[field];
+            // null, boş, literal "null" string → kart gösterme
+            const hasValue = sug && typeof sug === 'object' && !isEmptyValue(sug.value);
+            if (!hasValue) return;
+            cardCount++;
+            const card = document.createElement('article');
+            card.className = 'gemini-card';
+            card.dataset.field = field;
+            card.dataset.value = String(sug.value);
+            // v4.0-part-2 Sprint 11.5 — fiyat ozel: type alani (exact/from)
+            const priceType = (info.isRefPrice && (sug.type === 'exact' || sug.type === 'from'))
+                              ? sug.type : '';
+            if (priceType) {
+                card.dataset.type = priceType;
+                card.dataset.evidence = (sug.evidence || '');
+            }
+            const evidence = (sug.evidence || '').toString().slice(0, 200);
+            const typeBadge = priceType === 'from'
+                ? '<span class="gemini-card-type-badge is-from">başlangıç</span>'
+                : (priceType === 'exact'
+                    ? '<span class="gemini-card-type-badge is-exact">kesin</span>'
+                    : '');
+            card.innerHTML = `
+                <div class="gemini-card-head">
+                    <span class="gemini-card-label">${info.label}${typeBadge}</span>
+                    <button type="button" class="gemini-accept" title="Bu öneriyi kabul et">✓ Kabul</button>
+                </div>
+                <div class="gemini-card-value"></div>
+                <div class="gemini-card-evidence">
+                    <span class="gemini-evidence-label">Kaynak:</span>
+                    <q></q>
+                </div>
+            `;
+            card.querySelector('.gemini-card-value').textContent = String(sug.value);
+            card.querySelector('.gemini-card-evidence q').textContent = evidence || '— (alıntı yok)';
+            card.querySelector('.gemini-accept').addEventListener('click', () => {
+                const extra = info.isRefPrice
+                    ? { type: priceType, evidence: sug.evidence || '' }
+                    : null;
+                acceptSuggestion(field, sug.value, extra);
+                card.classList.add('is-accepted');
+            });
+            sugList.appendChild(card);
+        });
+        if (!cardCount) {
+            const m = document.createElement('p');
+            m.className = 'gemini-empty';
+            m.textContent = 'Sayfada doldurulabilir alan bulunamadı. Manuel doldurmak için sol formu kullan.';
+            sugList.appendChild(m);
+        }
+        updateTriggerState();
+    }
+
+    function acceptSuggestion(field, value, extra) {
+        const info = FIELD_INFO[field];
+        if (!info) return;
+        const input = document.querySelector(info.sel);
+        if (!input) return;
+        const v = String(value).trim();
+
+        if (info.isProdCountry) {
+            // v4.0-part-2 Sprint 11.5 — Uretim Ulkesi chip + hidden input
+            input.value = v;
+            if (prodCountryChip) {
+                prodCountryChip.dataset.value = v;
+                prodCountryChip.classList.add('is-filled');
+                const valueEl = prodCountryChip.querySelector('.prod-country-value');
+                const hintEl  = prodCountryChip.querySelector('.prod-country-hint');
+                if (valueEl) valueEl.textContent = v;
+                if (hintEl)  hintEl.hidden = true;
+            }
+        } else if (info.isRefPrice) {
+            // v4.0-part-2 Sprint 11.5 — Referans Fiyat chip (value/type/evidence)
+            const t  = (extra && extra.type) || '';
+            const ev = (extra && extra.evidence) || '';
+            input.value = v;
+            if (refPriceTypeInput)     refPriceTypeInput.value     = (t === 'exact' || t === 'from') ? t : '';
+            if (refPriceEvidenceInput) refPriceEvidenceInput.value = ev;
+            if (refPriceChip) {
+                refPriceChip.dataset.value = v;
+                refPriceChip.dataset.type  = t;
+                refPriceChip.dataset.evidence = ev;
+                refPriceChip.classList.add('is-filled');
+                refPriceChip.title = ev || '';
+                const valueEl = refPriceChip.querySelector('.ref-price-value');
+                const tagEl   = refPriceChip.querySelector('.ref-price-tag');
+                const hintEl  = refPriceChip.querySelector('.ref-price-hint');
+                if (valueEl) valueEl.textContent = v;
+                if (tagEl) {
+                    if (t === 'from') {
+                        tagEl.textContent = '(başlangıç fiyatı)';
+                        tagEl.hidden = false;
+                    } else {
+                        tagEl.textContent = '';
+                        tagEl.hidden = true;
+                    }
+                }
+                if (hintEl) hintEl.hidden = true;
+            }
+        } else {
+            input.value = v;
+        }
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    // 4) Buton tıklayınca: Gemini API'ye fetch
+    trigger.addEventListener('click', async () => {
+        const url = (sourceUrlInput?.value || '').trim();
+        if (!url) return;
+        showLoading();
+        try {
+            const res = await fetch('{{ url_for("api_urun_linkten_doldur") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url }),
+            });
+            const data = await res.json();
+            if (!data.ok) {
+                showError(data.message || data.error || 'Gemini önerileri alınamadı.');
+                return;
+            }
+            showSuggestions(data.suggestions || {}, data.title || '');
+        } catch (e) {
+            showError('Bağlantı hatası: ' + e);
+        }
+    });
+
+    // 5) Tümünü kabul
+    acceptAll?.addEventListener('click', () => {
+        document.querySelectorAll('.gemini-card:not(.is-accepted)').forEach(card => {
+            const field = card.dataset.field;
+            const value = card.dataset.value;
+            if (!field) return;
+            // v4.0-part-2 Sprint 11.5 — fiyat icin type+evidence dataset'ten okunur
+            const extra = (FIELD_INFO[field] && FIELD_INFO[field].isRefPrice)
+                ? { type: card.dataset.type || '', evidence: card.dataset.evidence || '' }
+                : null;
+            acceptSuggestion(field, value, extra);
+            card.classList.add('is-accepted');
+        });
+    });
+})();
 </script>
 
 {# v4.0-part-2 Sprint 11 — Ürün öncesi albüm + renk paleti (research kaydına canlı yazar) #}

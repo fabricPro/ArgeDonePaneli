@@ -19,3 +19,5 @@ services:
         sync: false                # Dashboard'dan elle gir (panel sifresi)
       - key: MOBIDIK_API_TOKEN
         sync: false                # Dashboard'dan elle gir (eklenti yakalama token'i — Sprint 9)
+      - key: GEMINI_API_KEY
+        sync: false                # Dashboard'dan elle gir (Gemini API anahtarı — Sprint 11)

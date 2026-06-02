@@ -36,6 +36,15 @@ from urllib.request import Request as UrlRequest, urlopen
 
 import store
 
+# v4.0-part-2 Sprint 11 — Gemini destekli "Linkten Doldur" özelliği.
+# SDK opsiyonel; modülün kendisi yoksa veya GEMINI_API_KEY tanımsızsa route 503 döner.
+try:
+    import gemini_extract as gx
+    _GEMINI_AVAILABLE = True
+except ImportError:
+    gx = None  # type: ignore
+    _GEMINI_AVAILABLE = False
+
 
 # v4.0-part-2 Adım 7 — Sade Notlar HTML sanitize (regex tabanlı, bleach'siz)
 #
@@ -171,7 +180,9 @@ def country_list() -> list[str]:
 # v4.0-part-2 Adım 6 — Firma Kütüphanesi (brands_registry)
 # ============================================================
 
-# Bilinen markaların seed sırasında ülke ipuçları (manuel doğrulanmış)
+# v4.0-part-2 Sprint 11.5: Bu map artik kesinlikle BRAND HQ (firma merkezi).
+# brand_registry.country alanini seed eder; UI tarafi bu degeri "Firma Ulkesi" alanina basar.
+# Uretim ulkesi (production_country) AYRI bir alan — yalniz Gemini sayfadan cikarir.
 BRAND_COUNTRY_HINT = {
     "kvadrat": "Danimarka", "dedar": "İtalya", "rubelli": "İtalya",
     "sahco": "İsveç", "nya_nordiska": "Almanya",
@@ -338,6 +349,13 @@ def product_summary(d: dict) -> dict:
         # v4.0-part-2 Adım 8 — Galeri filtre + kart indikatörleri
         "status": d.get("status") or "active",
         "country_code": d.get("country_code"),
+        # v4.0-part-2 Sprint 11.5 — country ayrimi (yeni alanlar; country = brand_country alias)
+        "brand_country": d.get("brand_country") or d.get("country"),
+        "brand_country_code": d.get("brand_country_code") or d.get("country_code"),
+        "production_country": d.get("production_country"),
+        "production_country_code": d.get("production_country_code"),
+        "reference_price": d.get("reference_price"),
+        "reference_price_type": d.get("reference_price_type"),
         "has_teknik": store.has_teknik_calisma(d),
         "has_pdf": store.has_pdfs(d),
         "has_notlar": store.has_notlar(d),
@@ -769,10 +787,33 @@ def api_create_urun():
 
     source_url = clean(f.get("source_url"))
 
+    # v4.0-part-2 Sprint 11.5 — country ayrimi (brand HQ + production "Made in")
+    # Eski "country" form alani -> brand_country'ye yonlendi; geriye uyum icin
+    # backend tarafinda country = brand_country senkron tutulur.
+    brand_country_raw = clean(f.get("brand_country")) or clean(f.get("country"))  # eski form fallback
+    brand_country = norm_country(brand_country_raw)
+    production_country = norm_country(clean(f.get("production_country")))
+
+    # v4.0-part-2 Sprint 11.5 — reference_price (exact/from)
+    ref_price = clean(f.get("reference_price"))
+    ref_price_type = clean(f.get("reference_price_type"))
+    if ref_price_type not in ("exact", "from"):
+        ref_price_type = None   # enum disi degerlere izin verme (savunma)
+    if not ref_price:
+        ref_price_type = None   # value bossa type da bos
+    ref_price_evidence = clean(f.get("reference_price_evidence")) if ref_price else None
+
     now = now_iso()
     d = {
         "urun_id": urun_id, "brand": brand, "brand_slug": brand_slug,
-        "country": norm_country(clean(f.get("country"))),
+        "country": brand_country,                       # geriye uyum alias = brand_country
+        "brand_country": brand_country,
+        "brand_country_code": _country_iso(brand_country),
+        "production_country": production_country,
+        "production_country_code": _country_iso(production_country),
+        "reference_price": ref_price,
+        "reference_price_type": ref_price_type,
+        "reference_price_evidence": ref_price_evidence,
         "collection": clean(f.get("collection")), "product_name": product_name,
         "product_code": product_code or folder_code,
         "composition": clean(f.get("composition")), "width_cm": parse_int(f.get("width_cm")),
@@ -784,7 +825,7 @@ def api_create_urun():
         "source_url": source_url,
         "source_url_hash": store.url_hash(source_url) if source_url else None,
         "status": "active",
-        "country_code": _country_iso(norm_country(clean(f.get("country")))),
+        "country_code": _country_iso(brand_country),   # eski alias
         "created_at": now, "updated_at": now, "images": images,
     }
     # v4.0-part-2 Sprint 11 — Araştırmadaki albüm tanımlarını ürüne tohumla
@@ -808,6 +849,66 @@ def api_create_urun():
     return jsonify({"ok": True, "urun_id": urun_id, "redirect": url_for("urun_detail", urun_id=urun_id)})
 
 
+# v4.0-part-2 Sprint 11 — Gemini destekli "Linkten Doldur"
+# Bir kumaş ürün linkinden form alanları için ÖNERİ üretir.
+# Form'a hiçbir şey otomatik yazılmaz; UI önerileri gösterir,
+# kullanıcı tek tek veya toplu "Kabul" ile form'a basar.
+# Anayasa kural #2/#3/#8 uyumu: SADECE sayfada açıkça yazan
+# bilgiler döndürülür; her alan için sayfadan alıntı (evidence) zorunludur.
+@app.route("/api/urun/linkten-doldur", methods=["POST"])
+def api_urun_linkten_doldur():
+    if not _GEMINI_AVAILABLE:
+        return jsonify({
+            "ok": False,
+            "error": "gemini_module_missing",
+            "message": "gemini_extract modülü yüklenemedi (google-generativeai kurulu mu?)",
+        }), 503
+
+    if not os.environ.get("GEMINI_API_KEY"):
+        return jsonify({
+            "ok": False,
+            "error": "no_api_key",
+            "message": "GEMINI_API_KEY tanımsız — endpoint pasif",
+        }), 503
+
+    data = request.get_json(silent=True) or {}
+    url = (data.get("url") or "").strip()
+    if not url:
+        return jsonify({"ok": False, "error": "missing_url", "message": "url zorunlu"}), 400
+    if not url.startswith(("http://", "https://")):
+        return jsonify({
+            "ok": False, "error": "bad_url",
+            "message": "url http:// veya https:// ile başlamalı",
+        }), 400
+
+    # Tek-çağrı sarmalayıcı: fetch + extract.
+    # Başarısızlık koşullarını `linkten_doldur` ok=False olarak döndürür.
+    try:
+        result = gx.linkten_doldur(url)
+    except Exception as e:
+        return jsonify({
+            "ok": False, "error": "unexpected",
+            "message": f"Beklenmeyen hata: {e}",
+        }), 500
+
+    if not result.get("ok"):
+        # fetch / extract hatası — kullanıcıya 200 ile bilgi mesajı dön
+        # (UI hata kartını gösterir, form girişi engellenmez)
+        return jsonify({
+            "ok": False,
+            "stage": result.get("stage"),
+            "error": result.get("error"),
+            "message": result.get("message") or "Bilinmeyen hata",
+        }), 200
+
+    return jsonify({
+        "ok": True,
+        "suggestions": result.get("suggestions") or {},
+        "title": result.get("title") or "",
+        "truncated": bool(result.get("truncated")),
+    }), 200
+
+
 @app.route("/api/urun/<urun_id>/meta", methods=["POST"])
 def api_update_meta(urun_id: str):
     d = store.get(urun_id)
@@ -820,8 +921,27 @@ def api_update_meta(urun_id: str):
                 "composition", "weave_type", "arge_notu", "notes", "source_url"):
         if key in data:
             d[key] = clean(data[key])
-    if "country" in data:
-        d["country"] = norm_country(clean(data["country"]))
+    # v4.0-part-2 Sprint 11.5 — country = brand_country alias (geriye uyum)
+    if "country" in data or "brand_country" in data:
+        bc_raw = clean(data.get("brand_country") or data.get("country"))
+        bc = norm_country(bc_raw)
+        d["country"] = bc
+        d["brand_country"] = bc
+        d["brand_country_code"] = _country_iso(bc)
+    if "production_country" in data:
+        pc = norm_country(clean(data["production_country"]))
+        d["production_country"] = pc
+        d["production_country_code"] = _country_iso(pc)
+    if "reference_price" in data:
+        rp = clean(data["reference_price"]) or None
+        rpt = clean(data.get("reference_price_type"))
+        if rpt not in ("exact", "from"):
+            rpt = None
+        if not rp:
+            rpt = None
+        d["reference_price"] = rp
+        d["reference_price_type"] = rpt
+        d["reference_price_evidence"] = clean(data.get("reference_price_evidence")) if rp else None
     for key in ("width_cm", "weight_gsm", "repeat_vertical_cm", "repeat_horizontal_cm"):
         if key in data:
             d[key] = parse_int(data[key])
@@ -2370,13 +2490,17 @@ def api_arastirma_ekle():
     # 4) v4.0-part-2 Sprint 5 — Server-side og:image fetch artık yapılmaz.
     # Client-side favicon URL'i hesaplar (her sitenin Google s2 servisi favicon'u).
     # thumb_url alanı ileride manuel görsel override için boş bırakılır.
+    # v4.0-part-2 Sprint 11.5 — research_pool da brand_country (HQ) alias'i kullanir
+    cc = _country_iso(country_normalized)
     payload = {
         "master_url": (data.get("master_url") or "").strip(),
         "product_url": purl,
         "brand": brand_name,
         "brand_slug": brand_slug,
-        "country": country_normalized,
-        "country_code": _country_iso(country_normalized),
+        "country": country_normalized,                 # geriye uyum
+        "country_code": cc,
+        "brand_country": country_normalized,           # YENI - HQ
+        "brand_country_code": cc,
         "thumb_url": None,
         "notes": (data.get("notes") or "").strip() or None,
     }
@@ -2470,8 +2594,11 @@ def api_arastirma_update(research_id: str):
             country_raw = data.get("country") or reg_brand.get("country")
             if country_raw:
                 country_norm = norm_country(country_raw)
+                cc = _country_iso(country_norm)
                 patch["country"] = country_norm
-                patch["country_code"] = _country_iso(country_norm)
+                patch["country_code"] = cc
+                patch["brand_country"] = country_norm  # v4.0-part-2 Sprint 11.5 alias
+                patch["brand_country_code"] = cc
     elif "brand" in data and data.get("brand"):
         brand_name = (data.get("brand") or "").strip()
         existing_slugs = {b.get("slug") for b in get_brands_registry()}
@@ -2480,8 +2607,11 @@ def api_arastirma_update(research_id: str):
 
     if "country" in data and data.get("country") and "country" not in patch:
         country_norm = norm_country((data.get("country") or "").strip())
+        cc = _country_iso(country_norm)
         patch["country"] = country_norm
-        patch["country_code"] = _country_iso(country_norm)
+        patch["country_code"] = cc
+        patch["brand_country"] = country_norm           # v4.0-part-2 Sprint 11.5 alias
+        patch["brand_country_code"] = cc
 
     if not patch:
         return jsonify({"ok": True, "row": row, "noop": True})
@@ -2814,6 +2944,8 @@ def api_arastirma_yakala():
         "brand_slug": brand_slug,
         "country": country,
         "country_code": country_code,
+        "brand_country": country,                 # v4.0-part-2 Sprint 11.5 — HQ alias
+        "brand_country_code": country_code,
         "thumb_url": None,
         "status": "pending",
         "notes": alt,

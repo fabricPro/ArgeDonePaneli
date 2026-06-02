@@ -114,9 +114,25 @@
 {% endif %}
 <div class="detail-header">
     <div class="detail-header-text">
-        <div class="card-brand">{{ product.brand }}{% if product.country %} · {{ product.country }}{% endif %}</div>
+        {# v4.0-part-2 Sprint 11.5: 'country' alanı brand_country alias'i; geriye uyum icin fallback #}
+        {% set _bc = product.brand_country or product.country %}
+        <div class="card-brand">{{ product.brand }}{% if _bc %} · {{ _bc }}{% endif %}</div>
         <h1>{{ product.product_name }}</h1>
         {% if product.collection %}<div class="card-meta">{{ product.collection }}</div>{% endif %}
+        {# Üretim ülkesi + referans fiyat badge'leri — boşsa gizli #}
+        {% if product.production_country or product.reference_price %}
+        <div class="detail-source-badges">
+            {% if product.production_country %}
+            <span class="src-badge src-badge-prod">Made in {{ product.production_country }}</span>
+            {% endif %}
+            {% if product.reference_price %}
+            <span class="src-badge src-badge-price"
+                  {% if product.reference_price_evidence %}title="{{ product.reference_price_evidence }}"{% endif %}>
+                {{ product.reference_price }}{% if product.reference_price_type == 'from' %} <em class="src-badge-tag">(başlangıç fiyatı)</em>{% endif %}
+            </span>
+            {% endif %}
+        </div>
+        {% endif %}
     </div>
     <div class="detail-header-actions">
         {% if product.source_url %}
@@ -176,7 +192,8 @@
     <summary><svg class="icon"><use href="#ic-pencil"/></svg> Bilgileri düzenle</summary>
     <div class="form-grid">
         <div class="form-row"><label>Marka</label><input data-key="brand" value="{{ product.brand or '' }}"></div>
-        <div class="form-row"><label>Ülke</label><input data-key="country" list="country-list" value="{{ product.country or '' }}">
+        {# v4.0-part-2 Sprint 11.5: 'country' anahtari brand_country alias'i; backend her ikisini senkron yazar #}
+        <div class="form-row"><label>Firma Ülkesi</label><input data-key="country" list="country-list" value="{{ product.brand_country or product.country or '' }}">
             <datalist id="country-list">{% for c in countries %}<option value="{{ c }}">{% endfor %}</datalist></div>
         <div class="form-row"><label>Ürün Adı</label><input data-key="product_name" value="{{ product.product_name or '' }}"></div>
         {# v4.0-part-2 Adım 7: Ürün Kodu + Koleksiyon kaldırıldı (kaynak URL yeterli; eski veriler DB'de korunur) #}

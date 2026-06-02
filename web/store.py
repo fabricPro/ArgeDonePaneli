@@ -28,6 +28,10 @@ PRODUCT_COLUMNS = [
     "source_url", "images", "albums", "teknik", "dashboard_order",
     "pdfs", "notlar_html",  # v4.0-part-2 Adim 7
     "status", "country_code", "source_url_hash",  # v4.0-part-2 Adim 8
+    # v4.0-part-2 Sprint 11.5 — country ayrimi + reference_price
+    "brand_country", "brand_country_code",                # firma HQ (mevcut country = bunun alias'i)
+    "production_country", "production_country_code",      # "Made in" — yalniz Gemini sayfadan
+    "reference_price", "reference_price_type", "reference_price_evidence",
     "created_at", "updated_at",
 ]
 
@@ -40,6 +44,7 @@ RESEARCH_COLUMNS = [
     "image_sha256", "page_title", "image_storage_path",  # v4.0-part-2 Sprint 9 (eklenti yakalama)
     "images",  # v4.0-part-2 Sprint 10 — JSONB array (galeri mantığı)
     "albums",  # v4.0-part-2 Sprint 11 — ürün öncesi albüm + renk paleti
+    "brand_country", "brand_country_code",  # v4.0-part-2 Sprint 11.5 — country = brand_country alias
 ]
 
 
