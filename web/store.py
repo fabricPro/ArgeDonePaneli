@@ -32,6 +32,7 @@ PRODUCT_COLUMNS = [
     "brand_country", "brand_country_code",                # firma HQ (mevcut country = bunun alias'i)
     "production_country", "production_country_code",      # "Made in" — yalniz Gemini sayfadan
     "reference_price", "reference_price_type", "reference_price_evidence",
+    "from_research_id",  # v4.0-part-2 Sprint 14 — Ön çalışma kaynağı (varsa)
     "created_at", "updated_at",
 ]
 

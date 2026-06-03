@@ -300,22 +300,43 @@
         let touchActive = false;
         let lastTouchPx = null;
         let pinchBase = null;        // {dist, scale} — TODO: gerçek pinch için canvas transform gerekli
+        // v4.0-part-2 Sprint 14: long-press → append mode (Ctrl tuşu alternatifi mobil için)
+        const LONG_PRESS_MS = 500;
+        let longPressTimer = null;
+        let longPressFired = false;
+        function clearLongPress() {
+            if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+        }
+        function triggerHaptic() {
+            try { if (navigator.vibrate) navigator.vibrate(35); } catch (e) {}
+        }
         canvasEl.addEventListener("touchstart", (e) => {
             if (!state.img) return;
             if (e.touches.length === 1) {
                 touchActive = true;
+                longPressFired = false;
                 if (state.magEl) state.magEl.hidden = false;
                 const t = e.touches[0];
                 placeMag(t.clientX, t.clientY, true);
                 const [px, py] = evtToPixel(e, canvasEl);
                 lastTouchPx = [px, py];
                 drawMagAt(px, py);
+                // 500ms parmak basılı kalırsa → bu tap append mode'a yükseltilir
+                clearLongPress();
+                longPressTimer = setTimeout(() => {
+                    longPressFired = true;
+                    triggerHaptic();   // titreşim feedback (cihaz destekliyorsa)
+                    // Görsel feedback: magnifier'a uzun-basma rengini ver
+                    if (state.magEl) state.magEl.classList.add('is-long-press');
+                }, LONG_PRESS_MS);
                 e.preventDefault();
             }
         }, { passive: false });
         canvasEl.addEventListener("touchmove", (e) => {
             if (!touchActive || !state.img) return;
             if (e.touches.length === 1) {
+                // Parmak kaydı → long-press iptal (tap niyeti yok)
+                clearLongPress();
                 const t = e.touches[0];
                 placeMag(t.clientX, t.clientY, true);
                 const [px, py] = evtToPixel(e, canvasEl);
@@ -327,18 +348,28 @@
         canvasEl.addEventListener("touchend", (e) => {
             if (!touchActive) return;
             touchActive = false;
-            if (state.magEl) state.magEl.hidden = true;
+            clearLongPress();
+            if (state.magEl) {
+                state.magEl.hidden = true;
+                state.magEl.classList.remove('is-long-press');
+            }
             if (lastTouchPx) {
-                // v4.0-part-2 Sprint 13: tablette çoklu nokta — toggle açıksa append
-                const mode = state.multiPoint ? "append" : "replace";
+                // v4.0-part-2 Sprint 14: longPressFired VEYA multiPoint toggle → append
+                const mode = (longPressFired || state.multiPoint) ? "append" : "replace";
                 addPointAt(lastTouchPx[0], lastTouchPx[1], mode);
                 lastTouchPx = null;
             }
+            longPressFired = false;
         });
         canvasEl.addEventListener("touchcancel", () => {
             touchActive = false;
+            longPressFired = false;
+            clearLongPress();
             lastTouchPx = null;
-            if (state.magEl) state.magEl.hidden = true;
+            if (state.magEl) {
+                state.magEl.hidden = true;
+                state.magEl.classList.remove('is-long-press');
+            }
         });
     }
 
@@ -457,4 +488,53 @@
     let initial = 'collage';
     try { initial = localStorage.getItem(MODE_KEY) || 'collage'; } catch (e) {}
     applyMode(initial);
+})();
+
+
+/* ============================================================
+ * v4.0-part-2 Sprint 14 — Palette chip → galerideki görsele atla
+ * Tek tıkla: scroll + vurgu + Renk Atama akordiyonu aç + canvas'a yükle
+ * ============================================================ */
+(function () {
+    function jumpToImage(path) {
+        if (!path) return;
+        const card = document.querySelector(`.img-manage-card[data-path="${CSS.escape(path)}"]`);
+        if (card) {
+            try { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { card.scrollIntoView(); }
+            card.classList.add('is-highlighted');
+            setTimeout(() => card.classList.remove('is-highlighted'), 2200);
+        }
+        // Renk Atama akordiyonu aç + canvas'a yükle (görsel "Renkler" albümünde değilse no-op)
+        const detailsEl = document.getElementById('cp-details');
+        const imageSel = document.getElementById('cp-image-sel');
+        if (!detailsEl || !imageSel) return;
+        const opt = [...imageSel.options].find(o => o.dataset && o.dataset.path === path);
+        if (opt) {
+            imageSel.value = opt.value;
+            if (!detailsEl.open) detailsEl.open = true;
+            try { window.ColorPicker?.setImage(opt.value); } catch (e) {}
+            try { detailsEl.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+        }
+    }
+    function bind(grid) {
+        if (!grid || grid.dataset.s14Bound) return;
+        grid.dataset.s14Bound = '1';
+        grid.addEventListener('click', (e) => {
+            // Image-based chip (Sprint 8.8) → tek path
+            const imgChip = e.target.closest('.palette-image-chip');
+            if (imgChip && imgChip.dataset.path) {
+                jumpToImage(imgChip.dataset.path);
+                return;
+            }
+            // Legacy hex chip → image_paths array, ilkine git
+            const legacy = e.target.closest('.palette-chip');
+            if (legacy && legacy.dataset.imagePaths) {
+                let paths = [];
+                try { paths = JSON.parse(legacy.dataset.imagePaths); } catch (err) {}
+                if (paths.length) jumpToImage(paths[0]);
+            }
+        });
+    }
+    bind(document.querySelector('.palette-grid-image[data-grid="image"]'));
+    bind(document.querySelector('.palette-grid[data-grid="legacy"]'));
 })();

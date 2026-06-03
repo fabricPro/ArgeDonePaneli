@@ -73,15 +73,21 @@
 {% endif %}
 </div>{# /urun-sticky-hero #}
 
-{# v3.8 — Ana sekme navigasyonu (v4.0-part-2 Adım 7: + Dokümanlar + Notlar) #}
+{# v3.8 — Ana sekme navigasyonu (v4.0-part-2 Sprint 14: rename + Ön Çalışma sekmesi) #}
 <nav class="urun-main-tabs" id="urun-main-tabs" aria-label="Ana sekmeler">
     <button type="button" class="utab-btn is-active" data-tab="galeri">
         <svg class="icon"><use href="#ic-image"/></svg>
         <span>Galeri</span>
     </button>
+    {% if from_research_row %}
+    <button type="button" class="utab-btn" data-tab="on_calisma">
+        <svg class="icon"><use href="#ic-search"/></svg>
+        <span>Ön Çalışma</span>
+    </button>
+    {% endif %}
     <button type="button" class="utab-btn" data-tab="teknik">
         <svg class="icon"><use href="#ic-pencil"/></svg>
-        <span>Teknik Çalışma</span>
+        <span>Temel Çalışma Alanı</span>
         {% if teknik and teknik.surumler %}<span class="utab-cnt">{{ teknik.surumler|length }}</span>{% endif %}
     </button>
     <button type="button" class="utab-btn" data-tab="dokuman">
@@ -100,6 +106,12 @@
     <button type="button" class="album-tab is-active" data-album="">
         Tümü <span class="cnt">{{ product.images|length }}</span>
     </button>
+    {# v4.0-part-2 Sprint 14 — Otomatik Favoriler sekmesi (en az 1 favori varsa) #}
+    {% if has_favorites %}
+    <button type="button" class="album-tab album-favorites" data-album="__favoriler__" data-name="Favoriler" title="Favori görseller">
+        <svg class="icon"><use href="#ic-heart"/></svg> Favoriler <span class="cnt">{{ favorite_count }}</span>
+    </button>
+    {% endif %}
     {% for a in albums %}
     <button type="button" class="album-tab" data-album="{{ a.slug }}" data-name="{{ a.name }}">
         {{ a.name }} <span class="cnt">{{ album_counts.get(a.slug, 0) }}</span>
@@ -293,7 +305,8 @@
         <div class="palette-grid" id="palette-grid" data-grid="legacy" {% if image_color_map %}hidden{% endif %}>
             {% for c in color_palette %}
             <button type="button" class="palette-chip" data-hex="{{ c.hex }}"
-                    title="{{ c.name }} · {{ c.hex }} · L {{ '%.0f'|format(c.lab[0]) }}">
+                    data-image-paths='{{ (c.image_paths or [])|tojson }}'
+                    title="{{ c.name }} · {{ c.hex }} · L {{ '%.0f'|format(c.lab[0]) }} · görsele git">
                 <span class="chip-swatch" style="background:{{ c.hex }}"></span>
                 <span class="chip-info">
                     <span class="chip-name">{{ c.name }}</span>
@@ -430,10 +443,11 @@
         <span class="vs-count">{{ item.count }}</span>
     </div>
         {% else %}
-    <div class="img-manage-card {% if item.is_cover %}is-cover{% endif %}"
+    <div class="img-manage-card {% if item.is_cover %}is-cover{% endif %}{% if item.is_favorite %} is-favorite{% endif %}"
          data-path="{{ item.path }}"
          data-label="{{ item.variant_label or '' }}"
-         data-albums='{{ (item.albums or [])|tojson }}'>
+         data-albums='{{ (item.albums or [])|tojson }}'
+         data-favorite="{{ 'true' if item.is_favorite else 'false' }}">
         <span class="img-check-overlay" aria-hidden="true"><svg class="icon"><use href="#ic-check"/></svg></span>
         {% if item.is_cover %}<div class="cover-badge"><svg class="icon"><use href="#ic-star"/></svg> Kapak</div>{% endif %}
         <img src="{{ item.url }}"
@@ -464,6 +478,8 @@
             <button class="btn-mini btn-set-cover" data-path="{{ item.path }}" title="Kapak yap"><svg class="icon"><use href="#ic-star"/></svg></button>
             {% endif %}
             <button class="btn-mini btn-pin {% if item.is_pinned %}is-pinned{% endif %}" data-path="{{ item.path }}" data-pin="{{ 'false' if item.is_pinned else 'true' }}" title="{% if item.is_pinned %}Sabitlemeyi kaldır{% else %}Sabitle{% endif %}"><svg class="icon"><use href="#ic-pin"/></svg></button>
+            {# v4.0-part-2 Sprint 14 — Favori toggle #}
+            <button class="btn-mini btn-favorite {% if item.is_favorite %}is-favorite{% endif %}" data-path="{{ item.path }}" title="{% if item.is_favorite %}Favoriden çıkar{% else %}Favorilere ekle{% endif %}" aria-label="Favori"><svg class="icon"><use href="#ic-heart"/></svg></button>
             <button class="btn-mini btn-del-img" data-path="{{ item.path }}" title="Sil"><svg class="icon"><use href="#ic-trash"/></svg></button>
         </div>
     </div>
@@ -482,7 +498,72 @@
 
 </section>{# /Galeri sekmesi #}
 
-{# === TEKNİK ÇALIŞMA SEKMESİ — v3.8 Faz 1 === #}
+{# === v4.0-part-2 Sprint 14 — ÖN ÇALIŞMA SEKMESİ (sadece from_research_row varsa) === #}
+{% if from_research_row %}
+<section data-tab="on_calisma" class="utab-section" hidden>
+    <div class="on-calisma-panel">
+        <header class="on-calisma-head">
+            <div>
+                <h2>Bu kumaş ön çalışmadan oluşturuldu</h2>
+                <p class="page-subtitle">Araştırma kaydından gelen orijinal bilgiler aşağıda görünür.</p>
+            </div>
+            <a href="{{ url_for('arastirma_detail', research_id=from_research_row.id) }}" class="btn btn-secondary">
+                <svg class="icon"><use href="#ic-external-link"/></svg> Tam Kaydı Aç
+            </a>
+        </header>
+        <dl class="on-calisma-meta">
+            {% if from_research_row.brand %}
+            <div class="oc-row"><dt>Marka</dt><dd><strong>{{ from_research_row.brand }}</strong></dd></div>
+            {% endif %}
+            {% if from_research_row.brand_country or from_research_row.country %}
+            <div class="oc-row"><dt>Firma Ülkesi</dt><dd>{{ from_research_row.brand_country or from_research_row.country }}</dd></div>
+            {% endif %}
+            {% if from_research_row.product_url %}
+            <div class="oc-row"><dt>Kaynak URL</dt><dd>
+                <a href="{{ from_research_row.product_url }}" target="_blank" rel="noopener" class="oc-url">{{ from_research_row.product_url }}</a>
+            </dd></div>
+            {% endif %}
+            {% if from_research_row.master_url and from_research_row.master_url != from_research_row.product_url %}
+            <div class="oc-row"><dt>Master URL</dt><dd>
+                <a href="{{ from_research_row.master_url }}" target="_blank" rel="noopener" class="oc-url">{{ from_research_row.master_url }}</a>
+            </dd></div>
+            {% endif %}
+            {% if from_research_row.added_at %}
+            <div class="oc-row"><dt>Eklendi</dt><dd>{{ from_research_row.added_at }}</dd></div>
+            {% endif %}
+            {% if from_research_row.status %}
+            <div class="oc-row"><dt>Durum</dt><dd><span class="oc-status">{{ from_research_row.status }}</span></dd></div>
+            {% endif %}
+        </dl>
+        {% if from_research_row.notes %}
+        <div class="oc-notes">
+            <h4>Notlar</h4>
+            <p>{{ from_research_row.notes }}</p>
+        </div>
+        {% endif %}
+        {% if from_research_row.images %}
+        <div class="on-calisma-images">
+            <h4>Araştırma Görselleri <span class="oc-cnt">({{ from_research_row.images|length }})</span></h4>
+            <div class="oc-img-grid">
+                {% for im in from_research_row.images %}
+                {% set _imurl = im.url or (im.storage_path and ('https://' ~ (request.host if request else '') ~ '/storage/' ~ im.storage_path)) or '' %}
+                <a class="oc-img-card" href="{{ _imurl }}" target="_blank" rel="noopener" title="{{ im.alt or '' }}">
+                    {% if _imurl %}
+                    <img src="{{ _imurl }}" loading="lazy" alt="{{ im.alt or '' }}">
+                    {% else %}
+                    <div class="oc-img-noimg"><svg class="icon"><use href="#ic-image"/></svg></div>
+                    {% endif %}
+                    {% if im.alt %}<span class="oc-img-alt">{{ im.alt }}</span>{% endif %}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endif %}
+
+{# === TEMEL ÇALIŞMA ALANI (v3.8 Faz 1, Sprint 14: rename) === #}
 <section data-tab="teknik" class="utab-section" hidden>
     {% if is_mobile_ua %}
     <div class="mobile-warning">
@@ -630,6 +711,12 @@
                         <div class="form-row">
                             <label for="dok-atki-sikligi">Atkı Sıklığı <em>(tel/cm)</em></label>
                             <input type="text" id="dok-atki-sikligi" data-dokuma-key="atki_sikligi"
+                                   inputmode="decimal" placeholder="0" autocomplete="off">
+                        </div>
+                        {# v4.0-part-2 Sprint 14 — Çözgü Sıklığı (simetrik) #}
+                        <div class="form-row">
+                            <label for="dok-cozgu-sikligi">Çözgü Sıklığı <em>(tel/cm)</em></label>
+                            <input type="text" id="dok-cozgu-sikligi" data-dokuma-key="cozgu_sikligi"
                                    inputmode="decimal" placeholder="0" autocomplete="off">
                         </div>
                     </div>
@@ -1310,7 +1397,7 @@ const lbNext = document.getElementById('lb-next');
 // Tüm görselleri ortak liste — hem hero hem image-grid bunu kullanır
 const LB_IMAGES = [
     {% for im in display_images %}
-    { src: {{ im.url|tojson }}, caption: {{ (im.variant_label or product.product_name)|tojson }}, path: {{ im.path|tojson }}, albums: {{ (im.albums or [])|tojson }} },
+    { src: {{ im.url|tojson }}, caption: {{ (im.variant_label or product.product_name)|tojson }}, path: {{ im.path|tojson }}, albums: {{ (im.albums or [])|tojson }}, is_favorite: {{ (im.is_favorite or false)|tojson }} },
     {% endfor %}
 ];
 let lbIdx = 0;
@@ -1382,6 +1469,42 @@ document.querySelectorAll('.btn-del-img').forEach(btn => {
         if (!confirm('Bu görseli silmek istediğine emin misin? (Dosya diskten de silinir)')) return;
         const data = await postJson(`/api/urun/${URUN_ID}/gorsel-sil`, { path: btn.dataset.path });
         if (data.ok) location.reload(); else window.toast(data.error || 'Hata', 'error');
+    });
+});
+
+// v4.0-part-2 Sprint 14 — Favori toggle (kalp butonu)
+document.querySelectorAll('.btn-favorite').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const data = await postJson(`/api/urun/${URUN_ID}/favori-toggle`, { path: btn.dataset.path });
+        if (!data.ok) { window.toast(data.error || 'Hata', 'error'); return; }
+        // Local DOM güncelle (reload yapmadan)
+        const card = btn.closest('.img-manage-card');
+        if (card) {
+            card.classList.toggle('is-favorite', !!data.is_favorite);
+            card.dataset.favorite = data.is_favorite ? 'true' : 'false';
+        }
+        btn.classList.toggle('is-favorite', !!data.is_favorite);
+        btn.title = data.is_favorite ? 'Favoriden çıkar' : 'Favorilere ekle';
+        // Favoriler sekmesi varsa sayım güncelle; yoksa yeniden yükle (yeni tab göstermek için)
+        const favTab = document.querySelector('.album-tab[data-album="__favoriler__"]');
+        if (favTab) {
+            const cnt = favTab.querySelector('.cnt');
+            if (cnt) cnt.textContent = data.favorite_count || 0;
+            if ((data.favorite_count || 0) === 0) {
+                // Eğer aktif tab Favoriler'di, Tümü'ye geç
+                if (favTab.classList.contains('is-active')) {
+                    const allTab = document.querySelector('.album-tab[data-album=""]');
+                    if (allTab) allTab.click();
+                }
+                favTab.remove();
+            }
+        } else if ((data.favorite_count || 0) > 0) {
+            // İlk favori — sayfayı yenile ki yeni tab gözüksün
+            location.reload();
+        }
+        window.toast(data.is_favorite ? 'Favoriye eklendi' : 'Favoriden çıkarıldı', 'success');
     });
 });
 
@@ -1730,9 +1853,14 @@ grid.addEventListener('dragover', (e) => {
 
     function applyAlbumFilter(slug) {
         document.body.dataset.album = slug || '';
-        // image-manage-card, hero-slide, hero-thumb
+        // v4.0-part-2 Sprint 14 — "__favoriler__" sentinel: is_favorite olanlar
+        const isFavSlug = slug === '__favoriler__';
         const apply = (els) => {
             els.forEach(el => {
+                if (isFavSlug) {
+                    el.hidden = (el.dataset.favorite !== 'true');
+                    return;
+                }
                 let tags = [];
                 try { tags = JSON.parse(el.dataset.albums || '[]'); } catch (e) {}
                 el.hidden = slug && !tags.includes(slug);
@@ -1754,6 +1882,8 @@ grid.addEventListener('dragover', (e) => {
         // Lightbox filtered list güncelle
         lbFiltered = LB_IMAGES.map((im, i) => i).filter(i => {
             if (!slug) return true;
+            // v4.0-part-2 Sprint 14 — Favoriler sentinel
+            if (isFavSlug) return !!LB_IMAGES[i].is_favorite;
             return (LB_IMAGES[i].albums || []).includes(slug);
         });
         // Hero'yu ilk visible slide'a kaydır

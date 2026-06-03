@@ -365,6 +365,8 @@ def product_summary(d: dict) -> dict:
         "color_album_image_count": color_album_image_count,
         "palette_size": palette_size,
         "palette_completed": palette_completed,  # v4.0-part-2 Sprint 13
+        # v4.0-part-2 Sprint 14 — Favori sayımı
+        "favorite_count": sum(1 for im in (d.get("images") or []) if im.get("is_favorite")),
         # v4.0-part-2 Adım 8 — Galeri filtre + kart indikatörleri
         "status": d.get("status") or "active",
         "country_code": d.get("country_code"),
@@ -625,6 +627,17 @@ def urun_detail(urun_id: str):
         embed = None
     # In-workspace flag (header pin butonu durumu için)
     in_workspace = urun_id in set(store.workspace_get_ids())
+    # v4.0-part-2 Sprint 14 — Favoriler sentinel albümü
+    has_favorites = any(im.get("is_favorite") for im in (d.get("images") or []))
+    favorite_count = sum(1 for im in (d.get("images") or []) if im.get("is_favorite"))
+    # v4.0-part-2 Sprint 14 — Ön çalışma kaynağı (from_research_id varsa)
+    from_research_row = None
+    fr_id = d.get("from_research_id")
+    if fr_id:
+        try:
+            from_research_row = store.research_get(fr_id)
+        except Exception:
+            from_research_row = None
     return render_template(
         "urun.html", product=d, urun_id=urun_id,
         cover_image=store.public_url(cover_path(d)),
@@ -644,6 +657,10 @@ def urun_detail(urun_id: str):
         country_suggestions=COUNTRY_SUGGESTIONS, weave_suggestions=WEAVE_SUGGESTIONS,
         embed=embed,
         in_workspace=in_workspace,
+        # v4.0-part-2 Sprint 14
+        has_favorites=has_favorites,
+        favorite_count=favorite_count,
+        from_research_row=from_research_row,
     )
 
 
@@ -888,6 +905,9 @@ def api_create_urun():
         d["albums"] = existing_albums + [{"slug": "renkler", "name": "Renkler"}]
     if pdfs_meta:
         d["pdfs"] = pdfs_meta
+    # v4.0-part-2 Sprint 14 — Ön çalışma kaynağını üründe sakla (sonradan göstermek için)
+    if from_research_id:
+        d["from_research_id"] = from_research_id
     store.upsert(d)
 
     # v4.0-part-2 Adım 8 — Ön Çalışma kaydı varsa "imported" işaretle
@@ -1122,6 +1142,25 @@ def api_set_cover(urun_id: str):
     d["updated_at"] = now_iso()
     store.upsert(d)
     return jsonify({"ok": True})
+
+
+# v4.0-part-2 Sprint 14 — Görsel favorileme
+@app.route("/api/urun/<urun_id>/favori-toggle", methods=["POST"])
+def api_favori_toggle(urun_id: str):
+    """Body: {path} — görselin is_favorite flag'ini toggle eder."""
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    target = (request.get_json(silent=True) or {}).get("path", "")
+    for im in (d.get("images") or []):
+        if im.get("path") == target:
+            im["is_favorite"] = not im.get("is_favorite", False)
+            d["updated_at"] = now_iso()
+            store.upsert(d)
+            fav_count = sum(1 for x in (d.get("images") or []) if x.get("is_favorite"))
+            return jsonify({"ok": True, "is_favorite": im["is_favorite"],
+                            "favorite_count": fav_count})
+    return jsonify({"ok": False, "error": "Görsel bulunamadı"}), 400
 
 
 @app.route("/api/urun/<urun_id>/gorsel-sil", methods=["POST"])
