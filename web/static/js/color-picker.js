@@ -163,6 +163,7 @@
         ctx: null,
         img: null,
         avgEnabled: true,
+        multiPoint: false,                                  // v4.0-part-2 Sprint 13: tablette çoklu nokta toggle
         activeRole: "weft",                                 // 'weft' | 'warp' | 'mix'
         points: { weft: [], warp: [], mix: [] },            // per-role points persistent
         callbacks: { onChange: null, onSave: null, onRoleChange: null },
@@ -280,7 +281,9 @@
         canvasEl.addEventListener("click", (e) => {
             if (!state.img) return;
             const [x, y] = evtToPixel(e, canvasEl);
-            addPointAt(x, y, (e.ctrlKey || e.metaKey) ? "append" : "replace");
+            // v4.0-part-2 Sprint 13: Ctrl+click VEYA multiPoint toggle açık → append
+            const mode = (e.ctrlKey || e.metaKey || state.multiPoint) ? "append" : "replace";
+            addPointAt(x, y, mode);
         });
         canvasEl.addEventListener("mousemove", (e) => {
             if (!state.img || !state.magEl) return;
@@ -326,7 +329,9 @@
             touchActive = false;
             if (state.magEl) state.magEl.hidden = true;
             if (lastTouchPx) {
-                addPointAt(lastTouchPx[0], lastTouchPx[1], "replace");
+                // v4.0-part-2 Sprint 13: tablette çoklu nokta — toggle açıksa append
+                const mode = state.multiPoint ? "append" : "replace";
+                addPointAt(lastTouchPx[0], lastTouchPx[1], mode);
                 lastTouchPx = null;
             }
         });
@@ -367,6 +372,8 @@
             });
         },
         setAvg(enabled) { state.avgEnabled = !!enabled; },
+        setMultiPoint(enabled) { state.multiPoint = !!enabled; },   // v4.0-part-2 Sprint 13: tablet çoklu nokta
+        getMultiPoint() { return state.multiPoint; },
         setRole(role) {
             if (!["weft", "warp", "mix"].includes(role)) return;
             state.activeRole = role;

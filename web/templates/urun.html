@@ -336,10 +336,12 @@
                 </div>
                 <div class="cp-canvas-toolbar">
                     <label class="cp-opt"><input type="checkbox" id="cp-avg" checked> 5×5 ön-ortalama</label>
+                    {# v4.0-part-2 Sprint 13: tablette/mobilde çoklu nokta seçimi için toggle #}
+                    <label class="cp-opt"><input type="checkbox" id="cp-multi"> Çoklu nokta</label>
                     <span class="cp-count" id="cp-count">0 nokta</span>
                     <button id="cp-clear" class="btn-mini" type="button">Noktaları temizle</button>
                 </div>
-                <p class="cp-hint">Tıkla = tek nokta · <kbd>Ctrl</kbd>+tık = nokta ekle · Mobilde sürükle-bırak</p>
+                <p class="cp-hint">Tıkla = tek nokta · <kbd>Ctrl</kbd>+tık veya "Çoklu nokta" açık = nokta ekle · Mobilde sürükle-bırak</p>
             </div>
 
             <!-- SAĞ: Mod + sonuç + kaydet -->
@@ -2004,6 +2006,7 @@ grid.addEventListener('dragover', (e) => {
     // Canvas yoksa (Renkler albümü yok) sadece palette + details summary aktif kalır
     if (!canvas || !imageSel) return;
     const avgEl = document.getElementById('cp-avg');
+    const multiEl = document.getElementById('cp-multi');   // v4.0-part-2 Sprint 13
     const clearBtn = document.getElementById('cp-clear');
     const countEl = document.getElementById('cp-count');
     const tabs = sectionEl.querySelectorAll('.cp-role-tab');
@@ -2142,6 +2145,15 @@ grid.addEventListener('dragover', (e) => {
     });
 
     avgEl.addEventListener('change', () => window.ColorPicker.setAvg(avgEl.checked));
+    // v4.0-part-2 Sprint 13: tablet/mobil çoklu nokta toggle + localStorage'da hatırla
+    if (multiEl) {
+        try { multiEl.checked = localStorage.getItem('mobidik_cp_multi') === '1'; } catch (e) {}
+        window.ColorPicker.setMultiPoint(multiEl.checked);
+        multiEl.addEventListener('change', () => {
+            window.ColorPicker.setMultiPoint(multiEl.checked);
+            try { localStorage.setItem('mobidik_cp_multi', multiEl.checked ? '1' : '0'); } catch (e) {}
+        });
+    }
     clearBtn.addEventListener('click', () => window.ColorPicker.clearPoints(activeRole));
 
     async function loadImage(url) {
