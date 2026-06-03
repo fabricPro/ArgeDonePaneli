@@ -90,16 +90,7 @@
                 <svg class="icon"><use href="#ic-pin"/></svg>
             </button>
             <span class="card-select-check" aria-hidden="true"><svg class="icon"><use href="#ic-check"/></svg></span>
-            {% if p.has_color_album %}
-            <span class="card-color-flag {% if p.palette_size %}has-palette{% endif %}"
-                  title="Renkler albümü: {{ p.color_album_image_count }} görsel{% if p.palette_size %} · paletinde {{ p.palette_size }} renk{% endif %}"
-                  aria-label="Renkler albümü var">
-                <svg class="icon"><use href="#ic-image"/></svg>
-                <span class="ccf-label">Renkler</span>
-                <span class="ccf-cnt">{{ p.color_album_image_count }}</span>
-                {% if p.palette_size %}<span class="ccf-palette" title="Atanmış renk sayısı">{{ p.palette_size }}</span>{% endif %}
-            </span>
-            {% endif %}
+            {# v4.0-part-2 Sprint 13: üstteki "RENKLER X X" chip kaldırıldı — kart altı ikonlara taşındı #}
             <div class="card-media">
                 {% if p.cover_image %}
                 <img src="{{ p.cover_image }}" alt="{{ p.product_name }}" loading="lazy">
@@ -115,7 +106,12 @@
                     {% if p.width_cm %} · {{ p.width_cm }}cm{% endif %}
                     {% if p.weave_type %} · {{ p.weave_type }}{% endif %}
                 </div>
-                <div class="card-variants">{{ p.variant_count }} görsel/varyant</div>
+                {# v4.0-part-2 Sprint 13: görsel + varyant ayrı metric #}
+                <div class="card-meta-row">
+                    <span class="card-stat">{{ p.variant_count }} görsel</span>
+                    <span class="card-stat-sep">·</span>
+                    <span class="card-stat">{{ p.color_album_image_count }} varyant</span>
+                </div>
                 {# v4.0-part-2 Adım 8 — Kart altı durum indikatörleri #}
                 <div class="card-indicators" aria-label="Veri durumu">
                     <span class="ind {% if p.has_teknik %}on{% else %}off{% endif %}" title="Teknik Çalışma{% if not p.has_teknik %} (boş){% endif %}">
@@ -126,6 +122,12 @@
                     </span>
                     <span class="ind {% if p.has_notlar %}on{% else %}off{% endif %}" title="Notlar{% if not p.has_notlar %} (boş){% endif %}">
                         <svg class="icon"><use href="#ic-pencil"/></svg>
+                    </span>
+                    {# v4.0-part-2 Sprint 13: Renkler ikonu — fotoğraf sayısı + palette parıltısı #}
+                    <span class="ind ind-renkler {% if p.has_color_album %}on{% else %}off{% endif %}{% if p.palette_completed %} is-completed{% endif %}"
+                          title="Renkler albümü: {{ p.color_album_image_count }} görsel{% if p.palette_completed %} · palet tamamlandı{% elif p.palette_size %} · {{ p.palette_size }} renk atanmış{% endif %}">
+                        <svg class="icon"><use href="#ic-image"/></svg>
+                        {% if p.color_album_image_count %}<sup class="ind-count">{{ p.color_album_image_count }}</sup>{% endif %}
                     </span>
                     {% if p.status == 'archived' %}
                     <span class="ind ind-archived" title="Çalışma yapıldı (arşivde)">

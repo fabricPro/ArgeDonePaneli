@@ -7522,6 +7522,49 @@ body.embed-calisma-right .urun-main-tabs .utab-btn[data-tab="galeri"] {
     margin-left: auto;
 }
 
+/* v4.0-part-2 Sprint 13 — Görsel/varyant ayrı satır */
+.card-meta-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--text-dim);
+}
+.card-stat-sep { opacity: 0.5; }
+
+/* v4.0-part-2 Sprint 13 — Renkler ikonu: fotoğraf sayısı + palet tamamlandı parıltısı */
+.card-indicators .ind-renkler {
+    position: relative;
+}
+.card-indicators .ind-count {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 8px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 2px 4px;
+    border-radius: 6px;
+    min-width: 11px;
+    text-align: center;
+}
+.card-indicators .ind.is-completed {
+    background: rgba(212, 175, 127, 0.22);
+    color: var(--accent);
+    animation: ind-glow 2.4s ease-in-out infinite;
+}
+.card-indicators .ind.is-completed .ind-count {
+    background: var(--accent);
+    box-shadow: 0 0 6px rgba(212, 175, 127, 0.7);
+}
+@keyframes ind-glow {
+    0%, 100% { box-shadow: 0 0 4px rgba(212, 175, 127, 0.35); }
+    50%      { box-shadow: 0 0 12px rgba(212, 175, 127, 0.85); }
+}
+
 /* Arşivli kart — soluk + grayscale */
 .product-card[data-status="archived"] {
     opacity: 0.55;

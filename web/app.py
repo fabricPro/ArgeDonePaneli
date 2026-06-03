@@ -310,6 +310,25 @@ def cover_path(d: dict) -> str | None:
     return cover.get("path") if cover else None
 
 
+def _palette_completed(d: dict, color_album_slug: str | None) -> bool:
+    """v4.0-part-2 Sprint 13: Renkler albumundeki TUM gorsellere en az 1 rol
+    atanmis mi? Tek bir gorsel rolsuzse False. Hicbir Renkler gorseli yoksa False.
+    Sprint 12 normalize ile array (weft/warp) ve obje (mix) farkini saklar."""
+    if not color_album_slug:
+        return False
+    color_images = [
+        im for im in (d.get("images") or [])
+        if color_album_slug in (im.get("albums") or [])
+    ]
+    if not color_images:
+        return False
+    for im in color_images:
+        c = _normalize_role_colors(im.get("colors") or {})
+        if not (c.get("weft") or c.get("warp") or c.get("mix")):
+            return False
+    return True
+
+
 def product_summary(d: dict) -> dict:
     # "Renkler" adında veya slug'ında albüm var mı? (v3.6+)
     has_color_album = False
@@ -331,6 +350,8 @@ def product_summary(d: dict) -> dict:
     # v4.0-part-2 Sprint 12: weft/warp ARRAY, mix obje — _derive_color_palette zaten
     # normalize edip hex bazlı dedup ediyor; tek-renkli eski kayıtlar da uyumlu.
     palette_size = len(_derive_color_palette(d.get("images") or []))
+    # v4.0-part-2 Sprint 13: palette tamamlandi mi? (galeri kart ikonu parıltısı)
+    palette_completed = _palette_completed(d, color_album_slug)
     return {
         "urun_id": d.get("urun_id"), "brand": d.get("brand"),
         "brand_slug": d.get("brand_slug"), "country": d.get("country"),
@@ -343,6 +364,7 @@ def product_summary(d: dict) -> dict:
         "has_color_album": has_color_album,
         "color_album_image_count": color_album_image_count,
         "palette_size": palette_size,
+        "palette_completed": palette_completed,  # v4.0-part-2 Sprint 13
         # v4.0-part-2 Adım 8 — Galeri filtre + kart indikatörleri
         "status": d.get("status") or "active",
         "country_code": d.get("country_code"),
@@ -855,6 +877,15 @@ def api_create_urun():
             a for a in (research_row.get("albums") or [])
             if isinstance(a, dict) and a.get("slug") in used_album_slugs
         ]
+    # v4.0-part-2 Sprint 13 — Default "Renkler" albümü her yeni üründe garantili
+    existing_albums = d.get("albums") or []
+    has_renkler = any(
+        ((a.get("slug") or "").lower() == "renkler" or
+         (a.get("name") or "").strip().lower() == "renkler")
+        for a in existing_albums if isinstance(a, dict)
+    )
+    if not has_renkler:
+        d["albums"] = existing_albums + [{"slug": "renkler", "name": "Renkler"}]
     if pdfs_meta:
         d["pdfs"] = pdfs_meta
     store.upsert(d)
