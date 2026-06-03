@@ -516,6 +516,122 @@ def workspace_reorder(ids: list[str]) -> list[str]:
     return cleaned
 
 
+# =================================================================
+# v4.0-part-2 Sprint 13 — Çalışma Alanı albümleri (workspace_data)
+# =================================================================
+# Mevcut workspace_fabric_ids (flat array) DOKUNULMAZ — backward compat.
+# Yeni: workspace_data = {
+#   "albums": [{"id": uuid, "name": "Yaz 2026", "color": "#abc", "created_at": ISO}],
+#   "membership": {"urun_1": "<album_id>" | null, ...},
+#   "updated_at": ISO
+# }
+# album_id None / yok → ürün "Tümü" tab'ında ama hiçbir albüme ait değil.
+
+import uuid as _uuid
+
+WORKSPACE_DATA_KEY = "workspace_data"
+
+
+def workspace_data_get() -> dict:
+    state = get_app_state(WORKSPACE_DATA_KEY) or {}
+    if not isinstance(state, dict):
+        return {"albums": [], "membership": {}, "updated_at": _now_iso()}
+    state.setdefault("albums", [])
+    state.setdefault("membership", {})
+    return state
+
+
+def _workspace_data_save(data: dict) -> dict:
+    data["updated_at"] = _now_iso()
+    set_app_state(WORKSPACE_DATA_KEY, data)
+    return data
+
+
+def workspace_album_create(name: str, color: str | None = None) -> dict:
+    """Yeni albüm yarat. Aynı isimde birden fazla olabilir (UUID id'leriyle ayrılır)."""
+    name = (name or "").strip()
+    if not name:
+        raise ValueError("Albüm adı boş olamaz")
+    data = workspace_data_get()
+    album = {
+        "id": _uuid.uuid4().hex,
+        "name": name,
+        "color": (color or "").strip() or None,
+        "created_at": _now_iso(),
+    }
+    data["albums"].append(album)
+    _workspace_data_save(data)
+    return album
+
+
+def workspace_album_delete(album_id: str) -> bool:
+    """Albümü sil. İçindeki ürünlerin membership'i None'a düşer (workspace'te kalırlar)."""
+    if not album_id:
+        return False
+    data = workspace_data_get()
+    before = len(data["albums"])
+    data["albums"] = [a for a in data["albums"] if a.get("id") != album_id]
+    if len(data["albums"]) == before:
+        return False
+    # Membership cleanup
+    new_membership = {k: (v if v != album_id else None) for k, v in (data["membership"] or {}).items()}
+    data["membership"] = new_membership
+    _workspace_data_save(data)
+    return True
+
+
+def workspace_album_rename(album_id: str, new_name: str, color: str | None = None) -> bool:
+    new_name = (new_name or "").strip()
+    if not album_id or not new_name:
+        return False
+    data = workspace_data_get()
+    for a in data["albums"]:
+        if a.get("id") == album_id:
+            a["name"] = new_name
+            if color is not None:
+                a["color"] = (color or "").strip() or None
+            _workspace_data_save(data)
+            return True
+    return False
+
+
+def workspace_set_album(urun_id: str, album_id: str | None) -> dict:
+    """Bir ürünü belirli albüme taşı. album_id=None → "Tümü" (albümsüz)."""
+    if not urun_id:
+        return workspace_data_get()
+    data = workspace_data_get()
+    # album_id geçerli mi kontrol et (None hariç)
+    if album_id:
+        known_ids = {a.get("id") for a in data["albums"]}
+        if album_id not in known_ids:
+            raise ValueError("Albüm bulunamadı")
+    membership = data.get("membership") or {}
+    if album_id is None:
+        membership.pop(urun_id, None)
+    else:
+        membership[urun_id] = album_id
+    data["membership"] = membership
+    _workspace_data_save(data)
+    return data
+
+
+# Workspace remove'ı extend et: membership'ten de temizle
+_original_workspace_remove = workspace_remove
+
+
+def workspace_remove(urun_id: str) -> list[str]:  # type: ignore[no-redef]
+    """Sprint 13: workspace çıkış + membership temizliği."""
+    ids = _original_workspace_remove(urun_id)
+    try:
+        data = workspace_data_get()
+        if urun_id in (data.get("membership") or {}):
+            data["membership"].pop(urun_id, None)
+            _workspace_data_save(data)
+    except Exception:
+        pass  # best-effort
+    return ids
+
+
 # ---- Product summary helpers (galeri kart indikatörleri) ----
 
 def has_teknik_calisma(product: dict) -> bool:

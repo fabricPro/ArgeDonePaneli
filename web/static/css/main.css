@@ -6568,6 +6568,89 @@ body.teknik-fullscreen {
 }
 .cw-unpin .icon { width: 12px; height: 12px; }
 
+/* v4.0-part-2 Sprint 13 — Albüm tab çubuğu + kart menü */
+.cw-album-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 16px 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 14px;
+}
+.cw-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    color: var(--text-dim);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+    position: relative;
+}
+.cw-tab:hover { color: var(--text); border-color: var(--border-strong); }
+.cw-tab.is-active {
+    background: rgba(212, 175, 127, 0.12);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.cw-tab-cnt {
+    font-size: 11px;
+    padding: 1px 7px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    color: var(--text-dim);
+    font-weight: 600;
+}
+.cw-tab.is-active .cw-tab-cnt { background: rgba(212, 175, 127, 0.2); color: var(--accent); }
+.cw-tab-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+}
+.cw-tab-menu-btn {
+    margin-left: 2px;
+    padding: 0 4px;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-weight: 700;
+    border-radius: 4px;
+}
+.cw-tab-menu-btn:hover { color: var(--text); background: rgba(255, 255, 255, 0.08); }
+.cw-tab-new {
+    color: var(--accent);
+    background: transparent;
+    border-style: dashed;
+}
+.cw-tab-new:hover { background: rgba(212, 175, 127, 0.08); }
+
+.cw-card-album-btn {
+    position: absolute;
+    top: 8px;
+    right: 44px;   /* unpin'in soluna */
+    background: rgba(15, 17, 20, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-dim);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+    transition: all 0.15s;
+}
+.cw-card-album-btn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
 .cw-empty {
     padding: 60px 20px;
     text-align: center;

@@ -36,10 +36,27 @@
     </div>
     {% endif %}
 
+    {# v4.0-part-2 Sprint 13 — Albüm tab çubuğu #}
+    {% if total > 0 %}
+    <nav class="cw-album-tabs" id="cw-album-tabs" role="tablist" aria-label="Albümler">
+        <button type="button" class="cw-tab is-active" data-album-id="" role="tab" aria-selected="true">
+            Tümü <span class="cw-tab-cnt">{{ total }}</span>
+        </button>
+        {% for a in workspace_albums %}
+        <button type="button" class="cw-tab" data-album-id="{{ a.id }}" role="tab" aria-selected="false">
+            {% if a.color %}<span class="cw-tab-dot" style="background:{{ a.color }}"></span>{% endif %}
+            {{ a.name }} <span class="cw-tab-cnt">{{ a.count }}</span>
+            <span class="cw-tab-menu-btn" data-album-id="{{ a.id }}" title="Albüm ayarları">⋯</span>
+        </button>
+        {% endfor %}
+        <button type="button" class="cw-tab cw-tab-new" id="cw-album-new-btn">+ Yeni Albüm</button>
+    </nav>
+    {% endif %}
+
     <!-- STATE 1: GRID -->
     <div class="cw-grid" id="cw-grid" {% if total == 0 %}hidden{% endif %}>
         {% for p in items %}
-        <article class="cw-card" data-urunid="{{ p.urun_id }}">
+        <article class="cw-card" data-urunid="{{ p.urun_id }}" data-album-id="{{ p.album_id or '' }}">
             <button type="button" class="cw-card-main" data-urunid="{{ p.urun_id }}">
                 <div class="cw-card-thumb">
                     {% if p.cover_image %}
@@ -70,6 +87,9 @@
                     </div>
                 </div>
             </button>
+            {# v4.0-part-2 Sprint 13 — kart albüm menüsü #}
+            <button type="button" class="cw-card-album-btn" data-urunid="{{ p.urun_id }}"
+                    title="Albüme taşı" aria-label="Albüme taşı">⋯</button>
             <button type="button" class="cw-unpin" data-urunid="{{ p.urun_id }}"
                     title="Çalışmadan çıkar" aria-label="Çalışmadan çıkar">
                 <svg class="icon"><use href="#ic-x"/></svg>
@@ -104,6 +124,7 @@
 {% block scripts %}
 <script>
 window.CW_ITEMS = {{ items|tojson }};
+window.CW_ALBUMS = {{ workspace_albums|tojson }};   // v4.0-part-2 Sprint 13
 </script>
 <script src="{{ url_for('static', filename='js/calisma.js') }}"></script>
 {% endblock %}

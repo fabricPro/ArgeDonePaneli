@@ -3198,18 +3198,53 @@ def _workspace_summary_list() -> list[dict]:
     return items
 
 
+def _workspace_albums_with_counts() -> list[dict]:
+    """v4.0-part-2 Sprint 13: albüm listesi + her albümde kaç ürün var (workspace içinde)."""
+    data = store.workspace_data_get()
+    workspace_ids = set(store.workspace_get_ids())
+    membership = data.get("membership") or {}
+    counts: dict[str, int] = {}
+    for urun_id, alb in membership.items():
+        if urun_id not in workspace_ids or not alb:
+            continue
+        counts[alb] = counts.get(alb, 0) + 1
+    out = []
+    for a in (data.get("albums") or []):
+        out.append({
+            "id": a.get("id"),
+            "name": a.get("name"),
+            "color": a.get("color"),
+            "count": counts.get(a.get("id"), 0),
+            "created_at": a.get("created_at"),
+        })
+    return out
+
+
 @app.route("/calisma")
 def calisma_page():
-    """Çalışma Alanı ana sayfa. Pinli kumaşlar grid'i + split-screen."""
+    """Çalışma Alanı ana sayfa. Pinli kumaşlar grid'i + split-screen + albüm tabları."""
     items = _workspace_summary_list()
-    return render_template("calisma.html", items=items, total=len(items))
+    # Sprint 13: her item'a album_id ekle
+    data = store.workspace_data_get()
+    membership = data.get("membership") or {}
+    for it in items:
+        it["album_id"] = membership.get(it.get("urun_id")) or None
+    return render_template("calisma.html", items=items, total=len(items),
+                           workspace_albums=_workspace_albums_with_counts())
 
 
 @app.route("/api/calisma/list")
 def api_calisma_list():
-    """Workspace listesi (JSON)."""
+    """Workspace listesi (JSON) — Sprint 13: albümler + her item'da album_id."""
     items = _workspace_summary_list()
-    return jsonify({"ok": True, "items": items, "count": len(items)})
+    data = store.workspace_data_get()
+    membership = data.get("membership") or {}
+    for it in items:
+        it["album_id"] = membership.get(it.get("urun_id")) or None
+    return jsonify({
+        "ok": True, "items": items, "count": len(items),
+        "albums": _workspace_albums_with_counts(),
+    })
 
 
 @app.route("/api/calisma/ekle", methods=["POST"])
@@ -3245,6 +3280,66 @@ def api_calisma_sirala():
         return jsonify({"ok": False, "error": "urun_ids string listesi olmalı"}), 400
     new_ids = store.workspace_reorder(ids)
     return jsonify({"ok": True, "ids": new_ids, "count": len(new_ids)})
+
+
+# ============================================================
+# v4.0-part-2 Sprint 13 — Çalışma Alanı albümleri
+# ============================================================
+
+@app.route("/api/calisma/album/ekle", methods=["POST"])
+def api_calisma_album_ekle():
+    """Body: {name, color?} → yeni albüm objesi."""
+    data = request.get_json(silent=True) or {}
+    name = (data.get("name") or "").strip()
+    color = (data.get("color") or "").strip() or None
+    if not name:
+        return jsonify({"ok": False, "error": "name zorunlu"}), 400
+    try:
+        album = store.workspace_album_create(name, color)
+    except ValueError as e:
+        return jsonify({"ok": False, "error": str(e)}), 400
+    return jsonify({"ok": True, "album": album, "albums": _workspace_albums_with_counts()})
+
+
+@app.route("/api/calisma/album/<album_id>/sil", methods=["POST"])
+def api_calisma_album_sil(album_id: str):
+    """Albümü sil. İçindeki ürünler workspace'te kalır (membership None'a düşer)."""
+    if not store.workspace_album_delete(album_id):
+        return jsonify({"ok": False, "error": "Albüm bulunamadı"}), 404
+    return jsonify({"ok": True, "albums": _workspace_albums_with_counts()})
+
+
+@app.route("/api/calisma/album/<album_id>/yeniden-adlandir", methods=["POST"])
+def api_calisma_album_rename(album_id: str):
+    """Body: {name, color?}"""
+    data = request.get_json(silent=True) or {}
+    name = (data.get("name") or "").strip()
+    color = data.get("color")  # None ya da string
+    if not name:
+        return jsonify({"ok": False, "error": "name zorunlu"}), 400
+    if not store.workspace_album_rename(album_id, name, color):
+        return jsonify({"ok": False, "error": "Albüm bulunamadı"}), 404
+    return jsonify({"ok": True, "albums": _workspace_albums_with_counts()})
+
+
+@app.route("/api/calisma/urun-albume-tasi", methods=["POST"])
+def api_calisma_urun_albume_tasi():
+    """Body: {urun_id, album_id | null} → ürünü belirli albüme taşı (null = Tümü)."""
+    body = request.get_json(silent=True) or {}
+    urun_id = (body.get("urun_id") or "").strip()
+    album_id = body.get("album_id")
+    if not urun_id:
+        return jsonify({"ok": False, "error": "urun_id zorunlu"}), 400
+    if album_id == "":
+        album_id = None
+    if urun_id not in set(store.workspace_get_ids()):
+        return jsonify({"ok": False, "error": "Ürün workspace'te yok"}), 400
+    try:
+        store.workspace_set_album(urun_id, album_id)
+    except ValueError as e:
+        return jsonify({"ok": False, "error": str(e)}), 400
+    return jsonify({"ok": True, "urun_id": urun_id, "album_id": album_id,
+                    "albums": _workspace_albums_with_counts()})
 
 
 if __name__ == "__main__":
