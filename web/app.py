@@ -328,12 +328,9 @@ def product_summary(d: dict) -> dict:
                 color_album_image_count += 1
         has_color_album = color_album_image_count > 0
     # Renk paleti sayısı (auto-derived — kaç renk Atkı/Çözgü/Toplam ile atanmış)
-    palette_size = len({
-        c["hex"].upper()
-        for im in (d.get("images") or [])
-        for c in (im.get("colors") or {}).values()
-        if c and c.get("hex")
-    })
+    # v4.0-part-2 Sprint 12: weft/warp ARRAY, mix obje — _derive_color_palette zaten
+    # normalize edip hex bazlı dedup ediyor; tek-renkli eski kayıtlar da uyumlu.
+    palette_size = len(_derive_color_palette(d.get("images") or []))
     return {
         "urun_id": d.get("urun_id"), "brand": d.get("brand"),
         "brand_slug": d.get("brand_slug"), "country": d.get("country"),
