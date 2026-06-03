@@ -4998,17 +4998,36 @@ body.teknik-fullscreen {
 .desen-marker-pill .stepper button { width: 18px; height: 18px; font-size: 12px; }
 .desen-marker-pill .stepper output { font-size: 11px; min-width: 18px; }
 
-/* v4.0-part-2 Sprint 12.2 — Tablet/dar viewport'ta DO/NEXT pill taşmasın */
+/* v4.0-part-2 Sprint 12.2 — Tablet'te hücre + pill birlikte orantılı küçülür.
+   JS pillMinWidth ve bracket SVG hesabı --desen-cell ve --desen-row-gap CSS var'larından
+   okuyor; bu değerleri media query'de override etmek hem hücreleri hem pill'i eş zamanlı küçültür. */
 .desen-armur-rows-wrap {
-    overflow-x: auto;   /* hücreler veya pill ekrandan büyükse yatay scroll */
+    overflow-x: auto;   /* en kötü senaryo: hücreler taşarsa yatay scroll */
 }
-@media (max-width: 900px) {
-    .desen-marker-pill {
-        min-width: 0 !important;   /* JS inline style="min-width:344px" üstüne geçer */
+/* Tablet portrait + landscape ortak ayar */
+@media (max-width: 1024px) {
+    .desen-grid {
+        --desen-cell: 18px;
+        --desen-axis-gap: 8px;
     }
-    .desen-marker-pill .marker-note {
-        display: none;             /* "↺ 4× döngü başlar" yazısı sakla, stepper kalsın */
+    .desen-axis-labels .desen-axis-gap { width: 8px; }
+    .desen-marker-pill .stepper button { width: 16px; height: 16px; font-size: 11px; }
+}
+/* Telefon ve dar tablet portrait */
+@media (max-width: 720px) {
+    .desen-grid {
+        --desen-cell: 15px;
+        --desen-row-gap: 1px;
+        --desen-axis-gap: 6px;
     }
+    .desen-axis-labels .desen-axis-gap { width: 6px; }
+    .desen-marker-pill { padding: 0 4px; gap: 5px; }
+    .desen-marker-pill .marker-label { font-size: 9px; }
+    .desen-marker-pill .marker-note { font-size: 8px; }
+    .desen-marker-pill .stepper button { width: 14px; height: 14px; font-size: 10px; }
+    .desen-marker-pill .stepper output { font-size: 10px; min-width: 14px; }
+    .dgrid-label { font-size: 9px; }
+    .desen-pick-label { font-size: 9px; }
 }
 
 /* =========================================================

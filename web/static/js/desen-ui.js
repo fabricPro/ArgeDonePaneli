@@ -154,11 +154,15 @@
         }
 
         const rowsHtml = [];
-        // v4.0-part-2 Adım 3 hotfix4 — marker pill min-width = normal row content alanı
-        const CELL_W = 22, RG = 2;
+        // v4.0-part-2 Sprint 12.2 — CSS var'dan oku: tabletteki küçük hücre değerleri
+        // ile pill min-width OTOMATİK senkron olur (orantı korunur).
+        const cs = getComputedStyle(host);
+        const CELL_W = parseFloat(cs.getPropertyValue('--desen-cell')) || 22;
+        const RG     = parseFloat(cs.getPropertyValue('--desen-row-gap')) || 2;
+        const AXIS_GAP = parseFloat(cs.getPropertyValue('--desen-axis-gap')) || 12;
         const frameCellsW = frameCount * (CELL_W + RG) - RG;
         const iroCellsW   = iroCount  * (CELL_W + RG) - RG;
-        const pillMinWidth = frameCellsW + 12 + iroCellsW;  // 12 = iro-cells margin-left
+        const pillMinWidth = frameCellsW + AXIS_GAP + iroCellsW;
         const markerIcon = `<svg class="icon marker-icon" viewBox="0 0 24 24"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
         const rowActions = (p) => `
             <span class="desen-row-actions">
@@ -231,8 +235,8 @@
             `);
         }
 
-        const CELL = 22, ROW_GAP = 2;
-        const bracketSvg = renderBracketSvg(loops, weftCount, CELL, ROW_GAP);
+        // v4.0-part-2 Sprint 12.2 — bracket SVG de CSS var ile aynı CELL/RG kullanır
+        const bracketSvg = renderBracketSvg(loops, weftCount, CELL_W, RG);
 
         host.innerHTML = `
             <div class="desen-armur-area">
