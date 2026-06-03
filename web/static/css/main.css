@@ -4998,6 +4998,19 @@ body.teknik-fullscreen {
 .desen-marker-pill .stepper button { width: 18px; height: 18px; font-size: 12px; }
 .desen-marker-pill .stepper output { font-size: 11px; min-width: 18px; }
 
+/* v4.0-part-2 Sprint 12.2 — Tablet/dar viewport'ta DO/NEXT pill taşmasın */
+.desen-armur-rows-wrap {
+    overflow-x: auto;   /* hücreler veya pill ekrandan büyükse yatay scroll */
+}
+@media (max-width: 900px) {
+    .desen-marker-pill {
+        min-width: 0 !important;   /* JS inline style="min-width:344px" üstüne geçer */
+    }
+    .desen-marker-pill .marker-note {
+        display: none;             /* "↺ 4× döngü başlar" yazısı sakla, stepper kalsın */
+    }
+}
+
 /* =========================================================
    v4.0-part-2 Adım 4 — TARAK MODÜLÜ
    ========================================================= */

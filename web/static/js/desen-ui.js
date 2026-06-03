@@ -325,11 +325,15 @@
                 const action = rowBtn.dataset.rowAction;
                 const pick = parseInt(rowBtn.dataset.pick, 10);
                 if (action === 'insert' && isFinite(pick)) {
-                    state = DC.insertRow(state, pick);
+                    // v4.0-part-2 Sprint 12.2: satırın ÜSTÜNE ekle
+                    // (render reverse olduğundan pick+1 yeni satır görsel olarak basılan satırın üstünde belirir)
+                    state = DC.insertRow(state, pick + 1);
                 } else if (action === 'delete' && isFinite(pick)) {
                     state = DC.deleteRow(state, pick);
                 } else if (action === 'append') {
-                    state = DC.insertRow(state, state.weftCount);
+                    // v4.0-part-2 Sprint 12.2: alt "+ Satır Ekle" butonu EN ALTA ekler
+                    // (pick=0 = en küçük → render reverse → grid'in altında yeni satır)
+                    state = DC.insertRow(state, 0);
                 }
                 render();
                 return;
