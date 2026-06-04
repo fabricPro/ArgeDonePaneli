@@ -135,6 +135,28 @@
         });
     }
 
+    // v4.0-part-2 Sprint 15 — birim rapor (loop açılmış gerçek dokuma) içinde
+    // her iro'nun yüzdelik kullanımı. expandPicks marker satırlarını atlar,
+    // DO Nx döngülerini açar → gerçek iplik tüketimini yansıtır.
+    function computeIroUsage(st) {
+        const order = DC.expandPicks(st);   // gerçek dokuma pick sırası
+        const total = order.length;
+        if (!total) return { total: 0, rows: [] };
+        const counts = new Map();
+        order.forEach(p => {
+            const iro = st.iroData[p] || 1;
+            counts.set(iro, (counts.get(iro) || 0) + 1);
+        });
+        const rows = [...counts.entries()]
+            .sort((a, b) => a[0] - b[0])
+            .map(([iro, count]) => ({
+                iro, count,
+                pct: Math.round((count / total) * 100),
+                color: DC.IRO_COLORS[(iro - 1) % DC.IRO_COLORS.length],
+            }));
+        return { total, rows };
+    }
+
     // === KART 3 — ARMÜR + ATKI RAPORU (döngülü) ===
     function renderArmurAtkiRaporu() {
         const host = $('desen-armur-grid');
@@ -238,6 +260,24 @@
         // v4.0-part-2 Sprint 12.2 — bracket SVG de CSS var ile aynı CELL/RG kullanır
         const bracketSvg = renderBracketSvg(loops, weftCount, CELL_W, RG);
 
+        // v4.0-part-2 Sprint 15 — iro yüzdelik kullanım özeti (birim rapor)
+        const usage = computeIroUsage(state);
+        const iroOzetHtml = usage.total ? `
+            <div class="desen-iro-ozet">
+                <span class="iro-ozet-baslik">İro kullanımı <em>(birim rapor — ${usage.total} atkı)</em></span>
+                <div class="iro-ozet-chips">
+                    ${usage.rows.map(r => `
+                        <span class="iro-ozet-chip" title="i${r.iro} · ${r.count} atkı · %${r.pct}">
+                            <span class="iro-ozet-sw" style="background:${r.color}"></span>
+                            <span class="iro-ozet-no">i${r.iro}</span>
+                            <b class="iro-ozet-pct">%${r.pct}</b>
+                            <em class="iro-ozet-cnt">(${r.count} atkı)</em>
+                        </span>
+                    `).join('')}
+                </div>
+            </div>
+        ` : '';
+
         host.innerHTML = `
             <div class="desen-armur-area">
                 <div class="desen-armur-headers">
@@ -250,6 +290,7 @@
                 <div class="desen-armur-foot">
                     <button type="button" class="btn-mini" data-row-action="append">+ Satır Ekle</button>
                 </div>
+                ${iroOzetHtml}
             </div>
         `;
     }
