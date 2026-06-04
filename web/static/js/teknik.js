@@ -184,6 +184,18 @@
         } catch (e) { return ''; }
     }
 
+    // tasarim-v2 Sprint 16 — kısa tarih (sadece gün.ay.yıl, saat yok) toolbar etiketi için
+    function fmtDateShort(iso) {
+        if (!iso) return '';
+        try {
+            const d = new Date(iso);
+            if (isNaN(d.getTime())) return '';
+            const dd = String(d.getDate()).padStart(2, '0');
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            return `${dd}.${mm}.${d.getFullYear()}`;
+        } catch (e) { return ''; }
+    }
+
     function updateNumuneStatus(surum) {
         if (!statusEl) return;
         if (!surum) {
@@ -200,6 +212,36 @@
             statusEl.textContent = 'Son kayıt: ' + t;
             statusWrap && statusWrap.classList.add('is-saved');
         }
+    }
+
+    // tasarim-v2 Sprint 16 — toolbar'da aktif sürümün son kayıt tarih etiketi
+    function updateSurumInfo(surum) {
+        const el = document.getElementById('teknik-surum-info');
+        if (!el) return;
+        if (!surum) { el.textContent = ''; return; }
+        const saved = surum.guncelleme_tarihi && surum.guncelleme_tarihi !== surum.olusturma_tarihi;
+        el.textContent = saved
+            ? `(Son: ${fmtDateShort(surum.guncelleme_tarihi)})`
+            : '(yeni — kaydedilmedi)';
+    }
+
+    // tasarim-v2 Sprint 16 — ana sekme badge (sürüm > 1) + boş sekme soluk senkronu
+    function updateTeknikTabBadge() {
+        const tab = document.querySelector('.utab-btn[data-tab="teknik"]');
+        if (!tab) return;
+        const n = (teknik.surumler || []).length;
+        let badge = tab.querySelector('.utab-cnt');
+        if (n > 1) {
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'utab-cnt';
+                tab.appendChild(badge);
+            }
+            badge.textContent = n;
+        } else if (badge) {
+            badge.remove();
+        }
+        tab.classList.toggle('is-empty', n === 0);
     }
 
     function refreshButtonsAndVisibility() {
@@ -238,6 +280,9 @@
         refreshButtonsAndVisibility();
         const surum = activeSurum();
         loadFormFromSurum(surum);
+        // tasarim-v2 Sprint 16 — toolbar tarih etiketi + ana sekme badge/soluk senkronu
+        updateSurumInfo(surum);
+        updateTeknikTabBadge();
     }
 
     // === API helpers ===
@@ -383,6 +428,7 @@
         const surum = activeSurum();
         loadFormFromSurum(surum);
         refreshButtonsAndVisibility();
+        updateSurumInfo(surum);   // tasarim-v2 Sprint 16 — sürüm seçince toolbar tarih etiketi
         // v4.0-part-2 Adım 8 — Notlar paneline ve diğer dış modüllere haber ver
         if (window.URUN_TEKNIK_STATE) window.URUN_TEKNIK_STATE.activeSurumId = newId;
         document.dispatchEvent(new CustomEvent('teknik-surum-changed', { detail: { surum_id: newId } }));
@@ -437,6 +483,7 @@
         if (idx >= 0) teknik.surumler[idx] = updated;
         // Status göstergesini yenile (Kaydedilmemiş → Son kayıt: …)
         updateNumuneStatus(updated);
+        updateSurumInfo(updated);   // tasarim-v2 Sprint 16 — toolbar tarih etiketi
         (window.toast || alert)('Sürüm kaydedildi', 'success');
     });
 

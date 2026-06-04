@@ -3208,6 +3208,21 @@ body.image-select-on .img-manage-card .variant-label-input { pointer-events: non
 .utab-btn:hover { color: var(--text); }
 .utab-btn.is-active { color: var(--accent); border-bottom-color: var(--accent); }
 .utab-btn .icon { width: 18px; height: 18px; }
+
+/* tasarim-v2 Sprint 16 — içeriği boş sekme soluk (PDF yoksa / sürüm yoksa);
+   aktif veya hover'da tam parlak (kullanıcı yine de açıp içerik ekleyebilsin) */
+.utab-btn.is-empty { opacity: 0.45; transition: opacity var(--t-fast) var(--ease); }
+.utab-btn.is-empty.is-active,
+.utab-btn.is-empty:hover { opacity: 1; }
+
+/* tasarim-v2 Sprint 16 — toolbar aktif sürüm son kayıt tarih etiketi */
+.teknik-surum-info {
+    font-size: var(--type-caption);
+    color: var(--text-dim);
+    font-style: italic;
+    margin-left: 2px;
+    white-space: nowrap;
+}
 .utab-btn .utab-cnt {
     display: inline-flex;
     align-items: center;

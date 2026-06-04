@@ -75,24 +75,21 @@
 
 {# v3.8 — Ana sekme navigasyonu (v4.0-part-2 Sprint 14: rename + Ön Çalışma sekmesi) #}
 <nav class="urun-main-tabs" id="urun-main-tabs" aria-label="Ana sekmeler">
+    {# tasarim-v2 Sprint 16 — sezgisel emoji sekmeler + içerik-durumlu soluk/badge #}
     <button type="button" class="utab-btn is-active" data-tab="galeri">
-        <svg class="icon"><use href="#ic-image"/></svg>
-        <span>Galeri</span>
+        <span>📷 Galeri</span>
     </button>
     {% if from_research_row %}
     <button type="button" class="utab-btn" data-tab="on_calisma">
-        <svg class="icon"><use href="#ic-search"/></svg>
-        <span>Ön Çalışma</span>
+        <span>🔍 Ön Çalışma</span>
     </button>
     {% endif %}
-    <button type="button" class="utab-btn" data-tab="teknik">
-        <svg class="icon"><use href="#ic-pencil"/></svg>
-        <span>Temel Çalışma Alanı</span>
-        {% if teknik and teknik.surumler %}<span class="utab-cnt">{{ teknik.surumler|length }}</span>{% endif %}
+    <button type="button" class="utab-btn {% if not teknik.surumler %}is-empty{% endif %}" data-tab="teknik">
+        <span>🔬 Teknik Analiz</span>
+        {% if teknik.surumler and teknik.surumler|length > 1 %}<span class="utab-cnt">{{ teknik.surumler|length }}</span>{% endif %}
     </button>
-    <button type="button" class="utab-btn" data-tab="dokuman">
-        <svg class="icon"><use href="#ic-file"/></svg>
-        <span>Dokümanlar</span>
+    <button type="button" class="utab-btn {% if not product.pdfs %}is-empty{% endif %}" data-tab="dokuman">
+        <span>📄 Dokümanlar</span>
         {% if product.pdfs %}<span class="utab-cnt">{{ product.pdfs|length }}</span>{% endif %}
     </button>
     {# v4.0-part-2 Sprint 8.4 — Notlar artık Teknik > 4·Notlar alt-sekmesinde (sürüm-spesifik) #}
@@ -578,6 +575,8 @@
             {% endfor %}
             {% if not teknik.surumler %}<option value="">— Sürüm yok —</option>{% endif %}
         </select>
+        {# tasarim-v2 Sprint 16 — aktif sürümün son kayıt tarihi (JS doldurur) #}
+        <span class="teknik-surum-info" id="teknik-surum-info"></span>
         <button id="teknik-surum-yeni" class="btn-mini" type="button">+ Yeni Sürüm</button>
         <button id="teknik-surum-rename" class="btn-mini" type="button" {% if not teknik.surumler %}disabled{% endif %}>✎ Adlandır</button>
         <button id="teknik-surum-sil" class="btn-mini btn-danger" type="button" {% if not teknik.surumler %}disabled{% endif %}>× Sil</button>
@@ -644,22 +643,19 @@
                 <span id="numune-status-text">Kaydedilmemiş numune</span>
             </div>
             <nav class="numune-tabs" role="tablist" aria-label="Numune Master sekmeleri">
+                {# tasarim-v2 Sprint 16 — sezgisel emoji alt sekmeler (slug'lar değişmedi) #}
                 <button class="numune-tab is-active" data-numune-tab="analiz" type="button" role="tab" aria-selected="true">
-                    <svg class="icon"><use href="#ic-pencil"/></svg>
-                    <span class="numune-tab-label">1 · Analiz</span>
+                    <span class="numune-tab-label">⚖️ Gramaj &amp; Maliyet</span>
                 </button>
                 <button class="numune-tab" data-numune-tab="desen" type="button" role="tab" aria-selected="false">
-                    <svg class="icon"><use href="#ic-grid"/></svg>
-                    <span class="numune-tab-label">2 · Desen</span>
+                    <span class="numune-tab-label">🧩 Desen &amp; Tahar</span>
                 </button>
                 <button class="numune-tab" data-numune-tab="tarak" type="button" role="tab" aria-selected="false">
-                    <svg class="icon"><use href="#ic-list"/></svg>
-                    <span class="numune-tab-label">3 · Tarak</span>
+                    <span class="numune-tab-label">🔢 Tarak</span>
                 </button>
                 {# v4.0-part-2 Sprint 8.4 — Notlar artık burada (sürüm-spesifik) #}
                 <button class="numune-tab" data-numune-tab="notlar" type="button" role="tab" aria-selected="false">
-                    <svg class="icon"><use href="#ic-pencil"/></svg>
-                    <span class="numune-tab-label">4 · Notlar</span>
+                    <span class="numune-tab-label">📝 Notlar</span>
                 </button>
             </nav>
         </div>
