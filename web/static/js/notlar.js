@@ -42,7 +42,7 @@
     function markDirty() {
         setStatus("Değişti…", "dirty");
         clearTimeout(saveTimer);
-        saveTimer = setTimeout(save, 3000);
+        saveTimer = setTimeout(save, 1500);   // tasarim-v2 Sprint 17 — teknik ile aynı ritim (1500ms)
     }
 
     // v4.0-part-2 Adım 8 — Aktif sürüme yaz (yoksa ürün-seviyesine fallback)

@@ -40,6 +40,14 @@
 
     const URUN_ID = window.URUN_ID || (document.querySelector('[data-urun-id]') || {}).dataset?.urunId;
 
+    // tasarim-v2 Sprint 17 — otomatik kaydetme durumu (notlar.js pattern'i)
+    const DEBOUNCE_MS = 1500;
+    let lastSavedSnapshot = null;   // renderActive sonunda set edilir (yüklenen hal "temiz")
+    let saveTimer = null;
+    let checkTimer = null;
+    let autoSaving = false;
+    let savedFlashTimer = null;
+
     // === Helpers ===
     function findSurum(id) {
         return teknik.surumler.find(s => s.id === id) || null;
@@ -283,6 +291,9 @@
         // tasarim-v2 Sprint 16 — toolbar tarih etiketi + ana sekme badge/soluk senkronu
         updateSurumInfo(surum);
         updateTeknikTabBadge();
+        // tasarim-v2 Sprint 17 — form yeni yüklendi → snapshot sıfırla, buton "temiz"
+        lastSavedSnapshot = surum ? currentSnapshot() : null;
+        setKaydetState('saved');
     }
 
     // === API helpers ===
@@ -419,6 +430,12 @@
     surumSel.addEventListener('change', async () => {
         const newId = surumSel.value;
         if (!newId || newId === teknik.active_surum_id) return;
+        // tasarim-v2 Sprint 17 — geçişten ÖNCE mevcut sürümü kaydet (kullanıcı kararı: sessiz)
+        if (activeSurum() && isDirty()) {
+            clearTimeout(saveTimer);
+            clearTimeout(checkTimer);
+            await autoSave();
+        }
         const data = await api('POST', `/api/urun/${encodeURIComponent(URUN_ID)}/teknik/aktif`, { surum_id: newId });
         if (!data.ok) {
             (window.toast || alert)(data.error || 'Aktif sürüm değiştirilemedi', 'error');
@@ -429,6 +446,9 @@
         loadFormFromSurum(surum);
         refreshButtonsAndVisibility();
         updateSurumInfo(surum);   // tasarim-v2 Sprint 16 — sürüm seçince toolbar tarih etiketi
+        // tasarim-v2 Sprint 17 — yeni sürüm yüklendi → snapshot sıfırla, buton "temiz"
+        lastSavedSnapshot = surum ? currentSnapshot() : null;
+        setKaydetState('saved');
         // v4.0-part-2 Adım 8 — Notlar paneline ve diğer dış modüllere haber ver
         if (window.URUN_TEKNIK_STATE) window.URUN_TEKNIK_STATE.activeSurumId = newId;
         document.dispatchEvent(new CustomEvent('teknik-surum-changed', { detail: { surum_id: newId } }));
@@ -467,24 +487,99 @@
         (window.toast || alert)('Sürüm silindi', 'success');
     });
 
-    // === Kaydet ===
-    kaydetBtn && kaydetBtn.addEventListener('click', async () => {
-        const surum = activeSurum();
-        if (!surum) return;
-        const payload = readFormToSurum();
-        const data = await api('POST', `/api/urun/${encodeURIComponent(URUN_ID)}/teknik/${encodeURIComponent(surum.id)}`, payload);
-        if (!data.ok) {
-            (window.toast || alert)(data.error || 'Kayıt hatası', 'error');
-            return;
+    // ============================================================
+    // tasarim-v2 Sprint 17 — Otomatik kaydetme çekirdeği
+    // ============================================================
+    function currentSnapshot() {
+        try { return JSON.stringify(readFormToSurum()); } catch (e) { return null; }
+    }
+    function isDirty() {
+        const s = currentSnapshot();
+        return s !== null && lastSavedSnapshot !== null && s !== lastSavedSnapshot;
+    }
+
+    // Kaydet buton durumu: saved | dirty | saving | saved-flash | error
+    function setKaydetState(state) {
+        if (!kaydetBtn) return;
+        clearTimeout(savedFlashTimer);
+        kaydetBtn.classList.remove('is-dirty', 'is-saving', 'is-saved', 'is-error');
+        switch (state) {
+            case 'saved':
+                kaydetBtn.classList.add('is-saved');
+                kaydetBtn.innerHTML = 'Kaydedildi ✓';
+                kaydetBtn.disabled = false;
+                break;
+            case 'dirty':
+                kaydetBtn.classList.add('is-dirty');
+                kaydetBtn.innerHTML = '<span class="kaydet-dot"></span> Kaydet';
+                kaydetBtn.disabled = false;
+                break;
+            case 'saving':
+                kaydetBtn.classList.add('is-saving');
+                kaydetBtn.innerHTML = '<span class="kaydet-spinner"></span> Kaydediliyor…';
+                kaydetBtn.disabled = true;
+                break;
+            case 'saved-flash':
+                kaydetBtn.classList.add('is-saved');
+                kaydetBtn.innerHTML = 'Kaydedildi ✓';
+                kaydetBtn.disabled = false;
+                savedFlashTimer = setTimeout(() => setKaydetState('saved'), 2000);
+                break;
+            case 'error':
+                kaydetBtn.classList.add('is-error');
+                kaydetBtn.innerHTML = '⚠ Kaydedilemedi';
+                kaydetBtn.disabled = false;
+                break;
         }
-        // Local state'i güncelle
-        const updated = data.surum;
-        const idx = teknik.surumler.findIndex(s => s.id === surum.id);
-        if (idx >= 0) teknik.surumler[idx] = updated;
-        // Status göstergesini yenile (Kaydedilmemiş → Son kayıt: …)
-        updateNumuneStatus(updated);
-        updateSurumInfo(updated);   // tasarim-v2 Sprint 16 — toolbar tarih etiketi
-        (window.toast || alert)('Sürüm kaydedildi', 'success');
+    }
+
+    // Form/desen/tarak etkileşiminde çağrılır — snapshot kıyas ile gerçek değişimi filtreler
+    function scheduleDirtyCheck() {
+        clearTimeout(checkTimer);
+        checkTimer = setTimeout(() => {
+            if (!activeSurum()) return;
+            if (isDirty()) {
+                setKaydetState('dirty');
+                clearTimeout(saveTimer);
+                saveTimer = setTimeout(autoSave, DEBOUNCE_MS);
+            }
+        }, 200);
+    }
+
+    async function autoSave() {
+        const surum = activeSurum();
+        if (!surum || autoSaving) return;
+        const snapshot = currentSnapshot();
+        if (snapshot === null) return;
+        if (snapshot === lastSavedSnapshot) { setKaydetState('saved'); return; }
+        autoSaving = true;
+        setKaydetState('saving');
+        try {
+            const payload = JSON.parse(snapshot);
+            const data = await api('POST', `/api/urun/${encodeURIComponent(URUN_ID)}/teknik/${encodeURIComponent(surum.id)}`, payload);
+            if (!data.ok) {
+                setKaydetState('error');   // sessiz — lastSaved güncellenmez, sonraki değişiklikte retry
+                return;
+            }
+            const updated = data.surum;
+            const idx = teknik.surumler.findIndex(s => s.id === surum.id);
+            if (idx >= 0) teknik.surumler[idx] = updated;
+            lastSavedSnapshot = snapshot;
+            updateNumuneStatus(updated);
+            updateSurumInfo(updated);
+            setKaydetState('saved-flash');
+        } catch (e) {
+            setKaydetState('error');       // sessiz retry
+        } finally {
+            autoSaving = false;
+        }
+    }
+
+    // === Kaydet (manuel) — bekleyen debounce'u atla, hemen kaydet ===
+    kaydetBtn && kaydetBtn.addEventListener('click', () => {
+        clearTimeout(saveTimer);
+        clearTimeout(checkTimer);
+        autoSave();
     });
 
     // === v4.0-part-2 Adım 2 — ÇÖZGÜ + ATKI iplik tabloları ===
@@ -1545,5 +1640,31 @@
     requestAnimationFrame(syncFsToTab);
 
     // === Init ===
-    renderActive();
+    renderActive();   // form yüklenir + lastSavedSnapshot set edilir + buton "Kaydedildi ✓"
+
+    // tasarim-v2 Sprint 17 — otomatik kaydetme tetikleyicileri (#teknik-grid delegation)
+    // input/change → Analiz form alanları; click → desen hücreleri + tarak stepper'ları.
+    // Tab geçişi de click tetikler ama isDirty() snapshot kıyası false → kaydetmez.
+    // Notlar kendi endpoint'i ile ayrı kaydeder (readFormToSurum'a girmez).
+    if (grid) {
+        grid.addEventListener('input', scheduleDirtyCheck);
+        grid.addEventListener('change', scheduleDirtyCheck);
+        grid.addEventListener('click', scheduleDirtyCheck);
+    }
+
+    // tasarim-v2 Sprint 17 — sayfadan ayrılırken kaydedilmemiş değişiklik uyarısı + son kayıt
+    window.addEventListener('beforeunload', (e) => {
+        const surum = activeSurum();
+        if (surum && isDirty()) {
+            // Son fırsat: sendBeacon ile senkron kaydet (notlar.js gibi)
+            try {
+                const blob = new Blob([currentSnapshot()], { type: 'application/json' });
+                navigator.sendBeacon(`/api/urun/${encodeURIComponent(URUN_ID)}/teknik/${encodeURIComponent(surum.id)}`, blob);
+            } catch (err) { /* ignore */ }
+            // Native tarayıcı uyarısı (modern tarayıcılar özel metni göstermez ama uyarı çıkar)
+            e.preventDefault();
+            e.returnValue = 'Kaydedilmemiş değişiklikler var, çıkmak istediğinden emin misin?';
+            return e.returnValue;
+        }
+    });
 })();
