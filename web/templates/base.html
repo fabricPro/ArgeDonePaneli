@@ -89,11 +89,33 @@
             <span class="tab-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="#ic-pin"/></svg></span>
             <span class="tab-label">Çalışma</span>
         </a>
-        <a href="{{ url_for('logout') }}" class="tab-item tab-item-logout">
-            <span class="tab-icon" aria-hidden="true"><svg class="icon icon-lg"><use href="#ic-log-out"/></svg></span>
-            <span class="tab-label">Çıkış</span>
-        </a>
+        {# tasarim-v2 Sprint 19 — Çıkış drawer'a taşındı; en sağa "Daha fazla" #}
+        <button type="button"
+                class="tab-item tab-item-more {% if request.endpoint in ('analiz', 'ayarlar') %}is-active{% endif %}"
+                id="mobile-more-btn" aria-haspopup="true" aria-expanded="false" aria-controls="mobile-more-drawer">
+            <span class="tab-icon" aria-hidden="true">⋯</span>
+            <span class="tab-label">Daha fazla</span>
+        </button>
     </nav>
+
+    {# tasarim-v2 Sprint 19 — Mobil "Daha fazla" drawer (Analiz · Ayarlar · Çıkış) #}
+    <div class="mobile-more-drawer" id="mobile-more-drawer" hidden>
+        <div class="mmd-backdrop" data-mmd-close></div>
+        <div class="mmd-sheet" role="menu" aria-label="Daha fazla menü">
+            <div class="mmd-handle" aria-hidden="true"></div>
+            <a href="{{ url_for('analiz') }}"
+               class="mmd-item {% if request.endpoint == 'analiz' %}is-active{% endif %}" role="menuitem">
+                <span class="mmd-emoji" aria-hidden="true">📊</span> <span>Analiz</span>
+            </a>
+            <a href="{{ url_for('ayarlar') }}"
+               class="mmd-item {% if request.endpoint == 'ayarlar' %}is-active{% endif %}" role="menuitem">
+                <span class="mmd-emoji" aria-hidden="true">⚙️</span> <span>Ayarlar</span>
+            </a>
+            <a href="{{ url_for('logout') }}" class="mmd-item mmd-logout" role="menuitem">
+                <span class="mmd-emoji" aria-hidden="true">🚪</span> <span>Çıkış</span>
+            </a>
+        </div>
+    </div>
 
     <script src="{{ url_for('static', filename='js/toast.js') }}"></script>
 
@@ -117,6 +139,28 @@
             screen.orientation.unlock();
         }
     } catch (e) { /* iOS ve eski browser'lar desteklemez — sorun değil */ }
+
+    // --- tasarim-v2 Sprint 19 — Mobil "Daha fazla" drawer ---
+    (function () {
+        const btn = document.getElementById('mobile-more-btn');
+        const drawer = document.getElementById('mobile-more-drawer');
+        if (!btn || !drawer) return;
+        function open() {
+            drawer.hidden = false;
+            requestAnimationFrame(() => drawer.classList.add('is-open'));
+            btn.setAttribute('aria-expanded', 'true');
+        }
+        function close() {
+            drawer.classList.remove('is-open');
+            btn.setAttribute('aria-expanded', 'false');
+            setTimeout(() => { if (!drawer.classList.contains('is-open')) drawer.hidden = true; }, 280);
+        }
+        btn.addEventListener('click', () => drawer.classList.contains('is-open') ? close() : open());
+        drawer.addEventListener('click', (e) => { if (e.target.closest('[data-mmd-close]')) close(); });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && drawer.classList.contains('is-open')) close();
+        });
+    })();
     </script>
 
     <script>
