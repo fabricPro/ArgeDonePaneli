@@ -380,6 +380,9 @@ def product_summary(d: dict) -> dict:
         "has_teknik": store.has_teknik_calisma(d),
         "has_pdf": store.has_pdfs(d),
         "has_notlar": store.has_notlar(d),
+        # tasarim-v2 Sprint 18 — tooltip için sayılar (v{N} sürüm, {N} PDF)
+        "teknik_surum_count": len(((d.get("teknik") or {}).get("surumler")) or []),
+        "pdf_count": len(d.get("pdfs") or []),
     }
 
 

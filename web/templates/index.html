@@ -112,25 +112,28 @@
                     <span class="card-stat-sep">·</span>
                     <span class="card-stat">{{ p.color_album_image_count }} varyant</span>
                 </div>
-                {# v4.0-part-2 Adım 8 — Kart altı durum indikatörleri #}
+                {# v4.0-part-2 Adım 8 + tasarim-v2 Sprint 18 — kart altı durum ikonları + zengin tooltip #}
                 <div class="card-indicators" aria-label="Veri durumu">
-                    <span class="ind {% if p.has_teknik %}on{% else %}off{% endif %}" title="Teknik Çalışma{% if not p.has_teknik %} (boş){% endif %}">
+                    <span class="ind {% if p.has_teknik %}on{% else %}off{% endif %}"
+                          data-tooltip="{% if p.has_teknik %}Teknik çalışma tamamlanmış (v{{ p.teknik_surum_count }}){% else %}Teknik çalışma henüz girilmemiş{% endif %}">
                         <svg class="icon"><use href="#ic-grid"/></svg>
                     </span>
-                    <span class="ind {% if p.has_pdf %}on{% else %}off{% endif %}" title="PDF Dokümanlar{% if not p.has_pdf %} (yok){% endif %}">
+                    <span class="ind {% if p.has_pdf %}on{% else %}off{% endif %}"
+                          data-tooltip="{% if p.has_pdf %}{{ p.pdf_count }} PDF doküman yüklü{% else %}PDF doküman yok{% endif %}">
                         <svg class="icon"><use href="#ic-file"/></svg>
                     </span>
-                    <span class="ind {% if p.has_notlar %}on{% else %}off{% endif %}" title="Notlar{% if not p.has_notlar %} (boş){% endif %}">
+                    <span class="ind {% if p.has_notlar %}on{% else %}off{% endif %}"
+                          data-tooltip="{% if p.has_notlar %}Notlar mevcut{% else %}Not girilmemiş{% endif %}">
                         <svg class="icon"><use href="#ic-pencil"/></svg>
                     </span>
-                    {# v4.0-part-2 Sprint 13: Renkler ikonu — fotoğraf sayısı + palette parıltısı #}
+                    {# Renkler ikonu — fotoğraf sayısı + palette parıltısı #}
                     <span class="ind ind-renkler {% if p.has_color_album %}on{% else %}off{% endif %}{% if p.palette_completed %} is-completed{% endif %}"
-                          title="Renkler albümü: {{ p.color_album_image_count }} görsel{% if p.palette_completed %} · palet tamamlandı{% elif p.palette_size %} · {{ p.palette_size }} renk atanmış{% endif %}">
+                          data-tooltip="{% if p.palette_completed %}Renkler albümü: {{ p.color_album_image_count }} görsel · palet tamamlandı{% elif p.palette_size %}Renkler albümü: {{ p.color_album_image_count }} görsel · {{ p.palette_size }} renk atanmış{% else %}Renkler albümü boş{% endif %}">
                         <svg class="icon"><use href="#ic-image"/></svg>
                         {% if p.color_album_image_count %}<sup class="ind-count">{{ p.color_album_image_count }}</sup>{% endif %}
                     </span>
                     {% if p.status == 'archived' %}
-                    <span class="ind ind-archived" title="Çalışma yapıldı (arşivde)">
+                    <span class="ind ind-archived" data-tooltip="Çalışma yapıldı (arşivde)">
                         <svg class="icon"><use href="#ic-check"/></svg>
                     </span>
                     {% endif %}
@@ -385,6 +388,24 @@ document.addEventListener('dragover', (e) => {
         const rect = t.getBoundingClientRect();
         const after = (e.clientY - rect.top) > rect.height / 2;
         dragEl.parentElement.insertBefore(dragEl, after ? t.nextSibling : t);
+    }
+});
+
+// tasarim-v2 Sprint 18 — kart ikonu tap: tooltip toggle + kart linkine gitmeyi engelle
+document.addEventListener('click', (e) => {
+    const ind = e.target.closest('.card-indicators .ind[data-tooltip]');
+    if (ind) {
+        e.preventDefault();
+        e.stopPropagation();
+        // Diğer açık tooltip'leri kapat (tek seferde bir)
+        document.querySelectorAll('.card-indicators .ind.is-tooltip-open').forEach(o => {
+            if (o !== ind) o.classList.remove('is-tooltip-open');
+        });
+        ind.classList.toggle('is-tooltip-open');
+    } else {
+        // Dışarı tıkla → açık tooltip'leri kapat
+        document.querySelectorAll('.card-indicators .ind.is-tooltip-open')
+                .forEach(o => o.classList.remove('is-tooltip-open'));
     }
 });
 </script>
