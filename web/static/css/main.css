@@ -1917,6 +1917,56 @@ body.design-on .product-card:active { cursor: grabbing; }
     }
     .tab-item-center .tab-label { margin-top: 2px; color: var(--text-dim); }
 
+    /* tasarim-v2 Sprint 19 — "Daha fazla" (⋯) butonu (button olarak tab-item) */
+    .tab-item-more { background: none; border: none; cursor: pointer; font-family: inherit; }
+    .tab-item-more .tab-icon { font-size: 26px; letter-spacing: 1px; }
+
+    /* === Mobil "Daha fazla" drawer (bottom sheet) === */
+    .mobile-more-drawer {
+        position: fixed; inset: 0;
+        z-index: 200;
+        display: none;
+    }
+    .mobile-more-drawer.is-open { display: block; }
+    .mmd-backdrop {
+        position: absolute; inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+    .mobile-more-drawer.is-open .mmd-backdrop { opacity: 1; }
+    .mmd-sheet {
+        position: absolute; left: 0; right: 0; bottom: 0;
+        background: var(--bg-card);
+        border-top-left-radius: 18px;
+        border-top-right-radius: 18px;
+        padding: 8px 12px calc(16px + env(safe-area-inset-bottom, 0px));
+        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+        transform: translateY(100%);
+        transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .mobile-more-drawer.is-open .mmd-sheet { transform: translateY(0); }
+    .mmd-handle {
+        width: 40px; height: 4px;
+        border-radius: 999px;
+        background: var(--border-strong, rgba(255, 255, 255, 0.25));
+        margin: 4px auto 12px;
+    }
+    .mmd-item {
+        display: flex; align-items: center; gap: 14px;
+        padding: 14px 12px;
+        min-height: 52px;
+        color: var(--text);
+        text-decoration: none;
+        font-size: 15px; font-weight: 600;
+        border-radius: 10px;
+        transition: background 0.15s;
+    }
+    .mmd-item:active { background: var(--bg-elev); }
+    .mmd-item.is-active { color: var(--accent); background: rgba(212, 175, 127, 0.1); }
+    .mmd-item .mmd-emoji { font-size: 22px; width: 28px; text-align: center; }
+    .mmd-logout { color: #e07260; }
+
     /* === Page header + filter === */
     .page-header { margin-bottom: 12px; }
     .page-header h1 { font-size: 20px; }
@@ -3257,6 +3307,49 @@ body.image-select-on .img-manage-card .variant-label-input { pointer-events: non
     flex: 0 1 auto;
 }
 .teknik-toolbar .flex-spacer { flex: 1; }
+
+/* tasarim-v2 Sprint 17 — Kaydet butonu durum göstergeleri (auto-save) */
+#teknik-kaydet {
+    min-width: 130px;
+    transition: opacity var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+#teknik-kaydet.is-saved {
+    opacity: 0.6;
+    background: var(--bg-elev);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+}
+#teknik-kaydet.is-error {
+    background: rgba(224, 114, 96, 0.15);
+    color: #e07260;
+    border: 1px solid #e07260;
+    opacity: 1;
+}
+/* is-dirty: varsayılan btn-primary görünümü (accent) — bekleyen değişiklik */
+.kaydet-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #e8964a;
+    margin-right: 4px;
+    vertical-align: middle;
+    animation: kaydet-dot-pulse 1.4s ease-in-out infinite;
+}
+@keyframes kaydet-dot-pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.4; }
+}
+.kaydet-spinner {
+    display: inline-block;
+    width: 12px; height: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: kaydet-spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 2px;
+}
+@keyframes kaydet-spin { to { transform: rotate(360deg); } }
 
 /* Sürüm yokken boş mesaj */
 .teknik-empty {
@@ -7790,8 +7883,10 @@ body.embed-calisma-right .urun-main-tabs .utab-btn[data-tab="galeri"] {
     align-items: center;
 }
 .card-indicators .ind {
-    width: 18px;
-    height: 18px;
+    /* tasarim-v2 Sprint 18 — 18 → 20px + position relative (tooltip için) */
+    width: 20px;
+    height: 20px;
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -7800,17 +7895,18 @@ body.embed-calisma-right .urun-main-tabs .utab-btn[data-tab="galeri"] {
     transition: opacity 0.15s, background 0.15s;
 }
 .card-indicators .ind .icon {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
 }
 .card-indicators .ind.off {
     opacity: 0.25;
     color: var(--text-muted);
 }
 .card-indicators .ind.on {
+    /* tasarim-v2 Sprint 18 — dolu = yeşil vurgu (altın yerine) */
     opacity: 1;
-    color: var(--accent);
-    background: rgba(212, 175, 127, 0.12);
+    color: #7fb37f;
+    background: rgba(127, 179, 127, 0.15);
 }
 .card-indicators .ind-archived {
     background: rgba(127, 179, 127, 0.15);
@@ -7837,7 +7933,7 @@ body.embed-calisma-right .urun-main-tabs .utab-btn[data-tab="galeri"] {
     position: absolute;
     top: -4px;
     right: -4px;
-    background: var(--accent);
+    background: #7fb37f;   /* tasarim-v2 Sprint 18 — yeşil */
     color: #fff;
     font-size: 8px;
     font-weight: 700;
@@ -7847,18 +7943,68 @@ body.embed-calisma-right .urun-main-tabs .utab-btn[data-tab="galeri"] {
     min-width: 11px;
     text-align: center;
 }
+/* tasarim-v2 Sprint 18 — Renkler tamamlandı = parlak yeşil glow (altın yerine) */
 .card-indicators .ind.is-completed {
-    background: rgba(212, 175, 127, 0.22);
-    color: var(--accent);
+    background: rgba(127, 179, 127, 0.25);
+    color: #7fb37f;
     animation: ind-glow 2.4s ease-in-out infinite;
 }
 .card-indicators .ind.is-completed .ind-count {
-    background: var(--accent);
-    box-shadow: 0 0 6px rgba(212, 175, 127, 0.7);
+    background: #7fb37f;
+    box-shadow: 0 0 6px rgba(127, 179, 127, 0.8);
 }
 @keyframes ind-glow {
-    0%, 100% { box-shadow: 0 0 4px rgba(212, 175, 127, 0.35); }
-    50%      { box-shadow: 0 0 12px rgba(212, 175, 127, 0.85); }
+    0%, 100% { box-shadow: 0 0 4px rgba(127, 179, 127, 0.35); }
+    50%      { box-shadow: 0 0 12px rgba(127, 179, 127, 0.9); }
+}
+
+/* ============================================================
+ * tasarim-v2 Sprint 18 — Kart ikonu tooltip (koyu, üstte, delay)
+ * ============================================================ */
+.card-indicators .ind[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 7px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    font-size: 12px;
+    line-height: 1.3;
+    padding: 6px 9px;
+    border-radius: 6px;
+    white-space: nowrap;
+    max-width: 240px;
+    z-index: 60;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s ease;
+    transition-delay: 0s;   /* kapanış anında */
+}
+.card-indicators .ind[data-tooltip]::before {
+    content: '';
+    position: absolute;
+    bottom: calc(100% + 1px);
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #333;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s ease;
+    z-index: 60;
+}
+/* Hover (desktop) → 200ms delay açılır */
+.card-indicators .ind[data-tooltip]:hover::after,
+.card-indicators .ind[data-tooltip]:hover::before {
+    opacity: 1;
+    transition-delay: 0.2s;
+}
+/* Tap (mobil) → anında açılır */
+.card-indicators .ind.is-tooltip-open::after,
+.card-indicators .ind.is-tooltip-open::before {
+    opacity: 1;
+    transition-delay: 0s;
 }
 
 /* Arşivli kart — soluk + grayscale */
