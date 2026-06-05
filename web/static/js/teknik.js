@@ -698,6 +698,7 @@
             iplik: '',
             siklik: '',           // cozgu için tel/cm, atki için tel adedi (yön'e göre anlam)
             fiyat: '',
+            cozgu_durum: 'alt',   // tasarim-v2 — alt | ust | ust_2 (yalnız cozgu yön'ünde anlamlı)
             // 📊 Kompozisyon panel state
             olcum: {
                 icerikler: [],            // [{elyaf, oran_yuzde}] max 6
@@ -797,6 +798,15 @@
         node.querySelector('[data-iplik-key="iplik"]').value = row.iplik != null ? row.iplik : '';
         node.querySelector('[data-iplik-key="siklik"]').value = row.siklik != null ? row.siklik : '';
         node.querySelector('[data-iplik-key="fiyat"]').value = row.fiyat != null ? row.fiyat : '';
+        // tasarim-v2 — Çözgü Durumu (alt/üst/üst 2) — yalnız cozgu yön'ünde anlamlı.
+        // Atkı satırlarında DOM'dan tamamen kaldır (CSS gizleme yerine kesin).
+        const durumWrap = node.querySelector('.iplik-field-durum');
+        if (yon === 'cozgu') {
+            const durumSel = node.querySelector('[data-iplik-key="cozgu_durum"]');
+            if (durumSel) durumSel.value = (row.cozgu_durum || 'alt');
+        } else if (durumWrap) {
+            durumWrap.remove();
+        }
         // Yön'e göre Sıklık label ve placeholder → Atkı için "Tel Adedi"
         const siklikLabelEl = node.querySelector('[data-label-siklik]');
         const siklikInputEl = node.querySelector('[data-iplik-key="siklik"]');
@@ -913,8 +923,14 @@
             Array.isArray(row.olcum.icerikler) && row.olcum.icerikler.length);
         const infoBtn = node.querySelector('[data-iplik-action="info"]');
         const scaleBtn = node.querySelector('[data-iplik-action="scale"]');
-        if (infoBtn)  infoBtn.classList.toggle('is-active', hasInfo);
-        if (scaleBtn) scaleBtn.classList.toggle('is-active', hasScale);
+        if (infoBtn) {
+            infoBtn.classList.toggle('is-active', hasInfo);
+            infoBtn.title = hasInfo ? 'İplik bilgisi (dolu — düzenle)' : 'İplik bilgisi (boş — eklemek için tıkla)';
+        }
+        if (scaleBtn) {
+            scaleBtn.classList.toggle('is-active', hasScale);
+            scaleBtn.title = hasScale ? 'Kompozisyon (dolu — düzenle)' : 'Kompozisyon (boş — eklemek için tıkla)';
+        }
         // v4.0-part-2 Adım 2.4 — her input değişiminde maliyet UI'ı yenile
         scheduleMaliyetUpdate();
     }
@@ -944,6 +960,7 @@
             base.tip = (r && r.tip) || 'DENYE';
             base.siklik = r && r.siklik != null ? r.siklik : '';
             base.fiyat = r && r.fiyat != null ? r.fiyat : '';
+            base.cozgu_durum = (r && r.cozgu_durum) || 'alt';   // tasarim-v2 — geriye dönük uyum (eski kayıtlar 'alt')
             base.renk_hex = (r && r.renk_hex) || '';
             base.renk_ad = (r && r.renk_ad) || '';
             // iplik + kat → string
@@ -1138,14 +1155,15 @@
         const panel = rowEl.querySelector(`[data-panel="${which}"]`);
         if (!panel) return;
         const wasHidden = panel.hidden;
-        panel.hidden = !wasHidden;
-        // State sakla (sayfa yenilenirse açık panel kalmaz — bu OK, sadece in-memory)
+        const nowOpen = wasHidden;                         // wasHidden=true → şimdi açık
+        panel.hidden = !nowOpen;
         if (!openPanels[row.id]) openPanels[row.id] = {};
-        openPanels[row.id][which] = !wasHidden;
-        // Action button toggle visual
-        const actBtn = rowEl.querySelector(`[data-iplik-action="${which === 'scale' ? 'scale' : 'info'}"]`);
+        openPanels[row.id][which] = nowOpen;
+        // is-open class: panel AÇIKKEN ekli (önceden ters mantıkla yazılmıştı — sarı halka kapalıyken görünüyordu)
+        const actBtn = rowEl.querySelector(`[data-iplik-action="${which}"]`);
         if (actBtn) {
-            actBtn.classList.toggle('is-open', !wasHidden);
+            actBtn.classList.toggle('is-open', nowOpen);
+            actBtn.blur();                                 // focus outline kalıntısını temizle
         }
     }
 
@@ -1242,7 +1260,7 @@
                       oran_yuzde: numOrNull(it.oran_yuzde)
                   }))
                 : [];
-            return {
+            const out = {
                 id: r.id,
                 tip: r.tip,
                 iplik: (r.iplik == null) ? '' : String(r.iplik).trim(),
@@ -1258,6 +1276,9 @@
                     fason_var: !!(r.bilgi && r.bilgi.fason_var)
                 }
             };
+            // tasarim-v2 — cozgu_durum yalnız cozgu yön'ünde kaydedilir (alt/üst/üst_2)
+            if (yon === 'cozgu') out.cozgu_durum = r.cozgu_durum || 'alt';
+            return out;
         });
         return { cozgu: clean('cozgu'), atki: clean('atki') };
     }
@@ -1278,6 +1299,28 @@
         const parsed = parseIplikValue(row.iplik, row.tip);   // tip-aware parse
         return gPerMt(row.tip, parsed.value, parsed.kat);
     }
+
+    // tasarim-v2 Plan Parça 2 — g/mt hesabını plan.js ile PAYLAŞ (yeni hesap yok; mevcut fonksiyonları dışa aç)
+    window.TeknikCalc = {
+        parseIplikValue: parseIplikValue,   // (raw, tip) -> {value, kat}
+        gPerMt: gPerMt,                      // (tip, value, kat) -> tek tel g/m
+        rowGPerMt: rowGPerMt,                // (row{iplik,tip}) -> tek tel g/m
+        dollarPerMt: dollarPerMt,            // (gmt, fiyat $/kg) -> $/mt
+        // Çözgü ipliğinin 1 mt kumaşa toplam g katkısı — applyCalc çözgü dalıyla AYNI (sık × ham_en × g/m)
+        cozguGmt: function (row, hamEn) {
+            const g = rowGPerMt(row);
+            const sik = parseFloat(String((row && row.siklik) != null ? row.siklik : '').replace(',', '.'));
+            if (g == null || !isFinite(hamEn) || hamEn <= 0 || !isFinite(sik) || sik <= 0) return null;
+            return sik * hamEn * g;
+        },
+        // tasarim-v2 Plan Parça 3 — atkı ipliğinin 1 mt kumaşa katkısı — applyCalc atkı dalıyla AYNI (tel_adedi × ham_en/100 × g/m)
+        atkiGmt: function (row, hamEn) {
+            const g = rowGPerMt(row);
+            const n = parseFloat(String((row && row.siklik) != null ? row.siklik : '').replace(',', '.'));  // atkıda siklik = tel adedi
+            if (g == null || !isFinite(hamEn) || hamEn <= 0 || !isFinite(n) || n <= 0) return null;
+            return n * (hamEn / 100) * g;
+        },
+    };
 
     /*
      * AĞIRLIK / TÜKETİM FORMÜLLERİ (kullanıcı standardı)
@@ -1569,7 +1612,8 @@
     // === v4.0-part-2 Adım 1 — İç sekme switch (1·Analiz | 2·Desen | 3·Tarak | 4·Notlar) ===
     const NUMUNE_TAB_KEY = 'numune_tab';
     // v4.0-part-2 Sprint 8.4 — Notlar 4. alt-sekme olarak eklendi (sürüm-spesifik)
-    const NUMUNE_VALID_TABS = ['analiz', 'desen', 'tarak', 'notlar'];
+    // tasarim-v2 Plan Parça 1 — 'plan' alt-sekmesi eklendi (tarak ile notlar arası)
+    const NUMUNE_VALID_TABS = ['analiz', 'desen', 'tarak', 'plan', 'notlar'];
     const numuneTabBtns = document.querySelectorAll('.numune-tab');
     const numuneSections = document.querySelectorAll('.numune-section');
 
@@ -1604,6 +1648,10 @@
         try { localStorage.setItem(FS_KEY, on ? '1' : '0'); } catch (e) {}
         // Sayfa scroll'ı en üste (yeni state geçişinde kafa karışmasın)
         if (on) window.scrollTo(0, 0);
+        // tasarim-v2 — Çalışma split-screen embed modunda parent'a haber ver (iframe sınırını aşma)
+        if (window.parent && window.parent !== window) {
+            try { window.parent.postMessage({ type: 'teknik-fullscreen', on: !!on }, '*'); } catch (e) {}
+        }
     }
 
     if (fsBtn) {

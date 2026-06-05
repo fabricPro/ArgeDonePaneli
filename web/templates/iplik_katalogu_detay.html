@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}{{ kartela.ad if kartela else 'Yeni Kartela' }} — İplik Kataloğu{% endblock %}
+
+{% set known_tipler = ['PES','CO','VIS','PA','WO','AC','PAN','LI','MET'] %}
+{% set tip_val = (kartela.iplik_tipi if kartela else '') or '' %}
+{% set tip_known = tip_val in known_tipler %}
+{% set tip_other = tip_val and not tip_known %}
+
+{% block content %}
+<div class="page-header katalog-detay-header">
+    <div class="katalog-head-left">
+        <a href="{{ url_for('iplik_katalog_list') }}" class="btn btn-secondary">← Kataloğa Dön</a>
+        <h1>{{ kartela.ad if kartela else 'Yeni Kartela' }}</h1>
+    </div>
+    <div class="katalog-head-right">
+        <span id="katalog-status" class="plan-status"></span>
+        {% if kartela %}
+        <form method="post" action="{{ url_for('iplik_katalog_sil', kartela_id=kartela.kartela_id) }}"
+              onsubmit="return confirm('Bu kartela silinsin mi?\nİçindeki tüm renkler de silinecek.');"
+              style="display:inline">
+            <button type="submit" class="btn btn-danger">🗑 Sil</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+{# Auto-save için ilk veri (kartela_id + sayfalar JSONB korunur; form alanları DOM'dan okunur) #}
+<script id="kartela-data" type="application/json">{{ kartela|tojson if kartela else 'null' }}</script>
+
+{# ① Kartela Bilgileri #}
+<fieldset class="teknik-card">
+    <legend>📋 Kartela Bilgileri</legend>
+    <div class="form-grid">
+        <div class="form-row">
+            <label for="k-ad">Kartela Adı *</label>
+            <input type="text" id="k-ad" data-k="ad" value="{{ kartela.ad if kartela else '' }}" placeholder="örn. Korteks PES 300d" autocomplete="off">
+        </div>
+        <div class="form-row">
+            <label for="k-tedarikci">Tedarikçi</label>
+            <input type="text" id="k-tedarikci" data-k="tedarikci" list="tedarikci-list" value="{{ kartela.tedarikci if kartela and kartela.tedarikci else '' }}" placeholder="örn. Korteks" autocomplete="off">
+            <datalist id="tedarikci-list">{% for t in tedarikciler %}<option value="{{ t }}">{% endfor %}</datalist>
+        </div>
+        <div class="form-row">
+            <label for="k-iplik-tipi">İplik Tipi</label>
+            <select id="k-iplik-tipi" data-k="iplik_tipi">
+                <option value="" {% if not tip_val %}selected{% endif %}>Seç…</option>
+                <option value="PES" {% if tip_val == 'PES' %}selected{% endif %}>PES (Polyester)</option>
+                <option value="CO" {% if tip_val == 'CO' %}selected{% endif %}>CO (Pamuk)</option>
+                <option value="VIS" {% if tip_val == 'VIS' %}selected{% endif %}>VIS (Viskon)</option>
+                <option value="PA" {% if tip_val == 'PA' %}selected{% endif %}>PA (Polyamid)</option>
+                <option value="WO" {% if tip_val == 'WO' %}selected{% endif %}>WO (Yün)</option>
+                <option value="AC" {% if tip_val == 'AC' %}selected{% endif %}>AC (Asetat)</option>
+                <option value="PAN" {% if tip_val == 'PAN' %}selected{% endif %}>PAN (Akrilik)</option>
+                <option value="LI" {% if tip_val == 'LI' %}selected{% endif %}>LI (Keten)</option>
+                <option value="MET" {% if tip_val == 'MET' %}selected{% endif %}>MET (Metalik)</option>
+                <option value="__other__" {% if tip_other %}selected{% endif %}>Diğer (elle yaz)…</option>
+            </select>
+            <input type="text" id="iplik-tipi-other" placeholder="İplik tipi yaz" autocomplete="off"
+                   style="display:{{ 'block' if tip_other else 'none' }}; margin-top:8px;"
+                   value="{{ tip_val if tip_other else '' }}">
+        </div>
+        <div class="form-row">
+            <label for="k-no">İplik Numarası</label>
+            <input type="text" id="k-no" data-k="iplik_numarasi" value="{{ kartela.iplik_numarasi if kartela and kartela.iplik_numarasi else '' }}" placeholder="örn. 300d veya Ne 30/1" autocomplete="off">
+        </div>
+        <div class="form-row form-row-wide">
+            <label for="k-komp">Kompozisyon</label>
+            <input type="text" id="k-komp" data-k="kompozisyon" value="{{ kartela.kompozisyon if kartela and kartela.kompozisyon else '' }}" placeholder="örn. %100 PES" autocomplete="off">
+        </div>
+    </div>
+</fieldset>
+
+{# ② Fiyat & MOQ #}
+<fieldset class="teknik-card">
+    <legend>💰 Fiyat &amp; MOQ</legend>
+    <div class="form-grid">
+        <div class="form-row">
+            <label for="k-fiyat">Fiyat Tutar</label>
+            <input type="number" id="k-fiyat" data-k="fiyat_tutar" data-type="num" step="0.01" min="0" value="{{ kartela.fiyat_tutar if kartela and kartela.fiyat_tutar is not none else '' }}" placeholder="0.00">
+        </div>
+        <div class="form-row">
+            <label for="k-birim">Fiyat Birim</label>
+            <select id="k-birim" data-k="fiyat_birim">
+                {% set bv = (kartela.fiyat_birim if kartela else '') or 'TL' %}
+                <option value="TL" {% if bv == 'TL' %}selected{% endif %}>TL</option>
+                <option value="EUR" {% if bv == 'EUR' %}selected{% endif %}>EUR</option>
+                <option value="USD" {% if bv == 'USD' %}selected{% endif %}>USD</option>
+            </select>
+        </div>
+        <div class="form-row">
+            <label for="k-per">Fiyat Per</label>
+            <select id="k-per" data-k="fiyat_per">
+                {% set pv = (kartela.fiyat_per if kartela else '') or 'kg' %}
+                <option value="kg" {% if pv == 'kg' %}selected{% endif %}>kg</option>
+                <option value="lb" {% if pv == 'lb' %}selected{% endif %}>lb</option>
+            </select>
+        </div>
+        <div class="form-row">
+            <label for="k-moq">MOQ (kg)</label>
+            <input type="number" id="k-moq" data-k="moq_kg" data-type="num" step="0.01" min="0" value="{{ kartela.moq_kg if kartela and kartela.moq_kg is not none else '' }}" placeholder="0">
+        </div>
+        <div class="form-row form-row-wide">
+            <label for="k-moq-notu">MOQ Notu</label>
+            <textarea id="k-moq-notu" data-k="moq_notu" rows="2" placeholder="Örn: 100 kg toplam, 25 kg × 4 renk olarak da bölünebilir">{{ kartela.moq_notu if kartela and kartela.moq_notu else '' }}</textarea>
+        </div>
+    </div>
+</fieldset>
+
+{# ③ Sayfalar & Renkler — Parça 2-A: sayfa yönetimi (renk seçimi B2-b'de). #}
+{# Yeni kartela'da gizli: sayfa yüklemek için önce kaydedilmiş kartela_id şart (ilk kayıtta JS açar). #}
+<fieldset class="teknik-card" id="sayfalar-fieldset" {% if not kartela %}hidden{% endif %}>
+    <legend>🎨 Sayfalar &amp; Renkler</legend>
+    <div class="upload-section">
+        <input type="file" id="sayfa-foto-input" accept="image/jpeg,image/png,image/webp" hidden>
+        <label for="sayfa-foto-input" class="upload-label">
+            <span class="upload-icon">📷</span>
+            <span class="upload-text">Yeni sayfa fotoğrafı seç (JPG/PNG, max ~10 MB önerilir)</span>
+        </label>
+        <div id="sayfa-upload-progress" class="upload-progress" hidden>
+            <span class="upload-spinner">⏳</span> <span>Yükleniyor…</span>
+        </div>
+    </div>
+    <div id="sayfa-empty" class="sayfa-empty" hidden>Henüz sayfa eklenmedi. Üstteki butonla ilk sayfa fotoğrafını ekleyin.</div>
+    <div id="sayfa-kartlari" class="sayfa-grid"><!-- JS doldurur (SSR yok) --></div>
+
+    {# Renk yakalama modalı — tek modal tüm sayfalar için (state ile). Parça 2-B. #}
+    <div class="modal" id="renk-modal" hidden role="dialog" aria-modal="true" aria-labelledby="renk-modal-baslik">
+        <div class="modal-body modal-body-wide">
+            <div class="renk-modal-header">
+                <h3 id="renk-modal-baslik">Sayfa — Renkleri Düzenle</h3>
+                <button type="button" class="modal-close" id="renk-modal-x" aria-label="Kapat">✕</button>
+            </div>
+            <div class="renk-modal-content">
+                <div class="renk-modal-canvas-area">
+                    <div class="renk-modal-toolbar">
+                        <button type="button" class="btn btn-sm btn-primary" id="renk-auto">🎨 Otomatik Bul</button>
+                        <label class="renk-toolbar-toggle">Renk sayısı
+                            <select id="renk-auto-count" class="renk-auto-count">
+                                <option value="8">8</option>
+                                <option value="12">12</option>
+                                <option value="16" selected>16</option>
+                                <option value="20">20</option>
+                                <option value="24">24</option>
+                            </select>
+                        </label>
+                        <label class="renk-toolbar-toggle"><input type="checkbox" id="renk-avg" checked> 5×5 ortalama</label>
+                        <button type="button" class="btn btn-sm" id="renk-clear-all">🗑 Temizle</button>
+                        <span class="renk-modal-hint">Otomatik bul veya fotoğrafa tıkla</span>
+                    </div>
+                    <div class="renk-canvas-scroll" id="renk-canvas-scroll">
+                        <div class="renk-canvas-inner" id="renk-canvas-wrap">
+                            <canvas id="renk-canvas"></canvas>
+                            <div class="renk-overlay-layer" id="renk-overlay-layer"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="renk-modal-list-area">
+                    <h4>Yakalanan Renkler (<span id="renk-sayac">0</span>)</h4>
+                    <div id="renk-listesi" class="renk-listesi"></div>
+                    <div id="renk-listesi-empty" class="renk-listesi-empty">Henüz renk yakalanmadı. Fotoğrafa tıkla.</div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <span id="renk-modal-status" class="plan-status"></span>
+                <button type="button" class="btn" id="renk-modal-kapat">Kapat</button>
+            </div>
+        </div>
+    </div>
+</fieldset>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/color-picker.js') }}"></script>
+<script src="{{ url_for('static', filename='js/iplik_katalogu.js') }}"></script>
+{% endblock %}

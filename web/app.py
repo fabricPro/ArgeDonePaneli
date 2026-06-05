@@ -33,6 +33,9 @@ import hashlib
 import hmac
 from urllib.error import HTTPError, URLError
 from urllib.request import Request as UrlRequest, urlopen
+import xml.etree.ElementTree as ET  # tasarim-v2 Plan Parça 1 — TCMB kur XML parse
+
+import requests  # tasarim-v2 Plan Parça 1 — TCMB kur fetch (requirements.txt'te mevcut)
 
 import store
 
@@ -682,6 +685,174 @@ def ayarlar():
     )
 
 
+# =================================================================
+# İplik Kataloğu — Parça 1 (veri modeli + CRUD + liste + meta düzenleme)
+# =================================================================
+
+def _kartela_tedarikciler() -> list[str]:
+    """Mevcut kartelalardan distinct tedarikçi listesi (datalist önerisi için)."""
+    return sorted({
+        (k.get("tedarikci") or "").strip()
+        for k in store.list_kartelalar()
+        if (k.get("tedarikci") or "").strip()
+    })
+
+
+@app.route("/iplik-katalogu")
+def iplik_katalog_list():
+    items = store.list_kartelalar()
+    items.sort(key=lambda k: (k.get("ad") or "").lower())
+    tedarikciler = sorted({
+        (k.get("tedarikci") or "").strip() for k in items if (k.get("tedarikci") or "").strip()
+    })
+    tipler = sorted({
+        (k.get("iplik_tipi") or "").strip() for k in items if (k.get("iplik_tipi") or "").strip()
+    })
+    # İplik Kataloğu Parça 2-A — kart kapak görseli + toplam renk rozeti (server-side)
+    for it in items:
+        sayfalar = it.get("sayfalar") or []
+        ilk = sayfalar[0] if sayfalar else None
+        it["kapak_url"] = store.public_url_kartela(ilk.get("foto_path")) if (ilk and ilk.get("foto_path")) else None
+        it["toplam_renk"] = sum(len(s.get("renkler") or []) for s in sayfalar)
+    return render_template(
+        "iplik_katalogu.html", items=items, tedarikciler=tedarikciler, tipler=tipler,
+    )
+
+
+@app.route("/iplik-katalogu/yeni")
+def iplik_katalog_yeni():
+    return render_template(
+        "iplik_katalogu_detay.html", kartela=None, tedarikciler=_kartela_tedarikciler(),
+    )
+
+
+@app.route("/iplik-katalogu/<kartela_id>")
+def iplik_katalog_detay(kartela_id: str):
+    k = store.get_kartela(kartela_id)
+    if not k:
+        abort(404)
+    # İplik Kataloğu Parça 2-A — sayfalara foto_url enjekte et (yalnız render için; DB'ye sızmaz).
+    k = dict(k)
+    k["sayfalar"] = [
+        {**s, "foto_url": store.public_url_kartela(s.get("foto_path"))}
+        for s in (k.get("sayfalar") or [])
+    ]
+    return render_template(
+        "iplik_katalogu_detay.html", kartela=k, tedarikciler=_kartela_tedarikciler(),
+    )
+
+
+@app.route("/iplik-katalogu/<kartela_id>", methods=["POST"])
+def iplik_katalog_kaydet(kartela_id: str):
+    """Auto-save: JSON gövde al, upsert, {ok, kartela_id} döndür. Yeni için id='yeni' gelir."""
+    body = request.get_json(force=True) or {}
+    ad = (body.get("ad") or "").strip()
+    if not ad:
+        return jsonify({"ok": False, "error": "Kartela adı zorunlu"}), 400
+    if kartela_id == "yeni":
+        kartela_id = uuid.uuid4().hex
+    body["kartela_id"] = kartela_id
+    store.upsert_kartela(body)
+    return jsonify({"ok": True, "kartela_id": kartela_id})
+
+
+@app.route("/iplik-katalogu/<kartela_id>/sil", methods=["POST"])
+def iplik_katalog_sil(kartela_id: str):
+    store.delete_kartela(kartela_id)
+    return redirect(url_for("iplik_katalog_list"))
+
+
+# ---- İplik Kataloğu Parça 2-A — sayfa fotoğrafı yükleme / silme ----
+
+def save_kartela_sayfa(file_storage, kartela_id: str, sayfa_id: str) -> str:
+    """Sayfa fotoğrafını JPEG'e normalize edip kartelalar bucket'a yükle. Bucket-yolu döner.
+    save_image() PIL pipeline'ının kartela-bucket varyantı (sabit path + bucket-not-found fallback)."""
+    img = Image.open(file_storage.stream)
+    img = ImageOps.exif_transpose(img).convert("RGB")
+    img.thumbnail((2000, 2000))
+    buf = io.BytesIO()
+    img.save(buf, "JPEG", quality=85, optimize=True)
+    path = f"{kartela_id}/{sayfa_id}.jpg"
+    try:
+        store.upload_kartela(path, buf.getvalue(), "image/jpeg")
+    except Exception as e:
+        m = str(e).lower()
+        if "bucket not found" in m or "404" in m or "not_found" in m:
+            store.ensure_bucket_kartelalar()
+            store.upload_kartela(path, buf.getvalue(), "image/jpeg")
+        else:
+            raise
+    return path
+
+
+@app.route("/iplik-katalogu/<kartela_id>/sayfa/yukle", methods=["POST"])
+def iplik_katalog_sayfa_yukle(kartela_id: str):
+    k = store.get_kartela(kartela_id)
+    if not k:
+        return jsonify({"ok": False, "error": "Kartela bulunamadı"}), 404
+    fs = request.files.get("foto")
+    if not fs or not fs.filename:
+        return jsonify({"ok": False, "error": "Dosya yok"}), 400
+    store.ensure_bucket_kartelalar()
+    sayfa_id = uuid.uuid4().hex[:12]
+    try:
+        path = save_kartela_sayfa(fs, kartela_id, sayfa_id)
+    except Exception as e:
+        return jsonify({"ok": False, "error": f"Sayfa yüklenemedi: {e}"}), 400
+    sayfalar = k.get("sayfalar") or []
+    sayfa = {"sayfa_id": sayfa_id, "sira": len(sayfalar) + 1, "foto_path": path, "renkler": []}
+    sayfalar.append(sayfa)
+    k["sayfalar"] = sayfalar
+    store.upsert_kartela(k)
+    return jsonify({"ok": True, "sayfa": sayfa, "public_url": store.public_url_kartela(path)})
+
+
+@app.route("/iplik-katalogu/<kartela_id>/sayfa/<sayfa_id>/sil", methods=["POST"])
+def iplik_katalog_sayfa_sil(kartela_id: str, sayfa_id: str):
+    k = store.get_kartela(kartela_id)
+    if not k:
+        return jsonify({"ok": False, "error": "Kartela bulunamadı"}), 404
+    sayfalar = k.get("sayfalar") or []
+    hedef = next((s for s in sayfalar if s.get("sayfa_id") == sayfa_id), None)
+    if not hedef:
+        return jsonify({"ok": False, "error": "Sayfa bulunamadı"}), 404
+    foto_path = hedef.get("foto_path")
+    if foto_path:
+        try:
+            store.delete_kartelalar([foto_path])
+        except Exception as e:
+            print(f"[iplik_katalog_sayfa_sil] storage temizleme uyarısı: {e}")
+    kalan = [s for s in sayfalar if s.get("sayfa_id") != sayfa_id]
+    for i, s in enumerate(kalan):
+        s["sira"] = i + 1
+    k["sayfalar"] = kalan
+    store.upsert_kartela(k)
+    return jsonify({"ok": True})
+
+
+@app.route("/iplik-katalogu/<kartela_id>/sayfa/<sayfa_id>/renkler", methods=["POST"])
+def iplik_katalog_sayfa_renkler(kartela_id: str, sayfa_id: str):
+    """İplik Kataloğu Parça 2-B — sayfanın renk listesini idempotent değiştir (ekle/sil/güncelle)."""
+    k = store.get_kartela(kartela_id)
+    if not k:
+        return jsonify({"ok": False, "error": "Kartela bulunamadı"}), 404
+    sayfalar = k.get("sayfalar") or []
+    hedef = next((s for s in sayfalar if s.get("sayfa_id") == sayfa_id), None)
+    if not hedef:
+        return jsonify({"ok": False, "error": "Sayfa bulunamadı"}), 404
+    body = request.get_json(force=True) or {}
+    renkler = body.get("renkler")
+    if not isinstance(renkler, list):
+        renkler = []
+    for i, r in enumerate(renkler):
+        if isinstance(r, dict):
+            r["numara"] = i + 1   # server-side renumber güvencesi
+    hedef["renkler"] = renkler
+    k["sayfalar"] = sayfalar
+    store.upsert_kartela(k)
+    return jsonify({"ok": True, "renkler": renkler})
+
+
 @app.route("/api/brands", methods=["GET"])
 def api_brands_list():
     return jsonify({"ok": True, "brands": get_brands_registry()})
@@ -1164,6 +1335,74 @@ def api_favori_toggle(urun_id: str):
             return jsonify({"ok": True, "is_favorite": im["is_favorite"],
                             "favorite_count": fav_count})
     return jsonify({"ok": False, "error": "Görsel bulunamadı"}), 400
+
+
+# ============================================================
+# tasarim-v2 Plan Parça 1 — Kur altyapısı + Plan kaydı
+# ============================================================
+
+KUR_CACHE_KEY = "kur_tcmb_daily"
+TCMB_URL = "https://www.tcmb.gov.tr/kurlar/today.xml"
+
+
+@app.route("/api/kur", methods=["GET"])
+def api_kur():
+    """TCMB günlük kuru (USD/EUR ForexSelling). app_state'te günlük cache.
+    Hata → son cache (stale) veya null; ASLA 500 (frontend manuel kura düşer)."""
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    cached = store.get_app_state(KUR_CACHE_KEY) or {}
+    # Aynı gün + dolu değer → cache döndür (TCMB hafta sonu güncellenmez, son değer geçerli)
+    if cached.get("date") == today and cached.get("usd_try") and cached.get("eur_try"):
+        return jsonify({"ok": True, "cached": True, **cached})
+    try:
+        resp = requests.get(TCMB_URL, timeout=8)
+        resp.raise_for_status()
+        root = ET.fromstring(resp.content)
+
+        def _rate(code):
+            node = root.find(f".//Currency[@Kod='{code}']")
+            if node is None:
+                return None
+            raw = (node.findtext("ForexSelling") or node.findtext("BanknoteSelling") or "").strip()
+            raw = raw.replace(",", ".")
+            return float(raw) if raw else None
+
+        usd, eur = _rate("USD"), _rate("EUR")
+        if usd is None and eur is None:
+            raise ValueError("TCMB XML'inde USD/EUR bulunamadı")
+        result = {"usd_try": usd, "eur_try": eur, "fetched_at": now_iso(), "date": today}
+        store.set_app_state(KUR_CACHE_KEY, result)
+        return jsonify({"ok": True, "cached": False, **result})
+    except Exception:
+        # Erişilemezse son cache'i (stale) ver; o da yoksa null — 500 ATMA
+        if cached:
+            return jsonify({"ok": True, "cached": True, "stale": True, **cached})
+        return jsonify({"ok": False, "error": "TCMB erişilemedi",
+                        "usd_try": None, "eur_try": None, "fetched_at": None})
+
+
+@app.route("/api/urun/<urun_id>/plan", methods=["POST"])
+def api_plan_update(urun_id: str):
+    """Body: {surum_id, plan:{...}} — aktif teknik sürümün plan dilimini yazar.
+    plan kolonu surum_id ile anahtarlı sözlük; yalnız ilgili dilim güncellenir."""
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    body = request.get_json(force=True) or {}
+    surum_id = body.get("surum_id")
+    plan_data = body.get("plan")
+    if not surum_id or not isinstance(plan_data, dict):
+        return jsonify({"ok": False, "error": "surum_id ve plan zorunlu"}), 400
+    plan_map = d.get("plan")
+    if not isinstance(plan_map, dict):
+        plan_map = {}
+    plan_data["surum_id"] = surum_id
+    plan_data["guncelleme_tarihi"] = now_iso()
+    plan_map[surum_id] = plan_data
+    d["plan"] = plan_map
+    d["updated_at"] = now_iso()
+    store.upsert(d)
+    return jsonify({"ok": True, "plan": plan_data})
 
 
 @app.route("/api/urun/<urun_id>/gorsel-sil", methods=["POST"])
@@ -1839,6 +2078,43 @@ def api_teknik_pdf(urun_id: str, surum_id: str):
     """v4.0-part-2 Adım 5 Faz 1 — print sayfasına redirect (eski URL backward-compat).
     Faz 2'de WeasyPrint binary PDF dönecek."""
     return redirect(url_for("teknik_print", urun_id=urun_id, surum_id=surum_id))
+
+
+# tasarim-v2 Plan Parça 4 — Plan raporu print sayfası (window.print() + @media print, kütüphane yok)
+@app.template_filter("money")
+def _money(n):
+    """Türkçe para formatı: 1234.5 → '1.234,50'. Plan PDF + raporlarda kullanılır."""
+    try:
+        s = f"{float(n):,.2f}"                                        # 1,234.50
+        return s.replace(",", "\x00").replace(".", ",").replace("\x00", ".")  # 1.234,50
+    except (TypeError, ValueError):
+        return "—"
+
+
+@app.route("/urun/<urun_id>/plan/<surum_id>/print", methods=["GET"])
+def plan_print(urun_id, surum_id):
+    """Plan raporu — yeni sekmede açılır, window.print() ile PDF'e dökülür.
+    Tüm veri kayıtlı plan dilimi + sürüm + üründen okunur (hesap plan.js'te yapıldı)."""
+    d = store.get(urun_id)
+    if not d:
+        abort(404)
+    surumler = (d.get("teknik") or {}).get("surumler") or []
+    surum = next((s for s in surumler if s.get("id") == surum_id), None)
+    if not surum:
+        abort(404)
+    plan = (d.get("plan") or {}).get(surum_id) or {}
+    return render_template(
+        "plan_print.html",
+        product=d, surum=surum, plan=plan,
+        cover_image=store.public_url(cover_path(d)),
+        now_iso=now_iso(),
+    )
+
+
+@app.route("/api/urun/<urun_id>/plan/<surum_id>/pdf", methods=["GET"])
+def api_plan_pdf(urun_id: str, surum_id: str):
+    """Plan print sayfasına redirect (teknik /pdf ile simetri)."""
+    return redirect(url_for("plan_print", urun_id=urun_id, surum_id=surum_id))
 
 
 # ============================================================

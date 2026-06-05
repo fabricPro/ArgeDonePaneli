@@ -18,8 +18,10 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
 SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
 BUCKET = "gorseller"
 BUCKET_PDFS = "pdfler"  # v4.0-part-2 Adim 7
+BUCKET_KARTELALAR = "kartelalar"  # İplik Kataloğu Parça 1 (Parça 2'de kullanılacak)
 TABLE = "products"
 TABLE_RESEARCH = "research_pool"  # v4.0-part-2 Adim 8
+TABLE_KARTELA = "iplik_kartelalari"  # İplik Kataloğu Parça 1
 
 PRODUCT_COLUMNS = [
     "urun_id", "brand", "brand_slug", "country", "collection", "product_name",
@@ -33,6 +35,7 @@ PRODUCT_COLUMNS = [
     "production_country", "production_country_code",      # "Made in" — yalniz Gemini sayfadan
     "reference_price", "reference_price_type", "reference_price_evidence",
     "from_research_id",  # v4.0-part-2 Sprint 14 — Ön çalışma kaynağı (varsa)
+    "plan",  # tasarim-v2 Plan Parça 1 — sürüm-bazlı planlama (surum_id ile anahtarlı jsonb)
     "created_at", "updated_at",
 ]
 
@@ -46,6 +49,14 @@ RESEARCH_COLUMNS = [
     "images",  # v4.0-part-2 Sprint 10 — JSONB array (galeri mantığı)
     "albums",  # v4.0-part-2 Sprint 11 — ürün öncesi albüm + renk paleti
     "brand_country", "brand_country_code",  # v4.0-part-2 Sprint 11.5 — country = brand_country alias
+]
+
+# İplik Kataloğu Parça 1 — kartela kolonları (upsert whitelist)
+KARTELA_COLUMNS = [
+    "kartela_id", "ad", "tedarikci", "iplik_tipi", "iplik_numarasi", "kompozisyon",
+    "fiyat_tutar", "fiyat_birim", "fiyat_per", "moq_kg", "moq_notu",
+    "sayfalar",  # jsonb — Parça 2 doldurur
+    "olusturma_tarihi", "guncelleme_tarihi",
 ]
 
 
@@ -182,6 +193,71 @@ def ensure_bucket_pdfs() -> None:
         # 409 Conflict = zaten var, OK; başka hata varsa logla
         if "already exists" not in str(e).lower() and "duplicate" not in str(e).lower():
             print(f"[ensure_bucket_pdfs] uyarı: {e}")
+
+
+# =================================================================
+# İplik Kataloğu Parça 1 — iplik_kartelalari CRUD + kartelalar bucket
+# (CRUD products pattern'iyle; storage helper'ları Parça 2 için hazır, Parça 1'de kullanılmaz)
+# =================================================================
+
+def list_kartelalar() -> list[dict]:
+    res = client().table(TABLE_KARTELA).select("*").execute()
+    return res.data or []
+
+
+def get_kartela(kartela_id: str) -> dict | None:
+    res = (client().table(TABLE_KARTELA).select("*")
+           .eq("kartela_id", kartela_id).limit(1).execute())
+    return res.data[0] if res.data else None
+
+
+def upsert_kartela(data: dict) -> None:
+    # Sadece bilinen kolonlari gonder; guncelleme_tarihi her zaman tazelenir.
+    # olusturma_tarihi payload'a EKLENMEZ: yeni kayitta DB default doldurur,
+    # guncellemede dokunulmaz.
+    row = {k: data.get(k) for k in KARTELA_COLUMNS if k in data}
+    row["guncelleme_tarihi"] = _now_iso()
+    row.pop("olusturma_tarihi", None)
+    client().table(TABLE_KARTELA).upsert(row, on_conflict="kartela_id").execute()
+
+
+def delete_kartela(kartela_id: str) -> None:
+    client().table(TABLE_KARTELA).delete().eq("kartela_id", kartela_id).execute()
+
+
+# ---- kartelalar Storage (Parça 2'de sayfa fotoğrafları için) ----
+
+def public_url_kartela(path: str | None) -> str | None:
+    if not path:
+        return None
+    return f"{SUPABASE_URL}/storage/v1/object/public/{BUCKET_KARTELALAR}/{path}"
+
+
+def upload_kartela(path: str, data: bytes, content_type: str = "image/jpeg") -> None:
+    client().storage.from_(BUCKET_KARTELALAR).upload(
+        path, data, {"content-type": content_type, "upsert": "true"}
+    )
+
+
+def delete_kartelalar(paths: list[str]) -> None:
+    paths = [p for p in paths if p]
+    if paths:
+        try:
+            client().storage.from_(BUCKET_KARTELALAR).remove(paths)
+        except Exception:
+            pass  # dosya yoksa sorun degil
+
+
+def ensure_bucket_kartelalar() -> None:
+    """kartelalar bucket yoksa olustur (service_role key ile her zaman yetkili)."""
+    try:
+        client().storage.create_bucket(
+            BUCKET_KARTELALAR,
+            options={"public": True, "file_size_limit": 25 * 1024 * 1024},
+        )
+    except Exception as e:
+        if "already exists" not in str(e).lower() and "duplicate" not in str(e).lower():
+            print(f"[ensure_bucket_kartelalar] uyarı: {e}")
 
 
 # =================================================================
@@ -442,7 +518,21 @@ def research_delete(research_id: str) -> None:
 
 
 def research_hard_delete(research_id: str) -> None:
-    """Fiziksel silme (admin)."""
+    """Fiziksel silme (admin): DB satırı + storage görselleri (sızıntı bırakmadan)."""
+    row = research_get(research_id)
+    if row:
+        paths: list[str] = []
+        if row.get("image_storage_path"):
+            paths.append(row["image_storage_path"])
+        for im in (row.get("images") or []):
+            sp = im.get("storage_path")
+            if sp:
+                paths.append(sp)
+        if paths:
+            try:
+                delete_images(paths)   # gorseller bucket (_inbox/... research görselleri)
+            except Exception:
+                pass  # storage temizliği başarısızsa bile DB satırını sil
     client().table(TABLE_RESEARCH).delete().eq("id", research_id).execute()
 
 

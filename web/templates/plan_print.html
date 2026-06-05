@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>{{ product.product_name or 'Numune' }} — Plan Raporu {{ surum.ad }}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* ========== A4 PRINT (teknik_print.html deseni) ========== */
+@page { size: A4; margin: 14mm 12mm; }
+@page :first { margin-top: 10mm; }
+@media print {
+    .no-print { display: none !important; }
+    body { background: #fff !important; }
+    .pdf-page { box-shadow: none !important; padding: 0 !important; margin: 0 !important; background: #fff !important; }
+    /* KRİTİK — arka plan renklerini (renk swatch + maliyet bar) yazdırmada zorla göster */
+    *, *::before, *::after {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+}
+.pdf-swatch, .pdf-bar-seg, .pdf-meta-cell, .pdf-stat, table.pdf-table th, .pdf-maliyet-row.is-total {
+    -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important;
+}
+@media screen {
+    body { background: #d8d8d8; padding: 16mm; margin: 0; }
+    .pdf-page { background: #fff; padding: 14mm 12mm; max-width: 210mm; min-height: 270mm; margin: 0 auto 8mm; box-shadow: 0 4px 16px rgba(0,0,0,0.18); box-sizing: border-box; }
+    .pdf-toolbar { position: fixed; top: 12px; right: 12px; background: #1a1a1a; color: #fff; padding: 10px 14px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 13px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); z-index: 100; display: flex; gap: 10px; align-items: center; }
+    .pdf-toolbar button { background: #d4af7f; color: #1a1410; border: 0; padding: 6px 12px; border-radius: 4px; font-weight: 600; font-family: inherit; cursor: pointer; }
+}
+/* ========== TYPO ========== */
+* { box-sizing: border-box; }
+body, html { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #1a1a1a; font-size: 10pt; line-height: 1.45; }
+.pdf-page { page-break-after: always; break-after: page; }
+.pdf-page:last-child { page-break-after: auto; break-after: auto; }
+h1, h2, h3 { font-weight: 700; letter-spacing: -0.01em; margin: 0; }
+h1 { font-size: 22pt; }
+h2 { font-size: 13pt; color: #1a1a1a; padding-bottom: 3mm; border-bottom: 1.5pt solid #d4af7f; margin: 6mm 0 4mm; }
+h3 { font-size: 10pt; color: #555; text-transform: uppercase; letter-spacing: 0.05em; margin: 4mm 0 2mm; }
+small { font-size: 8pt; color: #666; text-transform: uppercase; letter-spacing: 0.05em; }
+/* ========== KAPAK + KÜNYE ========== */
+.pdf-cover-img-wrap { width: 100%; height: 90mm; background: #f0f0f0; border-radius: 4px; overflow: hidden; margin-bottom: 6mm; }
+.pdf-cover-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pdf-cover-empty { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #999; font-style: italic; }
+.pdf-product-title { margin-bottom: 4mm; }
+.pdf-product-title h1 { margin-bottom: 2mm; }
+.pdf-product-meta { display: flex; gap: 4mm; flex-wrap: wrap; font-size: 9pt; color: #555; }
+.pdf-product-meta span:not(:last-child)::after { content: '·'; margin-left: 4mm; color: #ccc; }
+.pdf-meta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5mm; margin: 3mm 0; }
+.pdf-meta-cell { background: #f8f8f8; border-left: 2pt solid #d4af7f; padding: 3mm 4mm; border-radius: 2pt; }
+.pdf-meta-cell dt { font-size: 8pt; color: #666; text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 1mm; font-weight: 500; }
+.pdf-meta-cell dd { margin: 0; font-weight: 600; font-size: 11pt; }
+/* ========== KEY-VALUE ========== */
+.pdf-kv { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2mm 8mm; margin: 2mm 0 4mm; }
+.pdf-kv-row { display: flex; justify-content: space-between; padding: 1.5mm 0; border-bottom: 0.5pt solid #eee; font-size: 10pt; }
+.pdf-kv-row .k { color: #666; }
+.pdf-kv-row .v { font-weight: 600; }
+/* ========== TABLO ========== */
+table.pdf-table { width: 100%; border-collapse: collapse; font-size: 9pt; margin: 2mm 0; }
+table.pdf-table th { text-align: left; background: #f0f0f0; padding: 3pt 5pt; border: 1px solid #ccc; font-weight: 600; font-size: 8.5pt; }
+table.pdf-table td { padding: 2.5pt 5pt; border: 1px solid #e0e0e0; font-variant-numeric: tabular-nums; vertical-align: middle; }
+table.pdf-table .num { text-align: right; }
+/* ========== RENK SWATCH ========== */
+.pdf-swatch { display: inline-block; width: 4mm; height: 4mm; border-radius: 1pt; border: 0.25pt solid rgba(0,0,0,0.25); vertical-align: middle; margin-right: 1.5mm; }
+.pdf-sw-name { font-size: 9pt; }
+.pdf-sw-hex { font-size: 7.5pt; color: #888; font-variant-numeric: tabular-nums; }
+.pdf-renk-list { display: flex; flex-wrap: wrap; gap: 4mm; margin: 2mm 0 3mm; }
+.pdf-renk-chip { display: inline-flex; align-items: center; gap: 1.5mm; background: #f8f8f8; border: 1px solid #e0e0e0; padding: 1.5mm 3mm; border-radius: 2pt; }
+/* ========== MALİYET ========== */
+.pdf-bar { display: flex; height: 6mm; border-radius: 2pt; overflow: hidden; margin: 2mm 0 4mm; border: 0.5pt solid #ccc; }
+.pdf-bar-seg { display: block; height: 100%; }
+.pdf-maliyet-row.is-total { background: rgba(91, 141, 239, 0.10); border: 1px solid #5b8def; }
+.pdf-total-trio { display: flex; gap: 6mm; font-size: 11pt; color: #555; margin-top: 2mm; font-variant-numeric: tabular-nums; }
+.pdf-total-big { font-size: 16pt; font-weight: 700; margin-top: 3mm; }
+.pdf-kur-gerekli { color: #c0392b; font-weight: 600; font-size: 8.5pt; }
+.pdf-alt { font-size: 7.5pt; color: #777; margin-top: 1mm; }
+.pdf-alt span { display: inline-block; margin-right: 4mm; }
+/* ========== FOOTER / EMPTY ========== */
+.pdf-footer { margin-top: 6mm; padding-top: 3mm; border-top: 0.5pt solid #ccc; font-size: 7.5pt; color: #999; display: flex; justify-content: space-between; }
+.pdf-empty { background: #f8f8f8; border: 1px dashed #ccc; border-radius: 2pt; padding: 6mm; text-align: center; color: #999; font-style: italic; font-size: 9pt; }
+</style>
+</head>
+<body>
+
+{% macro num(x, d=2) -%}
+{%- if x is none -%}—{%- else -%}{{ ('%.' ~ d ~ 'f')|format(x)|replace('.', ',') }}{%- endif -%}
+{%- endmacro %}
+{% macro boya(x) -%}{{ 'İplik Boya' if x == 'iplik_boya' else ('Top Boya' if x == 'top_boya' else '—') }}{%- endmacro %}
+{% macro swatch(c) -%}
+{%- if c and c.hex -%}<span class="pdf-swatch" style="background:{{ c.hex }}"></span><span class="pdf-sw-name">{{ c.ad or c.hex }}</span> <span class="pdf-sw-hex">{{ c.hex }}</span>{%- else -%}—{%- endif -%}
+{%- endmacro %}
+
+{% set cp = plan.cozgu_plani or {} %}
+{% set avp = plan.atki_varyant_plani or {} %}
+{% set tbp = plan.top_boya_plani or {} %}
+{% set mo = plan.maliyet_ozeti or {} %}
+{% set by = plan.boya_yontemi or {} %}
+{% set par = surum.parametreler or {} %}
+{% set atki_topboya = (by.atki == 'top_boya') %}
+
+<div class="pdf-toolbar no-print">
+    <span>📄 Plan Raporu</span>
+    <span style="font-size:11px;opacity:0.7;">Önce göz at, hazırsan ↓</span>
+    <button onclick="window.print()">PDF olarak Kaydet</button>
+    <button onclick="window.close()" style="background:#444;color:#fff">Kapat</button>
+</div>
+
+<!-- ===== SAYFA 1 — KÜNYE + TEKNİK ÖZET + BOYA YÖNTEMİ ===== -->
+<section class="pdf-page">
+    <div class="pdf-cover-img-wrap">
+        {% if cover_image %}<img src="{{ cover_image }}" alt="" class="pdf-cover-img" crossorigin="anonymous">
+        {% else %}<div class="pdf-cover-empty">Kapak görseli yok</div>{% endif %}
+    </div>
+    <div class="pdf-product-title">
+        {% if product.brand %}<small>{{ product.brand }}</small>{% endif %}
+        <h1>{{ product.product_name or '—' }}</h1>
+        <div class="pdf-product-meta">
+            {% if product.product_code %}<span>{{ product.product_code }}</span>{% endif %}
+            {% if product.collection %}<span>{{ product.collection }}</span>{% endif %}
+            {% if product.weave_type %}<span>{{ product.weave_type }}</span>{% endif %}
+            <span>Sürüm: {{ surum.ad }}</span>
+        </div>
+    </div>
+
+    <h2>Teknik Özet</h2>
+    <div class="pdf-meta-grid">
+        <div class="pdf-meta-cell" style="border-left-color:#d4b15a"><dt>Ham En</dt><dd>{{ num(par.ham_en_cm, 0) }} cm</dd></div>
+        <div class="pdf-meta-cell" style="border-left-color:#d4b15a"><dt>Mamül En</dt><dd>{{ num(par.mamul_en_cm, 0) }} cm</dd></div>
+        <div class="pdf-meta-cell" style="border-left-color:#7fb37f"><dt>Atkı Sıklığı</dt><dd>{{ num(par.atki_sikligi, 1) }} <small>tel/cm</small></dd></div>
+    </div>
+
+    <h3>Çözgü İplikleri ({{ (surum.iplikler.cozgu or [])|length }})</h3>
+    {% if surum.iplikler and surum.iplikler.cozgu %}
+    <table class="pdf-table"><thead><tr><th>#</th><th>Tip</th><th>İplik</th><th class="num">Sıklık tel/cm</th><th class="num">Fiyat $/kg</th></tr></thead><tbody>
+        {% for r in surum.iplikler.cozgu %}
+        <tr><td>{{ loop.index }}</td><td>{{ r.tip }}</td><td>{{ r.iplik or '—' }}</td><td class="num">{{ num(r.siklik, 1) }}</td><td class="num">{{ num(r.fiyat, 2) }}</td></tr>
+        {% endfor %}
+    </tbody></table>
+    {% else %}<div class="pdf-empty">Çözgü ipliği yok.</div>{% endif %}
+
+    <h3>Atkı İplikleri ({{ (surum.iplikler.atki or [])|length }})</h3>
+    {% if surum.iplikler and surum.iplikler.atki %}
+    <table class="pdf-table"><thead><tr><th>#</th><th>Tip</th><th>İplik</th><th class="num">Tel adedi</th><th class="num">Fiyat $/kg</th></tr></thead><tbody>
+        {% for r in surum.iplikler.atki %}
+        <tr><td>{{ loop.index }}</td><td>{{ r.tip }}</td><td>{{ r.iplik or '—' }}</td><td class="num">{{ num(r.siklik, 0) }}</td><td class="num">{{ num(r.fiyat, 2) }}</td></tr>
+        {% endfor %}
+    </tbody></table>
+    {% else %}<div class="pdf-empty">Atkı ipliği yok.</div>{% endif %}
+
+    <h2>Boya Yöntemi</h2>
+    <div class="pdf-kv">
+        <div class="pdf-kv-row"><span class="k">Çözgü</span><span class="v">{{ boya(by.cozgu) }}</span></div>
+        <div class="pdf-kv-row"><span class="k">Atkı</span><span class="v">{{ boya(by.atki) }}</span></div>
+    </div>
+
+    <div class="pdf-footer"><span>{{ product.brand or '—' }} · {{ product.product_name or '—' }}</span><span>Sürüm: {{ surum.ad }} · {{ now_iso[:10] }}</span><span>Sayfa 1</span></div>
+</section>
+
+{# tasarim-v2 — Çözgü grup migration: eski düz şema → gruplar.alt #}
+{% set cp_gruplar = cp.gruplar if cp and cp.gruplar else (
+    {'alt': {'tip': cp.tip, 'renk_sayisi': cp.renk_sayisi, 'renk_atamalari': cp.renk_atamalari, 'toplam_tel_adedi': cp.toplam_tel_adedi, 'iplik_ihtiyaci': cp.iplik_ihtiyaci, 'cozgu_adedi': cp.cozgu_adedi}}
+    if (cp and (cp.tip or cp.renk_atamalari)) else {}
+) %}
+{% set DURUM_LBL = {'alt': 'Alt Çözgü', 'ust': 'Üst Çözgü', 'ust_2': 'Üst Çözgü 2'} %}
+
+<!-- ===== SAYFA 2 — ÇÖZGÜ PLANI ===== -->
+<section class="pdf-page">
+    <h2>Çözgü Planı</h2>
+    {% if cp %}
+    <div class="pdf-kv">
+        <div class="pdf-kv-row"><span class="k">Toplam tel adedi</span><span class="v">{{ num(cp.toplam_tel_adedi, 0) }}</span></div>
+        <div class="pdf-kv-row"><span class="k">Metraj</span><span class="v">{{ num(cp.metraj_m, 0) }} m</span></div>
+        <div class="pdf-kv-row"><span class="k">Çözüm yeri</span><span class="v">{{ 'Fason' if cp.cozum_yeri == 'fason' else 'Devoretex' }}{% if cp.cozum_yeri == 'fason' %} · {{ num(cp.cozum_bedeli, 2) }} {{ cp.cozum_para_birimi }}{% endif %}</span></div>
+        <div class="pdf-kv-row"><span class="k">Geçiş</span><span class="v">{{ 'İşbağ' if cp.gecis == 'isbag' else 'Tahar' }} · {{ num(cp.gecis_bedeli, 2) }} {{ cp.gecis_para_birimi }}</span></div>
+    </div>
+
+    {% if cp_gruplar %}
+        {% for durum in ['alt', 'ust', 'ust_2'] %}{% if cp_gruplar.get(durum) %}
+        {% set g = cp_gruplar[durum] %}
+        {# Cozguler array'i yoksa eski şemayı (tip/renk_sayisi/renk_atamalari [×cozgu_adedi]) on-the-fly normalize et #}
+        {% if g.cozguler %}{% set cozguler = g.cozguler %}
+        {% elif g.tip or g.renk_atamalari %}
+            {% set adedi = (g.cozgu_adedi or 1) %}
+            {% set tek = {'tip': g.tip or 'duz', 'renk_sayisi': g.renk_sayisi or 1, 'renk_atamalari': g.renk_atamalari or [], 'toplam_tel_adedi': g.toplam_tel_adedi, 'iplik_ihtiyaci': g.iplik_ihtiyaci} %}
+            {% set cozguler = [tek] * adedi %}
+        {% else %}{% set cozguler = [] %}{% endif %}
+
+        <h3 style="margin-top:6mm">{{ DURUM_LBL[durum] }}{% if cozguler|length > 1 %} <em style="font-weight:400;color:#666"> · {{ cozguler|length }} çözgü</em>{% endif %}{% if g.toplam_tel_adedi %} · {{ num(g.toplam_tel_adedi, 0) }} tel{% endif %}</h3>
+
+        {% for c in cozguler %}
+        <div style="margin: 3mm 0 4mm; padding: 3mm 4mm; border-left: 0.5pt solid #ccc;">
+            <b>Çözgü {{ loop.index }}{% if cozguler|length > 1 %}/{{ cozguler|length }}{% endif %}</b>
+            {% set cm = c.get('metraj_efektif') or c.get('metraj') or cp.metraj_m %}
+            <em style="color:#666"> · {{ 'Blanket' if c.tip == 'blanket' else 'Düz' }}{% if c.tip == 'blanket' %} · {{ c.renk_sayisi or 2 }} renk{% endif %}{% if cm %} · {{ num(cm, 0) }} m{% endif %}</em>
+
+            {% if c.renk_atamalari and (c.renk_atamalari|select|list)|length %}
+            <div class="pdf-renk-list" style="margin-top:1.5mm">
+                {% for rc in c.renk_atamalari %}{% if rc %}<span class="pdf-renk-chip">{{ swatch(rc) }}</span>{% endif %}{% endfor %}
+            </div>
+            {% endif %}
+
+            {% if c.iplik_ihtiyaci %}
+            <table class="pdf-table" style="margin-top:2mm"><thead><tr><th>İplik</th><th>Renk</th><th class="num">kg</th></tr></thead><tbody>
+                {% for it in c.iplik_ihtiyaci %}
+                <tr><td>{{ it.iplik_ref }}</td><td>{{ it.renk or '—' }}</td><td class="num">{{ num(it.kg, 3) }}</td></tr>
+                {% endfor %}
+            </tbody></table>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% if not cozguler %}<div class="pdf-empty">Bu grupta çözgü yok.</div>{% endif %}
+        {% endif %}{% endfor %}
+    {% else %}<div class="pdf-empty">Çözgü grubu yok.</div>{% endif %}
+    {% else %}<div class="pdf-empty">Çözgü planı girilmemiş.</div>{% endif %}
+
+    <div class="pdf-footer"><span>{{ product.brand or '—' }} · {{ product.product_name or '—' }}</span><span>Sürüm: {{ surum.ad }}</span><span>Sayfa 2 — Çözgü</span></div>
+</section>
+
+<!-- ===== SAYFA 3 — ATKI / VARYANT veya TOP BOYA ===== -->
+<section class="pdf-page">
+{% if atki_topboya %}
+    <h2>Top Boya Planı</h2>
+    {% set bp = tbp.boyahane_profili or {} %}
+    <div class="pdf-kv">
+        <div class="pdf-kv-row"><span class="k">Ekru metre</span><span class="v">{{ num(tbp.ekru_metre, 0) }} m</span></div>
+        <div class="pdf-kv-row"><span class="k">Kazan kapasitesi</span><span class="v">{{ num(bp.kazan_kapasitesi_kg, 0) }} kg</span></div>
+        <div class="pdf-kv-row"><span class="k">Faturalanan min</span><span class="v">{{ num(bp.faturalanan_min_kg, 0) }} kg</span></div>
+        <div class="pdf-kv-row"><span class="k">Kazan bedeli</span><span class="v">{{ num(bp.kazan_bedeli, 2) }} {{ bp.para_birimi or 'TL' }}</span></div>
+        <div class="pdf-kv-row"><span class="k">Renk sayısı</span><span class="v">{{ tbp.renk_sayisi or (tbp.boyanacak_renkler or [])|length }}</span></div>
+        <div class="pdf-kv-row"><span class="k">Toplam kazan bedeli</span><span class="v">{{ num(tbp.toplam_kazan_bedeli, 2) }} {{ bp.para_birimi or 'TL' }}</span></div>
+    </div>
+
+    <h3>Boyanacak Renkler</h3>
+    {% if tbp.boyanacak_renkler %}
+    <div class="pdf-renk-list">{% for c in tbp.boyanacak_renkler %}<span class="pdf-renk-chip">{{ swatch(c) }}</span>{% endfor %}</div>
+    {% else %}<div class="pdf-empty">Boyanacak renk eklenmedi.</div>{% endif %}
+
+    <h3>Ekru İplik Tüketimi (kg)</h3>
+    {% if tbp.iplik_tuketimi %}
+    <table class="pdf-table"><thead><tr><th>İplik</th><th class="num">kg</th></tr></thead><tbody>
+        {% for t in tbp.iplik_tuketimi %}<tr><td>{{ t.ref }}</td><td class="num">{{ num(t.kg, 3) }}</td></tr>{% endfor %}
+    </tbody></table>
+    {% else %}<div class="pdf-empty">Ekru tüketimi hesaplanmadı.</div>{% endif %}
+{% else %}
+    <h2>Atkı &amp; Varyant Planı</h2>
+    {% set yarns = surum.iplikler.atki or [] %}
+    {% if avp.varyantlar %}
+    <table class="pdf-table"><thead><tr><th>Varyant</th><th class="num">Metre</th>
+        {% for y in yarns %}<th>{{ (y.iplik ~ ' ' ~ y.tip) if y.iplik else y.tip }}</th>{% endfor %}
+        <th class="num">kg</th></tr></thead><tbody>
+        {% for v in avp.varyantlar %}
+        <tr>
+            <td>{{ v.ad or ('Varyant ' ~ loop.index) }}</td>
+            <td class="num">{{ num(v.metre, 0) }}</td>
+            {% for y in yarns %}<td>{{ swatch((v.renk_atamalari or [])[loop.index0]) }}</td>{% endfor %}
+            <td class="num">{{ num(v.kg, 3) }}</td>
+        </tr>
+        {% endfor %}
+    </tbody></table>
+    {% else %}<div class="pdf-empty">Varyant girilmemiş.</div>{% endif %}
+
+    <h3>İplik Tüketim &amp; Alım Özeti</h3>
+    {% if avp.iplik_ozet %}
+    <table class="pdf-table"><thead><tr><th>İplik</th><th class="num">Tüketim kg</th><th class="num">MOQ kg/renk</th><th class="num">Alım kg</th><th class="num">Artakalan kg</th></tr></thead><tbody>
+        {% for o in avp.iplik_ozet %}
+        <tr><td>{{ o.ref }}</td><td class="num">{{ num(o.tuketim_kg, 3) }}</td><td class="num">{{ num(o.moq_kg, 2) }}</td><td class="num">{{ num(o.alim_kg, 3) }}</td><td class="num">{{ num(o.artakalan_kg, 3) }}</td></tr>
+        {% endfor %}
+    </tbody></table>
+    {% else %}<div class="pdf-empty">İplik özeti hesaplanmadı.</div>{% endif %}
+{% endif %}
+
+    <div class="pdf-footer"><span>{{ product.brand or '—' }} · {{ product.product_name or '—' }}</span><span>Sürüm: {{ surum.ad }}</span><span>Sayfa 3 — {{ 'Top Boya' if atki_topboya else 'Atkı/Varyant' }}</span></div>
+</section>
+
+<!-- ===== SAYFA 4 — MALİYET DÖKÜMÜ ===== -->
+<section class="pdf-page">
+    <h2>Toplam Proje Maliyeti</h2>
+    {% if mo and mo.kalemler %}
+    {% set rapor = mo.rapor_para_birimi or 'TL' %}
+    <table class="pdf-table"><thead><tr><th>Kalem</th><th>Açıklama</th><th class="num">Orijinal</th><th class="num">Rapor ({{ rapor }})</th></tr></thead><tbody>
+        {% for k in mo.kalemler %}
+        <tr>
+            <td>{{ k.ad }}
+                {% if k.alt_satirlar %}<div class="pdf-alt">{% for a in k.alt_satirlar %}<span>{{ a.ref }}: {{ num(a.kg, 3) }} kg × {{ num(a.fiyat, 2) }} $ = {{ a.tutar|money }} $</span>{% endfor %}</div>{% endif %}
+            </td>
+            <td>{{ k.aciklama or '' }}</td>
+            <td class="num">{{ k.orijinal_deger|money }} {{ k.orijinal_birim }}</td>
+            <td class="num">{% if k.kur_gerekli %}<span class="pdf-kur-gerekli">⚠ kur gerekli</span>{% elif k.rapor_deger is not none %}{{ k.rapor_deger|money }} {{ rapor }}{% else %}—{% endif %}</td>
+        </tr>
+        {% endfor %}
+    </tbody></table>
+
+    {# Kalem dağılım bar'ı (TL bazında) #}
+    {% set segs = mo.kalemler|selectattr('deger_tl')|list %}
+    {% if mo.toplam_tl and mo.toplam_tl > 0 %}
+    {% set colors = {'cozgu_iplik':'#5b8def','atki_iplik':'#7fb37f','cozgu_cozum':'#d4af7f','gecis':'#c68b50','top_boya_kazan':'#e07260'} %}
+    <div class="pdf-bar">
+        {% for k in segs %}{% if k.deger_tl and k.deger_tl > 0 %}<span class="pdf-bar-seg" style="width:{{ (k.deger_tl / mo.toplam_tl * 100)|round(2) }}%;background:{{ colors.get(k.key, '#888') }}" title="{{ k.ad }}"></span>{% endif %}{% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="pdf-total-big">GENEL TOPLAM: {% if mo.toplam_rapor is not none %}{{ mo.toplam_rapor|money }} {{ rapor }}{% else %}—{% endif %}</div>
+    <div class="pdf-total-trio">
+        <span>{{ mo.toplam_tl|money }} TL</span>
+        <span>{% if mo.toplam_eur is not none %}{{ mo.toplam_eur|money }} EUR{% else %}— EUR{% endif %}</span>
+        <span>{% if mo.toplam_usd is not none %}{{ mo.toplam_usd|money }} USD{% else %}— USD{% endif %}</span>
+    </div>
+    {% if mo.eksik_kur %}<p class="pdf-kur-gerekli" style="margin-top:3mm">⚠ Bazı kalemler için kur eksik — toplam yalnız hesaplanabilen kalemleri içerir.</p>{% endif %}
+    {% else %}<div class="pdf-empty">Maliyet özeti hesaplanmadı. Plan sekmesinde bedelleri ve kuru girip kaydedin.</div>{% endif %}
+
+    <div class="pdf-footer">
+        <span>Kur: {% if mo.usd_try %}1 USD = {{ mo.usd_try|money }} TL{% endif %}{% if mo.eur_try %} · 1 EUR = {{ mo.eur_try|money }} TL{% endif %}{% if not mo.usd_try and not mo.eur_try %}—{% endif %}</span>
+        <span>{% if mo.fetched_at %}Kur tarihi: {{ mo.fetched_at[:10] }} · {% endif %}Rapor: {{ now_iso[:16]|replace('T', ' ') }}</span>
+        <span>Sayfa 4 — Maliyet</span>
+    </div>
+</section>
+
+<script>
+// Otomatik print yok — kullanıcı önizler, sonra "PDF olarak Kaydet" (window.print) / Ctrl+P.
+</script>
+</body>
+</html>

@@ -130,6 +130,100 @@
         return "#" + rgb.map(v => v.toString(16).padStart(2, "0")).join("").toUpperCase();
     }
 
+    // ============================================================
+    // tasarim-v2 Sprint 20 — Otomatik dominant renk tespiti (K-means LAB)
+    // ============================================================
+    // LAB → RGB (rgbToLab'ın tersi: LAB→XYZ→sRGB, gamma + clamp)
+    function labToRgb(L, a, b) {
+        let y = (L + 16) / 116, x = a / 500 + y, z = y - b / 200;
+        const f = t => { const t3 = t * t * t; return t3 > 0.008856 ? t3 : (t - 16 / 116) / 7.787; };
+        x = 0.95047 * f(x); y = 1.0 * f(y); z = 1.08883 * f(z);
+        let r = x * 3.2406 - y * 1.5372 - z * 0.4986;
+        let g = -x * 0.9689 + y * 1.8758 + z * 0.0415;
+        let bb = x * 0.0557 - y * 0.2040 + z * 1.0570;
+        const gamma = c => {
+            c = c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055;
+            return Math.max(0, Math.min(255, Math.round(c * 255)));
+        };
+        return [gamma(r), gamma(g), gamma(bb)];
+    }
+
+    function labDist2(p, q) {
+        const dl = p[0] - q[0], da = p[1] - q[1], db = p[2] - q[2];
+        return dl * dl + da * da + db * db;
+    }
+
+    // K-means (k-means++ deterministik init + Lloyd iterasyonu).
+    // Math.random KULLANMAZ → aynı görsel hep aynı palet.
+    function kmeansLab(points, k, iters) {
+        if (points.length <= k) return points.map(p => ({ c: p, n: 1 }));
+        // k-means++ init: ilk merkez ortadaki nokta, sonrakiler en uzak (deterministik)
+        const centroids = [points[Math.floor(points.length / 2)].slice()];
+        while (centroids.length < k) {
+            let best = null, bestD = -1;
+            for (const p of points) {
+                let md = Infinity;
+                for (const c of centroids) { const d = labDist2(p, c); if (d < md) md = d; }
+                if (md > bestD) { bestD = md; best = p; }
+            }
+            centroids.push(best.slice());
+        }
+        const assign = new Array(points.length).fill(0);
+        for (let it = 0; it < iters; it++) {
+            for (let i = 0; i < points.length; i++) {
+                let mc = 0, md = Infinity;
+                for (let c = 0; c < k; c++) {
+                    const d = labDist2(points[i], centroids[c]);
+                    if (d < md) { md = d; mc = c; }
+                }
+                assign[i] = mc;
+            }
+            const sum = Array.from({ length: k }, () => [0, 0, 0, 0]);
+            for (let i = 0; i < points.length; i++) {
+                const c = assign[i], p = points[i];
+                sum[c][0] += p[0]; sum[c][1] += p[1]; sum[c][2] += p[2]; sum[c][3]++;
+            }
+            for (let c = 0; c < k; c++) {
+                if (sum[c][3] > 0) centroids[c] = [sum[c][0] / sum[c][3], sum[c][1] / sum[c][3], sum[c][2] / sum[c][3]];
+            }
+        }
+        const counts = new Array(k).fill(0);
+        assign.forEach(c => counts[c]++);
+        return centroids.map((c, i) => ({ c, n: counts[i] })).filter(x => x.n > 0);
+    }
+
+    // Canvas'taki yüklü görselden dominant renkleri çıkar.
+    function extractDominantColors(k) {
+        if (!state.img || !state.ctx) return [];
+        const W = state.canvasEl.width, H = state.canvasEl.height;
+        let data;
+        try { data = state.ctx.getImageData(0, 0, W, H).data; }
+        catch (e) { console.warn("[ColorPicker] getImageData hatası:", e); return []; }
+        const totalPx = W * H;
+        let step = 4 * 4;   // her 4. piksel (RGBA = 4 byte)
+        if (totalPx / 4 > 20000) step = Math.max(16, Math.floor(totalPx / 20000) * 4);
+        const samples = [];
+        for (let i = 0; i < data.length; i += step) {
+            if (data[i + 3] < 128) continue;   // şeffaf piksel atla
+            samples.push(rgbToLab(data[i], data[i + 1], data[i + 2]));
+        }
+        if (!samples.length) return [];
+        // Tavan 48: Galeri 4/6/8 gönderir (etkilenmez); İplik Kataloğu kartelası daha çok renk isteyebilir.
+        const clusters = kmeansLab(samples, Math.max(2, Math.min(48, k)), 12);
+        const total = clusters.reduce((s, c) => s + c.n, 0) || 1;
+        return clusters.map(cl => {
+            const rgb = labToRgb(cl.c[0], cl.c[1], cl.c[2]);
+            const nearest = dictionaryReady ? nearestColorName(rgb[0], rgb[1], rgb[2]) : { name: "—" };
+            return {
+                hex: rgbToHex(rgb),
+                rgb,
+                lab: cl.c.map(v => +v.toFixed(2)),
+                name: nearest ? nearest.name : "—",
+                weight: Math.round(cl.n / total * 100),
+            };
+        }).sort((a, b) => b.weight - a.weight);   // baskınlık sırası
+    }
+
     // === Tek noktadan örnek (5x5 ön-ortalama) ===
     function sampleAt(ctx, x, y, size) {
         const h = Math.floor(size / 2);
@@ -405,6 +499,8 @@
         setAvg(enabled) { state.avgEnabled = !!enabled; },
         setMultiPoint(enabled) { state.multiPoint = !!enabled; },   // v4.0-part-2 Sprint 13: tablet çoklu nokta
         getMultiPoint() { return state.multiPoint; },
+        // tasarim-v2 Sprint 20 — otomatik dominant renk tespiti (K-means LAB)
+        extractPalette(k) { return extractDominantColors(k); },
         setRole(role) {
             if (!["weft", "warp", "mix"].includes(role)) return;
             state.activeRole = role;

@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}İplik Kataloğu — {{ items|length }} kartela{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>İplik Kataloğu</h1>
+    <p class="page-subtitle">{{ items|length }} kartela</p>
+</div>
+
+<div class="filter-bar">
+    <div class="search-wrap">
+        <svg class="icon search-icon"><use href="#ic-search"/></svg>
+        <input type="text" id="search-input" placeholder="Kartela, tedarikçi, iplik tipi veya numara ara…" class="search-input">
+    </div>
+    <select id="filter-tedarikci" class="filter-select">
+        <option value="">Tüm tedarikçiler</option>
+        {% for t in tedarikciler %}
+        <option value="{{ t|lower }}">{{ t }}</option>
+        {% endfor %}
+    </select>
+    <select id="filter-tip" class="filter-select">
+        <option value="">Tüm iplik tipleri</option>
+        {% for t in tipler %}
+        <option value="{{ t|lower }}">{{ t }}</option>
+        {% endfor %}
+    </select>
+    <a href="{{ url_for('iplik_katalog_yeni') }}" class="btn btn-primary">
+        <svg class="icon"><use href="#ic-plus"/></svg> Yeni Kartela
+    </a>
+</div>
+
+{% if items|length == 0 %}
+<div class="empty-state">
+    <div class="empty-icon-wrap">
+        <svg class="empty-icon"><use href="#ic-image"/></svg>
+    </div>
+    <h2>Henüz kartela yok</h2>
+    <p>İlk iplik kartelanı ekle — tedarikçi, iplik tipi, kompozisyon, fiyat ve MOQ bilgileriyle birlikte burada görünecek.</p>
+    <a href="{{ url_for('iplik_katalog_yeni') }}" class="btn btn-primary">
+        <svg class="icon"><use href="#ic-plus"/></svg> İlk Kartelayı Ekle
+    </a>
+</div>
+{% else %}
+<div class="product-grid" id="kartela-grid">
+    {% for k in items %}
+    <a class="product-card card-link" href="{{ url_for('iplik_katalog_detay', kartela_id=k.kartela_id) }}"
+       data-ad="{{ (k.ad or '')|lower }}"
+       data-tedarikci="{{ (k.tedarikci or '')|lower }}"
+       data-tip="{{ (k.iplik_tipi or '')|lower }}"
+       data-no="{{ (k.iplik_numarasi or '')|lower }}">
+        <div class="card-media">
+            {% if k.kapak_url %}
+            <img src="{{ k.kapak_url }}" alt="{{ k.ad }}" loading="lazy">
+            {% else %}
+            <div class="kartela-ph">
+                <span class="kartela-ph-icon">🧵</span>
+                <span class="kartela-ph-initials">{{ (k.ad or '?')[:2]|upper }}</span>
+            </div>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <div class="card-brand">{{ k.tedarikci or '—' }}</div>
+            <div class="card-title">{{ k.ad }}</div>
+            <div class="card-meta">
+                {% if k.iplik_tipi %}{{ k.iplik_tipi }}{% endif %}
+                {% if k.iplik_numarasi %} · {{ k.iplik_numarasi }}{% endif %}
+            </div>
+            <div class="card-meta-row">
+                {% if k.kompozisyon %}<span class="card-stat">{{ k.kompozisyon }}</span>{% endif %}
+            </div>
+            <div class="card-indicators" aria-label="Veri durumu">
+                <span class="ind ind-renk {{ 'on' if k.toplam_renk else 'off' }}" data-tooltip="{{ k.toplam_renk or 0 }} renk">🎨 {{ k.toplam_renk or 0 }}</span>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+const searchInput = document.getElementById('search-input');
+const tedarikciSelect = document.getElementById('filter-tedarikci');
+const tipSelect = document.getElementById('filter-tip');
+const cards = document.querySelectorAll('#kartela-grid .product-card');
+
+function applyFilters() {
+    const q = (searchInput.value || '').toLowerCase();
+    const ted = tedarikciSelect ? (tedarikciSelect.value || '') : '';
+    const tip = tipSelect ? (tipSelect.value || '') : '';
+    cards.forEach(card => {
+        const ad = card.dataset.ad || '';
+        const ct = card.dataset.tedarikci || '';
+        const cp = card.dataset.tip || '';
+        const no = card.dataset.no || '';
+        const matchesQ = !q || ad.includes(q) || ct.includes(q) || cp.includes(q) || no.includes(q);
+        const matchesTed = !ted || ct === ted;
+        const matchesTip = !tip || cp === tip;
+        card.style.display = (matchesQ && matchesTed && matchesTip) ? '' : 'none';
+    });
+}
+searchInput?.addEventListener('input', applyFilters);
+tedarikciSelect?.addEventListener('change', applyFilters);
+tipSelect?.addEventListener('change', applyFilters);
+</script>
+{% endblock %}

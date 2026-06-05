@@ -28,6 +28,7 @@
              data-path="{{ im.path }}"
              data-caption="{{ im.variant_label or product.product_name }}"
              data-albums='{{ (im.albums or [])|tojson }}'
+             data-favorite="{{ 'true' if im.is_favorite else 'false' }}"
              alt="{{ im.variant_label or product.product_name }}"
              loading="{% if loop.first %}eager{% else %}lazy{% endif %}">
         {% endfor %}
@@ -53,6 +54,7 @@
         <button class="hero-thumb {% if loop.first %}is-active{% endif %}"
                 type="button" data-idx="{{ loop.index0 }}"
                 data-albums='{{ (im.albums or [])|tojson }}'
+                data-favorite="{{ 'true' if im.is_favorite else 'false' }}"
                 aria-label="{{ im.variant_label or 'Görsel ' ~ loop.index }}">
             <img src="{{ im.url }}" loading="lazy" alt="">
         </button>
@@ -258,16 +260,17 @@
                     title="{{ info.label or path.rsplit('/',1)[-1] }}">
                 <div class="pic-swatch pic-layout-{{ info.layout }}">
                     {% if info.layout == 'solid' %}
-                        {# Tek renk: weft / warp / mix'ten varolan #}
+                        {# Tek renk: weft / warp / mix'ten varolan — role class şart (filtre modu için) #}
                         {% set only = mix_c or (weft_list[0] if weft_list else (warp_list[0] if warp_list else None)) %}
-                        {% if only %}<span class="pic-region" style="background:{{ only.hex }}"></span>{% endif %}
+                        {% set only_role = 'mix' if mix_c else ('weft' if weft_list else 'warp') %}
+                        {% if only %}<span class="pic-region pic-{{ only_role }}" style="background:{{ only.hex }}"></span>{% endif %}
                     {% elif info.layout == 'duo' %}
-                        {# 2 renk: rol önceliği mix > warp > weft #}
+                        {# 2 renk: rol önceliği mix > warp > weft; her region kendi role class'ını taşır (filtre modu için) #}
                         {% set parts = [] %}
-                        {% if mix_c %}{% set _ = parts.append(mix_c) %}{% endif %}
-                        {% for x in warp_list %}{% set _ = parts.append(x) %}{% endfor %}
-                        {% for x in weft_list %}{% set _ = parts.append(x) %}{% endfor %}
-                        {% for x in parts[:2] %}<span class="pic-region" style="background:{{ x.hex }}"></span>{% endfor %}
+                        {% if mix_c %}{% set _ = parts.append((mix_c, 'mix')) %}{% endif %}
+                        {% for x in warp_list %}{% set _ = parts.append((x, 'warp')) %}{% endfor %}
+                        {% for x in weft_list %}{% set _ = parts.append((x, 'weft')) %}{% endfor %}
+                        {% for pair in parts[:2] %}<span class="pic-region pic-{{ pair[1] }}" style="background:{{ pair[0].hex }}"></span>{% endfor %}
                     {% elif info.layout == 'quad' %}
                         {# Sprint 8.8 mevcut 4-quadrant (1+1+1): sol mix, sağ-üst warp, sağ-alt weft #}
                         <span class="pic-region pic-mix"  style="background:{{ mix_c.hex }}"  title="Toplam · {{ mix_c.name }}"></span>
@@ -343,6 +346,8 @@
                 <div class="cp-canvas-box" id="cp-canvas-box">
                     <canvas id="cp-canvas"></canvas>
                     <canvas id="cp-magnifier" class="cp-mag" width="150" height="150" hidden></canvas>
+                    {# tasarim-v2 — Otomatik tespit edilen renklerin görseldeki konum marker'ları #}
+                    <div class="cp-overlay-layer" id="cp-overlay-layer" aria-hidden="true"></div>
                 </div>
                 <div class="cp-canvas-toolbar">
                     <label class="cp-opt"><input type="checkbox" id="cp-avg" checked> 5×5 ön-ortalama</label>
@@ -350,8 +355,28 @@
                     <label class="cp-opt"><input type="checkbox" id="cp-multi"> Çoklu nokta</label>
                     <span class="cp-count" id="cp-count">0 nokta</span>
                     <button id="cp-clear" class="btn-mini" type="button">Noktaları temizle</button>
+                    {# tasarim-v2 Sprint 20 — otomatik dominant renk tespiti #}
+                    <span class="cp-toolbar-sep" aria-hidden="true"></span>
+                    <button id="cp-auto-detect" class="btn-mini btn-auto" type="button">✨ Otomatik Tespit</button>
+                    <select id="cp-auto-k" class="filter-select cp-k-sel" aria-label="Tespit edilecek renk sayısı" title="Renk sayısı">
+                        <option value="4">4 renk</option>
+                        <option value="6" selected>6 renk</option>
+                        <option value="8">8 renk</option>
+                    </select>
                 </div>
-                <p class="cp-hint">Tıkla = tek nokta · <kbd>Ctrl</kbd>+tık veya "Çoklu nokta" açık = nokta ekle · Mobilde sürükle-bırak</p>
+                <p class="cp-hint">Tıkla = tek nokta · <kbd>Ctrl</kbd>+tık veya "Çoklu nokta" açık = nokta ekle · Mobilde sürükle-bırak · <strong>✨ Otomatik Tespit</strong> = görselden dominant renkleri bul</p>
+
+                {# tasarim-v2 Sprint 20 — Önerilen Renkler paneli #}
+                <div class="cp-suggest-panel" id="cp-suggest-panel" hidden>
+                    <div class="cp-suggest-head">
+                        <h4>✨ Önerilen Renkler</h4>
+                        <button id="cp-suggest-all-weft" class="btn-mini" type="button" hidden>Tümünü Atkı'ya Ata</button>
+                    </div>
+                    <div class="cp-suggest-loading" id="cp-suggest-loading" hidden>
+                        <span class="cp-suggest-spinner" aria-hidden="true"></span> Renkler analiz ediliyor…
+                    </div>
+                    <div class="cp-suggest-list" id="cp-suggest-list"></div>
+                </div>
             </div>
 
             <!-- SAĞ: Mod + sonuç + kaydet -->
@@ -653,6 +678,10 @@
                 <button class="numune-tab" data-numune-tab="tarak" type="button" role="tab" aria-selected="false">
                     <span class="numune-tab-label">🔢 Tarak</span>
                 </button>
+                {# tasarim-v2 Plan Parça 1 — 📋 Plan alt-sekmesi (tarak ile notlar arası) #}
+                <button class="numune-tab" data-numune-tab="plan" type="button" role="tab" aria-selected="false">
+                    <span class="numune-tab-label">📋 Plan</span>
+                </button>
                 {# v4.0-part-2 Sprint 8.4 — Notlar artık burada (sürüm-spesifik) #}
                 <button class="numune-tab" data-numune-tab="notlar" type="button" role="tab" aria-selected="false">
                     <span class="numune-tab-label">📝 Notlar</span>
@@ -757,6 +786,15 @@
             <template id="tpl-iplik-row">
                 <div class="iplik-row" data-iplik-id="">
                     <div class="iplik-row-main">
+                        {# tasarim-v2 — Çözgü Durumu (alt/üst/üst 2) — CSS ile yalnız cozgu yön'ünde görünür #}
+                        <label class="iplik-field iplik-field-durum">
+                            <span class="iplik-label">Çözgü</span>
+                            <select data-iplik-key="cozgu_durum">
+                                <option value="alt">Alt</option>
+                                <option value="ust">Üst</option>
+                                <option value="ust_2">Üst 2</option>
+                            </select>
+                        </label>
                         <label class="iplik-field iplik-field-tip">
                             <span class="iplik-label">Tip</span>
                             <select data-iplik-key="tip">
@@ -1227,6 +1265,239 @@
             </div>
         </section>
 
+        {# tasarim-v2 Plan Parça 1 — 📋 Plan alt-sekmesi (iskelet: ⚙️ kur + 0️⃣ özet + 1️⃣ boya çalışır) #}
+        <section data-numune-section="plan" class="numune-section" role="tabpanel" aria-label="Plan" hidden>
+            <div class="plan-statusbar">
+                <span id="plan-status" class="plan-status" data-kind=""></span>
+            </div>
+
+            {# ⚙️ Kur & Rapor Ayarı — BU PARÇADA ÇALIŞIR #}
+            <fieldset class="teknik-card plan-block">
+                <legend>⚙️ Kur &amp; Rapor Ayarı</legend>
+                <label class="plan-field">
+                    <span>Rapor para birimi</span>
+                    <span class="plan-seg" id="plan-rapor-para" role="group" aria-label="Rapor para birimi">
+                        <button type="button" class="plan-seg-btn is-active" data-val="TL">TL</button>
+                        <button type="button" class="plan-seg-btn" data-val="EUR">EUR</button>
+                        <button type="button" class="plan-seg-btn" data-val="USD">USD</button>
+                    </span>
+                </label>
+                <div class="plan-kur-row">
+                    <label class="plan-field">
+                        <span>1 EUR =</span>
+                        <input type="number" step="0.0001" id="plan-kur-eur" class="plan-input" placeholder="0"> <em>TL</em>
+                    </label>
+                    <label class="plan-field">
+                        <span>1 USD =</span>
+                        <input type="number" step="0.0001" id="plan-kur-usd" class="plan-input" placeholder="0"> <em>TL</em>
+                    </label>
+                    <button type="button" class="btn btn-secondary" id="plan-kur-fetch" title="Şu anki TCMB kuruyla doldur (mevcut değerleri ezer)">🔄 Güncel TCMB Kurunu Kullan</button>
+                    <span class="plan-kur-info" id="plan-kur-info"></span>
+                </div>
+            </fieldset>
+
+            {# 0️⃣ Özet — aktif teknik sürümden READONLY (teknik form DOM'undan okunur) #}
+            <fieldset class="teknik-card plan-block">
+                <legend>0️⃣ Özet (teknik)</legend>
+                <div class="plan-ozet-grid" id="plan-ozet">
+                    <div class="stat-card"><span class="stat-value" data-ozet="cozgu_sikligi">—</span><span class="stat-label">Çözgü sıklığı</span></div>
+                    <div class="stat-card"><span class="stat-value" data-ozet="atki_sikligi">—</span><span class="stat-label">Atkı sıklığı</span></div>
+                    <div class="stat-card"><span class="stat-value" data-ozet="ham_en_cm">—</span><span class="stat-label">Ham en (cm)</span></div>
+                    <div class="stat-card"><span class="stat-value" data-ozet="mamul_en_cm">—</span><span class="stat-label">Mamul en (cm)</span></div>
+                    <div class="stat-card"><span class="stat-value" data-ozet="cozgu_adet">—</span><span class="stat-label">Çözgü iplik sayısı</span></div>
+                    <div class="stat-card"><span class="stat-value" data-ozet="atki_adet">—</span><span class="stat-label">Atkı iplik sayısı</span></div>
+                </div>
+            </fieldset>
+
+            {# 1️⃣ Boya Yöntemi — BU PARÇADA ÇALIŞIR #}
+            <fieldset class="teknik-card plan-block">
+                <legend>1️⃣ Boya Yöntemi</legend>
+                <label class="plan-field">
+                    <span>Çözgü</span>
+                    <span class="plan-seg" id="plan-boya-cozgu" role="group" aria-label="Çözgü boya yöntemi">
+                        <button type="button" class="plan-seg-btn is-active" data-val="iplik_boya">İplik Boya</button>
+                        <button type="button" class="plan-seg-btn" data-val="top_boya">Top Boya</button>
+                    </span>
+                </label>
+                <label class="plan-field">
+                    <span>Atkı</span>
+                    <span class="plan-seg" id="plan-boya-atki" role="group" aria-label="Atkı boya yöntemi">
+                        <button type="button" class="plan-seg-btn is-active" data-val="iplik_boya">İplik Boya</button>
+                        <button type="button" class="plan-seg-btn" data-val="top_boya">Top Boya</button>
+                    </span>
+                </label>
+            </fieldset>
+
+            {# 2️⃣-5️⃣ — Sonraki parçalar (placeholder, hesap yok) #}
+            {# 2️⃣ Çözgü Planı — BU PARÇADA ÇALIŞIR #}
+            <fieldset class="teknik-card plan-block" id="plan-cozgu-block">
+                <legend>2️⃣ Çözgü Planı</legend>
+
+                {# Ortak: Varsayılan metraj (her çözgü kendi metrajını girer; boş bırakılan çözgüler bunu kullanır) #}
+                <div class="plan-row">
+                    <label class="plan-field">
+                        <span>Varsayılan metraj <em>(m)</em></span>
+                        <input type="number" step="1" min="0" id="plan-cozgu-metraj" class="plan-input" placeholder="0">
+                        <em class="plan-tel-detail">Boş bırakılan çözgüler bunu kullanır</em>
+                    </label>
+                    <div class="plan-field">
+                        <span>Toplam tel adedi</span>
+                        <b class="plan-readout" id="plan-cozgu-teladedi">—</b>
+                        <em class="plan-tel-detail" id="plan-cozgu-tel-detail"></em>
+                    </div>
+                </div>
+
+                {# Çözgü renk şeridi (gruplar arası ortak palet — aktif gruba ekler) #}
+                <div class="plan-subblock">
+                    <div class="plan-sub-head">Çözgü renkleri <em id="plan-cozgu-renk-hint"></em></div>
+                    <div class="plan-warp-palette" id="plan-warp-palette"></div>
+                    <div class="plan-warp-manual">
+                        <input type="color" id="plan-warp-color" value="#cccccc" aria-label="Manuel çözgü rengi">
+                        <button type="button" class="btn-mini" id="plan-warp-add">+ Manuel (aktif gruba)</button>
+                        <label class="plan-check" title="İşaretliyse renk, renk-atama görselinin paletine de yazılır">
+                            <input type="checkbox" id="plan-warp-savepalette"> <span>Palete de kaydet</span>
+                        </label>
+                    </div>
+                </div>
+
+                {# Gruplar (alt/üst/üst 2 — JS ile aktif olanlar render edilir) #}
+                <div id="plan-cozgu-gruplar"></div>
+
+                {# Çözüm yeri + geçiş (para birimleri sadece saklanır — çevrim Parça 4) #}
+                <div class="plan-row">
+                    <label class="plan-field">
+                        <span>Çözüm yeri</span>
+                        <span class="plan-seg" id="plan-cozum-yeri" role="group" aria-label="Çözüm yeri">
+                            <button type="button" class="plan-seg-btn is-active" data-val="devoretex">Devoretex</button>
+                            <button type="button" class="plan-seg-btn" data-val="fason">Fason</button>
+                        </span>
+                    </label>
+                    <div class="plan-field plan-bedel-wrap" id="plan-cozum-bedel-wrap" hidden>
+                        <span>Numune çözgü bedeli</span>
+                        <input type="number" step="0.01" min="0" id="plan-cozum-bedel" class="plan-input" placeholder="0">
+                        <span class="plan-seg plan-seg-sm" id="plan-cozum-para" role="group" aria-label="Çözüm para birimi">
+                            <button type="button" class="plan-seg-btn is-active" data-val="TL">TL</button>
+                            <button type="button" class="plan-seg-btn" data-val="EUR">EUR</button>
+                            <button type="button" class="plan-seg-btn" data-val="USD">USD</button>
+                        </span>
+                    </div>
+                </div>
+                <div class="plan-row">
+                    <label class="plan-field">
+                        <span>Geçiş</span>
+                        <span class="plan-seg" id="plan-gecis-tip" role="group" aria-label="Geçiş yöntemi">
+                            <button type="button" class="plan-seg-btn is-active" data-val="tahar">Tahar</button>
+                            <button type="button" class="plan-seg-btn" data-val="isbag">İşbağ</button>
+                        </span>
+                    </label>
+                    <div class="plan-field plan-bedel-wrap">
+                        <span>Geçiş bedeli</span>
+                        <input type="number" step="0.01" min="0" id="plan-gecis-bedel" class="plan-input" placeholder="0">
+                        <span class="plan-seg plan-seg-sm" id="plan-gecis-para" role="group" aria-label="Geçiş para birimi">
+                            <button type="button" class="plan-seg-btn is-active" data-val="TL">TL</button>
+                            <button type="button" class="plan-seg-btn" data-val="EUR">EUR</button>
+                            <button type="button" class="plan-seg-btn" data-val="USD">USD</button>
+                        </span>
+                    </div>
+                </div>
+            </fieldset>
+            {# 3️⃣ Atkı & Varyant — atki == iplik_boya ise görünür #}
+            <fieldset class="teknik-card plan-block" id="plan-atki-block" hidden>
+                <legend>3️⃣ Atkı &amp; Varyant Planı</legend>
+                <div class="plan-row">
+                    <label class="plan-field">
+                        <span>Varyant sayısı</span>
+                        <input type="number" min="0" step="1" id="plan-varyant-sayisi" class="plan-input" placeholder="0">
+                        <em class="plan-oneri" id="plan-varyant-oneri"></em>
+                    </label>
+                    <label class="plan-field">
+                        <span>Varsayılan metre</span>
+                        <input type="number" min="0" step="1" id="plan-varsayilan-metre" class="plan-input" placeholder="0">
+                        <button type="button" class="btn-mini" id="plan-metre-uygula">Tümüne Uygula</button>
+                    </label>
+                </div>
+
+                <div class="plan-subblock">
+                    <div class="plan-sub-head">Atkı renkleri <em id="plan-weft-target">Bir renk hücresi seçin</em></div>
+                    <div class="plan-warp-palette" id="plan-weft-palette"></div>
+                    <div class="plan-warp-manual">
+                        <input type="color" id="plan-weft-color" value="#cccccc" aria-label="Manuel atkı rengi">
+                        <button type="button" class="btn-mini" id="plan-weft-add">+ Manuel (aktif hücreye)</button>
+                        <label class="plan-check"><input type="checkbox" id="plan-weft-savepalette"> <span>Palete de kaydet</span></label>
+                    </div>
+                </div>
+
+                <div class="plan-subblock">
+                    <div class="plan-sub-head">Varyantlar <em>(hücreye tıkla → şeritten renk; ≡ satıra aynı renk)</em></div>
+                    <div class="plan-ihtiyac-table" id="plan-varyant-table"></div>
+                </div>
+
+                <div class="plan-subblock">
+                    <div class="plan-sub-head">İplik-bazlı özet <em>(MOQ her renk/varyant için ayrı lot — alım = Σ her renkte max(MOQ, tüketim))</em></div>
+                    <div class="plan-ihtiyac-table" id="plan-atki-ozet"></div>
+                </div>
+            </fieldset>
+
+            {# 4️⃣ Top Boya — atki == top_boya ise görünür #}
+            <fieldset class="teknik-card plan-block" id="plan-topboya-block" hidden>
+                <legend>4️⃣ Top Boya Planı</legend>
+                <div class="plan-row">
+                    <label class="plan-field">
+                        <span>Ekru metre</span>
+                        <input type="number" min="0" step="1" id="plan-ekru-metre" class="plan-input" placeholder="0">
+                    </label>
+                </div>
+                <div class="plan-subblock">
+                    <div class="plan-sub-head">Ekru iplik tüketimi <em>(kg)</em></div>
+                    <div class="plan-ihtiyac-table" id="plan-ekru-tuketim"></div>
+                </div>
+
+                <div class="plan-subblock">
+                    <div class="plan-sub-head">Boyahane profili</div>
+                    <div class="plan-row">
+                        <label class="plan-field"><span>Kazan kapasitesi <em>(kg)</em></span>
+                            <input type="number" min="0" step="1" id="plan-kazan-kap" class="plan-input" placeholder="0"></label>
+                        <label class="plan-field"><span>Faturalanan min <em>(kg)</em></span>
+                            <input type="number" min="0" step="1" id="plan-fatura-min" class="plan-input" placeholder="0"></label>
+                        <label class="plan-field"><span>Kazan bedeli</span>
+                            <input type="number" min="0" step="0.01" id="plan-kazan-bedel" class="plan-input" placeholder="0">
+                            <span class="plan-seg plan-seg-sm" id="plan-kazan-para" role="group" aria-label="Kazan para birimi">
+                                <button type="button" class="plan-seg-btn is-active" data-val="TL">TL</button>
+                                <button type="button" class="plan-seg-btn" data-val="EUR">EUR</button>
+                                <button type="button" class="plan-seg-btn" data-val="USD">USD</button>
+                            </span></label>
+                    </div>
+                    <small class="plan-soon">Not: Kazan kapasitesi ile faturalanan min kg farklı olabilir; maliyet renk başına kazan bedeli olarak hesaplanır.</small>
+                </div>
+
+                <div class="plan-subblock">
+                    <div class="plan-sub-head">Boyanacak renkler <em>(her renk = bir kazan)</em></div>
+                    <div class="plan-warp-palette" id="plan-boya-palette"></div>
+                    <div class="plan-warp-manual">
+                        <input type="color" id="plan-boya-color" value="#cccccc" aria-label="Manuel boya rengi">
+                        <button type="button" class="btn-mini" id="plan-boya-add">+ Manuel ekle</button>
+                        <label class="plan-check"><input type="checkbox" id="plan-boya-savepalette"> <span>Palete de kaydet</span></label>
+                    </div>
+                    <div class="plan-warp-assigned" id="plan-boya-renkler"></div>
+                    <div class="plan-row">
+                        <div class="plan-field"><span>Renk sayısı</span> <b class="plan-readout" id="plan-renk-sayisi">0</b></div>
+                        <div class="plan-field"><span>Toplam kazan bedeli</span> <b class="plan-readout" id="plan-toplam-kazan-bedel">0</b></div>
+                    </div>
+                </div>
+            </fieldset>
+            {# 5️⃣ Toplam Proje Maliyeti Özeti — BU PARÇADA ÇALIŞIR #}
+            <fieldset class="teknik-card plan-block" id="plan-maliyet-block">
+                <legend>5️⃣ Toplam Proje Maliyeti Özeti</legend>
+                <div class="plan-maliyet-bar" id="plan-maliyet-bar"></div>
+                <div class="plan-ihtiyac-table" id="plan-maliyet-table"></div>
+                <div class="plan-maliyet-total" id="plan-maliyet-total"></div>
+                <div class="plan-maliyet-kurnote" id="plan-maliyet-kurnote"></div>
+                <div class="plan-pdf-row">
+                    <button type="button" class="btn btn-secondary" id="plan-pdf-btn">📄 Plan Raporu PDF İndir</button>
+                </div>
+            </fieldset>
+        </section>
+
         {# v4.0-part-2 Sprint 8.4 — 4·Notlar (sürüm-spesifik, ana tab'dan buraya taşındı) #}
         <section data-numune-section="notlar" class="numune-section" role="tabpanel" aria-label="Notlar" hidden>
             <header class="notlar-head">
@@ -1275,6 +1546,10 @@
 
     {# Tüm sürüm verisi — JS okumak için #}
     <script type="application/json" id="teknik-data">{{ teknik|tojson }}</script>
+    {# tasarim-v2 Plan Parça 1 — ürünün plan verisi (sürüm-bazlı sözlük; plan.js okur) #}
+    <script type="application/json" id="plan-data">{{ (product.plan or {})|tojson }}</script>
+    {# tasarim-v2 Plan Parça 3 — varyant sayısı önerisi için toplam foto sayısı #}
+    <script>window.PLAN_IMG_COUNT = {{ (display_images|length) or 0 }};</script>
 </section>{# /Teknik sekmesi #}
 
 {# === v4.0-part-2 Adım 7 — DOKÜMANLAR SEKMESİ === #}
@@ -1471,10 +1746,19 @@ document.querySelectorAll('.btn-favorite').forEach(btn => {
         const data = await postJson(`/api/urun/${URUN_ID}/favori-toggle`, { path: btn.dataset.path });
         if (!data.ok) { window.toast(data.error || 'Hata', 'error'); return; }
         // Local DOM güncelle (reload yapmadan)
+        const favStr = data.is_favorite ? 'true' : 'false';
         const card = btn.closest('.img-manage-card');
         if (card) {
             card.classList.toggle('is-favorite', !!data.is_favorite);
-            card.dataset.favorite = data.is_favorite ? 'true' : 'false';
+            card.dataset.favorite = favStr;
+        }
+        // Hero slide + thumb data-favorite senkron (Favoriler sekmesi filtresi hero'da da doğru çalışsın)
+        const escPath = (window.CSS && CSS.escape) ? CSS.escape(btn.dataset.path) : btn.dataset.path;
+        const slide = document.querySelector('.hero-slide[data-path="' + escPath + '"]');
+        if (slide) {
+            slide.dataset.favorite = favStr;
+            const thumb = document.querySelector('.hero-thumb[data-idx="' + slide.dataset.idx + '"]');
+            if (thumb) thumb.dataset.favorite = favStr;
         }
         btn.classList.toggle('is-favorite', !!data.is_favorite);
         btn.title = data.is_favorite ? 'Favoriden çıkar' : 'Favorilere ekle';
@@ -2162,6 +2446,9 @@ grid.addEventListener('dragover', (e) => {
         const opt = imageSel.options[imageSel.selectedIndex];
         return opt ? opt.dataset.path : null;
     }
+    // tasarim-v2 Plan Parça 2 — plan.js çözgü renk şeridi + opsiyonel "palete kaydet" için (salt-okuma referans)
+    window.IMAGE_COLORS = IMAGE_COLORS;
+    window.cpCurrentImagePath = currentImagePath;
     function getRoleArray(path, role) {
         // weft/warp → array; mix → tek obje
         if (role === 'mix') return null;
@@ -2275,11 +2562,12 @@ grid.addEventListener('dragover', (e) => {
             try { localStorage.setItem('mobidik_cp_multi', multiEl.checked ? '1' : '0'); } catch (e) {}
         });
     }
-    clearBtn.addEventListener('click', () => window.ColorPicker.clearPoints(activeRole));
+    clearBtn.addEventListener('click', () => { window.ColorPicker.clearPoints(activeRole); clearCpMarkers(); });
 
     async function loadImage(url) {
         try {
             await window.ColorPicker.setImage(url);
+            clearCpMarkers();   // yeni görselin eski marker'ları kalmasın
         } catch (err) {
             (window.toast || alert)('Görsel yüklenemedi (CORS olabilir)', 'error');
             console.error(err);
@@ -2386,6 +2674,35 @@ grid.addEventListener('dragover', (e) => {
         }[ch]));
     }
 
+    // tasarim-v2 Sprint 20 — paylaşılan kaydetme helper (saveBtn + otomatik tespit ortak)
+    async function saveColorsForPath(path, payload, successMsg) {
+        const data = await postJson(`/api/urun/${URUN_ID}/gorsel-renk`, { path, colors: payload });
+        if (data.ok) {
+            IMAGE_COLORS[path] = IMAGE_COLORS[path] || {};
+            IMAGE_COLORS[path].colors = data.image_colors || {};
+            rebuildPalette(data.palette);
+            updateImageBadges(path, data.image_colors);
+            renderSavedStrip();
+            if (successMsg) (window.toast || alert)(successMsg, 'success');
+            return true;
+        }
+        (window.toast || alert)(data.error || 'Kayıt hatası', 'error');
+        return false;
+    }
+
+    // tasarim-v2 Sprint 20 — bir renk objesini role ata (weft/warp array push, mix set)
+    async function applyColorToRole(color, role, path) {
+        path = path || currentImagePath();
+        if (!path) return false;
+        if (role === 'mix') {
+            return saveColorsForPath(path, { mix: color }, 'Toplam rengi atandı: ' + (color.name || color.hex));
+        }
+        const arr = (getRoleArray(path, role) || []).slice();
+        arr.push(color);
+        return saveColorsForPath(path, { [role]: arr },
+            (role === 'weft' ? 'Atkı' : 'Çözgü') + ' rengi eklendi: ' + (color.name || color.hex));
+    }
+
     saveBtn.addEventListener('click', async () => {
         const role = activeRole;
         const result = window.ColorPicker.getResult(role);
@@ -2393,34 +2710,176 @@ grid.addEventListener('dragover', (e) => {
             (window.toast || alert)('Önce nokta seç', 'warn');
             return;
         }
-        const opt = imageSel.options[imageSel.selectedIndex];
-        const path = opt.dataset.path;
-        // v4.0-part-2 Sprint 12: weft/warp array, mix tek obje
-        let payload;
-        if (role === 'mix') {
-            payload = { mix: result };
-        } else {
-            const arr = (getRoleArray(path, role) || []).slice();
-            arr.push(result);
-            payload = { [role]: arr };
-        }
-        const data = await postJson(`/api/urun/${URUN_ID}/gorsel-renk`, { path, colors: payload });
-        if (data.ok) {
-            (window.toast || alert)(ROLE_TR[role] + (role === 'mix' ? ' kaydedildi: ' : ' rengi eklendi: ') + result.name, 'success');
-            // Lokal cache güncelle (server'ın normalize edilmiş image_colors'unu kullan)
-            IMAGE_COLORS[path] = IMAGE_COLORS[path] || {};
-            IMAGE_COLORS[path].colors = data.image_colors || {};
-            rebuildPalette(data.palette);
-            updateImageBadges(path, data.image_colors);
-            renderSavedStrip();
-            window.ColorPicker.clearPoints(role);
-            // Mix kaydedince otomatik bitir; weft/warp aynı rolde kalır (kullanıcı yeni eklemek isteyebilir)
-            if (role === 'mix') {
-                // İlerleme yok — kullanıcı zaten 3 rolün hepsini gezdiğinde mix sonsuncu
+        const path = imageSel.options[imageSel.selectedIndex].dataset.path;
+        const ok = await applyColorToRole(result, role, path);
+        if (ok) window.ColorPicker.clearPoints(role);
+    });
+
+    // ============================================================
+    // tasarim-v2 Sprint 20 — Otomatik dominant renk tespiti
+    // ============================================================
+    const autoBtn = document.getElementById('cp-auto-detect');
+    const kSel = document.getElementById('cp-auto-k');
+    const suggestPanel = document.getElementById('cp-suggest-panel');
+    const suggestList = document.getElementById('cp-suggest-list');
+    const suggestLoading = document.getElementById('cp-suggest-loading');
+    const suggestAllBtn = document.getElementById('cp-suggest-all-weft');
+
+    // tasarim-v2 — Otomatik tespit edilen renklerin görseldeki konumunu marker ile göster.
+    // color-picker.js'e dokunmadan: cp-canvas pikselleri + ColorPicker._rgbToLab ile en-yakın-piksel.
+    const cpOverlay = document.getElementById('cp-overlay-layer');
+    function cpTextColor(rgb) {
+        if (!Array.isArray(rgb)) return '#fff';
+        return (0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]) > 140 ? '#111' : '#fff';
+    }
+    function cpLocateColors(colors) {
+        const out = (colors || []).map(() => null);
+        const cp = window.ColorPicker;
+        if (!canvas || !canvas.width || !canvas.height || !cp || typeof cp._rgbToLab !== 'function') return out;
+        let data;
+        try { data = canvas.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, canvas.width, canvas.height).data; }
+        catch (e) { return out; }
+        const W = canvas.width, H = canvas.height;
+        const targets = colors.map(c => {
+            let lab = Array.isArray(c.lab) ? c.lab : (Array.isArray(c.rgb) ? cp._rgbToLab(c.rgb[0], c.rgb[1], c.rgb[2]) : [0, 0, 0]);
+            return { lab: lab || [0, 0, 0], bestD: Infinity, x: null, y: null };
+        });
+        const step = Math.max(2, Math.floor(Math.sqrt((W * H) / 12000)));   // ~12k örnek (anlık)
+        for (let y = 0; y < H; y += step) {
+            for (let x = 0; x < W; x += step) {
+                const i = (y * W + x) * 4;
+                if (data[i + 3] < 128) continue;
+                const lab = cp._rgbToLab(data[i], data[i + 1], data[i + 2]);
+                for (const t of targets) {
+                    const dl = lab[0] - t.lab[0], da = lab[1] - t.lab[1], db = lab[2] - t.lab[2];
+                    const d = dl * dl + da * da + db * db;
+                    if (d < t.bestD) { t.bestD = d; t.x = x; t.y = y; }
+                }
             }
-        } else {
-            (window.toast || alert)(data.error || 'Kayıt hatası', 'error');
         }
+        return targets.map(t => t.x == null ? null : { x: t.x / W, y: t.y / H });
+    }
+    function clearCpMarkers() { if (cpOverlay) cpOverlay.innerHTML = ''; }
+    function placeCpMarkers() {
+        if (!cpOverlay || !canvas) return;
+        const offL = canvas.offsetLeft, offT = canvas.offsetTop;   // letterbox: canvas kutuda ortalı
+        const cw = canvas.clientWidth, ch = canvas.clientHeight;
+        cpOverlay.querySelectorAll('.cp-color-marker').forEach(m => {
+            m.style.left = (offL + parseFloat(m.dataset.x) * cw) + 'px';
+            m.style.top = (offT + parseFloat(m.dataset.y) * ch) + 'px';
+        });
+    }
+    function renderCpMarkers(colors, positions) {
+        if (!cpOverlay) return;
+        cpOverlay.innerHTML = (colors || []).map((c, idx) => {
+            const p = positions[idx];
+            if (!p) return '';
+            return '<span class="cp-color-marker" data-x="' + p.x + '" data-y="' + p.y + '" data-hex="' + escapeHtml(c.hex) + '"' +
+                ' style="background:' + escapeHtml(c.hex) + ';color:' + cpTextColor(c.rgb) + '"' +
+                ' title="' + escapeHtml((c.name || '') + ' · ' + c.hex) + '">' + (idx + 1) + '</span>';
+        }).join('');
+        placeCpMarkers();
+    }
+    function highlightCpMarker(hex) {
+        if (!cpOverlay) return;
+        cpOverlay.querySelectorAll('.cp-color-marker.is-hi').forEach(m => m.classList.remove('is-hi'));
+        if (!hex) return;
+        const m = cpOverlay.querySelector('.cp-color-marker[data-hex="' + ((window.CSS && CSS.escape) ? CSS.escape(hex) : hex) + '"]');
+        if (m) m.classList.add('is-hi');
+    }
+    function removeCpMarker(hex) {
+        if (!cpOverlay || !hex) return;
+        const m = cpOverlay.querySelector('.cp-color-marker[data-hex="' + ((window.CSS && CSS.escape) ? CSS.escape(hex) : hex) + '"]');
+        if (m) m.remove();
+    }
+    if (suggestList) {
+        suggestList.addEventListener('mouseover', (e) => {
+            const row = e.target.closest('.cp-suggest-row');
+            if (row) highlightCpMarker(row.dataset.hex);
+        });
+        suggestList.addEventListener('mouseleave', () => highlightCpMarker(null));
+    }
+    window.addEventListener('resize', placeCpMarkers);
+
+    function renderSuggestions(colors) {
+        suggestList.innerHTML = colors.map(c => {
+            const lab = c.lab;
+            const labStr = 'L' + Math.round(lab[0]) + ' a' + Math.round(lab[1]) + ' b' + Math.round(lab[2]);
+            return '<div class="cp-suggest-row" data-hex="' + c.hex + '"' +
+                ' data-rgb="' + escapeHtml(JSON.stringify(c.rgb)) + '"' +
+                ' data-lab="' + escapeHtml(JSON.stringify(c.lab)) + '"' +
+                ' data-name="' + escapeHtml(c.name) + '">' +
+                '<span class="cp-suggest-sw" style="background:' + c.hex + '"></span>' +
+                '<div class="cp-suggest-meta">' +
+                    '<span class="cp-suggest-name">' + escapeHtml(c.name) +
+                        ' <em class="cp-suggest-wt">%' + c.weight + '</em></span>' +
+                    '<span class="cp-suggest-vals">' + c.hex + ' · ' + labStr + '</span>' +
+                '</div>' +
+                '<div class="cp-suggest-actions">' +
+                    '<button type="button" data-act="weft">Atkı</button>' +
+                    '<button type="button" data-act="warp">Çözgü</button>' +
+                    '<button type="button" data-act="mix">Toplam</button>' +
+                    '<button type="button" data-act="skip" class="cp-suggest-skip" title="Yoksay">×</button>' +
+                '</div>' +
+            '</div>';
+        }).join('');
+    }
+
+    function colorFromRow(row) {
+        return {
+            hex: row.dataset.hex,
+            rgb: JSON.parse(row.dataset.rgb),
+            lab: JSON.parse(row.dataset.lab),
+            name: row.dataset.name,
+        };
+    }
+
+    autoBtn?.addEventListener('click', () => {
+        const path = currentImagePath();
+        if (!path) { (window.toast || alert)('Önce bir görsel seç', 'warn'); return; }
+        if (!window.ColorPicker || typeof window.ColorPicker.extractPalette !== 'function') return;
+        suggestPanel.hidden = false;
+        suggestList.innerHTML = '';
+        clearCpMarkers();
+        suggestAllBtn.hidden = true;
+        suggestLoading.hidden = false;
+        // K-means senkron — spinner'ın render edilmesi için bir sonraki frame'e ertele
+        setTimeout(() => {
+            let colors = [];
+            try { colors = window.ColorPicker.extractPalette(parseInt(kSel.value, 10) || 6); }
+            catch (e) { console.error('[OtomatikTespit]', e); }
+            suggestLoading.hidden = true;
+            if (!colors.length) {
+                suggestList.innerHTML = '<p class="cp-suggest-empty">Renk tespit edilemedi (görsel yüklü mü?).</p>';
+                return;
+            }
+            renderSuggestions(colors);
+            renderCpMarkers(colors, cpLocateColors(colors));   // görselde konum marker'ları
+            suggestAllBtn.hidden = false;
+        }, 30);
+    });
+
+    // Öneri satırı aksiyonları (delegation)
+    suggestList?.addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-act]');
+        if (!btn) return;
+        const row = btn.closest('.cp-suggest-row');
+        const act = btn.dataset.act;
+        if (act === 'skip') { removeCpMarker(row.dataset.hex); row.remove(); return; }
+        const ok = await applyColorToRole(colorFromRow(row), act);
+        if (ok) row.classList.add('is-applied');
+    });
+
+    // Tümünü Atkı'ya Ata (kalan öneriler tek API call ile atkı array'ine)
+    suggestAllBtn?.addEventListener('click', async () => {
+        const path = currentImagePath();
+        if (!path) return;
+        const rows = [...suggestList.querySelectorAll('.cp-suggest-row:not(.is-applied)')];
+        if (!rows.length) return;
+        const arr = (getRoleArray(path, 'weft') || []).slice();
+        rows.forEach(r => arr.push(colorFromRow(r)));
+        const ok = await saveColorsForPath(path, { weft: arr }, rows.length + ' renk Atkı\'ya eklendi');
+        if (ok) rows.forEach(r => r.classList.add('is-applied'));
     });
 
     // v4.0-part-2 Sprint 12 — Kayıtlı chip × silme
@@ -2529,6 +2988,7 @@ grid.addEventListener('dragover', (e) => {
 <script src="{{ url_for('static', filename='js/tarak.js') }}"></script>
 <script src="{{ url_for('static', filename='js/tarak-ui.js') }}"></script>
 <script src="{{ url_for('static', filename='js/teknik.js') }}"></script>
+<script src="{{ url_for('static', filename='js/plan.js') }}"></script>
 <script src="{{ url_for('static', filename='js/pdf-tab.js') }}"></script>
 <script src="{{ url_for('static', filename='js/notlar.js') }}"></script>
 

@@ -45,6 +45,7 @@
             <a href="{{ url_for('analiz') }}" class="nav-link {% if request.endpoint == 'analiz' %}active{% endif %}">
                 <svg class="icon"><use href="#ic-bar-chart"/></svg> Analiz
             </a>
+            <a href="{{ url_for('iplik_katalog_list') }}" class="nav-link {% if request.endpoint and request.endpoint.startswith('iplik_katalog') %}active{% endif %}">🧵 İplik Kataloğu</a>
             <a href="{{ url_for('ayarlar') }}" class="nav-link {% if request.endpoint == 'ayarlar' %}active{% endif %}">
                 <svg class="icon"><use href="#ic-gear"/></svg> Ayarlar
             </a>
@@ -110,6 +111,10 @@
             <a href="{{ url_for('ayarlar') }}"
                class="mmd-item {% if request.endpoint == 'ayarlar' %}is-active{% endif %}" role="menuitem">
                 <span class="mmd-emoji" aria-hidden="true">⚙️</span> <span>Ayarlar</span>
+            </a>
+            <a href="{{ url_for('iplik_katalog_list') }}"
+               class="mmd-item {% if request.endpoint and request.endpoint.startswith('iplik_katalog') %}is-active{% endif %}" role="menuitem">
+                <span class="mmd-emoji" aria-hidden="true">🧵</span> <span>İplik Kataloğu</span>
             </a>
             <a href="{{ url_for('logout') }}" class="mmd-item mmd-logout" role="menuitem">
                 <span class="mmd-emoji" aria-hidden="true">🚪</span> <span>Çıkış</span>

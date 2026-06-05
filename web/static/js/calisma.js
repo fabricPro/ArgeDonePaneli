@@ -393,4 +393,15 @@
       setTimeout(() => selectFabric(target), 50);
     }
   }
+
+  // tasarim-v2 — Teknik iframe'inden gelen "tam ekran" sinyali (iframe sınırı aştırma)
+  // Iframe sağ pane'in body'sine teknik-fullscreen class'ı eklemek yetmiyor (parent grid sabit
+  // kalıyor); parent'a postMessage ile sinyal gönderiyor, biz burada body class'ı çevirip
+  // CSS'in sol pane + rail'i gizleyip sağ pane'i tam genişliğe yaymasını sağlıyoruz.
+  window.addEventListener('message', (e) => {
+    if (!e.data || e.data.type !== 'teknik-fullscreen') return;
+    // Origin doğrulama — yalnız aynı kaynaktan kabul (basit güvenlik)
+    if (e.origin && e.origin !== window.location.origin) return;
+    document.body.classList.toggle('cw-fullscreen', !!e.data.on);
+  });
 })();

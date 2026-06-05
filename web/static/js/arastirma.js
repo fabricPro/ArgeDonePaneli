@@ -491,9 +491,11 @@
 
     const dismissBtn = node.querySelector('.ar-item-dismiss');
     const restoreBtn = node.querySelector('.ar-item-restore');
+    const hardDelBtn = node.querySelector('.ar-item-harddelete');
     if (r.status === 'dismissed') {
       dismissBtn.hidden = true;
       restoreBtn.hidden = false;
+      if (hardDelBtn) hardDelBtn.hidden = false;   // reddedilenlerde kalıcı sil
     }
     dismissBtn.addEventListener('click', async () => {
       if (!confirm('Bu kaydı reddetmek (gizlemek) istiyor musun?')) return;
@@ -510,6 +512,15 @@
       const d = await res.json();
       if (d.ok) { toast('Geri açıldı', 'success'); renderListFromAPI(); }
       else toast('Geri açılamadı', 'error');
+    });
+    if (hardDelBtn) hardDelBtn.addEventListener('click', async () => {
+      if (!confirm('Bu kayıt KALICI olarak silinsin mi?\nBu işlem geri alınamaz; görselleri de silinir.')) return;
+      try {
+        const res = await fetch(`/api/arastirma/${encodeURIComponent(r.id)}?hard=1`, { method: 'DELETE' });
+        const d = await res.json();
+        if (d.ok) { toast('Kalıcı silindi', 'success'); renderListFromAPI(); }
+        else toast(d.error || 'Silinemedi', 'error');
+      } catch (e) { toast('Ağ hatası', 'error'); }
     });
 
     return node;
