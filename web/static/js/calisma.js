@@ -13,6 +13,82 @@
   const leftIframe = $('#cw-left-iframe');
   const rightIframe = $('#cw-right-iframe');
   const backBtn = $('#cw-back');
+  const divider = $('#cw-divider');
+
+  // ---- tasarim-v2 — Ayarlanabilir split oranı (sol pane payı 0.15–0.85) ----
+  const SPLIT_KEY = 'cw_split_ratio';
+  let splitRatio = 0.5;
+  try { const v = parseFloat(localStorage.getItem(SPLIT_KEY)); if (v >= 0.15 && v <= 0.85) splitRatio = v; } catch (e) {}
+  function applySplitRatio() {
+    if (!split) return;
+    split.style.setProperty('--cw-l', splitRatio.toFixed(4) + 'fr');
+    split.style.setProperty('--cw-r', (1 - splitRatio).toFixed(4) + 'fr');
+  }
+  function dividerHiddenNow() {
+    return split.hidden ||
+      document.body.classList.contains('cw-fullscreen') ||
+      window.matchMedia('(max-width: 900px) and (orientation: portrait)').matches;
+  }
+  function positionDivider() {
+    if (!divider || !split) return;
+    if (dividerHiddenNow()) { divider.hidden = true; return; }
+    const lp = $('#cw-left-pane');
+    if (!lp || !lp.offsetParent) { divider.hidden = true; return; }
+    const gap = parseFloat(getComputedStyle(split).columnGap) || 24;
+    divider.hidden = false;
+    divider.style.left = (lp.offsetLeft + lp.offsetWidth + gap / 2) + 'px';
+  }
+  function dragSplitTo(clientX) {
+    const lp = $('#cw-left-pane'), rp = $('#cw-right-pane');
+    if (!lp || !rp) return;
+    const rect = split.getBoundingClientRect();
+    const gap = parseFloat(getComputedStyle(split).columnGap) || 24;
+    const paneStart = lp.offsetLeft;
+    const paneEnd = rp.offsetLeft + rp.offsetWidth;
+    const total = (paneEnd - paneStart) - gap;   // iki pane içeriği (orta gap hariç)
+    if (total <= 0) return;
+    let f = (clientX - rect.left - paneStart) / total;
+    f = Math.max(0.15, Math.min(0.85, f));
+    splitRatio = f;
+    applySplitRatio();
+    positionDivider();
+  }
+  if (divider) {
+    divider.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      divider.classList.add('is-dragging');
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'col-resize';
+      if (leftIframe) leftIframe.style.pointerEvents = 'none';   // iframe drag'i yutmasın
+      if (rightIframe) rightIframe.style.pointerEvents = 'none';
+      const move = (ev) => dragSplitTo(ev.clientX);
+      const up = () => {
+        divider.classList.remove('is-dragging');
+        document.body.style.userSelect = '';
+        document.body.style.cursor = '';
+        if (leftIframe) leftIframe.style.pointerEvents = '';
+        if (rightIframe) rightIframe.style.pointerEvents = '';
+        try { localStorage.setItem(SPLIT_KEY, splitRatio.toFixed(4)); } catch (e2) {}
+        window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', up);
+        window.removeEventListener('pointercancel', up);
+      };
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', up);
+      window.addEventListener('pointercancel', up);
+    });
+    // Çift tık → 50/50 sıfırla
+    divider.addEventListener('dblclick', () => {
+      splitRatio = 0.5; applySplitRatio(); positionDivider();
+      try { localStorage.setItem(SPLIT_KEY, '0.5000'); } catch (e) {}
+    });
+  }
+  let _divRaf = null;
+  window.addEventListener('resize', () => {
+    if (_divRaf) cancelAnimationFrame(_divRaf);
+    _divRaf = requestAnimationFrame(positionDivider);
+  });
+  applySplitRatio();
 
   // Aktif ürünleri server-side rendered liste'den oku, JS state'i de güncel tut
   let items = (window.CW_ITEMS || []).slice();
@@ -73,6 +149,8 @@
     page.dataset.mode = 'focus';
     grid.hidden = true;
     split.hidden = false;
+    applySplitRatio();
+    requestAnimationFrame(positionDivider);   // layout oturunca bölücüyü konumla
     // iframe URL'leri yükle (paralel)
     leftIframe.src = `/urun/${encodeURIComponent(urun_id)}?embed=calisma-left`;
     rightIframe.src = `/urun/${encodeURIComponent(urun_id)}?embed=calisma-right`;
@@ -403,5 +481,6 @@
     // Origin doğrulama — yalnız aynı kaynaktan kabul (basit güvenlik)
     if (e.origin && e.origin !== window.location.origin) return;
     document.body.classList.toggle('cw-fullscreen', !!e.data.on);
+    requestAnimationFrame(positionDivider);   // tam ekran aç/kapa → bölücüyü gizle/göster
   });
 })();

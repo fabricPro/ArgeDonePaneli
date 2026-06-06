@@ -7441,12 +7441,43 @@ body.teknik-fullscreen {
 /* ---- SPLIT view ---- */
 .cw-split {
     display: grid;
-    grid-template-columns: 80px 1fr 1fr;
+    /* tasarim-v2 — sol/sağ pane oranı ayarlanabilir (--cw-l / --cw-r, JS + localStorage) */
+    grid-template-columns: 80px var(--cw-l, 1fr) var(--cw-r, 1fr);
     /* Sprint 8.3 — iki pane arası belirgin nefes + üst başlık gizli */
     gap: 24px;
     height: calc(100vh - 70px);
     background: var(--bg);
+    position: relative;   /* sürüklenebilir bölücü için anchor */
 }
+/* tasarim-v2 — Sürüklenebilir split bölücüsü (sol/sağ pane arası gap'te) */
+.cw-divider {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 24px;
+    transform: translateX(-50%);
+    cursor: col-resize;
+    touch-action: none;          /* tablet sürüklemede sayfa kaymasın */
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+}
+.cw-divider::before {
+    content: "";
+    width: 4px;
+    height: 56px;
+    border-radius: 999px;
+    background: var(--border-strong);
+    transition: background var(--t-fast) var(--ease), height var(--t-fast) var(--ease);
+}
+.cw-divider:hover::before,
+.cw-divider.is-dragging::before {
+    background: var(--accent);
+    height: 84px;
+}
+body.cw-fullscreen .cw-divider { display: none !important; }
 
 /* Sprint 8.3 — Focus modu: main padding'ini bypass et + başlığı gizle, panel'lere yer aç */
 .calisma-page[data-mode="focus"] {
@@ -7593,6 +7624,7 @@ body.cw-fullscreen main { padding: 0 !important; max-width: 100% !important; }
         grid-template-rows: auto 1fr 1fr;
         height: calc(100vh - 120px);
     }
+    .cw-divider { display: none; }   /* dikey stack'te bölücü yok */
     .cw-rail {
         flex-direction: row;
         height: 84px;
@@ -7613,7 +7645,7 @@ body.cw-fullscreen main { padding: 0 !important; max-width: 100% !important; }
 /* ---- Telefon landscape: yatay split korunur, rail daralır, tabbar gizli ---- */
 @media (max-width: 900px) and (orientation: landscape) {
     .cw-split {
-        grid-template-columns: 56px 1fr 1fr;
+        grid-template-columns: 56px var(--cw-l, 1fr) var(--cw-r, 1fr);
         height: calc(100vh - 60px);   /* topbar alanı küçük */
     }
     .cw-rail { padding: 4px; }
