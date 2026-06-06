@@ -97,6 +97,33 @@ APP_PASSWORD = os.environ.get("APP_PASSWORD", "")
 MOBIDIK_API_TOKEN = os.environ.get("MOBIDIK_API_TOKEN", "")
 EXTENSION_MAX_BYTES = 25 * 1024 * 1024  # 25 MB
 
+
+# OnCalisma-V2 — çalışılan git branch'ini bir kez tespit et (deneme branch'lerinde UI rozeti için).
+def _detect_git_branch() -> str:
+    env_b = os.environ.get("APP_GIT_BRANCH", "").strip()
+    if env_b:
+        return env_b
+    try:
+        import subprocess
+        root = str(Path(__file__).resolve().parent.parent)
+        out = subprocess.run(
+            ["git", "-C", root, "rev-parse", "--abbrev-ref", "HEAD"],
+            capture_output=True, text=True, timeout=3,
+        )
+        return (out.stdout or "").strip() if out.returncode == 0 else ""
+    except Exception:
+        return ""
+
+
+APP_GIT_BRANCH = _detect_git_branch()
+
+
+@app.context_processor
+def inject_git_branch():
+    # Rozet yalnız deneme branch'lerinde görünür; main/master (üretim) ve tespit edilemezse gizli.
+    b = APP_GIT_BRANCH
+    return {"git_branch": b, "git_branch_show": bool(b) and b not in ("main", "master")}
+
 TRACKED_BRANDS = [
     ("Kvadrat", "kvadrat"), ("Dedar", "dedar"), ("Rubelli", "rubelli"),
     ("Sahco", "sahco"), ("Nya Nordiska", "nya_nordiska"),

@@ -25,6 +25,10 @@
 </head>
 <body class="{% block body_class %}{% endblock %}">
     {% include "_icons.html" %}
+    {# OnCalisma-V2 — deneme branch'inde çalışıldığını gösteren rozet (main/master'da gizli) #}
+    {% if git_branch_show %}
+    <div class="dev-branch-badge" title="Bu, deneme git branch'i — üretim (main) değil">🌿 {{ git_branch }}</div>
+    {% endif %}
     <nav class="topbar">
         <a href="{{ url_for('index') }}" class="topbar-brand" aria-label="Fabric Agent System ana sayfa">
             <img src="{{ url_for('static', filename='img/fas-logo-dark.svg') }}" alt="Fabric Agent System" class="brand-logo">
