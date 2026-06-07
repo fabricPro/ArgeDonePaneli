@@ -38,6 +38,8 @@ PRODUCT_COLUMNS = [
     "plan",  # tasarim-v2 Plan Parça 1 — sürüm-bazlı planlama (surum_id ile anahtarlı jsonb)
     # OnCalisma-V2 (Problem 2) — taksonomi (3 bağımsız eksen; controlled vocab + migration ile)
     "category", "pattern", "weave_tags", "style_tags", "color_family",
+    # OnCalisma-V2 (Problem 4b) — renk sayısı (color_family yerine UI'da) + AI notu
+    "color_count", "ai_notu",
     "created_at", "updated_at",
 ]
 
@@ -57,6 +59,8 @@ RESEARCH_COLUMNS = [
     "category", "pattern", "weave_tags", "style_tags", "color_family",
     # OnCalisma-V2 (Problem 4a) — Gemini zenginleştirme staging (iki katmanlı)
     "extracted_facts", "ai_summary", "enrichment_status",
+    # OnCalisma-V2 (Problem 4b) — renk sayısı + AI notu
+    "color_count", "ai_notu",
 ]
 
 # İplik Kataloğu Parça 1 — kartela kolonları (upsert whitelist)
@@ -599,7 +603,8 @@ VALID_WEAVE_TAGS = ["leno", "tabby", "jakar", "vual", "batist", "twill", "marqui
 VALID_PATTERNS = ["cizgili", "duz", "yari-duz", "desenli", "karma"]
 VALID_COLOR_FAMILIES = ["beyaz", "krem-bej", "gri", "siyah", "mavi", "yesil", "sari", "turuncu", "kirmizi", "pembe", "mor", "kahve", "coklu"]
 # Tek tabloda taksonomi kolonları (migration dayanıklılığı + whitelist için).
-_TAXONOMY_KEYS = ("category", "pattern", "weave_tags", "style_tags", "color_family")
+# P4b: color_count + ai_notu da migration-öncesi strip-retry ile düşürülebilsin diye burada.
+_TAXONOMY_KEYS = ("category", "pattern", "weave_tags", "style_tags", "color_family", "color_count", "ai_notu")
 # OnCalisma-V2 (Problem 4a) — Gemini zenginleştirme staging kolonları (migration ile)
 _ENRICHMENT_KEYS = ("extracted_facts", "ai_summary", "enrichment_status")
 
@@ -732,6 +737,8 @@ RESEARCH_EDITABLE_FIELDS = {
     "category", "pattern", "weave_tags", "style_tags", "color_family",
     # OnCalisma-V2 (Problem 4a) — Gemini staging (enrich/verify endpoint'leri yazar).
     "extracted_facts", "ai_summary", "enrichment_status",
+    # OnCalisma-V2 (Problem 4b) — renk sayısı + AI notu (kullanıcı drawer'da düzenler).
+    "color_count", "ai_notu",
 }
 
 

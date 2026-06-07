@@ -36,14 +36,18 @@ RESULT = {
         "weave_type": {"value": "dobby", "evidence": ""},      # evidence YOK -> atlanmalı (#3)
         "width_cm": {"value": "", "evidence": "width 140"},     # value YOK -> atlanmalı
         "brand": None,                                          # null -> atlanmalı
+        # P4b — yeni alanlar (evidence'lı -> extracted_facts'e girer)
+        "brand_country": {"value": "İsviçre", "evidence": "based in Switzerland"},
+        "color_count": {"value": "21", "evidence": "21 colours"},
         "arge_notu_taslak": {"value": "A" * 350, "evidence": "desc"},
     },
 }
 
 p = gx.build_enrichment_payload(RESULT)
 ef = p["extracted_facts"]; ai = p["ai_summary"]
-# (a) factual/inference ayrımı doğru
-check("(a) factual sadece kanıtlı 3 alan", sorted(ef.keys()) == ["composition", "production_country", "reference_price"])
+# (a) factual/inference ayrımı doğru (P4b: +brand_country +color_count)
+check("(a) factual kanıtlı 5 alan", sorted(ef.keys()) == ["brand_country", "color_count", "composition", "production_country", "reference_price"])
+check("(P4b) brand_country + color_count extracted_facts'te", "brand_country" in ef and ef.get("color_count", {}).get("value") == "21")
 check("(a) arge_notu ai_summary'de, extracted_facts'te DEĞİL", "arge_notu_taslak" not in ef and "arge_notu" in ai)
 check("(a) production_country sadece extracted_facts'te", "production_country" in ef)
 # (b) evidence/value'sız factual atlanıyor

@@ -38,17 +38,17 @@
 
             <div class="form-row">
                 <label>Ürün Adı *</label>
-                <input type="text" name="product_name" required placeholder="örn. Air Line">
+                <input type="text" name="product_name" required placeholder="örn. Air Line" value="{{ ai_prefill.get('product_name', '') }}">
             </div>
 
             <div class="form-row">
                 <label>Ürün Kodu</label>
-                <input type="text" name="product_code" placeholder="örn. 5539 (opsiyonel)">
+                <input type="text" name="product_code" placeholder="örn. 5539 (opsiyonel)" value="{{ ai_prefill.get('product_code', '') }}">
             </div>
 
             <div class="form-row">
                 <label>Koleksiyon</label>
-                <input type="text" name="collection" placeholder="opsiyonel">
+                <input type="text" name="collection" placeholder="opsiyonel" value="{{ ai_prefill.get('collection', '') }}">
             </div>
 
             {# v4.0-part-2 Sprint 11.5 — Ulke ayrimi #}
@@ -91,22 +91,22 @@
 
             <div class="form-row">
                 <label>Kompozisyon</label>
-                <input type="text" name="composition" placeholder="örn. %100 Keten">
+                <input type="text" name="composition" placeholder="örn. %100 Keten" value="{{ ai_prefill.get('composition', '') }}">
             </div>
 
             <div class="form-row">
                 <label>En (cm)</label>
-                <input type="number" name="width_cm" min="0" placeholder="örn. 315">
+                <input type="number" name="width_cm" min="0" placeholder="örn. 315" value="{{ ai_prefill.get('width_cm', '') }}">
             </div>
 
             <div class="form-row">
                 <label>Gramaj (g/m²)</label>
-                <input type="number" name="weight_gsm" min="0" placeholder="örn. 180 (opsiyonel)">
+                <input type="number" name="weight_gsm" min="0" placeholder="örn. 180 (opsiyonel)" value="{{ ai_prefill.get('weight_gsm', '') }}">
             </div>
 
             <div class="form-row">
                 <label>Dokuma</label>
-                <input type="text" name="weave_type" list="weave-list" placeholder="örn. dobby">
+                <input type="text" name="weave_type" list="weave-list" placeholder="örn. dobby" value="{{ ai_prefill.get('weave_type', '') }}">
                 <datalist id="weave-list">
                     {% for w in weave_suggestions %}<option value="{{ w }}">{% endfor %}
                 </datalist>
@@ -133,14 +133,11 @@
                 </select>
             </div>
 
+            {# OnCalisma-V2 (Problem 4b) — renk ailesi yerine renk SAYISI (AI önerir; verified ise ön-dolar) #}
             <div class="form-row">
-                <label>Renk Ailesi</label>
-                <select name="color_family">
-                    <option value="">— seç —</option>
-                    {% for cf in color_family_vocab %}
-                    <option value="{{ cf }}" {% if prefill and prefill.color_family == cf %}selected{% endif %}>{{ cf }}</option>
-                    {% endfor %}
-                </select>
+                <label>Renk Sayısı</label>
+                <input type="number" name="color_count" min="1" placeholder="AI önerir; doğruysa yaz"
+                       value="{{ ai_prefill.get('color_count', '') }}">
             </div>
 
             <div class="form-row form-row-wide">
@@ -161,12 +158,12 @@
 
             <div class="form-row">
                 <label>Rapor — boyuna (cm)</label>
-                <input type="number" name="repeat_vertical_cm" min="0" step="0.1" placeholder="örn. 27">
+                <input type="number" name="repeat_vertical_cm" min="0" step="0.1" placeholder="örn. 27" value="{{ ai_prefill.get('repeat_vertical_cm', '') }}">
             </div>
 
             <div class="form-row">
                 <label>Rapor — enine (cm)</label>
-                <input type="number" name="repeat_horizontal_cm" min="0" step="0.1" placeholder="opsiyonel">
+                <input type="number" name="repeat_horizontal_cm" min="0" step="0.1" placeholder="opsiyonel" value="{{ ai_prefill.get('repeat_horizontal_cm', '') }}">
             </div>
 
             <div class="form-row form-row-wide">
@@ -179,6 +176,12 @@
             <div class="form-row form-row-wide">
                 <label>ARGE Notu</label>
                 <textarea name="arge_notu" rows="3" placeholder="Stäubli yapılabilirlik, pazar fırsatı, stratejik not…"></textarea>
+            </div>
+
+            {# OnCalisma-V2 (Problem 4b) — AI Notu (onaylı ön çalışmadan ön-dolar; arge_notu'ndan ayrı) #}
+            <div class="form-row form-row-wide">
+                <label>AI Notu</label>
+                <textarea name="ai_notu" rows="2" placeholder="AI'nın ürün notu (onaylı ön çalışmadan gelir)">{{ ai_prefill.get('ai_notu', '') }}</textarea>
             </div>
 
             <div class="form-row form-row-wide">

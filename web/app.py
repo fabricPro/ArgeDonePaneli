@@ -136,6 +136,18 @@ COUNTRY_SUGGESTIONS = [
 ]
 WEAVE_SUGGESTIONS = ["dobby", "jacquard", "plain", "leno", "sheer", "bouclé", "saten", "twill"]
 
+# v4.0-part-2 Sprint 11.7 / P4a-2 — Gemini model override whitelist (TEK KAYNAK).
+# UI dropdown'larından gelen değer burada doğrulanır; dışındaki/boş → None (server default).
+# Hem /api/urun/linkten-doldur hem /api/arastirma/<id>/enrich kullanır.
+GEMINI_MODEL_WHITELIST = {
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+    "gemini-2.5-pro",
+    "gemini-flash-latest",
+    "gemini-flash-lite-latest",
+    "gemini-pro-latest",
+}
+
 COUNTRY_MAP = {
     "italy": "İtalya", "italya": "İtalya", "italia": "İtalya",
     "turkey": "Türkiye", "turkiye": "Türkiye", "germany": "Almanya", "deutschland": "Almanya",
@@ -549,12 +561,25 @@ def ekle():
         research_rows = store.research_list(status="pending", limit=200)
     except Exception:
         research_rows = []
+    # OnCalisma-V2 (Problem 4c) — Ürüne çevir ön-doldurma: YALNIZ alan-alan KABUL edilenler (Anayasa #6)
+    ai_prefill: dict = {}
+    if prefill:
+        ef = prefill.get("extracted_facts") or {}
+        for _k, _f in ef.items():
+            if isinstance(_f, dict) and _f.get("accepted") and _f.get("value"):
+                ai_prefill[_k] = _f["value"]
+        # color_count / ai_notu: manuel onaylı research kolonları (varsa) öncelikli
+        if prefill.get("color_count") not in (None, "") and "color_count" not in ai_prefill:
+            ai_prefill["color_count"] = prefill.get("color_count")
+        if (prefill.get("ai_notu") or "").strip():
+            ai_prefill["ai_notu"] = prefill.get("ai_notu")
     return render_template(
         "ekle.html", tracked_brands=TRACKED_BRANDS,
         brands_registry=get_brands_registry(),
         countries=country_list(),
         country_suggestions=COUNTRY_SUGGESTIONS, weave_suggestions=WEAVE_SUGGESTIONS,
         prefill=prefill,
+        ai_prefill=ai_prefill,   # OnCalisma-V2 (Problem 4b) — verified AI verisi (ürüne çevir ön-doldurma)
         prefill_images_with_urls=prefill_images_with_urls,
         research_rows=research_rows,
         research_id=from_research_id if research_ctx else None,
@@ -1120,6 +1145,9 @@ def api_create_urun():
     d["color_family"] = store.validate_color_family(f.get("color_family"))
     d["weave_tags"] = store.validate_enum_list(f.getlist("weave_tags"), store.VALID_WEAVE_TAGS)
     d["style_tags"] = store.validate_str_list((f.get("style_tags") or "").split(","))
+    # OnCalisma-V2 (Problem 4b) — renk sayısı (color_family yerine) + AI notu (form'dan; AI prefill ile gelir)
+    d["color_count"] = parse_int(f.get("color_count"))
+    d["ai_notu"] = clean(f.get("ai_notu"))
     store.upsert(d)
 
     # v4.0-part-2 Adım 8 — Ön Çalışma kaydı varsa "imported" işaretle
@@ -1164,16 +1192,7 @@ def api_urun_linkten_doldur():
             "message": "url http:// veya https:// ile başlamalı",
         }), 400
 
-    # v4.0-part-2 Sprint 11.7 — Model override (UI dropdown'dan)
-    # Whitelist dışında kalan veya boş gönderilen değer → None (default'a düşer)
-    GEMINI_MODEL_WHITELIST = {
-        "gemini-2.5-flash",
-        "gemini-2.5-flash-lite",
-        "gemini-2.5-pro",
-        "gemini-flash-latest",
-        "gemini-flash-lite-latest",
-        "gemini-pro-latest",
-    }
+    # v4.0-part-2 Sprint 11.7 — Model override (UI dropdown'dan); whitelist modül seviyesinde (tek kaynak).
     requested_model = (data.get("model") or "").strip() or None
     model_override = requested_model if requested_model in GEMINI_MODEL_WHITELIST else None
 
@@ -1258,6 +1277,11 @@ def api_update_meta(urun_id: str):
         d["weave_tags"] = store.validate_enum_list(data.get("weave_tags") or [], store.VALID_WEAVE_TAGS)
     if "style_tags" in data:
         d["style_tags"] = store.validate_str_list(data.get("style_tags") or [])
+    # OnCalisma-V2 (Problem 4b) — renk sayısı + AI notu
+    if "color_count" in data:
+        d["color_count"] = parse_int(data["color_count"])
+    if "ai_notu" in data:
+        d["ai_notu"] = clean(data["ai_notu"])
     d["updated_at"] = now_iso()
     store.upsert(d)
     return jsonify({"ok": True})
@@ -2762,6 +2786,9 @@ def _enrich_research_row(row: dict) -> dict:
     # OnCalisma-V2 (Problem 4a) — Gemini staging (migration öncesi/eski satırda yoksa default)
     for _k, _d in (("extracted_facts", {}), ("ai_summary", {}), ("enrichment_status", "raw")):
         row.setdefault(_k, _d)
+    # OnCalisma-V2 (Problem 4b) — renk sayısı + AI notu
+    for _k, _d in (("color_count", None), ("ai_notu", None)):
+        row.setdefault(_k, _d)
     return row
 
 
@@ -3091,13 +3118,21 @@ def api_arastirma_enrich(research_id: str):
     if not url:
         return jsonify({"ok": False, "error": "Bu kayıtta product_url yok"}), 400
 
-    result = gx.linkten_doldur(url)              # fetch + Gemini (DB'ye yazmaz)
+    # P4a-2 — Model override (panel dropdown'dan; kota dolunca flash↔flash-lite anında geçiş)
+    data = request.get_json(silent=True) or {}
+    requested_model = (data.get("model") or "").strip() or None
+    model_override = requested_model if requested_model in GEMINI_MODEL_WHITELIST else None
+
+    result = gx.linkten_doldur(url, model=model_override)   # fetch + Gemini (DB'ye yazmaz)
     payload = gx.build_enrichment_payload(result)
     if payload.get("error"):
-        # Hata: DB'YE YAZMA, sadece bilgi döndür.
+        # Hata: DB'YE YAZMA, sadece bilgi döndür (model bilgisiyle).
         return jsonify({
             "ok": False, "error": payload["error"],
             "message": result.get("message") or "Zenginleştirme başarısız",
+            "model": result.get("model_used") or gx.MODEL_NAME,
+            "requested_model": requested_model,
+            "model_invalid": bool(requested_model and not model_override),
         }), 200
 
     # SADECE staging alanlarını yaz (research_update; insert/save KULLANMA).
@@ -3112,17 +3147,63 @@ def api_arastirma_enrich(research_id: str):
         "extracted_facts": payload["extracted_facts"],
         "ai_summary": payload["ai_summary"],
         "suggestions": result.get("suggestions") or {},   # evidence paneli için ham çıktı
+        "model": result.get("model_used") or gx.MODEL_NAME,
+        "requested_model": requested_model,
+        "model_invalid": bool(requested_model and not model_override),
     })
 
 
 @app.route("/api/arastirma/<research_id>/verify", methods=["POST"])
 def api_arastirma_verify(research_id: str):
-    """SADECE enrichment_status='verified' yazar (başka hiçbir alan değişmez)."""
+    """Onayla: enrichment_status='verified' + AI verisinden BOŞ olan kalıcı havuz alanlarını
+    promote et (ai_notu ← ai_summary.arge_notu; color_count ← extracted_facts.color_count).
+    Kullanıcı düzenlemesini EZMEZ (yalnız boşsa). Gerçek ÜRÜN kolonlarına YAZMAZ — onlar yalnız
+    'Ürüne çevir' formu + insan onayıyla yazılır (Anayasa #6)."""
     row = store.research_get(research_id)
     if not row:
         return jsonify({"ok": False, "error": "Bulunamadı"}), 404
-    store.research_update(research_id, {"enrichment_status": "verified"})
-    return jsonify({"ok": True, "enrichment_status": "verified"})
+    patch = {"enrichment_status": "verified"}
+    ai_summary = row.get("ai_summary") or {}
+    extracted = row.get("extracted_facts") or {}
+    if not (row.get("ai_notu") or "").strip() and ai_summary.get("arge_notu"):
+        patch["ai_notu"] = ai_summary.get("arge_notu")
+    if row.get("color_count") in (None, "") and isinstance(extracted.get("color_count"), dict):
+        cc = parse_int(extracted["color_count"].get("value"))
+        if cc is not None:
+            patch["color_count"] = cc
+    updated = store.research_update(research_id, patch) or {}
+    return jsonify({
+        "ok": True,
+        "enrichment_status": "verified",
+        "ai_notu": updated.get("ai_notu") or patch.get("ai_notu"),
+        "color_count": updated.get("color_count") if updated.get("color_count") is not None else patch.get("color_count"),
+    })
+
+
+@app.route("/api/arastirma/<research_id>/accept-fact", methods=["POST"])
+def api_arastirma_accept_fact(research_id: str):
+    """OnCalisma-V2 (Problem 4c) — AI çıkarımını ALAN-ALAN kabul/geri-al (ANLIK).
+    extracted_facts[field].accepted bayrağını yazar. Ürüne çevir YALNIZ accepted alanları
+    doldurur. Gerçek ÜRÜN kolonuna YAZMAZ (Anayasa #6 — yalnız 'Ürüne çevir' + insan onayı)."""
+    data = request.get_json(silent=True) or {}
+    field = (data.get("field") or "").strip()
+    accepted = bool(data.get("accepted"))
+    if not field:
+        return jsonify({"ok": False, "error": "field zorunlu"}), 400
+    row = store.research_get(research_id)
+    if not row:
+        return jsonify({"ok": False, "error": "Bulunamadı"}), 404
+    ef = row.get("extracted_facts") or {}
+    if not isinstance(ef.get(field), dict):
+        return jsonify({"ok": False, "error": "Alan extracted_facts'te yok"}), 400
+    ef[field]["accepted"] = accepted
+    patch = {"extracted_facts": ef}
+    new_status = row.get("enrichment_status")
+    if accepted and new_status != "verified":   # en az bir kabul → rozet sinyali
+        new_status = "verified"
+        patch["enrichment_status"] = "verified"
+    store.research_save(research_id, patch)
+    return jsonify({"ok": True, "field": field, "accepted": accepted, "enrichment_status": new_status})
 
 
 @app.route("/api/arastirma/<research_id>", methods=["DELETE"])
@@ -3221,6 +3302,11 @@ def api_arastirma_update(research_id: str):
         patch["weave_tags"] = store.validate_enum_list(data.get("weave_tags") or [], store.VALID_WEAVE_TAGS)
     if "style_tags" in data:
         patch["style_tags"] = store.validate_str_list(data.get("style_tags") or [])
+    # OnCalisma-V2 (Problem 4b) — renk sayısı + AI notu (havuzda elle düzenleme)
+    if "color_count" in data:
+        patch["color_count"] = parse_int(data["color_count"])
+    if "ai_notu" in data:
+        patch["ai_notu"] = clean(data["ai_notu"])
 
     if not patch:
         return jsonify({"ok": True, "row": row, "noop": True})
@@ -3314,7 +3400,9 @@ def api_arastirma_entries_summary():
     Query: ?host=<page-host> veya ?brand_slug=<slug> ile marka-filtreli.
     Token zorunlu (eklenti çağırır).
     Response: { ok, entries: [{id, brand, brand_slug, country, master_url,
+                                product_url, page_title, label,
                                 images_count, cover_url, added_at}, ...] }
+    label = okunabilir ürün etiketi (AI ürün adı → page_title → product_url).
     """
     # CORS preflight
     if request.method == "OPTIONS":
@@ -3364,12 +3452,21 @@ def api_arastirma_entries_summary():
     entries = []
     for r in rows:
         images = r.get("images") or []
+        # OnCalisma-V2 (Problem 4d) — eklenti modal'ı ürünü ayırt edebilsin: okunabilir etiket
+        # Öncelik: AI ürün adı → sayfa başlığı (page_title) → ürün URL (son çare).
+        ef = r.get("extracted_facts") or {}
+        _pn = ef.get("product_name") if isinstance(ef, dict) else None
+        label = ((_pn.get("value") if isinstance(_pn, dict) else None)
+                 or r.get("page_title") or r.get("product_url"))
         entries.append({
             "id": r.get("id"),
             "brand": r.get("brand"),
             "brand_slug": r.get("brand_slug"),
             "country": r.get("country"),
             "master_url": r.get("master_url"),
+            "product_url": r.get("product_url"),   # P4d — ürün linki (ayırt etme için)
+            "page_title": r.get("page_title"),      # P4d — sayfa başlığı (okunabilir)
+            "label": label,                         # P4d — modal'da gösterilecek ürün etiketi
             "images_count": len(images),
             # OnCalisma-V2 (Problem 3) — kapak önceliği tek helper'da (DRY)
             "cover_url": _research_cover_url(r),

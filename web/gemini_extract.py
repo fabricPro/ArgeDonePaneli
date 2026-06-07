@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from typing import Any
 
 import requests
@@ -41,8 +42,11 @@ MODEL_NAME = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
 
 FETCH_TIMEOUT = 10.0          # sn
 FETCH_MAX_BYTES = 2_000_000   # 2 MB üst sınır (büyük sayfa savunması)
-TEXT_TRUNCATE = 8000          # Gemini'ye gönderilecek max düz metin (token tasarrufu)
+# P4a-2: 8000 -> 16000. Gürültü (nav/menü/footer) temizlendi + flash token başlığı
+# yüksek; kırpma sınırına daha çok GERÇEK ürün metni sığsın diye yükseltildi.
+TEXT_TRUNCATE = 16000         # Gemini'ye gönderilecek max düz metin
 JSON_LD_TRUNCATE = 3000       # JSON-LD bloku max char
+SCRIPT_JSON_TRUNCATE = 4000   # P4a-2: __NEXT_DATA__/application-json (JS-render kurtarma) max char
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -77,6 +81,7 @@ KESİN KURALLAR (uyulmazsa cevabın geçersizdir):
    - "300-310 cm" gibi range → null (belirsizlik), evidence: "300-310 cm"
    - "g/m²" yoksa weight_gsm null
    - Sayı kesirli (137.5) ise integer'a yuvarlama YAPMA — null bırak ve evidence ver, kullanıcı karar versin
+   - color_count (renk/varyant sayısı): "Available in N colours" / "N renk" / "N colourways" gibi AÇIK ifade ya da sayfada AÇIKÇA sayılabilir swatch/renk listesi → N (integer). Aralık ("5-7 renk") veya belirsizlik → null. TAHMİN YASAK (anayasa #3); evidence o ifadeyi içersin.
 
 5) ANAYASA KURAL #3 — bu alanlar AŞIRI HASSAS:
    - brand: Sayfanın header / meta etiketi (og:site_name, application_name) / footer / page title / breadcrumb içinde AÇIKÇA YAZAN marka adını al. Domain (örn. "kvadrat.dk") TEK BAŞINA evidence olarak yetmez — sayfa metninde mutlaka geçmeli; geçtiği yeri evidence'a yaz.
@@ -86,6 +91,7 @@ KESİN KURALLAR (uyulmazsa cevabın geçersizdir):
        * Birden fazla aday varsa (örn. reseller sitede hem "Etoffe" hem "Coordonné") ürünü ÜRETEN/TASARLAYAN markayı tercih et.
    - composition: tam alıntı yapamıyorsan NULL. "Mostly natural fibers" gibi belirsiz ifadeler NULL.
    - production_country: SAYFA "Made in Italy" gibi üretim yeri belirtiyorsa "İtalya". Marka HQ (firma merkezi) ile KARIŞTIRMA. Belirtmiyorsa NULL.
+   - brand_country: markanın MERKEZ/HQ ülkesi sayfada AÇIKÇA yazıyorsa al (ör. "based in Switzerland", firma künyesi). production_country (Made in) ile KARIŞTIRMA — bunlar farklı olabilir. Yoksa NULL.
    - HİÇBİR şartla sertifika/FR/MOQ/teslim alanı doldurma — bunlar bu çıktıda zaten yok, ama metinden çıkarıp arge_notu_taslak'a da SIZDIRMA.
 
 6) REFERANS FİYAT (reference_price) — bu alan ÖZELDİR:
@@ -168,12 +174,14 @@ RESPONSE_SCHEMA: dict[str, Any] = {
         "product_code":          _FIELD_OBJECT,
         "collection":            _FIELD_OBJECT,
         "production_country":    _FIELD_OBJECT,   # v4.0-part-2 Sprint 11.5 — 'country' yerine
+        "brand_country":         _FIELD_OBJECT,   # P4b — firma/marka HQ ülkesi (production ile KARIŞTIRMA)
         "composition":           _FIELD_OBJECT,
         "width_cm":              _FIELD_OBJECT,
         "weight_gsm":            _FIELD_OBJECT,
         "weave_type":            _FIELD_OBJECT,
         "repeat_vertical_cm":    _FIELD_OBJECT,
         "repeat_horizontal_cm":  _FIELD_OBJECT,
+        "color_count":           _FIELD_OBJECT,   # P4b — renk/varyant sayısı (öneri; kullanıcı doğrular)
         "reference_price":       _PRICE_FIELD_OBJECT,  # v4.0-part-2 Sprint 11.5 — YENİ
         "arge_notu_taslak":      _FIELD_OBJECT,
         "error":                 {"type": "string"},
@@ -249,13 +257,47 @@ def fetch_clean_content(url: str) -> dict:
         except Exception:
             pass
 
-    # 4) Düz metin için script/style/nav/footer temizle
-    for t in soup(["script", "style", "noscript", "iframe", "svg"]):
-        t.decompose()
+    # 3b) P4a-2 — JS-render siteleri (Next.js vb.) ürün verisini <script id="__NEXT_DATA__">
+    # veya <script type="application/json"> içinde taşır. Decompose ETMEDEN ÖNCE yakala.
+    script_json = ""
+    _seen = 0
+    for s in soup.find_all("script"):
+        stype = (s.get("type") or "").lower()
+        sid = (s.get("id") or "").lower()
+        if stype == "application/json" or sid == "__next_data__":
+            blob = (s.string or "").strip()
+            if blob:
+                script_json += blob + "\n"
+                _seen += 1
+                if len(script_json) > SCRIPT_JSON_TRUNCATE or _seen >= 5:
+                    break
+    if len(script_json) > SCRIPT_JSON_TRUNCATE:
+        script_json = script_json[:SCRIPT_JSON_TRUNCATE] + " …[truncated]"
 
-    text = soup.get_text(separator=" ", strip=True)
-    # Çoklu boşluk → tek boşluk
-    text = " ".join(text.split())
+    # 4) Gürültü temizliği — P4a-2: script/style + nav/header/footer/form/menü/cookie sil
+    for t in soup(["script", "style", "noscript", "iframe", "svg",
+                   "nav", "header", "footer", "aside", "form", "button", "select"]):
+        t.decompose()
+    _noise = re.compile(r"(cookie|consent|gdpr|newsletter|breadcrumb|menu|navbar|sidebar)", re.I)
+    for el in soup.find_all(attrs={"class": _noise}):
+        el.decompose()
+    for el in soup.find_all(attrs={"id": _noise}):
+        el.decompose()
+    for el in soup.find_all(attrs={"role": "navigation"}):
+        el.decompose()
+
+    # 4b) Ana içerik önceliği — main/article/[role=main]/ürün konteyneri; yoksa body fallback
+    def _clean_text(node) -> str:
+        if not node:
+            return ""
+        return " ".join(node.get_text(separator=" ", strip=True).split())
+
+    main_node = (soup.find("main") or soup.find(attrs={"role": "main"}) or soup.find("article")
+                 or soup.find(attrs={"class": re.compile(r"(product|detail|fabric|article)", re.I)}))
+    main_text = _clean_text(main_node)
+    body_text = _clean_text(soup.body or soup)
+    # Ana içerik ANLAMLI ise (>=300 char) onu kullan; değilse tüm body (fallback garanti)
+    text = main_text if len(main_text) >= 300 else body_text
 
     truncated = False
     if len(text) > TEXT_TRUNCATE:
@@ -268,6 +310,7 @@ def fetch_clean_content(url: str) -> dict:
         "meta_description": meta_description,
         "og_description": og_description,
         "json_ld": json_ld_blocks,
+        "script_json": script_json,   # P4a-2: JS-render structured data (varsa)
         "text": text,
         "truncated": truncated,
     }
@@ -294,7 +337,10 @@ OG_DESCRIPTION: {content.get('og_description', '')}
 JSON_LD (yapısal veri, varsa):
 {json_ld_str}
 
-PAGE_TEXT (temizlenmiş, max 8000 char):
+STRUCTURED_JSON (JS-render sayfa verisi, varsa — __NEXT_DATA__/application-json):
+{content.get('script_json', '')}
+
+PAGE_TEXT (temizlenmiş, gürültüsüz):
 {content.get('text', '')}
 
 Bu sayfa bir kumaş ÜRÜN sayfası mı? Eğer evetse, sistem promptundaki kurallara göre alanları doldur. Eğer ürün sayfası değilse error: "page_not_product" döndür."""

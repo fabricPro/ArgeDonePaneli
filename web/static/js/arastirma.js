@@ -184,13 +184,16 @@
     const setSel = (sel, v) => { const el = form.querySelector(sel); if (el) el.value = v || ''; };
     setSel('[data-field="category"]', r.category);
     setSel('[data-field="pattern"]', r.pattern);
-    setSel('[data-field="color_family"]', r.color_family);
+    setSel('[data-field="color_count"]', r.color_count);   // P4b: renk ailesi yerine renk sayısı
     const wtags = Array.isArray(r.weave_tags) ? r.weave_tags : [];
     form.querySelectorAll('.ar-edit-weavetags input[type="checkbox"]').forEach(cb => {
       cb.checked = wtags.includes(cb.value);
     });
     const stEl = form.querySelector('[data-field="style_tags"]');
     if (stEl) stEl.value = (Array.isArray(r.style_tags) ? r.style_tags : []).join(', ');
+    // P4b: kalıcı AI notu (yoksa AI taslağından doldur)
+    const aiNotuEl = form.querySelector('[data-field="ai_notu"]');
+    if (aiNotuEl) aiNotuEl.value = r.ai_notu || (r.ai_summary && r.ai_summary.arge_notu) || '';
     // OnCalisma-V2 (Problem 4a) — AI Zenginleştirme paneli (salt-okuma) + durum
     const aiPanel = form.querySelector('.ar-ai-panel');
     if (aiPanel) aiPanel.innerHTML = renderAiPanel(r);
@@ -229,7 +232,10 @@
     const selVal = (sel) => { const el = form.querySelector(sel); return el && el.value ? el.value : null; };
     payload.category = selVal('[data-field="category"]');
     payload.pattern = selVal('[data-field="pattern"]');
-    payload.color_family = selVal('[data-field="color_family"]');
+    const _ccEl = form.querySelector('[data-field="color_count"]');   // P4b renk sayısı
+    payload.color_count = (_ccEl && _ccEl.value.trim()) ? parseInt(_ccEl.value, 10) : null;
+    const _anEl = form.querySelector('[data-field="ai_notu"]');        // P4b AI notu
+    payload.ai_notu = _anEl ? (_anEl.value.trim() || null) : null;
     payload.weave_tags = [...form.querySelectorAll('.ar-edit-weavetags input[type="checkbox"]:checked')].map(cb => cb.value);
     payload.style_tags = (form.querySelector('[data-field="style_tags"]')?.value || '')
       .split(',').map(s => s.trim()).filter(Boolean);
@@ -289,9 +295,9 @@
   // OnCalisma-V2 (Problem 4a) — AI zenginleştirme yardımcıları (SALT-OKUMA gösterim)
   const FACT_LABELS = {
     brand: 'Marka', product_name: 'Ürün Adı', product_code: 'Ürün Kodu', collection: 'Koleksiyon',
-    production_country: 'Üretim Ülkesi', composition: 'Kompozisyon', width_cm: 'En (cm)',
+    production_country: 'Üretim Ülkesi', brand_country: 'Firma Ülkesi', composition: 'Kompozisyon', width_cm: 'En (cm)',
     weight_gsm: 'Ağırlık (g/m²)', weave_type: 'Dokuma', repeat_vertical_cm: 'Rapor Boyuna (cm)',
-    repeat_horizontal_cm: 'Rapor Enine (cm)', reference_price: 'Fiyat',
+    repeat_horizontal_cm: 'Rapor Enine (cm)', color_count: 'Renk Sayısı', reference_price: 'Fiyat',
   };
   function escHtml(s) {
     return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -299,22 +305,29 @@
   function enrichStatusLabel(s) {
     return ({ raw: '', enriched: 'AI zenginleştirildi', verified: '✓ Doğrulandı' })[s || 'raw'] || '';
   }
-  // Edit drawer'daki SALT-OKUMA AI paneli: arge_notu + her factual alan KENDİ evidence'ıyla
+  // P4c — Edit drawer AI paneli: alan-alan KABUL kartları (Linkten Doldur tarzı).
+  // Her kart: etiket + değer + kaynak alıntısı + Kabul/Geri-Al butonu. Anlık (accept-fact).
   function renderAiPanel(r) {
     const ef = r.extracted_facts || {};
     const ai = r.ai_summary || {};
     const parts = [];
     if (ai.arge_notu) parts.push(`<div class="ar-ai-arge"><span class="ar-ai-badge">AI</span> ${escHtml(ai.arge_notu)}</div>`);
-    const keys = Object.keys(ef);
+    const keys = Object.keys(ef).filter(k => ef[k] && typeof ef[k] === 'object' && ef[k].value);
     if (keys.length) {
-      parts.push('<div class="ar-ai-facts">');
+      parts.push('<div class="ar-ai-cards">');
       keys.forEach(k => {
         const f = ef[k] || {};
+        const acc = !!f.accepted;
         const typ = f.type ? ` <em>(${escHtml(f.type)})</em>` : '';
         parts.push(
-          `<div class="ar-ai-fact"><span class="ar-ai-fact-k">${escHtml(FACT_LABELS[k] || k)}:</span> ` +
-          `<span class="ar-ai-fact-v">${escHtml(f.value)}</span>${typ}` +
-          `<div class="ar-ai-evidence">“${escHtml(f.evidence)}”</div></div>`
+          `<div class="ar-ai-card${acc ? ' is-accepted' : ''}" data-field="${escHtml(k)}">` +
+            `<div class="ar-ai-card-head">` +
+              `<span class="ar-ai-fact-k">${escHtml(FACT_LABELS[k] || k)}</span>` +
+              `<button type="button" class="ar-ai-accept-btn" data-field="${escHtml(k)}">${acc ? '✓ Kabul edildi — Geri Al' : '✓ Kabul'}</button>` +
+            `</div>` +
+            `<div class="ar-ai-fact-v">${escHtml(f.value)}${typ}</div>` +
+            `<div class="ar-ai-evidence">Kaynak: “${escHtml(f.evidence || '— (alıntı yok)')}”</div>` +
+          `</div>`
         );
       });
       parts.push('</div>');
@@ -510,46 +523,69 @@
         renderListFromAPI();
       }
     });
-    // OnCalisma-V2 (Problem 4a) — AI ile Zenginleştir (→/enrich) + Doğrulandı işaretle (→/verify)
+    // OnCalisma-V2 (Problem 4a / P4a-2) — AI Zenginleştir + model seçici + Doğrulandı işaretle
+    // Model seçimi ekle.html ile AYNI localStorage anahtarında → kota dolunca tek yerden flash↔lite geçiş
+    const MODEL_KEY = 'mobidik_gemini_model';
+    const modelSel = node.querySelector('.ar-enrich-model');
+    if (modelSel) {
+      try { const saved = localStorage.getItem(MODEL_KEY); if (saved !== null) modelSel.value = saved; } catch (e) {}
+      modelSel.addEventListener('change', () => { try { localStorage.setItem(MODEL_KEY, modelSel.value); } catch (e) {} });
+    }
     const enrichBtn = node.querySelector('.ar-btn-enrich');
     if (enrichBtn) enrichBtn.addEventListener('click', async () => {
       const old = enrichBtn.textContent;
       enrichBtn.disabled = true; enrichBtn.textContent = 'Zenginleştiriliyor…';
       try {
-        const res = await fetch(`/api/arastirma/${encodeURIComponent(r.id)}/enrich`, { method: 'POST' });
+        const chosen = modelSel ? (modelSel.value || '') : '';
+        const res = await fetch(`/api/arastirma/${encodeURIComponent(r.id)}/enrich`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(chosen ? { model: chosen } : {}),
+        });
         const d = await res.json();
         if (d.ok) {
           r.extracted_facts = d.extracted_facts || {};
           r.ai_summary = d.ai_summary || {};
           r.enrichment_status = d.enrichment_status || 'enriched';
-          toast('Zenginleştirildi', 'success');
+          toast('Zenginleştirildi' + (d.model ? ' · ' + d.model : ''), 'success');
+          if (d.model_invalid) toast('Geçersiz model — server varsayılanı kullanıldı', 'error');
           if (editForm) {
             const p = editForm.querySelector('.ar-ai-panel'); if (p) p.innerHTML = renderAiPanel(r);
             const s = editForm.querySelector('.ar-enrich-status-edit'); if (s) s.textContent = enrichStatusLabel(r.enrichment_status) || 'ham';
           }
           fillArgeLine(article, r);
         } else {
-          toast(d.message || d.error || 'Zenginleştirilemedi', 'error');
+          toast((d.message || d.error || 'Zenginleştirilemedi') + (d.model ? ' (' + d.model + ')' : ''), 'error');
         }
       } catch (e) { toast('Bağlantı hatası', 'error'); }
       finally { enrichBtn.disabled = false; enrichBtn.textContent = old; }
     });
-    const verifyBtn = node.querySelector('.ar-btn-verify');
-    if (verifyBtn) verifyBtn.addEventListener('click', async () => {
-      verifyBtn.disabled = true;
+    // P4c — Alan-alan KABUL/GERİ-AL (anlık). Delege: panel container'a tek listener
+    // (innerHTML değişse de buton tıklamaları yakalanır). 'Doğrulandı' (bulk) kaldırıldı.
+    const aiPanelEl = node.querySelector('.ar-ai-panel');
+    if (aiPanelEl) aiPanelEl.addEventListener('click', async (ev) => {
+      const btn = ev.target.closest('.ar-ai-accept-btn');
+      if (!btn) return;
+      const field = btn.dataset.field;
+      const cur = !!(r.extracted_facts && r.extracted_facts[field] && r.extracted_facts[field].accepted);
+      btn.disabled = true;
       try {
-        const res = await fetch(`/api/arastirma/${encodeURIComponent(r.id)}/verify`, { method: 'POST' });
+        const res = await fetch(`/api/arastirma/${encodeURIComponent(r.id)}/accept-fact`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ field, accepted: !cur }),
+        });
         const d = await res.json();
         if (d.ok) {
-          r.enrichment_status = d.enrichment_status || 'verified';
-          toast('Doğrulandı işaretlendi', 'success');
+          if (!r.extracted_facts) r.extracted_facts = {};
+          if (!r.extracted_facts[field]) r.extracted_facts[field] = {};
+          r.extracted_facts[field].accepted = d.accepted;
+          if (d.enrichment_status) r.enrichment_status = d.enrichment_status;
           if (editForm) {
+            const p = editForm.querySelector('.ar-ai-panel'); if (p) p.innerHTML = renderAiPanel(r);
             const s = editForm.querySelector('.ar-enrich-status-edit'); if (s) s.textContent = enrichStatusLabel(r.enrichment_status) || 'ham';
           }
-          fillArgeLine(article, r);
-        } else { toast(d.error || 'İşaretlenemedi', 'error'); }
-      } catch (e) { toast('Bağlantı hatası', 'error'); }
-      finally { verifyBtn.disabled = false; }
+          toast(d.accepted ? 'Kabul edildi' : 'Geri alındı', 'success');
+        } else { toast(d.error || 'İşlem başarısız', 'error'); btn.disabled = false; }
+      } catch (e) { toast('Bağlantı hatası', 'error'); btn.disabled = false; }
     });
     // Edit içindeki firma seçimi → ülke autofill + yeni firma toggle
     const editBrandSel = editForm.querySelector('[data-field="brand_slug"]');
@@ -590,7 +626,9 @@
     }
 
     const urlShort = shortUrl(r.product_url);
-    node.querySelector('.ar-item-title').textContent = urlShort.path || r.product_url;
+    // P4b — havuz listesi ÜRÜN ADIYLA: AI ürün adı → eklenti page_title → URL path (kriptik son çare)
+    const _aiName = r.extracted_facts && r.extracted_facts.product_name && r.extracted_facts.product_name.value;
+    node.querySelector('.ar-item-title').textContent = _aiName || r.page_title || urlShort.path || r.product_url;
     const imgCountStr = r.images_count > 0 ? ` · × ${r.images_count} görsel` : '';
     const metaEl = node.querySelector('.ar-item-meta');
     metaEl.textContent = `${r.brand} · ${r.country}${r.country_code ? ' (' + r.country_code + ')' : ''}${imgCountStr}`;

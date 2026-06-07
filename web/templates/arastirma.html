@@ -162,8 +162,15 @@
                     </div>
                     <div class="ar-ai-panel"><!-- JS doldurur: arge_notu + factual + evidence (salt-okuma) --></div>
                     <div class="ar-ai-actions">
+                        {# P4a-2 — Gemini model seçici (ekle ile aynı; localStorage'da paylaşımlı, kota dolunca anında geçiş) #}
+                        <select class="gemini-model-select ar-enrich-model" title="Gemini modeli — kota dolunca değiştir">
+                            <option value="">Varsayılan (server)</option>
+                            <option value="gemini-2.5-flash">Dengeli — gemini-2.5-flash</option>
+                            <option value="gemini-2.5-flash-lite">Hızlı/Ucuz — gemini-2.5-flash-lite</option>
+                            <option value="gemini-2.5-pro">En Doğru — gemini-2.5-pro</option>
+                            <option value="gemini-flash-latest">En Yeni — gemini-flash-latest</option>
+                        </select>
                         <button type="button" class="btn btn-secondary ar-btn-enrich">AI ile Zenginleştir</button>
-                        <button type="button" class="btn btn-ghost ar-btn-verify">Doğrulandı işaretle</button>
                     </div>
                 </div>
                 <label>Ürün URL <input type="url" data-field="product_url"></label>
@@ -191,10 +198,8 @@
                         {% for p in pattern_vocab %}<option value="{{ p }}">{{ p }}</option>{% endfor %}
                     </select></label>
                 </div>
-                <label>Renk Ailesi <select data-field="color_family">
-                    <option value="">—</option>
-                    {% for cf in color_family_vocab %}<option value="{{ cf }}">{{ cf }}</option>{% endfor %}
-                </select></label>
+                {# OnCalisma-V2 (Problem 4b) — renk ailesi yerine renk SAYISI (AI önerir, kullanıcı doğrular) #}
+                <label>Renk Sayısı <input type="number" min="1" data-field="color_count" placeholder="AI önerir; doğruysa yaz"></label>
                 <label>Dokuma Etiketleri
                     <span class="ar-edit-weavetags tax-checkboxes" data-field="weave_tags">
                         {% for w in weave_tags_vocab %}
@@ -203,6 +208,8 @@
                     </span>
                 </label>
                 <label>Stil Etiketleri <input type="text" data-field="style_tags" placeholder="virgülle ayır — örn. premium, minimal"></label>
+                {# OnCalisma-V2 (Problem 4b) — kalıcı AI notu (düzenlenebilir; AI doğruluğunu izlemek için) #}
+                <label>AI Notu <textarea data-field="ai_notu" rows="2" placeholder="AI'nın ürün notu — düzenlenebilir, kaydedilir"></textarea></label>
                 <div class="ar-edit-actions">
                     <button type="button" class="btn btn-secondary ar-edit-cancel">İptal</button>
                     <button type="button" class="btn btn-primary ar-edit-save">Kaydet</button>
