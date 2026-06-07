@@ -564,6 +564,11 @@ def ekle():
         color_album_slug=(research_ctx["color_album_slug"] if research_ctx else None),
         color_picker_images=(research_ctx["color_picker_images"] if research_ctx else []),
         image_color_map=(research_ctx["image_color_map"] if research_ctx else {}),
+        # OnCalisma-V2 (Problem 2) — taksonomi sözlükleri (tek kaynak store.py; JS'e kopyalanmaz)
+        category_vocab=store.VALID_CATEGORIES,
+        pattern_vocab=store.VALID_PATTERNS,
+        weave_tags_vocab=store.VALID_WEAVE_TAGS,
+        color_family_vocab=store.VALID_COLOR_FAMILIES,
     )
 
 
@@ -1109,6 +1114,12 @@ def api_create_urun():
     # v4.0-part-2 Sprint 14 — Ön çalışma kaynağını üründe sakla (sonradan göstermek için)
     if from_research_id:
         d["from_research_id"] = from_research_id
+    # OnCalisma-V2 (Problem 2) — taksonomi (controlled vocab ile doğrulanır; geçersiz → temizlenir)
+    d["category"] = store.validate_category(f.get("category"))
+    d["pattern"] = store.validate_pattern(f.get("pattern"))
+    d["color_family"] = store.validate_color_family(f.get("color_family"))
+    d["weave_tags"] = store.validate_enum_list(f.getlist("weave_tags"), store.VALID_WEAVE_TAGS)
+    d["style_tags"] = store.validate_str_list((f.get("style_tags") or "").split(","))
     store.upsert(d)
 
     # v4.0-part-2 Adım 8 — Ön Çalışma kaydı varsa "imported" işaretle
@@ -1236,6 +1247,17 @@ def api_update_meta(urun_id: str):
     for key in ("width_cm", "weight_gsm", "repeat_vertical_cm", "repeat_horizontal_cm"):
         if key in data:
             d[key] = parse_int(data[key])
+    # OnCalisma-V2 (Problem 2) — taksonomi (JSON gövde; listeler dizi gelir)
+    if "category" in data:
+        d["category"] = store.validate_category(data["category"])
+    if "pattern" in data:
+        d["pattern"] = store.validate_pattern(data["pattern"])
+    if "color_family" in data:
+        d["color_family"] = store.validate_color_family(data["color_family"])
+    if "weave_tags" in data:
+        d["weave_tags"] = store.validate_enum_list(data.get("weave_tags") or [], store.VALID_WEAVE_TAGS)
+    if "style_tags" in data:
+        d["style_tags"] = store.validate_str_list(data.get("style_tags") or [])
     d["updated_at"] = now_iso()
     store.upsert(d)
     return jsonify({"ok": True})
@@ -2698,19 +2720,48 @@ def _favicon_url(product_url: str | None, size: int = 64) -> str | None:
 app.jinja_env.globals["favicon_url"] = _favicon_url
 
 
+def _research_cover_url(row: dict) -> str | None:
+    """OnCalisma-V2 (Problem 3) — havuz kapak URL'si (SALT-OKUMA, DB'ye yazmaz).
+    Öncelik: (kapak/favori işaretli) yakalanan görsel → ilk yakalanan görsel →
+    legacy tek görsel → og:image (thumb_url) → None (JS favicon/placeholder'a düşer).
+    Tek kaynak: hem _enrich_research_row hem eklenti listesi bunu kullanır."""
+    if not row:
+        return None
+    images = row.get("images") or []
+    if isinstance(images, list) and images:
+        chosen = next((im for im in images
+                       if isinstance(im, dict) and (im.get("is_cover") or im.get("is_favorite"))
+                       and im.get("storage_path")), None)
+        if not chosen:
+            chosen = next((im for im in images
+                           if isinstance(im, dict) and im.get("storage_path")), None)
+        if chosen:
+            return store.public_url(chosen.get("storage_path"))
+    if row.get("image_storage_path"):          # legacy tek görsel
+        return store.public_url(row.get("image_storage_path"))
+    if row.get("thumb_url"):                    # og:image
+        return row.get("thumb_url")
+    return None
+
+
 def _enrich_research_row(row: dict) -> dict:
     """v4.0-part-2 Sprint 10 — Row'a galeri özellikleri ekle: images_count, cover_url.
     Mevcut field'lar korunur, sadece read-only ek alanlar yazılır."""
     if not row:
         return row
     images = row.get("images") or []
-    cover_path = None
-    if images and isinstance(images, list) and isinstance(images[0], dict):
-        cover_path = images[0].get("storage_path")
-    elif row.get("image_storage_path"):  # legacy fallback
-        cover_path = row.get("image_storage_path")
     row["images_count"] = len(images) if isinstance(images, list) else 0
-    row["cover_url"] = store.public_url(cover_path) if cover_path else None
+    # OnCalisma-V2 (Problem 3) — kapak önceliği tek helper'da (yakalanan görsel → og:image → ...)
+    row["cover_url"] = _research_cover_url(row)
+    # OnCalisma-V2 (Problem 1) — family/varyant alanları (migration öncesi/eski satırda yoksa default)
+    for _k, _d in (("family_key", None), ("base_code", None), ("is_variant_candidate", False), ("variant_of", None)):
+        row.setdefault(_k, _d)
+    # OnCalisma-V2 (Problem 2) — taksonomi (migration öncesi/eski satırda yoksa default)
+    for _k, _d in (("category", None), ("pattern", None), ("color_family", None), ("weave_tags", []), ("style_tags", [])):
+        row.setdefault(_k, _d)
+    # OnCalisma-V2 (Problem 4a) — Gemini staging (migration öncesi/eski satırda yoksa default)
+    for _k, _d in (("extracted_facts", {}), ("ai_summary", {}), ("enrichment_status", "raw")):
+        row.setdefault(_k, _d)
     return row
 
 
@@ -2725,6 +2776,11 @@ def arastirma_page():
         brands=brands,
         country_suggestions=COUNTRY_SUGGESTIONS,
         rows=rows,
+        # OnCalisma-V2 (Problem 2) — taksonomi sözlükleri (tek kaynak store.py; JS'e kopyalanmaz)
+        category_vocab=store.VALID_CATEGORIES,
+        pattern_vocab=store.VALID_PATTERNS,
+        weave_tags_vocab=store.VALID_WEAVE_TAGS,
+        color_family_vocab=store.VALID_COLOR_FAMILIES,
     )
 
 
@@ -3023,6 +3079,52 @@ def api_arastirma_status(research_id: str):
     return jsonify({"ok": True, "row": row})
 
 
+# OnCalisma-V2 (Problem 4a) — "Linkten Doldur" motorunu havuza taşı: text-only zenginleştirme.
+# Çıktı İKİ KATMANLI staging'e yazılır (extracted_facts + ai_summary); gerçek kolonlara
+# OTOMATİK yazım YOK. Yalnız research_update (whitelist + strip-retry) kullanılır.
+@app.route("/api/arastirma/<research_id>/enrich", methods=["POST"])
+def api_arastirma_enrich(research_id: str):
+    row = store.research_get(research_id)
+    if not row:
+        return jsonify({"ok": False, "error": "Bulunamadı"}), 404
+    url = (row.get("product_url") or "").strip()
+    if not url:
+        return jsonify({"ok": False, "error": "Bu kayıtta product_url yok"}), 400
+
+    result = gx.linkten_doldur(url)              # fetch + Gemini (DB'ye yazmaz)
+    payload = gx.build_enrichment_payload(result)
+    if payload.get("error"):
+        # Hata: DB'YE YAZMA, sadece bilgi döndür.
+        return jsonify({
+            "ok": False, "error": payload["error"],
+            "message": result.get("message") or "Zenginleştirme başarısız",
+        }), 200
+
+    # SADECE staging alanlarını yaz (research_update; insert/save KULLANMA).
+    store.research_update(research_id, {
+        "extracted_facts": payload["extracted_facts"],
+        "ai_summary": payload["ai_summary"],
+        "enrichment_status": "enriched",
+    })
+    return jsonify({
+        "ok": True,
+        "enrichment_status": "enriched",
+        "extracted_facts": payload["extracted_facts"],
+        "ai_summary": payload["ai_summary"],
+        "suggestions": result.get("suggestions") or {},   # evidence paneli için ham çıktı
+    })
+
+
+@app.route("/api/arastirma/<research_id>/verify", methods=["POST"])
+def api_arastirma_verify(research_id: str):
+    """SADECE enrichment_status='verified' yazar (başka hiçbir alan değişmez)."""
+    row = store.research_get(research_id)
+    if not row:
+        return jsonify({"ok": False, "error": "Bulunamadı"}), 404
+    store.research_update(research_id, {"enrichment_status": "verified"})
+    return jsonify({"ok": True, "enrichment_status": "verified"})
+
+
 @app.route("/api/arastirma/<research_id>", methods=["DELETE"])
 def api_arastirma_delete(research_id: str):
     """Soft delete (status='dismissed'). Hard delete için ?hard=1."""
@@ -3107,6 +3209,18 @@ def api_arastirma_update(research_id: str):
         patch["country_code"] = cc
         patch["brand_country"] = country_norm           # v4.0-part-2 Sprint 11.5 alias
         patch["brand_country_code"] = cc
+
+    # OnCalisma-V2 (Problem 2) — taksonomi (havuzda elle sınıflandırma; doğrulanıp patch'e)
+    if "category" in data:
+        patch["category"] = store.validate_category(data["category"])
+    if "pattern" in data:
+        patch["pattern"] = store.validate_pattern(data["pattern"])
+    if "color_family" in data:
+        patch["color_family"] = store.validate_color_family(data["color_family"])
+    if "weave_tags" in data:
+        patch["weave_tags"] = store.validate_enum_list(data.get("weave_tags") or [], store.VALID_WEAVE_TAGS)
+    if "style_tags" in data:
+        patch["style_tags"] = store.validate_str_list(data.get("style_tags") or [])
 
     if not patch:
         return jsonify({"ok": True, "row": row, "noop": True})
@@ -3250,11 +3364,6 @@ def api_arastirma_entries_summary():
     entries = []
     for r in rows:
         images = r.get("images") or []
-        cover_path = None
-        if images and isinstance(images[0], dict):
-            cover_path = images[0].get("storage_path")
-        elif r.get("image_storage_path"):  # legacy fallback
-            cover_path = r.get("image_storage_path")
         entries.append({
             "id": r.get("id"),
             "brand": r.get("brand"),
@@ -3262,7 +3371,8 @@ def api_arastirma_entries_summary():
             "country": r.get("country"),
             "master_url": r.get("master_url"),
             "images_count": len(images),
-            "cover_url": store.public_url(cover_path) if cover_path else None,
+            # OnCalisma-V2 (Problem 3) — kapak önceliği tek helper'da (DRY)
+            "cover_url": _research_cover_url(r),
             "added_at": r.get("added_at"),
         })
 
@@ -3453,8 +3563,10 @@ def api_arastirma_yakala():
         "images": [image_meta],
         "added_at": store._now_iso(),
     }
+    # OnCalisma-V2 (Problem 1) — eklenti yakalamada da family/varyant işaretle (havuz kalabalığı asıl burada)
+    row.update(store.compute_family_fields(page_url, brand_slug))
     try:
-        res = store.client().table(store.TABLE_RESEARCH).insert(row).execute()
+        res = store.research_insert(row)   # migration yoksa family alanlarını düşürüp yine ekler
         inserted = (res.data or [row])[0]
     except Exception as e:
         msg = str(e).lower()

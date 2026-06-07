@@ -112,6 +112,53 @@
                 </datalist>
             </div>
 
+            {# OnCalisma-V2 (Problem 2) — Taksonomi: kategori / desen / renk ailesi / dokuma / stil #}
+            <div class="form-row">
+                <label>Kategori</label>
+                <select name="category">
+                    <option value="">— seç —</option>
+                    {% for c in category_vocab %}
+                    <option value="{{ c }}" {% if prefill and prefill.category == c %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-row">
+                <label>Desen</label>
+                <select name="pattern">
+                    <option value="">— seç —</option>
+                    {% for p in pattern_vocab %}
+                    <option value="{{ p }}" {% if prefill and prefill.pattern == p %}selected{% endif %}>{{ p }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-row">
+                <label>Renk Ailesi</label>
+                <select name="color_family">
+                    <option value="">— seç —</option>
+                    {% for cf in color_family_vocab %}
+                    <option value="{{ cf }}" {% if prefill and prefill.color_family == cf %}selected{% endif %}>{{ cf }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-row form-row-wide">
+                <label>Dokuma Etiketleri</label>
+                <div class="tax-checkboxes">
+                    {% for w in weave_tags_vocab %}
+                    <label class="tax-check"><input type="checkbox" name="weave_tags" value="{{ w }}"
+                        {% if prefill and prefill.weave_tags and w in prefill.weave_tags %}checked{% endif %}> {{ w }}</label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="form-row form-row-wide">
+                <label>Stil Etiketleri</label>
+                <input type="text" name="style_tags" placeholder="virgülle ayır — örn. premium, minimal"
+                       value="{{ (prefill.style_tags or [])|join(', ') if prefill else '' }}">
+            </div>
+
             <div class="form-row">
                 <label>Rapor — boyuna (cm)</label>
                 <input type="number" name="repeat_vertical_cm" min="0" step="0.1" placeholder="örn. 27">

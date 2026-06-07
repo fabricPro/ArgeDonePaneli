@@ -7096,6 +7096,18 @@ body.teknik-fullscreen {
     color: #f0c060;
     fill: #f0c060;
 }
+/* OnCalisma-V2 — "olası varyant" filtre toggle (turuncu, varyant rozetiyle uyumlu) */
+.filter-variant-toggle .filter-variant-icon {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+}
+.filter-variant-toggle:has(input:checked) {
+    background: rgba(198, 139, 80, 0.12);
+    border-color: var(--orange);
+    color: var(--orange);
+    fill: var(--orange);
+}
 
 /* Düzenleme modu — v4.0-part-2 Sprint 6 */
 .ar-item.is-editing {
@@ -7791,6 +7803,104 @@ body.embed-calisma-right .urun-main-tabs .utab-btn[data-tab="galeri"] {
     font-size: 12px;
     color: var(--text-dim);
 }
+/* OnCalisma-V2 — eklenme tarihi (saat:dakika) */
+.ar-item-date {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+/* OnCalisma-V2 (Problem 1) — varyant adayı rozeti */
+.ar-variant-badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 1px 7px;
+    border-radius: var(--radius-pill);
+    background: rgba(198, 139, 80, 0.18);
+    color: var(--orange);
+    border: 1px solid rgba(198, 139, 80, 0.4);
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+/* OnCalisma-V2 (Problem 2) — taksonomi etiketleri (kartta küçük pill) */
+.ar-tax-badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 7px;
+    border-radius: var(--radius-pill);
+    background: var(--bg);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    font-size: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+.ar-tax-badge.ar-tax-category { color: var(--text); border-color: var(--border-strong); }
+.ar-tax-badge.ar-tax-color-family { font-style: italic; }
+/* OnCalisma-V2 (Problem 2) — form içi çoklu seçim (dokuma etiketleri checkbox grubu) */
+.tax-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin-top: 4px;
+}
+.tax-checkboxes .tax-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    cursor: pointer;
+}
+.tax-checkboxes .tax-check input { margin: 0; }
+
+/* OnCalisma-V2 (Problem 4a) — AI zenginleştirme: kart arge satırı + rozetler + edit paneli */
+.ar-item-arge {
+    font-size: 12px;
+    color: var(--text);
+    margin: 2px 0 3px;
+    line-height: 1.35;
+}
+.ar-ai-badge {
+    display: inline-block;
+    padding: 0 5px;
+    border-radius: var(--radius-pill);
+    background: rgba(110, 130, 200, 0.18);
+    color: #8aa0e0;
+    border: 1px solid rgba(110, 130, 200, 0.4);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .5px;
+    vertical-align: middle;
+}
+.ar-enrich-status {
+    margin-left: 6px;
+    font-size: 10px;
+    color: var(--green, #6fae6f);
+    font-weight: 600;
+}
+/* Edit drawer AI paneli (salt-okuma) */
+.ar-ai-section {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    background: var(--bg);
+}
+.ar-ai-head { font-size: 12px; font-weight: 700; color: var(--text-dim); margin-bottom: 6px; }
+.ar-ai-panel { font-size: 12px; color: var(--text); }
+.ar-ai-arge { margin-bottom: 6px; line-height: 1.4; }
+.ar-ai-facts { display: flex; flex-direction: column; gap: 5px; }
+.ar-ai-fact { padding: 4px 6px; border-left: 2px solid var(--border-strong); background: var(--bg-card); border-radius: 0 4px 4px 0; }
+.ar-ai-fact-k { font-weight: 600; color: var(--text-dim); }
+.ar-ai-fact-v { color: var(--text); }
+.ar-ai-evidence { font-size: 11px; color: var(--text-muted); font-style: italic; margin-top: 2px; }
+.ar-ai-empty { font-size: 12px; color: var(--text-muted); font-style: italic; }
+.ar-ai-actions { display: flex; gap: 8px; margin-top: 8px; }
+.ar-ai-actions .btn { font-size: 12px; padding: 5px 10px; }
 .ar-item-master {
     font-size: 11px;
     color: var(--text-muted);
@@ -7807,6 +7917,20 @@ body.embed-calisma-right .urun-main-tabs .utab-btn[data-tab="galeri"] {
     color: var(--accent-cool);
     text-decoration: underline;
 }
+/* OnCalisma-V2 — Ürün URL'i (master altında, biraz daha okunur ton) */
+.ar-item-product {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-decoration: none;
+    display: block;
+    margin-top: 2px;
+    transition: color 0.15s;
+}
+.ar-item-product:hover { color: var(--accent); text-decoration: underline; }
 .ar-item-master[href]::before {
     content: "↗ ";
     opacity: 0.6;

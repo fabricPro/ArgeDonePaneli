@@ -424,6 +424,71 @@ def linkten_doldur(url: str, model: str | None = None) -> dict:
     }
 
 
+# ============================================================
+# 4) Staging payload ayırıcı (OnCalisma-V2 Problem 4a)
+# ============================================================
+# Gemini çıktısını research_pool'un İKİ KATMANLI staging alanlarına ayırır:
+#   extracted_facts (source_data) ← kanıtlı factual alanlar {value, evidence}
+#   ai_summary      (ai_inferences) ← arge_notu + model + generated_at
+# Anayasa #2: source ↔ inference ayrı; #3: evidence'sız factual YAZILMAZ.
+# Bu fonksiyon SAF (DB'ye dokunmaz); route research_update ile yazar.
+
+_AI_SUMMARY_FIELD = "arge_notu_taslak"  # ai_inferences'e gider (factual değil)
+
+
+def _factual_field_names() -> list[str]:
+    """RESPONSE_SCHEMA'dan factual alanlar (arge_notu_taslak + error hariç) — tek kaynak."""
+    props = (RESPONSE_SCHEMA.get("properties") or {})
+    return [k for k in props if k not in (_AI_SUMMARY_FIELD, "error")]
+
+
+def build_enrichment_payload(gemini_result: dict) -> dict:
+    """linkten_doldur() sonucunu staging payload'a ayır.
+    Dönüş: {"extracted_facts": {...}, "ai_summary": {...}} ; hata → +{"error": ...} (boş payload).
+    """
+    out: dict = {"extracted_facts": {}, "ai_summary": {}}
+    if not isinstance(gemini_result, dict):
+        out["error"] = "invalid_result"
+        return out
+    if not gemini_result.get("ok", False) or gemini_result.get("error"):
+        out["error"] = gemini_result.get("error") or "extract_failed"
+        return out
+    suggestions = gemini_result.get("suggestions")
+    if not isinstance(suggestions, dict):
+        out["error"] = "no_suggestions"
+        return out
+
+    # 1) Factual → extracted_facts (yalnız value+evidence DOLU olanlar; #3)
+    for name in _factual_field_names():
+        v = suggestions.get(name)
+        if not isinstance(v, dict):
+            continue
+        value = v.get("value")
+        evidence = v.get("evidence")
+        value_s = value.strip() if isinstance(value, str) else value
+        evidence_s = evidence.strip() if isinstance(evidence, str) else evidence
+        if not value_s or not evidence_s:   # boş/kanıtsız factual ATLA (Anayasa #3)
+            continue
+        fact = {"value": value_s, "evidence": evidence_s}
+        if v.get("type"):                    # reference_price: exact|from
+            fact["type"] = v.get("type")
+        out["extracted_facts"][name] = fact
+
+    # 2) arge_notu_taslak → ai_summary.arge_notu (≤300) + model + generated_at
+    from datetime import datetime, timezone
+    summary: dict = {}
+    arge = suggestions.get(_AI_SUMMARY_FIELD)
+    if isinstance(arge, dict):
+        av = arge.get("value")
+        if isinstance(av, str) and av.strip():
+            summary["arge_notu"] = av.strip()[:300]
+    summary["model"] = gemini_result.get("model_used") or gemini_result.get("model")
+    summary["generated_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    # P4b kancası: ai_summary ileride suggested_category/suggested_weave_tags vb. taşıyabilir.
+    out["ai_summary"] = summary
+    return out
+
+
 def _human_error(code: str) -> str:
     """Hata kodunu kullanıcı-dostu Türkçe mesaja çevir."""
     if code == "no_api_key":

@@ -180,6 +180,22 @@
       newBrandWrap.hidden = false;
       newBrandInput.value = r.brand || '';
     }
+    // OnCalisma-V2 (Problem 2) — taksonomi alanlarını doldur
+    const setSel = (sel, v) => { const el = form.querySelector(sel); if (el) el.value = v || ''; };
+    setSel('[data-field="category"]', r.category);
+    setSel('[data-field="pattern"]', r.pattern);
+    setSel('[data-field="color_family"]', r.color_family);
+    const wtags = Array.isArray(r.weave_tags) ? r.weave_tags : [];
+    form.querySelectorAll('.ar-edit-weavetags input[type="checkbox"]').forEach(cb => {
+      cb.checked = wtags.includes(cb.value);
+    });
+    const stEl = form.querySelector('[data-field="style_tags"]');
+    if (stEl) stEl.value = (Array.isArray(r.style_tags) ? r.style_tags : []).join(', ');
+    // OnCalisma-V2 (Problem 4a) — AI Zenginleştirme paneli (salt-okuma) + durum
+    const aiPanel = form.querySelector('.ar-ai-panel');
+    if (aiPanel) aiPanel.innerHTML = renderAiPanel(r);
+    const aiStatusEl = form.querySelector('.ar-enrich-status-edit');
+    if (aiStatusEl) aiStatusEl.textContent = enrichStatusLabel(r.enrichment_status) || 'ham';
     form.hidden = false;
     article.classList.add('is-editing');
   }
@@ -209,6 +225,14 @@
       toast('Firma seçilmedi', 'error');
       return null;
     }
+    // OnCalisma-V2 (Problem 2) — taksonomi (boş select → null; checkbox'lar → dizi; style → virgül böl)
+    const selVal = (sel) => { const el = form.querySelector(sel); return el && el.value ? el.value : null; };
+    payload.category = selVal('[data-field="category"]');
+    payload.pattern = selVal('[data-field="pattern"]');
+    payload.color_family = selVal('[data-field="color_family"]');
+    payload.weave_tags = [...form.querySelectorAll('.ar-edit-weavetags input[type="checkbox"]:checked')].map(cb => cb.value);
+    payload.style_tags = (form.querySelector('[data-field="style_tags"]')?.value || '')
+      .split(',').map(s => s.trim()).filter(Boolean);
     try {
       const res = await fetch(`/api/arastirma/${encodeURIComponent(r.id)}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -227,15 +251,15 @@
     }
   }
 
-  // ---- Favori filtresi (v4.0-part-2 Sprint 6) ----
-  function applyFavoriteFilter() {
+  // ---- İstemci-içi filtreler: favori (Sprint 6) + olası varyant (OnCalisma-V2) ----
+  // Sunucudan gelen satırları yeniden çekmeden DOM'da gizler; birden fazla filtre AND'lenir.
+  function applyClientFilters() {
     const onlyFav = $('#filter-favorites-only')?.checked;
+    const onlyVariant = $('#filter-variants-only')?.checked;
     $$('.ar-item').forEach(art => {
-      if (onlyFav && art.dataset.favorite !== 'true') {
-        art.style.display = 'none';
-      } else {
-        art.style.display = '';
-      }
+      const failFav = onlyFav && art.dataset.favorite !== 'true';
+      const failVariant = onlyVariant && art.dataset.isVariantCandidate !== 'true';
+      art.style.display = (failFav || failVariant) ? 'none' : '';
     });
     // Boş grupları gizle
     $$('.ar-group').forEach(g => {
@@ -249,10 +273,80 @@
     return `${row.country || 'Belirtilmemiş'} / ${row.brand || row.brand_slug || '—'}`;
   }
 
+  // OnCalisma-V2 — son çekilen satırlar (sıralama değişince yeniden render; fetch yok)
+  let lastRows = [];
+  // OnCalisma-V2 — "olası varyant" rozeti/filtresi için aile sayımı (her render'da listeden türetilir)
+  let familyCounts = new Map();
+  // OnCalisma-V2 — ISO (UTC) eklenme tarihini yerel saat:dakika ile göster
+  function fmtDateTime(iso) {
+    try {
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return '';
+      return d.toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch (e) { return ''; }
+  }
+
+  // OnCalisma-V2 (Problem 4a) — AI zenginleştirme yardımcıları (SALT-OKUMA gösterim)
+  const FACT_LABELS = {
+    brand: 'Marka', product_name: 'Ürün Adı', product_code: 'Ürün Kodu', collection: 'Koleksiyon',
+    production_country: 'Üretim Ülkesi', composition: 'Kompozisyon', width_cm: 'En (cm)',
+    weight_gsm: 'Ağırlık (g/m²)', weave_type: 'Dokuma', repeat_vertical_cm: 'Rapor Boyuna (cm)',
+    repeat_horizontal_cm: 'Rapor Enine (cm)', reference_price: 'Fiyat',
+  };
+  function escHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  }
+  function enrichStatusLabel(s) {
+    return ({ raw: '', enriched: 'AI zenginleştirildi', verified: '✓ Doğrulandı' })[s || 'raw'] || '';
+  }
+  // Edit drawer'daki SALT-OKUMA AI paneli: arge_notu + her factual alan KENDİ evidence'ıyla
+  function renderAiPanel(r) {
+    const ef = r.extracted_facts || {};
+    const ai = r.ai_summary || {};
+    const parts = [];
+    if (ai.arge_notu) parts.push(`<div class="ar-ai-arge"><span class="ar-ai-badge">AI</span> ${escHtml(ai.arge_notu)}</div>`);
+    const keys = Object.keys(ef);
+    if (keys.length) {
+      parts.push('<div class="ar-ai-facts">');
+      keys.forEach(k => {
+        const f = ef[k] || {};
+        const typ = f.type ? ` <em>(${escHtml(f.type)})</em>` : '';
+        parts.push(
+          `<div class="ar-ai-fact"><span class="ar-ai-fact-k">${escHtml(FACT_LABELS[k] || k)}:</span> ` +
+          `<span class="ar-ai-fact-v">${escHtml(f.value)}</span>${typ}` +
+          `<div class="ar-ai-evidence">“${escHtml(f.evidence)}”</div></div>`
+        );
+      });
+      parts.push('</div>');
+    }
+    if (!parts.length) return '<div class="ar-ai-empty">Henüz zenginleştirilmedi. “AI ile Zenginleştir”e bas.</div>';
+    return parts.join('');
+  }
+  // Kart başlığı altındaki tek-satır arge özeti (arge yoksa gizle — spec)
+  function fillArgeLine(article, r) {
+    const el = article.querySelector('.ar-item-arge');
+    if (!el) return;
+    const arge = (r.ai_summary && r.ai_summary.arge_notu) || '';
+    if (!arge) { el.hidden = true; el.innerHTML = ''; return; }
+    const st = enrichStatusLabel(r.enrichment_status);
+    el.innerHTML = `<span class="ar-ai-badge">AI</span> <span class="ar-arge-text">${escHtml(arge)}</span>` +
+      (st ? ` <span class="ar-enrich-status">${escHtml(st)}</span>` : '');
+    el.hidden = false;
+  }
+
   function renderList(rows) {
     elListContainer.innerHTML = '';
     elEmpty.hidden = rows.length > 0;
     if (!rows.length) return;
+
+    // OnCalisma-V2 — "olası varyant" türetme: aynı family_key'den listede ≥2 kayıt varsa
+    // o ailenin TÜM üyeleri varyant adayı sayılır. Bir kayıt silinince renderListFromAPI
+    // yeniden render eder → sayım güncellenir → tek kalan kayıttan rozet kendiliğinden kalkar.
+    familyCounts = new Map();
+    rows.forEach(r => {
+      const fk = (r.family_key || '').trim();
+      if (fk && !fk.endsWith(':')) familyCounts.set(fk, (familyCounts.get(fk) || 0) + 1);
+    });
 
     // Group by country → brand
     const groups = {};
@@ -261,10 +355,13 @@
       (groups[key] ||= []).push(r);
     });
 
-    // Sort: country asc, brand asc
+    // Sort: country asc, brand asc (grup sırası)
     const sortedKeys = Object.keys(groups).sort((a, b) => a.localeCompare(b, 'tr'));
+    // OnCalisma-V2 — grup İÇİNDE eklenme tarihine göre sırala (yeni→eski varsayılan)
+    const sortDir = ($('#filter-sort')?.value === 'date_asc') ? 1 : -1;
 
     sortedKeys.forEach(key => {
+      groups[key].sort((a, b) => sortDir * String(a.added_at || '').localeCompare(String(b.added_at || '')));
       const groupEl = document.createElement('div');
       groupEl.className = 'ar-group';
       const head = document.createElement('div');
@@ -284,7 +381,7 @@
       elListContainer.appendChild(groupEl);
     });
     // Render sonrası favori filtresini uygula (eğer aktifse)
-    applyFavoriteFilter();
+    applyClientFilters();
   }
 
   // v4.0-part-2 Sprint 7 — Grup altı hızlı satır ekleme formu
@@ -386,7 +483,7 @@
           star.setAttribute('aria-pressed', d.is_favorite ? 'true' : 'false');
           r.is_favorite = d.is_favorite;
           // Aktif favori filtresi varsa, yıldız söndürülünce kart gizlenir
-          applyFavoriteFilter();
+          applyClientFilters();
         } else {
           toast(d.error || 'Favori güncellenemedi', 'error');
         }
@@ -413,6 +510,47 @@
         renderListFromAPI();
       }
     });
+    // OnCalisma-V2 (Problem 4a) — AI ile Zenginleştir (→/enrich) + Doğrulandı işaretle (→/verify)
+    const enrichBtn = node.querySelector('.ar-btn-enrich');
+    if (enrichBtn) enrichBtn.addEventListener('click', async () => {
+      const old = enrichBtn.textContent;
+      enrichBtn.disabled = true; enrichBtn.textContent = 'Zenginleştiriliyor…';
+      try {
+        const res = await fetch(`/api/arastirma/${encodeURIComponent(r.id)}/enrich`, { method: 'POST' });
+        const d = await res.json();
+        if (d.ok) {
+          r.extracted_facts = d.extracted_facts || {};
+          r.ai_summary = d.ai_summary || {};
+          r.enrichment_status = d.enrichment_status || 'enriched';
+          toast('Zenginleştirildi', 'success');
+          if (editForm) {
+            const p = editForm.querySelector('.ar-ai-panel'); if (p) p.innerHTML = renderAiPanel(r);
+            const s = editForm.querySelector('.ar-enrich-status-edit'); if (s) s.textContent = enrichStatusLabel(r.enrichment_status) || 'ham';
+          }
+          fillArgeLine(article, r);
+        } else {
+          toast(d.message || d.error || 'Zenginleştirilemedi', 'error');
+        }
+      } catch (e) { toast('Bağlantı hatası', 'error'); }
+      finally { enrichBtn.disabled = false; enrichBtn.textContent = old; }
+    });
+    const verifyBtn = node.querySelector('.ar-btn-verify');
+    if (verifyBtn) verifyBtn.addEventListener('click', async () => {
+      verifyBtn.disabled = true;
+      try {
+        const res = await fetch(`/api/arastirma/${encodeURIComponent(r.id)}/verify`, { method: 'POST' });
+        const d = await res.json();
+        if (d.ok) {
+          r.enrichment_status = d.enrichment_status || 'verified';
+          toast('Doğrulandı işaretlendi', 'success');
+          if (editForm) {
+            const s = editForm.querySelector('.ar-enrich-status-edit'); if (s) s.textContent = enrichStatusLabel(r.enrichment_status) || 'ham';
+          }
+          fillArgeLine(article, r);
+        } else { toast(d.error || 'İşaretlenemedi', 'error'); }
+      } catch (e) { toast('Bağlantı hatası', 'error'); }
+      finally { verifyBtn.disabled = false; }
+    });
     // Edit içindeki firma seçimi → ülke autofill + yeni firma toggle
     const editBrandSel = editForm.querySelector('[data-field="brand_slug"]');
     const editBrandNew = editForm.querySelector('.ar-edit-newbrand');
@@ -433,9 +571,10 @@
 
     const img = node.querySelector('.ar-item-thumb img');
     const placeholder = node.querySelector('.ar-thumb-placeholder');
-    // v4.0-part-2 Sprint 10 — Öncelik: cover_url (yakalanan görsel) → thumb_url → favicon
+    // OnCalisma-V2 (Problem 3) — kapak önceliği TEK KAYNAK sunucuda (cover_url:
+    // yakalanan görsel → og:image). JS yalnız UI fallback'i ekler: favicon → placeholder.
     const fallbackFavicon = googleFaviconUrl(r.product_url, 64);
-    const finalSrc = r.cover_url || r.thumb_url || fallbackFavicon || '';
+    const finalSrc = r.cover_url || fallbackFavicon || '';
     if (finalSrc) {
       img.src = finalSrc;
       img.alt = r.product_url;
@@ -453,7 +592,36 @@
     const urlShort = shortUrl(r.product_url);
     node.querySelector('.ar-item-title').textContent = urlShort.path || r.product_url;
     const imgCountStr = r.images_count > 0 ? ` · × ${r.images_count} görsel` : '';
-    node.querySelector('.ar-item-meta').textContent = `${r.brand} · ${r.country}${r.country_code ? ' (' + r.country_code + ')' : ''}${imgCountStr}`;
+    const metaEl = node.querySelector('.ar-item-meta');
+    metaEl.textContent = `${r.brand} · ${r.country}${r.country_code ? ' (' + r.country_code + ')' : ''}${imgCountStr}`;
+    // OnCalisma-V2 (Problem 1) — varyant adayı rozeti + family_key işareti (gizleme/silme YOK)
+    const fk = (r.family_key || '').trim();
+    if (fk) article.dataset.familyKey = fk;
+    // OnCalisma-V2 — rozet/filtre DB bayrağından DEĞİL, listedeki aile sayısından türetilir
+    // (aynı family_key'den ≥2 kayıt → varyant adayı). Silince yeniden hesaplanır → stale yok.
+    const famCount = (fk && !fk.endsWith(':')) ? (familyCounts.get(fk) || 0) : 0;
+    const isVariant = famCount >= 2;
+    article.dataset.isVariantCandidate = isVariant ? 'true' : 'false';
+    if (isVariant) {
+      const vb = document.createElement('span');
+      vb.className = 'ar-variant-badge';
+      vb.textContent = '↔ olası varyant';
+      vb.title = `Listede aynı üründen ${famCount} kayıt var · Aile: ${fk}`;
+      metaEl.appendChild(vb);
+    }
+    // OnCalisma-V2 (Problem 2) — taksonomi etiketleri (linki açmadan ne olduğu görünür)
+    [['category', r.category], ['pattern', r.pattern], ['color-family', r.color_family]].forEach(([kind, val]) => {
+      if (!val) return;
+      const tb = document.createElement('span');
+      tb.className = 'ar-tax-badge ar-tax-' + kind;
+      tb.textContent = val;
+      metaEl.appendChild(tb);
+    });
+    // OnCalisma-V2 (Problem 4a) — başlık altı tek-satır AI arge özeti (yoksa gizli)
+    fillArgeLine(article, r);
+    // OnCalisma-V2 — eklenme tarihi (saat:dakika)
+    const dateEl = node.querySelector('.ar-item-date');
+    if (dateEl) dateEl.textContent = r.added_at ? ('🕒 ' + fmtDateTime(r.added_at)) : '';
 
     // v4.0-part-2 Sprint 10 — Karta tıklayınca detay sayfasına git
     // (interactive child element'lere değil — buton/link/input/star)
@@ -473,6 +641,21 @@
     } else {
       masterCell.removeAttribute('href');
       masterCell.textContent = '';
+    }
+    // OnCalisma-V2 — Ürün URL'i (master altında); varyant tespiti için path + query görünür
+    const productCell = node.querySelector('.ar-item-product');
+    if (productCell) {
+      if (r.product_url) {
+        let label = shortUrl(r.product_url).host_path;
+        try { const pu = new URL(r.product_url); if (pu.search) label += pu.search; } catch (e) {}
+        productCell.href = r.product_url;
+        productCell.textContent = `Ürün: ${label}`;
+        productCell.title = r.product_url;
+        productCell.addEventListener('click', (e) => e.stopPropagation());
+      } else {
+        productCell.removeAttribute('href');
+        productCell.textContent = '';
+      }
     }
     const notesCell = node.querySelector('.ar-item-notes');
     if (r.notes) notesCell.textContent = `📝 ${r.notes}`;
@@ -552,9 +735,10 @@
       const res = await fetch('/api/arastirma/list?' + params.toString());
       const data = await res.json();
       if (data.ok) {
-        renderList(data.rows || []);
+        lastRows = data.rows || [];
+        renderList(lastRows);
         // Ülke filtresi seçeneklerini güncelle
-        populateCountryFilter(data.rows || []);
+        populateCountryFilter(lastRows);
       }
     } catch (e) {
       toast('Liste yüklenemedi', 'error');
@@ -582,7 +766,11 @@
   $('#filter-status').addEventListener('change', renderListFromAPI);
   $('#filter-brand').addEventListener('change', renderListFromAPI);
   $('#filter-country').addEventListener('change', renderListFromAPI);
-  $('#filter-favorites-only').addEventListener('change', applyFavoriteFilter);
+  $('#filter-favorites-only').addEventListener('change', applyClientFilters);
+  // OnCalisma-V2 — "sadece olası varyantlar" istemci filtresi
+  $('#filter-variants-only')?.addEventListener('change', applyClientFilters);
+  // OnCalisma-V2 — sıralama değişince yeniden render (fetch yok, son satırları kullan)
+  $('#filter-sort')?.addEventListener('change', () => { renderList(lastRows); applyClientFilters(); });
   $('#btn-refresh-list').addEventListener('click', renderListFromAPI);
 
   // Initial render

@@ -59,6 +59,12 @@
                 <svg class="icon"><use href="#ic-star"/></svg>
                 <span>Favori</span>
             </label>
+            {# OnCalisma-V2 — sadece olası varyant adaylarını göster #}
+            <label class="filter-fav-toggle filter-variant-toggle" title="Sadece olası varyantları göster">
+                <input type="checkbox" id="filter-variants-only">
+                <span class="filter-variant-icon">↔</span>
+                <span>Olası varyant</span>
+            </label>
             <select id="filter-brand">
                 <option value="">Tüm firmalar</option>
                 {% for b in brands %}
@@ -68,6 +74,11 @@
             <select id="filter-country">
                 <option value="">Tüm ülkeler</option>
                 <!-- JS dolduracak -->
+            </select>
+            {# OnCalisma-V2 — grup içi tarih sıralaması #}
+            <select id="filter-sort" title="Grup içinde tarihe göre sırala">
+                <option value="date_desc">Tarih: Yeni → Eski</option>
+                <option value="date_asc">Tarih: Eski → Yeni</option>
             </select>
             <button type="button" id="btn-refresh-list" class="btn btn-secondary" title="Yenile">
                 <svg class="icon"><use href="#ic-search"/></svg>
@@ -130,13 +141,31 @@
         </div>
         <div class="ar-item-body">
             <div class="ar-item-title"></div>
+            {# OnCalisma-V2 (Problem 4a) — AI arge_notu özeti (yoksa gizli; JS doldurur) #}
+            <div class="ar-item-arge" hidden></div>
             <div class="ar-item-meta"></div>
+            {# OnCalisma-V2 — eklenme tarihi (saat:dakika) #}
+            <div class="ar-item-date"></div>
             {# v4.0-part-2 Sprint 7 — master URL tıklanabilir #}
             <a class="ar-item-master" target="_blank" rel="noopener"></a>
+            {# OnCalisma-V2 — ürün URL'i (master altında; varyant tespiti için path+query görünür) #}
+            <a class="ar-item-product" target="_blank" rel="noopener"></a>
             <div class="ar-item-notes"></div>
 
             {# v4.0-part-2 Sprint 6 — inline düzenleme formu (default gizli) #}
             <div class="ar-item-edit" hidden>
+                {# OnCalisma-V2 (Problem 4a) — AI Zenginleştirme: SALT-OKUMA panel + aksiyonlar #}
+                <div class="ar-ai-section">
+                    <div class="ar-ai-head">
+                        <span class="ar-ai-badge">AI</span> Zenginleştirme
+                        <span class="ar-enrich-status ar-enrich-status-edit"></span>
+                    </div>
+                    <div class="ar-ai-panel"><!-- JS doldurur: arge_notu + factual + evidence (salt-okuma) --></div>
+                    <div class="ar-ai-actions">
+                        <button type="button" class="btn btn-secondary ar-btn-enrich">AI ile Zenginleştir</button>
+                        <button type="button" class="btn btn-ghost ar-btn-verify">Doğrulandı işaretle</button>
+                    </div>
+                </div>
                 <label>Ürün URL <input type="url" data-field="product_url"></label>
                 <label>Master URL <input type="url" data-field="master_url"></label>
                 <div class="ar-edit-row-2">
@@ -151,6 +180,29 @@
                 </div>
                 <label class="ar-edit-newbrand" hidden>Yeni firma adı <input type="text" data-field="brand"></label>
                 <label>Not <input type="text" data-field="notes"></label>
+                {# OnCalisma-V2 (Problem 2) — Taksonomi: havuzda elle sınıflandırma #}
+                <div class="ar-edit-row-2">
+                    <label>Kategori <select data-field="category">
+                        <option value="">—</option>
+                        {% for c in category_vocab %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+                    </select></label>
+                    <label>Desen <select data-field="pattern">
+                        <option value="">—</option>
+                        {% for p in pattern_vocab %}<option value="{{ p }}">{{ p }}</option>{% endfor %}
+                    </select></label>
+                </div>
+                <label>Renk Ailesi <select data-field="color_family">
+                    <option value="">—</option>
+                    {% for cf in color_family_vocab %}<option value="{{ cf }}">{{ cf }}</option>{% endfor %}
+                </select></label>
+                <label>Dokuma Etiketleri
+                    <span class="ar-edit-weavetags tax-checkboxes" data-field="weave_tags">
+                        {% for w in weave_tags_vocab %}
+                        <label class="tax-check"><input type="checkbox" value="{{ w }}"> {{ w }}</label>
+                        {% endfor %}
+                    </span>
+                </label>
+                <label>Stil Etiketleri <input type="text" data-field="style_tags" placeholder="virgülle ayır — örn. premium, minimal"></label>
                 <div class="ar-edit-actions">
                     <button type="button" class="btn btn-secondary ar-edit-cancel">İptal</button>
                     <button type="button" class="btn btn-primary ar-edit-save">Kaydet</button>

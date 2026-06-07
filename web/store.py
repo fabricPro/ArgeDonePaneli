@@ -36,6 +36,8 @@ PRODUCT_COLUMNS = [
     "reference_price", "reference_price_type", "reference_price_evidence",
     "from_research_id",  # v4.0-part-2 Sprint 14 — Ön çalışma kaynağı (varsa)
     "plan",  # tasarim-v2 Plan Parça 1 — sürüm-bazlı planlama (surum_id ile anahtarlı jsonb)
+    # OnCalisma-V2 (Problem 2) — taksonomi (3 bağımsız eksen; controlled vocab + migration ile)
+    "category", "pattern", "weave_tags", "style_tags", "color_family",
     "created_at", "updated_at",
 ]
 
@@ -49,6 +51,12 @@ RESEARCH_COLUMNS = [
     "images",  # v4.0-part-2 Sprint 10 — JSONB array (galeri mantığı)
     "albums",  # v4.0-part-2 Sprint 11 — ürün öncesi albüm + renk paleti
     "brand_country", "brand_country_code",  # v4.0-part-2 Sprint 11.5 — country = brand_country alias
+    # OnCalisma-V2 (Problem 1) — ürün ailesi / varyant tespiti (sistem-türetimli; migration ile)
+    "family_key", "base_code", "is_variant_candidate", "variant_of",
+    # OnCalisma-V2 (Problem 2) — taksonomi (kullanıcı havuzda da girebilir; migration ile)
+    "category", "pattern", "weave_tags", "style_tags", "color_family",
+    # OnCalisma-V2 (Problem 4a) — Gemini zenginleştirme staging (iki katmanlı)
+    "extracted_facts", "ai_summary", "enrichment_status",
 ]
 
 # İplik Kataloğu Parça 1 — kartela kolonları (upsert whitelist)
@@ -99,7 +107,17 @@ def get(urun_id: str) -> dict | None:
 def upsert(product: dict) -> None:
     # Sadece bilinen kolonlari gonder (fazlalik kolonlar postgrest hatasi verir)
     row = {k: product.get(k) for k in PRODUCT_COLUMNS if k in product}
-    client().table(TABLE).upsert(row, on_conflict="urun_id").execute()
+    try:
+        client().table(TABLE).upsert(row, on_conflict="urun_id").execute()
+    except Exception as e:
+        # OnCalisma-V2 (Problem 2) — taksonomi kolonları migration öncesi yoksa
+        # onları düşür ve yeniden dene (research_insert deseni). Diğer hatalar aynen fırlar.
+        msg = str(e).lower()
+        if any(k in msg for k in _TAXONOMY_KEYS) or "schema cache" in msg or "column" in msg:
+            slim = {k: v for k, v in row.items() if k not in _TAXONOMY_KEYS}
+            client().table(TABLE).upsert(slim, on_conflict="urun_id").execute()
+        else:
+            raise
 
 
 def delete(urun_id: str) -> None:
@@ -295,6 +313,54 @@ def url_hash(url: str | None) -> str | None:
     return hashlib.md5(n.encode("utf-8")).hexdigest()
 
 
+# OnCalisma-V2 (Problem 1) — Ürün ailesi / varyant tespiti.
+# normalize_url()'i DEĞİŞTİRMEZ (dedup aynen kalır); yalnız base_code + family_key türetir.
+# Renk/tracking query'leri base'den düşülür ki aynı kumaşın renk varyantları tek aileye gelsin.
+_COLOR_QUERY_KEYS = {"color", "colour", "variant", "renk", "c"}
+_TRACKING_QUERY_KEYS = {"fbclid", "gclid", "ref", "mc_cid", "mc_eid"}
+
+
+def derive_base_code(product_url: str | None, brand_slug: str | None) -> tuple[str, str]:
+    """Üründen renk ekini soyup taban kod + family_key türet. SAF, exception fırlatmaz.
+    family_key = '<brand_slug>:<base_code>'. Örnekler:
+      .../p/CA1580/092 -> CA1580 ; .../p/JA7161-071 -> JA7161 ;
+      .../fabric/aurora?color=red | ?color=blue -> aurora
+    """
+    bslug = (brand_slug or "").strip().lower()
+    try:
+        from urllib.parse import urlparse, parse_qsl
+        p = urlparse((product_url or "").strip())
+        segs = [s for s in p.path.split("/") if s]
+        base = ""
+        if segs:
+            last = segs[-1]
+            if re.fullmatch(r"\d{2,4}", last) and len(segs) >= 2:
+                base = segs[-2]                              # /CA1580/092 -> CA1580 (slash+renk)
+            else:
+                m = re.match(r"^(.+?)-\d{2,4}$", last)
+                if m and m.group(1):
+                    base = m.group(1)                        # JA7161-071 -> JA7161 (tire+renk)
+                else:
+                    base = last                              # aurora (soyma yok)
+        else:
+            base = (p.netloc or "").lower()
+        # Renk + tracking query'lerini at; kalan anlamlı query'yi kanonik ekle
+        # (query-id'li sitelerde aşırı-gruplamayı önler; renk/tracking atılır ki varyant gruplanır).
+        kept = []
+        for k, v in parse_qsl(p.query, keep_blank_values=False):
+            kl = (k or "").strip().lower()
+            if kl in _COLOR_QUERY_KEYS or kl in _TRACKING_QUERY_KEYS or kl.startswith("utm_"):
+                continue
+            kept.append((kl, (v or "").strip().lower()))
+        if kept:
+            kept.sort()
+            base = base + "?" + "&".join(f"{k}={v}" for k, v in kept)
+        base = base.strip().lower()
+        return base, f"{bslug}:{base}"
+    except Exception:
+        return "", f"{bslug}:"
+
+
 def fetch_og_image(url: str, timeout: float = 5.0) -> str | None:
     """Sayfanın <meta property="og:image" content="..."> değerini döner.
     Yoksa veya hata olursa None. Hafif, sadece stdlib (requests yok)."""
@@ -468,6 +534,119 @@ def product_find_by_url_hash(hash_: str) -> dict | None:
     return res.data[0] if res.data else None
 
 
+def research_find_family_siblings(family_key: str | None) -> list[dict]:
+    """OnCalisma-V2 (Problem 1) — Aynı family_key'e sahip pending kayıtlar (en eski önce).
+    family_key boş veya ':' ile bitiyorsa (base_code türetilemedi) [] döner."""
+    if not family_key or family_key.endswith(":"):
+        return []
+    try:
+        res = (client().table(TABLE_RESEARCH)
+               .select("id,added_at,variant_of")
+               .eq("family_key", family_key)
+               .eq("status", "pending")
+               .order("added_at", desc=False)
+               .execute())
+        return res.data or []
+    except Exception:
+        # family_key kolonu yoksa (migration henüz uygulanmadı) → sessizce boş
+        return []
+
+
+def compute_family_fields(product_url: str | None, brand_slug: str | None) -> dict:
+    """OnCalisma-V2 (Problem 1) — Ekleme öncesi family/varyant alanlarını hesapla.
+    İŞARETLER, BİRLEŞTİRMEZ (Anayasa #6). Aynı aileden başka pending kayıt varsa
+    is_variant_candidate=True + variant_of=<en eski sibling'in kökü>."""
+    base, fk = derive_base_code(product_url, brand_slug)
+    sibs = research_find_family_siblings(fk)
+    if sibs:
+        vof = sibs[0].get("variant_of") or sibs[0].get("id")
+        cand = True
+    else:
+        vof = None
+        cand = False
+    return {
+        "base_code": base or None,
+        "family_key": fk,
+        "is_variant_candidate": cand,
+        "variant_of": vof,
+    }
+
+
+_FAMILY_KEYS = ("family_key", "base_code", "is_variant_candidate", "variant_of")
+
+
+def research_insert(row: dict):
+    """OnCalisma-V2 (Problem 1) — research_pool insert; migration uygulanmadıysa
+    (family kolonları yoksa) family alanlarını düşürüp yeniden dener → 'ekle' bozulmaz.
+    Diğer hataları (ör. UNIQUE duplicate) AYNEN yukarı fırlatır."""
+    try:
+        return client().table(TABLE_RESEARCH).insert(row).execute()
+    except Exception as e:
+        msg = str(e).lower()
+        if any(k in msg for k in _FAMILY_KEYS) or "schema cache" in msg or "column" in msg:
+            slim = {k: v for k, v in row.items() if k not in _FAMILY_KEYS}
+            return client().table(TABLE_RESEARCH).insert(slim).execute()
+        raise
+
+
+# ---------------------------------------------------------------------------
+# OnCalisma-V2 (Problem 2) — Taksonomi controlled vocabulary + doğrulama.
+# TEK KAYNAK: backend doğrulaması ve frontend dropdown'u BUNDAN beslenir.
+# Değerler Türkçe, sabit listeler. AI doldurma YOK (Problem 4); manuel/boş girilebilir.
+# ---------------------------------------------------------------------------
+VALID_CATEGORIES = ["tul", "dekoratif", "dosemelik", "outdoor", "karartma", "diger"]
+VALID_WEAVE_TAGS = ["leno", "tabby", "jakar", "vual", "batist", "twill", "marquisette", "crash", "rep", "saten", "orme"]
+VALID_PATTERNS = ["cizgili", "duz", "yari-duz", "desenli", "karma"]
+VALID_COLOR_FAMILIES = ["beyaz", "krem-bej", "gri", "siyah", "mavi", "yesil", "sari", "turuncu", "kirmizi", "pembe", "mor", "kahve", "coklu"]
+# Tek tabloda taksonomi kolonları (migration dayanıklılığı + whitelist için).
+_TAXONOMY_KEYS = ("category", "pattern", "weave_tags", "style_tags", "color_family")
+# OnCalisma-V2 (Problem 4a) — Gemini zenginleştirme staging kolonları (migration ile)
+_ENRICHMENT_KEYS = ("extracted_facts", "ai_summary", "enrichment_status")
+
+
+def _norm_enum(v) -> str:
+    """Enum değerini normalize et: strip + lower. None/boş → ''."""
+    return ("" if v is None else str(v)).strip().lower()
+
+
+def _validate_enum(v, allowed: list[str]) -> str | None:
+    """Normalize edilen değer allowed içindeyse döndür, değilse None (sessiz temizle)."""
+    nv = _norm_enum(v)
+    return nv if nv in allowed else None
+
+
+def validate_category(v) -> str | None:
+    return _validate_enum(v, VALID_CATEGORIES)
+
+
+def validate_pattern(v) -> str | None:
+    return _validate_enum(v, VALID_PATTERNS)
+
+
+def validate_color_family(v) -> str | None:
+    return _validate_enum(v, VALID_COLOR_FAMILIES)
+
+
+def validate_enum_list(vals, allowed: list[str]) -> list[str]:
+    """weave_tags — listedeki geçerli (allowed) değerleri süz; tekrar/boş at, sıra korunur."""
+    out: list[str] = []
+    for v in (vals or []):
+        nv = _norm_enum(v)
+        if nv in allowed and nv not in out:
+            out.append(nv)
+    return out
+
+
+def validate_str_list(vals) -> list[str]:
+    """style_tags — serbest string listesi; trim, boş at, tekrar at (içerik doğrulanmaz)."""
+    out: list[str] = []
+    for v in (vals or []):
+        s = ("" if v is None else str(v)).strip()
+        if s and s not in out:
+            out.append(s)
+    return out
+
+
 def research_add(payload: dict) -> dict:
     """Yeni ön çalışma satırı ekle. payload zorunlu alanları:
     master_url, product_url, brand, brand_slug, country.
@@ -495,7 +674,10 @@ def research_add(payload: dict) -> dict:
     if not row["master_url"] or not row["brand"] or not row["country"]:
         raise ValueError("master_url + brand + country zorunlu")
 
-    res = client().table(TABLE_RESEARCH).insert(row).execute()
+    # OnCalisma-V2 (Problem 1) — family/varyant işaretleri (tam-URL dedup AYNEN korunur)
+    row.update(compute_family_fields(purl, row["brand_slug"]))
+
+    res = research_insert(row)
     return (res.data or [row])[0]
 
 
@@ -543,6 +725,13 @@ RESEARCH_EDITABLE_FIELDS = {
     "master_url", "product_url", "product_url_hash",
     "brand", "brand_slug", "country", "country_code",
     "notes", "thumb_url", "is_favorite",
+    # OnCalisma-V2 (Problem 1) — kullanıcı "bu aileye bağla/ayır" diyebilir.
+    # family_key/base_code/is_variant_candidate sistem-türetimli; patch DIŞINDA.
+    "variant_of",
+    # OnCalisma-V2 (Problem 2) — taksonomi (kullanıcı havuzda elle sınıflandırabilir).
+    "category", "pattern", "weave_tags", "style_tags", "color_family",
+    # OnCalisma-V2 (Problem 4a) — Gemini staging (enrich/verify endpoint'leri yazar).
+    "extracted_facts", "ai_summary", "enrichment_status",
 }
 
 
@@ -551,7 +740,20 @@ def research_update(research_id: str, patch: dict) -> dict | None:
     safe = {k: v for k, v in patch.items() if k in RESEARCH_EDITABLE_FIELDS}
     if not safe:
         return research_get(research_id)
-    res = client().table(TABLE_RESEARCH).update(safe).eq("id", research_id).execute()
+    try:
+        res = client().table(TABLE_RESEARCH).update(safe).eq("id", research_id).execute()
+    except Exception as e:
+        # OnCalisma-V2 (P2 taksonomi + P4a enrichment) — opsiyonel kolonlar migration
+        # öncesi yoksa onları düşür+retry. Diğer hatalar aynen fırlar.
+        _opt = _TAXONOMY_KEYS + _ENRICHMENT_KEYS
+        msg = str(e).lower()
+        if any(k in msg for k in _opt) or "schema cache" in msg or "column" in msg:
+            slim = {k: v for k, v in safe.items() if k not in _opt}
+            if not slim:
+                return research_get(research_id)
+            res = client().table(TABLE_RESEARCH).update(slim).eq("id", research_id).execute()
+        else:
+            raise
     return (res.data or [None])[0]
 
 
