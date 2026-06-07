@@ -493,12 +493,15 @@
             {% endfor %}
         </div>
         {% endif %}
+        {# P6 — AI (vision) renk analizi: ai_colors images içinde; manuel renkleri EZMEZ (#2). JS render eder. #}
+        <div class="img-ai-colors" data-path="{{ item.path }}"{% if item.ai_colors and item.ai_colors.dominant_colors %} data-ai='{{ item.ai_colors|tojson }}'{% endif %}></div>
         <div class="img-manage-actions">
             {% if item.is_cover %}
             <button class="btn-mini btn-mini-cover" disabled><svg class="icon"><use href="#ic-check"/></svg> Kapak</button>
             {% else %}
             <button class="btn-mini btn-set-cover" data-path="{{ item.path }}" title="Kapak yap"><svg class="icon"><use href="#ic-star"/></svg></button>
             {% endif %}
+            <button class="btn-mini btn-ai-color" data-path="{{ item.path }}" title="AI renk analizi (vision)"><svg class="icon"><use href="#ic-target"/></svg></button>
             <button class="btn-mini btn-pin {% if item.is_pinned %}is-pinned{% endif %}" data-path="{{ item.path }}" data-pin="{{ 'false' if item.is_pinned else 'true' }}" title="{% if item.is_pinned %}Sabitlemeyi kaldır{% else %}Sabitle{% endif %}"><svg class="icon"><use href="#ic-pin"/></svg></button>
             {# v4.0-part-2 Sprint 14 — Favori toggle #}
             <button class="btn-mini btn-favorite {% if item.is_favorite %}is-favorite{% endif %}" data-path="{{ item.path }}" title="{% if item.is_favorite %}Favoriden çıkar{% else %}Favorilere ekle{% endif %}" aria-label="Favori"><svg class="icon"><use href="#ic-heart"/></svg></button>
@@ -2945,6 +2948,166 @@ grid.addEventListener('dragover', (e) => {
             }
         });
     }
+})();
+</script>
+
+{# P6 — Varyant-başına AI (vision) renk analizi + role uygula.
+   Ayrı IIFE: 'Renkler' albümü olmasa da TÜM görsellerde çalışır. Sonuç images[i].ai_colors'a
+   yazılır; manuel Atkı/Çözgü/Toplam'ı EZMEZ (Anayasa #2/#6). Rolü kullanıcı tıklayarak atar. #}
+<script>
+(function () {
+    "use strict";
+    const URUN_ID = window.URUN_ID;
+    if (!URUN_ID) return;
+    const grid = document.getElementById('image-grid');
+    if (!grid) return;
+
+    const ROLE_TR = { weft: 'Atkı', warp: 'Çözgü', mix: 'Toplam' };
+    const ROLE_SHORT = { weft: 'A', warp: 'Ç', mix: 'T' };
+    const RENKLER_URL = "{{ url_for('static', filename='data/renkler.json') }}";
+
+    // Renk store: color-tools IIFE çalıştıysa onun window.IMAGE_COLORS'unu paylaş; yoksa seed et
+    const COLORS = window.IMAGE_COLORS || (window.IMAGE_COLORS = {{ image_color_map | tojson }});
+
+    function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function safeHex(h){ const s=String(h||'').trim(); return /^#[0-9a-fA-F]{3,8}$/.test(s) ? s : null; }
+    function cssEsc(s){ return (window.CSS && CSS.escape) ? CSS.escape(s) : String(s).replace(/"/g,'\\"'); }
+    async function postJson(url, body){
+        try {
+            const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body||{}) });
+            return await res.json();
+        } catch(e){ return { ok:false, error:'Bağlantı hatası' }; }
+    }
+    const toast = (m,t)=>(window.toast||function(x){alert(x);})(m,t);
+    function curModel(){ try { return localStorage.getItem('mobidik_gemini_model') || ''; } catch(e){ return ''; } }
+
+    // Türkçe ad sözlüğü (canvas gerekmez) — color-picker.js public API
+    let dictPromise = null;
+    function ensureDict(){
+        if (!window.ColorPicker || !window.ColorPicker.ensureDictionary) return Promise.resolve(false);
+        if (!dictPromise) dictPromise = window.ColorPicker.ensureDictionary(RENKLER_URL).catch(()=>false);
+        return dictPromise;
+    }
+    function colorObj(hex){
+        const cp = window.ColorPicker;
+        if (cp && cp.nameHex) return cp.nameHex(hex);
+        return { hex: String(hex).toUpperCase(), name:'—', rgb:[0,0,0], lab:[0,0,0] };
+    }
+
+    // weft/warp dizi (backend rolü REPLACE eder → tam diziyi gönder); mix tek obje
+    function roleArr(path, role){
+        const e = COLORS[path] || (COLORS[path] = { colors:{} });
+        if (!e.colors) e.colors = {};
+        const c = e.colors;
+        if (role === 'mix') return null;
+        if (!Array.isArray(c[role])) c[role] = (c[role] && c[role].hex) ? [c[role]] : [];
+        return c[role];
+    }
+
+    // Manuel renk rozetlerini tazele (server markup'ıyla aynı sınıflar; ilk-renk)
+    function refreshBadges(path, colors){
+        const card = grid.querySelector('.img-manage-card[data-path="'+cssEsc(path)+'"]');
+        if (!card) return;
+        let host = card.querySelector('.img-color-badges');
+        const have = colors && ['weft','warp','mix'].some(r => colors[r] && (Array.isArray(colors[r])?colors[r].length:colors[r].hex));
+        if (!have){ if (host) host.remove(); return; }
+        if (!host){
+            host = document.createElement('div');
+            host.className = 'img-color-badges'; host.dataset.path = path;
+            card.insertBefore(host, card.querySelector('.img-ai-colors') || card.querySelector('.img-manage-actions'));
+        }
+        const first = (role)=>{ const v=colors[role]; if(!v) return null; if(Array.isArray(v)) return v[0]||null; return v.hex?v:null; };
+        host.innerHTML = ['weft','warp','mix'].filter(r=>first(r)).map(r=>{
+            const c=first(r);
+            return '<span class="color-badge color-badge-'+r+'" style="--c:'+esc(c.hex)+'" title="'+ROLE_TR[r]+': '+esc(c.name||'—')+' ('+esc(c.hex)+')">'+
+                '<em class="cb-role">'+ROLE_SHORT[r]+'</em><span class="cb-name">'+esc(c.name||'—')+'</span></span>';
+        }).join('');
+    }
+
+    // ai_colors render (chip + Türkçe ad + A/Ç/T uygula)
+    function renderAi(host, ai){
+        const dom = (ai && Array.isArray(ai.dominant_colors)) ? ai.dominant_colors.map(safeHex).filter(Boolean) : [];
+        if (!dom.length){ host.innerHTML=''; host.removeAttribute('data-ai'); return; }
+        const meta = [];
+        if (ai.transparency) meta.push(esc(ai.transparency));
+        if (ai.texture) meta.push(esc(ai.texture));
+        if (ai.color_count) meta.push(esc(ai.color_count)+' renk');
+        const chips = dom.map(hex => {
+            const o = colorObj(hex);
+            return '<div class="iac-chip" data-hex="'+esc(o.hex)+'">'+
+                '<span class="iac-sw" style="background:'+esc(o.hex)+'"></span>'+
+                '<span class="iac-name">'+esc(o.name)+'</span>'+
+                '<span class="iac-hex">'+esc(o.hex)+'</span>'+
+                '<span class="iac-apply">'+
+                    '<button type="button" class="iac-role" data-role="weft" title="Atkı\'ya uygula">A</button>'+
+                    '<button type="button" class="iac-role" data-role="warp" title="Çözgü\'ye uygula">Ç</button>'+
+                    '<button type="button" class="iac-role" data-role="mix" title="Toplam\'a uygula">T</button>'+
+                '</span></div>';
+        }).join('');
+        host.innerHTML = '<div class="iac-head"><span class="iac-badge">AI renk</span>'+
+            (meta.length?('<span class="iac-meta">'+meta.join(' · ')+'</span>'):'')+'</div>'+
+            '<div class="iac-chips">'+chips+'</div>';
+    }
+
+    // Sayfa açılışında mevcut ai_colors'ları render et; sözlük gelince Türkçe adla tazele
+    (function renderExisting(){
+        const hosts = [...grid.querySelectorAll('.img-ai-colors[data-ai]')];
+        if (!hosts.length) return;
+        const parse = h => { try { return JSON.parse(h.dataset.ai); } catch(e){ return null; } };
+        hosts.forEach(h => { const ai = parse(h); if (ai) renderAi(h, ai); });
+        ensureDict().then(()=> hosts.forEach(h => { const ai = parse(h); if (ai) renderAi(h, ai); }));
+    })();
+
+    grid.addEventListener('click', async (e) => {
+        if (document.body.classList.contains('image-select-on')) return;  // seçim modunda devre dışı
+
+        // 1) AI renk analizi tetikle
+        const aiBtn = e.target.closest('.btn-ai-color');
+        if (aiBtn){
+            const path = aiBtn.dataset.path;
+            const card = aiBtn.closest('.img-manage-card');
+            const host = card && card.querySelector('.img-ai-colors');
+            aiBtn.disabled = true; aiBtn.classList.add('is-loading');
+            await ensureDict();
+            const d = await postJson('/api/urun/'+encodeURIComponent(URUN_ID)+'/gorsel-vision', { path, model: curModel() });
+            aiBtn.disabled = false; aiBtn.classList.remove('is-loading');
+            if (d.ok && d.ai_colors){
+                if (host){ host.dataset.ai = JSON.stringify(d.ai_colors); renderAi(host, d.ai_colors); }
+                toast('AI renk analizi tamam', 'success');
+            } else {
+                toast(d.error || 'AI renk analizi başarısız', 'error');
+            }
+            return;
+        }
+
+        // 2) AI rengini role uygula → mevcut /gorsel-renk (manuel sisteme yazar)
+        const roleBtn = e.target.closest('.iac-role');
+        if (roleBtn){
+            const chip = roleBtn.closest('.iac-chip');
+            const host = roleBtn.closest('.img-ai-colors');
+            const hex = safeHex(chip && chip.dataset.hex);
+            const role = roleBtn.dataset.role;
+            const path = host && host.dataset.path;
+            if (!hex || !path || !ROLE_TR[role]) return;
+            await ensureDict();
+            const color = colorObj(hex);
+            let payload;
+            if (role === 'mix') payload = { mix: color };
+            else { const arr = roleArr(path, role).slice(); arr.push(color); payload = { [role]: arr }; }
+            roleBtn.disabled = true;
+            const d = await postJson('/api/urun/'+encodeURIComponent(URUN_ID)+'/gorsel-renk', { path, colors: payload });
+            roleBtn.disabled = false;
+            if (d.ok){
+                COLORS[path] = COLORS[path] || {}; COLORS[path].colors = d.image_colors || {};
+                refreshBadges(path, d.image_colors);
+                if (chip) chip.classList.add('is-applied');
+                toast(ROLE_TR[role]+' rengi atandı: '+(color.name||color.hex), 'success');
+            } else {
+                toast(d.error || 'Renk atanamadı', 'error');
+            }
+            return;
+        }
+    });
 })();
 </script>
 

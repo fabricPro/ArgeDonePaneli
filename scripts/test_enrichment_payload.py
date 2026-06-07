@@ -39,15 +39,22 @@ RESULT = {
         # P4b — yeni alanlar (evidence'lı -> extracted_facts'e girer)
         "brand_country": {"value": "İsviçre", "evidence": "based in Switzerland"},
         "color_count": {"value": "21", "evidence": "21 colours"},
+        # P5 — taxonomy (inference; vocab'a validate) + image_analysis (vision inference)
+        "taxonomy": {"category": "TUL", "pattern": "cizgili", "color_family": "krem-bej",
+                     "weave_tags": ["vual", "banana"], "style_tags": ["premium", "minimal", "premium", ""],
+                     "confidence": "high", "reason": "tul sheer"},
+        "image_analysis": {"dominant_colors": ["#EEE8D5", "#C9B79C"], "texture": "dokulu",
+                           "transparency": "tül", "color_count": "21", "confidence": "medium", "note": "açık tonlar"},
         "arge_notu_taslak": {"value": "A" * 350, "evidence": "desc"},
     },
 }
 
 p = gx.build_enrichment_payload(RESULT)
 ef = p["extracted_facts"]; ai = p["ai_summary"]
-# (a) factual/inference ayrımı doğru (P4b: +brand_country +color_count)
-check("(a) factual kanıtlı 5 alan", sorted(ef.keys()) == ["brand_country", "color_count", "composition", "production_country", "reference_price"])
-check("(P4b) brand_country + color_count extracted_facts'te", "brand_country" in ef and ef.get("color_count", {}).get("value") == "21")
+# (a) factual/inference ayrımı doğru (P6.2: brand_country artık ÇIKARIM → suggested, ef'te DEĞİL)
+check("(a) factual kanıtlı 4 alan", sorted(ef.keys()) == ["color_count", "composition", "production_country", "reference_price"])
+check("(P4b) color_count extracted_facts'te", ef.get("color_count", {}).get("value") == "21")
+check("(P6.2) brand_country ÇIKARIM: suggested'da, ef'te DEĞİL", "brand_country" not in ef and (ai.get("suggested") or {}).get("brand_country") == "İsviçre")
 check("(a) arge_notu ai_summary'de, extracted_facts'te DEĞİL", "arge_notu_taslak" not in ef and "arge_notu" in ai)
 check("(a) production_country sadece extracted_facts'te", "production_country" in ef)
 # (b) evidence/value'sız factual atlanıyor
@@ -60,6 +67,39 @@ check("composition.evidence korundu", ef.get("composition", {}).get("evidence") 
 # (c) arge ≤300
 check("(c) arge_notu <= 300", len(ai.get("arge_notu", "")) == 300)
 check("ai_summary model + generated_at var", bool(ai.get("model")) and bool(ai.get("generated_at")))
+# P5 — taxonomy ÖNERİSİ ai_summary.suggested'da (extracted_facts'te DEĞİL), vocab'a temizlenmiş
+_sug = ai.get("suggested") or {}
+check("(P5) taxonomy extracted_facts'te DEĞİL", "taxonomy" not in ef and "image_analysis" not in ef)
+check("(P5) suggested.category normalize (TUL->tul)", _sug.get("category") == "tul")
+check("(P5) suggested.weave_tags banana süzüldü", _sug.get("weave_tags") == ["vual"])
+check("(P6) suggested.style_tags trim+dedup", _sug.get("style_tags") == ["premium", "minimal"])
+check("(P5) suggested.confidence taşındı", _sug.get("confidence") == "high")
+# P5 — image_analysis ai_summary'de
+_ia = ai.get("image_analysis") or {}
+check("(P5) image_analysis dominant_colors + transparency", _ia.get("dominant_colors") == ["#EEE8D5", "#C9B79C"] and _ia.get("transparency") == "tül")
+
+# ---------------- P6.1 — kanıt doğrulama (uydurma koruması) ----------------
+RESULT_V = {
+    "ok": True, "model_used": "gemini-2.5-pro",
+    "source_text": 'Material 100% polyester  Width / Height 315 cm / 124"  Colour variations 5',
+    "suggestions": {
+        "composition": {"value": "%100 polyester", "evidence": "Material 100% polyester"},   # kanıt VAR
+        "width_cm": {"value": "315", "evidence": 'Width / Height 315 cm / 124"'},             # VAR
+        "weight_gsm": {"value": "113", "evidence": "Weight 113 g/m²"},                         # YOK -> atılmalı
+        "reference_price": {"value": "120 EUR", "type": "from", "evidence": "Price from 120 EUR / m"},  # YOK -> atılmalı
+    },
+}
+pv = gx.build_enrichment_payload(RESULT_V)
+efv = pv["extracted_facts"]
+check("(P6.1) kanıtı VAR composition kaldı", "composition" in efv)
+check("(P6.1) kanıtı VAR width_cm kaldı", "width_cm" in efv)
+check("(P6.1) kanıtı YOK weight_gsm atıldı (uydurma)", "weight_gsm" not in efv)
+check("(P6.1) kanıtı YOK reference_price atıldı (uydurma)", "reference_price" not in efv)
+check("(P6.1) dropped_unverified listesi doğru", sorted(pv.get("dropped_unverified") or []) == ["reference_price", "weight_gsm"])
+# source_text YOKSA doğrulama atlanır (geriye dönük uyum)
+_nosrc = gx.build_enrichment_payload({"ok": True, "suggestions": {"weave_type": {"value": "dobby", "evidence": "kanıtsız"}}})
+check("(P6.1) source_text yoksa doğrulama atlanır", "weave_type" in _nosrc["extracted_facts"] and not _nosrc.get("dropped_unverified"))
+
 # (d) error -> boş payload
 pe = gx.build_enrichment_payload({"ok": False, "error": "http_404"})
 check("(d) error -> boş payload + error", pe["extracted_facts"] == {} and pe["ai_summary"] == {} and pe.get("error") == "http_404")

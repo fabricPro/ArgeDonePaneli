@@ -165,35 +165,16 @@
     const form = article.querySelector('.ar-item-edit');
     form.querySelector('[data-field="product_url"]').value = r.product_url || '';
     form.querySelector('[data-field="master_url"]').value = r.master_url || '';
+    // Master URL collapsed kalır; özet etiketi kayıtlı olup olmadığını gösterir (içerik kaydedilir)
+    const masterSum = form.querySelector('.ar-edit-master-sum');
+    if (masterSum) masterSum.textContent = r.master_url ? '🔗 Master URL (kayıtlı) — göster/düzenle' : '+ Master URL';
     form.querySelector('[data-field="notes"]').value = r.notes || '';
     form.querySelector('[data-field="country"]').value = r.country || '';
-    const brandSel = form.querySelector('[data-field="brand_slug"]');
-    const newBrandWrap = form.querySelector('.ar-edit-newbrand');
-    const newBrandInput = newBrandWrap.querySelector('input');
-    const opt = [...brandSel.options].find(o => o.value === r.brand_slug);
-    if (opt) {
-      brandSel.value = r.brand_slug;
-      newBrandWrap.hidden = true;
-      newBrandInput.value = '';
-    } else {
-      brandSel.value = '__new__';
-      newBrandWrap.hidden = false;
-      newBrandInput.value = r.brand || '';
-    }
-    // OnCalisma-V2 (Problem 2) — taksonomi alanlarını doldur
-    const setSel = (sel, v) => { const el = form.querySelector(sel); if (el) el.value = v || ''; };
-    setSel('[data-field="category"]', r.category);
-    setSel('[data-field="pattern"]', r.pattern);
-    setSel('[data-field="color_count"]', r.color_count);   // P4b: renk ailesi yerine renk sayısı
-    const wtags = Array.isArray(r.weave_tags) ? r.weave_tags : [];
-    form.querySelectorAll('.ar-edit-weavetags input[type="checkbox"]').forEach(cb => {
-      cb.checked = wtags.includes(cb.value);
-    });
-    const stEl = form.querySelector('[data-field="style_tags"]');
-    if (stEl) stEl.value = (Array.isArray(r.style_tags) ? r.style_tags : []).join(', ');
-    // P4b: kalıcı AI notu (yoksa AI taslağından doldur)
-    const aiNotuEl = form.querySelector('[data-field="ai_notu"]');
-    if (aiNotuEl) aiNotuEl.value = r.ai_notu || (r.ai_summary && r.ai_summary.arge_notu) || '';
+    // Marka: artık düz input + datalist (ülke gibi) — select/yeni-firma mantığı yok
+    const brandEl = form.querySelector('[data-field="brand"]');
+    if (brandEl) brandEl.value = r.brand || '';
+    // OnCalisma-V2 (Problem 2) — taksonomi + AI notu alanlarını doldur (P6: ortak helper)
+    syncTaxonomyForm(form, r);
     // OnCalisma-V2 (Problem 4a) — AI Zenginleştirme paneli (salt-okuma) + durum
     const aiPanel = form.querySelector('.ar-ai-panel');
     if (aiPanel) aiPanel.innerHTML = renderAiPanel(r);
@@ -209,33 +190,34 @@
   }
   async function saveEdit(article, r) {
     const form = article.querySelector('.ar-item-edit');
-    const payload = {
-      product_url: form.querySelector('[data-field="product_url"]').value.trim(),
-      master_url: form.querySelector('[data-field="master_url"]').value.trim(),
-      notes: form.querySelector('[data-field="notes"]').value.trim(),
+    if (!form) { toast('Düzenleme formu bulunamadı', 'error'); return null; }
+    // Güvenli alan okuyucu: eleman yoksa / value string değilse boş döndür (çökmez) + tanı logu
+    const val = (sel) => {
+      const el = form.querySelector(sel);
+      if (!el || typeof el.value !== 'string') {
+        console.warn('[saveEdit] alan okunamadı:', sel, el);
+        return '';
+      }
+      return el.value.trim();
     };
-    const brandSel = form.querySelector('[data-field="brand_slug"]');
-    const country = form.querySelector('[data-field="country"]').value.trim();
-    if (brandSel.value === '__new__') {
-      const newName = form.querySelector('.ar-edit-newbrand input').value.trim();
-      if (!newName) { toast('Yeni firma adı boş', 'error'); return null; }
-      payload.brand = newName;
-      payload.country = country;
-    } else if (brandSel.value) {
-      payload.brand_slug = brandSel.value;
-      payload.country = country;
-    } else {
-      toast('Firma seçilmedi', 'error');
-      return null;
-    }
+    const payload = {
+      product_url: val('[data-field="product_url"]'),
+      master_url: val('[data-field="master_url"]'),
+      notes: val('[data-field="notes"]'),
+    };
+    // Marka: düz input (ülke gibi). Mevcut firmayla eşleşirse backend slug'ını korur.
+    const brand = val('[data-field="brand"]');
+    const country = val('[data-field="country"]');
+    if (!brand) { toast('Firma adı boş', 'error'); return null; }
+    payload.brand = brand;
+    payload.country = country;
     // OnCalisma-V2 (Problem 2) — taksonomi (boş select → null; checkbox'lar → dizi; style → virgül böl)
     const selVal = (sel) => { const el = form.querySelector(sel); return el && el.value ? el.value : null; };
     payload.category = selVal('[data-field="category"]');
     payload.pattern = selVal('[data-field="pattern"]');
-    const _ccEl = form.querySelector('[data-field="color_count"]');   // P4b renk sayısı
-    payload.color_count = (_ccEl && _ccEl.value.trim()) ? parseInt(_ccEl.value, 10) : null;
-    const _anEl = form.querySelector('[data-field="ai_notu"]');        // P4b AI notu
-    payload.ai_notu = _anEl ? (_anEl.value.trim() || null) : null;
+    const ccRaw = val('[data-field="color_count"]');   // P4b renk sayısı
+    payload.color_count = ccRaw ? parseInt(ccRaw, 10) : null;
+    payload.ai_notu = val('[data-field="ai_notu"]') || null;          // P4b AI notu
     payload.weave_tags = [...form.querySelectorAll('.ar-edit-weavetags input[type="checkbox"]:checked')].map(cb => cb.value);
     payload.style_tags = (form.querySelector('[data-field="style_tags"]')?.value || '')
       .split(',').map(s => s.trim()).filter(Boolean);
@@ -298,6 +280,8 @@
     production_country: 'Üretim Ülkesi', brand_country: 'Firma Ülkesi', composition: 'Kompozisyon', width_cm: 'En (cm)',
     weight_gsm: 'Ağırlık (g/m²)', weave_type: 'Dokuma', repeat_vertical_cm: 'Rapor Boyuna (cm)',
     repeat_horizontal_cm: 'Rapor Enine (cm)', color_count: 'Renk Sayısı', reference_price: 'Fiyat',
+    category: 'Kategori', pattern: 'Desen', weave_tags: 'Dokuma Etiketleri',
+    color_family: 'Renk Ailesi', style_tags: 'Stil Etiketleri',
   };
   function escHtml(s) {
     return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -305,13 +289,79 @@
   function enrichStatusLabel(s) {
     return ({ raw: '', enriched: 'AI zenginleştirildi', verified: '✓ Doğrulandı' })[s || 'raw'] || '';
   }
+  // P5 — yardımcılar
+  function safeColor(c) {
+    const s = String(c || '').trim();
+    return /^#[0-9a-fA-F]{3,8}$/.test(s) ? s : 'transparent';   // CSS injection koruması
+  }
+  function arraysEqual(a, b) {
+    a = a || []; b = b || [];
+    if (a.length !== b.length) return false;
+    const sa = [...a].sort(), sb = [...b].sort();
+    return sa.every((v, i) => v === sb[i]);
+  }
+  function isSuggestionAccepted(r, field, sug) {
+    if (field === 'weave_tags' || field === 'style_tags') return arraysEqual(r[field], sug[field]);
+    if (field === 'ai_notu') return r.ai_notu != null && r.ai_notu !== '' && r.ai_notu === sug.ai_notu;
+    if (field === 'brand_country') { const v = r.brand_country || r.country; return v != null && v !== '' && v === sug.brand_country; }
+    return r[field] != null && r[field] !== '' && r[field] === sug[field];
+  }
+  // P6 — AI panelindeki kabul edilebilir öğe sayımı (factual + suggested taksonomi + ai_notu)
+  function acceptCounts(r) {
+    const ef = r.extracted_facts || {};
+    const ai = r.ai_summary || {};
+    const sug = ai.suggested || {};
+    let total = 0, acc = 0;
+    Object.keys(ef).forEach(k => {
+      const f = ef[k];
+      if (f && typeof f === 'object' && f.value) { total++; if (f.accepted) acc++; }
+    });
+    ['category', 'pattern', 'color_family', 'weave_tags', 'style_tags', 'brand_country'].forEach(field => {
+      const has = Array.isArray(sug[field]) ? sug[field].length : !!sug[field];
+      if (has) { total++; if (isSuggestionAccepted(r, field, sug)) acc++; }
+    });
+    if (ai.arge_notu) { total++; if (isSuggestionAccepted(r, 'ai_notu', { ai_notu: ai.arge_notu })) acc++; }
+    return { acc, total };
+  }
+  function isEverythingAccepted(r) {
+    const { acc, total } = acceptCounts(r);
+    return total > 0 && acc === total;
+  }
+  // P6 — Düzenle formundaki taksonomi/ai_notu alanlarını r'den senkronla (openEditMode + accept-all paylaşır)
+  function syncTaxonomyForm(form, r) {
+    if (!form) return;
+    const setSel = (sel, v) => { const el = form.querySelector(sel); if (el) el.value = v || ''; };
+    setSel('[data-field="country"]', r.country);   // P6.2 firma ülkesi (accept-all sonrası tazelensin)
+    setSel('[data-field="category"]', r.category);
+    setSel('[data-field="pattern"]', r.pattern);
+    setSel('[data-field="color_count"]', r.color_count);   // P4b: renk ailesi yerine renk sayısı
+    const wtags = Array.isArray(r.weave_tags) ? r.weave_tags : [];
+    form.querySelectorAll('.ar-edit-weavetags input[type="checkbox"]').forEach(cb => { cb.checked = wtags.includes(cb.value); });
+    const stEl = form.querySelector('[data-field="style_tags"]');
+    if (stEl) stEl.value = (Array.isArray(r.style_tags) ? r.style_tags : []).join(', ');
+    // P4b: kalıcı AI notu (yoksa AI taslağından doldur)
+    const aiNotuEl = form.querySelector('[data-field="ai_notu"]');
+    if (aiNotuEl) aiNotuEl.value = r.ai_notu || (r.ai_summary && r.ai_summary.arge_notu) || '';
+  }
   // P4c — Edit drawer AI paneli: alan-alan KABUL kartları (Linkten Doldur tarzı).
   // Her kart: etiket + değer + kaynak alıntısı + Kabul/Geri-Al butonu. Anlık (accept-fact).
   function renderAiPanel(r) {
     const ef = r.extracted_facts || {};
     const ai = r.ai_summary || {};
     const parts = [];
-    if (ai.arge_notu) parts.push(`<div class="ar-ai-arge"><span class="ar-ai-badge">AI</span> ${escHtml(ai.arge_notu)}</div>`);
+    // P6 — AI Notu artık kabul edilebilir kart (arge_notu → ai_notu); diğer öneriler gibi tek tık
+    if (ai.arge_notu) {
+      const accN = isSuggestionAccepted(r, 'ai_notu', { ai_notu: ai.arge_notu });
+      parts.push(
+        `<div class="ar-ai-card${accN ? ' is-accepted' : ''}" data-sfield="ai_notu">` +
+          `<div class="ar-ai-card-head">` +
+            `<span class="ar-ai-fact-k"><span class="ar-ai-badge">AI</span> AI Notu</span>` +
+            `<button type="button" class="ar-ai-suggest-btn" data-sfield="ai_notu">${accN ? '✓ Kabul edildi — Geri Al' : '✓ Kabul'}</button>` +
+          `</div>` +
+          `<div class="ar-ai-fact-v">${escHtml(ai.arge_notu)}</div>` +
+        `</div>`
+      );
+    }
     const keys = Object.keys(ef).filter(k => ef[k] && typeof ef[k] === 'object' && ef[k].value);
     if (keys.length) {
       parts.push('<div class="ar-ai-cards">');
@@ -332,6 +382,51 @@
       });
       parts.push('</div>');
     }
+    // P5 — Taksonomi ÖNERİLERİ (tahmin) → accept-suggestion
+    const sug = ai.suggested || {};
+    const taxItems = [];
+    if (sug.category) taxItems.push(['category', sug.category]);
+    if (sug.pattern) taxItems.push(['pattern', sug.pattern]);
+    if (sug.color_family) taxItems.push(['color_family', sug.color_family]);
+    if (sug.weave_tags && sug.weave_tags.length) taxItems.push(['weave_tags', sug.weave_tags.join(', ')]);
+    if (sug.style_tags && sug.style_tags.length) taxItems.push(['style_tags', sug.style_tags.join(', ')]);
+    if (sug.brand_country) taxItems.push(['brand_country', sug.brand_country]);   // P6.2 firma ülkesi (çıkarım)
+    if (taxItems.length) {
+      const conf = sug.confidence ? ` <span class="ar-ai-conf ar-ai-conf-${escHtml(sug.confidence)}">${escHtml(sug.confidence)}</span>` : '';
+      parts.push(`<div class="ar-ai-section-h">AI önerisi (tahmin)${conf}</div>`);
+      if (sug.reason) parts.push(`<div class="ar-ai-evidence">${escHtml(sug.reason)}</div>`);
+      parts.push('<div class="ar-ai-cards">');
+      taxItems.forEach(([field, disp]) => {
+        const acc = isSuggestionAccepted(r, field, sug);
+        parts.push(
+          `<div class="ar-ai-card${acc ? ' is-accepted' : ''}" data-sfield="${escHtml(field)}">` +
+            `<div class="ar-ai-card-head">` +
+              `<span class="ar-ai-fact-k">${escHtml(FACT_LABELS[field] || field)}</span>` +
+              `<button type="button" class="ar-ai-suggest-btn" data-sfield="${escHtml(field)}">${acc ? '✓ Kabul edildi — Geri Al' : '✓ Kabul'}</button>` +
+            `</div>` +
+            `<div class="ar-ai-fact-v">${escHtml(disp)}</div>` +
+          `</div>`
+        );
+      });
+      parts.push('</div>');
+    }
+    // P5 — Görsel analizi (tahmin; gösterim). color_count "↳ yaz" → manuel color_count alanına.
+    const ia = ai.image_analysis || {};
+    if (ia.dominant_colors || ia.texture || ia.transparency || ia.color_count) {
+      const sw = (ia.dominant_colors || []).map(c =>
+        `<span class="ar-ai-swatch" style="background:${safeColor(c)}" title="${escHtml(c)}"></span>`).join('');
+      const bits = [];
+      if (ia.texture) bits.push('Doku: ' + escHtml(ia.texture));
+      if (ia.transparency) bits.push('Şeffaflık: ' + escHtml(ia.transparency));
+      if (ia.color_count) bits.push(`Renk sayısı: ${escHtml(ia.color_count)} <button type="button" class="ar-ai-applycc" data-cc="${escHtml(ia.color_count)}">↳ yaz</button>`);
+      const conf = ia.confidence ? ` <span class="ar-ai-conf ar-ai-conf-${escHtml(ia.confidence)}">${escHtml(ia.confidence)}</span>` : '';
+      parts.push(`<div class="ar-ai-section-h">Görsel analizi${conf}</div>`);
+      parts.push('<div class="ar-ai-image">' +
+        (sw ? `<div class="ar-ai-swatches">${sw}</div>` : '') +
+        (bits.length ? `<div class="ar-ai-img-meta">${bits.join(' · ')}</div>` : '') +
+        (ia.note ? `<div class="ar-ai-evidence">${escHtml(ia.note)}</div>` : '') +
+      '</div>');
+    }
     if (!parts.length) return '<div class="ar-ai-empty">Henüz zenginleştirilmedi. “AI ile Zenginleştir”e bas.</div>';
     return parts.join('');
   }
@@ -345,6 +440,21 @@
     el.innerHTML = `<span class="ar-ai-badge">AI</span> <span class="ar-arge-text">${escHtml(arge)}</span>` +
       (st ? ` <span class="ar-enrich-status">${escHtml(st)}</span>` : '');
     el.hidden = false;
+  }
+  // P6 — Listede "Kabul N/M" rozeti (çekmeceyi açmadan onay durumu görünür)
+  function updateAcceptBadge(article, r) {
+    const metaEl = article.querySelector('.ar-item-meta');
+    if (!metaEl) return;
+    let badge = metaEl.querySelector('.ar-accept-badge');
+    const { acc, total } = acceptCounts(r);
+    if (!total) { if (badge) badge.remove(); return; }
+    if (!badge) {
+      badge = document.createElement('span');
+      badge.className = 'ar-accept-badge';
+      metaEl.appendChild(badge);
+    }
+    badge.textContent = `Kabul ${acc}/${total}`;
+    badge.classList.toggle('is-complete', acc === total);
   }
 
   function renderList(rows) {
@@ -383,7 +493,11 @@
       groupEl.appendChild(head);
 
       groups[key].forEach(r => {
-        groupEl.appendChild(renderItem(r));
+        try {
+          groupEl.appendChild(renderItem(r));
+        } catch (err) {
+          console.error('[renderItem] satır render hatası:', r && r.id, err);
+        }
       });
 
       // v4.0-part-2 Sprint 7 — Grup-içi "+ Yeni satır" formu
@@ -508,6 +622,12 @@
     // Düzenleme — v4.0-part-2 Sprint 6
     const editBtn = node.querySelector('.ar-item-edit-btn');
     const editForm = node.querySelector('.ar-item-edit');
+    // P6 — "Tümünü Kabul" toggle (label r'nin onay durumuna göre güncellenir)
+    const acceptAllBtn = node.querySelector('.ar-btn-accept-all');
+    function refreshAcceptAllLabel() {
+      if (acceptAllBtn) acceptAllBtn.textContent = isEverythingAccepted(r) ? '↩ Tümünü Geri Al' : '✓ Tümünü Kabul';
+    }
+    refreshAcceptAllLabel();
     editBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       openEditMode(article, r);
@@ -516,11 +636,16 @@
       closeEditMode(article);
     });
     node.querySelector('.ar-edit-save').addEventListener('click', async () => {
-      const updated = await saveEdit(article, r);
-      if (updated) {
-        Object.assign(r, updated);
-        closeEditMode(article);
-        renderListFromAPI();
+      try {
+        const updated = await saveEdit(article, r);
+        if (updated) {
+          Object.assign(r, updated);
+          closeEditMode(article);
+          renderListFromAPI();
+        }
+      } catch (err) {
+        console.error('[Kaydet]', err);
+        toast('Kaydet hatası: ' + (err && err.message ? err.message : err), 'error');
       }
     });
     // OnCalisma-V2 (Problem 4a / P4a-2) — AI Zenginleştir + model seçici + Doğrulandı işaretle
@@ -548,26 +673,112 @@
           r.enrichment_status = d.enrichment_status || 'enriched';
           toast('Zenginleştirildi' + (d.model ? ' · ' + d.model : ''), 'success');
           if (d.model_invalid) toast('Geçersiz model — server varsayılanı kullanıldı', 'error');
+          // P6.1 — sayfada kanıtı bulunamayan (uydurma şüpheli) alanlar elendiyse uyar
+          if (d.dropped_unverified && d.dropped_unverified.length) {
+            toast(`${d.dropped_unverified.length} alan sayfada doğrulanamadı, atıldı (uydurma koruması)`, 'error');
+          }
           if (editForm) {
             const p = editForm.querySelector('.ar-ai-panel'); if (p) p.innerHTML = renderAiPanel(r);
             const s = editForm.querySelector('.ar-enrich-status-edit'); if (s) s.textContent = enrichStatusLabel(r.enrichment_status) || 'ham';
           }
           fillArgeLine(article, r);
+          updateAcceptBadge(article, r);
+          refreshAcceptAllLabel();
         } else {
           toast((d.message || d.error || 'Zenginleştirilemedi') + (d.model ? ' (' + d.model + ')' : ''), 'error');
         }
       } catch (e) { toast('Bağlantı hatası', 'error'); }
       finally { enrichBtn.disabled = false; enrichBtn.textContent = old; }
     });
+    // P6 — Tümünü Kabul / Geri Al (toggle): tek istek, tüm AI öğeleri
+    if (acceptAllBtn) acceptAllBtn.addEventListener('click', async () => {
+      const wantAccept = !isEverythingAccepted(r);
+      acceptAllBtn.disabled = true;
+      acceptAllBtn.textContent = wantAccept ? 'Kabul ediliyor…' : 'Geri alınıyor…';
+      try {
+        const res = await fetch(`/api/arastirma/${encodeURIComponent(r.id)}/accept-all`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accepted: wantAccept }),
+        });
+        const d = await res.json();
+        if (d.ok) {
+          if (d.extracted_facts) r.extracted_facts = d.extracted_facts;
+          ['category', 'pattern', 'color_family', 'weave_tags', 'style_tags', 'ai_notu', 'brand_country', 'country', 'enrichment_status'].forEach(k => {
+            if (k in d) r[k] = d[k];
+          });
+          if (editForm) {
+            syncTaxonomyForm(editForm, r);
+            const p = editForm.querySelector('.ar-ai-panel'); if (p) p.innerHTML = renderAiPanel(r);
+            const s = editForm.querySelector('.ar-enrich-status-edit'); if (s) s.textContent = enrichStatusLabel(r.enrichment_status) || 'ham';
+          }
+          updateAcceptBadge(article, r);
+          fillArgeLine(article, r);
+          toast(wantAccept ? 'Tümü kabul edildi' : 'Tümü geri alındı', 'success');
+        } else {
+          toast(d.error || 'İşlem başarısız', 'error');
+        }
+      } catch (e) { toast('Bağlantı hatası', 'error'); }
+      finally { acceptAllBtn.disabled = false; refreshAcceptAllLabel(); }
+    });
     // P4c — Alan-alan KABUL/GERİ-AL (anlık). Delege: panel container'a tek listener
     // (innerHTML değişse de buton tıklamaları yakalanır). 'Doğrulandı' (bulk) kaldırıldı.
     const aiPanelEl = node.querySelector('.ar-ai-panel');
     if (aiPanelEl) aiPanelEl.addEventListener('click', async (ev) => {
+      // P5 — görsel renk sayısını manuel color_count alanına uygula (client-only; Kaydet ile onaylanır)
+      const applyCc = ev.target.closest('.ar-ai-applycc');
+      if (applyCc) {
+        const cc = editForm && editForm.querySelector('[data-field="color_count"]');
+        if (cc) { cc.value = String(applyCc.dataset.cc || '').replace(/[^0-9]/g, ''); toast('Renk sayısı alana yazıldı (Kaydet ile onayla)', 'success'); }
+        return;
+      }
+      // P5/P6 — öneri (taksonomi + ai_notu) kabul/geri-al → /accept-suggestion (research kolonuna yazar)
+      const sBtn = ev.target.closest('.ar-ai-suggest-btn');
+      if (sBtn) {
+        const sfield = sBtn.dataset.sfield;
+        const sug = (r.ai_summary && r.ai_summary.suggested) || {};
+        // P6 — ai_notu kaynağı suggested DEĞİL → ai_summary.arge_notu
+        const cmp = sfield === 'ai_notu' ? { ai_notu: (r.ai_summary && r.ai_summary.arge_notu) } : sug;
+        const wantAccept = !isSuggestionAccepted(r, sfield, cmp);
+        const sOld = sBtn.textContent;
+        sBtn.disabled = true; sBtn.textContent = '…';
+        try {
+          const res = await fetch(`/api/arastirma/${encodeURIComponent(r.id)}/accept-suggestion`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ field: sfield, accepted: wantAccept }),
+          });
+          const d = await res.json();
+          if (d.ok) {
+            r[sfield] = d.value;
+            if (editForm) {
+              if (sfield === 'weave_tags') {
+                const set = new Set(d.value || []);
+                editForm.querySelectorAll('.ar-edit-weavetags input[type="checkbox"]').forEach(cb => { cb.checked = set.has(cb.value); });
+              } else if (sfield === 'style_tags') {
+                const el = editForm.querySelector('[data-field="style_tags"]'); if (el) el.value = (d.value || []).join(', ');
+              } else if (sfield === 'ai_notu') {
+                const el = editForm.querySelector('[data-field="ai_notu"]'); if (el) el.value = d.value || '';
+              } else if (sfield === 'brand_country') {
+                const el = editForm.querySelector('[data-field="country"]'); if (el) el.value = d.value || '';
+                r.country = d.value;   // firma ülkesi = görünen country
+              } else {
+                const el = editForm.querySelector(`[data-field="${sfield}"]`); if (el) el.value = d.value || '';
+              }
+              const p = editForm.querySelector('.ar-ai-panel'); if (p) p.innerHTML = renderAiPanel(r);
+            }
+            updateAcceptBadge(article, r);
+            refreshAcceptAllLabel();
+            toast(wantAccept ? 'Öneri kabul edildi' : 'Geri alındı', 'success');
+          } else { toast(d.error || 'İşlem başarısız', 'error'); sBtn.disabled = false; sBtn.textContent = sOld; }
+        } catch (e) { toast('Bağlantı hatası', 'error'); sBtn.disabled = false; sBtn.textContent = sOld; }
+        return;
+      }
+      // P4c — factual KABUL/GERİ-AL → /accept-fact
       const btn = ev.target.closest('.ar-ai-accept-btn');
       if (!btn) return;
       const field = btn.dataset.field;
       const cur = !!(r.extracted_facts && r.extracted_facts[field] && r.extracted_facts[field].accepted);
-      btn.disabled = true;
+      const bOld = btn.textContent;
+      btn.disabled = true; btn.textContent = '…';
       try {
         const res = await fetch(`/api/arastirma/${encodeURIComponent(r.id)}/accept-fact`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -583,27 +794,14 @@
             const p = editForm.querySelector('.ar-ai-panel'); if (p) p.innerHTML = renderAiPanel(r);
             const s = editForm.querySelector('.ar-enrich-status-edit'); if (s) s.textContent = enrichStatusLabel(r.enrichment_status) || 'ham';
           }
+          updateAcceptBadge(article, r);
+          refreshAcceptAllLabel();
           toast(d.accepted ? 'Kabul edildi' : 'Geri alındı', 'success');
-        } else { toast(d.error || 'İşlem başarısız', 'error'); btn.disabled = false; }
-      } catch (e) { toast('Bağlantı hatası', 'error'); btn.disabled = false; }
+        } else { toast(d.error || 'İşlem başarısız', 'error'); btn.disabled = false; btn.textContent = bOld; }
+      } catch (e) { toast('Bağlantı hatası', 'error'); btn.disabled = false; btn.textContent = bOld; }
     });
-    // Edit içindeki firma seçimi → ülke autofill + yeni firma toggle
-    const editBrandSel = editForm.querySelector('[data-field="brand_slug"]');
-    const editBrandNew = editForm.querySelector('.ar-edit-newbrand');
-    const editCountry = editForm.querySelector('[data-field="country"]');
-    editBrandSel.addEventListener('change', () => {
-      const v = editBrandSel.value;
-      if (v === '__new__') {
-        editBrandNew.hidden = false;
-      } else if (v) {
-        editBrandNew.hidden = true;
-        const opt = editBrandSel.options[editBrandSel.selectedIndex];
-        const c = opt?.dataset.country || '';
-        if (c) editCountry.value = c;
-      } else {
-        editBrandNew.hidden = true;
-      }
-    });
+    // (Marka artık input+datalist; eski select 'change' autofill/yeni-firma toggle kaldırıldı.
+    //  Bilinen markaya ülke otomatik dolumu artık backend'de yapılır — kaydet'te.)
 
     const img = node.querySelector('.ar-item-thumb img');
     const placeholder = node.querySelector('.ar-thumb-placeholder');
@@ -657,6 +855,8 @@
     });
     // OnCalisma-V2 (Problem 4a) — başlık altı tek-satır AI arge özeti (yoksa gizli)
     fillArgeLine(article, r);
+    // P6 — meta satırında "Kabul N/M" rozeti (onay durumu çekmece açmadan görünür)
+    updateAcceptBadge(article, r);
     // OnCalisma-V2 — eklenme tarihi (saat:dakika)
     const dateEl = node.querySelector('.ar-item-date');
     if (dateEl) dateEl.textContent = r.added_at ? ('🕒 ' + fmtDateTime(r.added_at)) : '';
@@ -810,6 +1010,44 @@
   // OnCalisma-V2 — sıralama değişince yeniden render (fetch yok, son satırları kullan)
   $('#filter-sort')?.addEventListener('change', () => { renderList(lastRows); applyClientFilters(); });
   $('#btn-refresh-list').addEventListener('click', renderListFromAPI);
+
+  // P6 — Ctrl/Cmd+S: açık düzenleme çekmecesini kaydet (tek global listener)
+  document.addEventListener('keydown', (e) => {
+    if (!((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S'))) return;
+    const editing = document.querySelector('.ar-item.is-editing');
+    if (!editing) return;
+    e.preventDefault();
+    editing.querySelector('.ar-edit-save')?.click();
+  });
+
+  // P5 — Toplu zenginleştirme: listedeki raw kayıtları sırayla /enrich'e gönder (seçili model, durdurulabilir)
+  let batchStop = false;
+  const batchBtn = $('#btn-enrich-batch');
+  if (batchBtn) batchBtn.addEventListener('click', async () => {
+    if (batchBtn.dataset.running === '1') { batchStop = true; batchBtn.textContent = 'Durduruluyor…'; return; }
+    const raws = (lastRows || []).filter(r => (r.enrichment_status || 'raw') === 'raw' && String(r.product_url || '').startsWith('http'));
+    if (!raws.length) { toast('Zenginleştirilecek (raw) kayıt yok', 'error'); return; }
+    const model = localStorage.getItem('mobidik_gemini_model') || '';
+    if (!confirm(`${raws.length} kaydı AI ile zenginleştir?\nModel: ${model || 'server varsayılanı'}\nBu API kotası harcar; istediğin an "Durdur" diyebilirsin.`)) return;
+    batchStop = false; batchBtn.dataset.running = '1';
+    let done = 0, ok = 0, err = 0;
+    for (const r of raws) {
+      if (batchStop) break;
+      batchBtn.textContent = `Durdur (${done + 1}/${raws.length})`;
+      try {
+        const res = await fetch(`/api/arastirma/${encodeURIComponent(r.id)}/enrich`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(model ? { model } : {}),
+        });
+        const d = await res.json();
+        d.ok ? ok++ : err++;
+      } catch (e) { err++; }
+      done++;
+    }
+    batchBtn.dataset.running = '0'; batchBtn.textContent = 'AI Toplu';
+    toast(`Toplu bitti: ${ok} ok · ${err} hata${batchStop ? ' (durduruldu)' : ''}`, err ? 'error' : 'success');
+    renderListFromAPI();   // sonuçlar listeye yansısın (kabul için kartları aç)
+  });
 
   // Initial render
   renderList(initialRows);

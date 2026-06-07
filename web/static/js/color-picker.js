@@ -501,6 +501,21 @@
         getMultiPoint() { return state.multiPoint; },
         // tasarim-v2 Sprint 20 — otomatik dominant renk tespiti (K-means LAB)
         extractPalette(k) { return extractDominantColors(k); },
+        // P6 — sözlüğü canvas/görsel olmadan yükle (AI renk analizi adlandırması için)
+        async ensureDictionary(url) { await loadDictionary(url || "/static/data/renkler.json"); return dictionaryReady; },
+        // P6 — bir hex'i tam renk objesine çevir {hex,name,rgb,lab,delta_e} (Türkçe ad, sözlük yüklüyse)
+        nameHex(hex) {
+            const rgb = hexToRgb(hex);
+            const lab = rgbToLab(rgb[0], rgb[1], rgb[2]);
+            const near = dictionaryReady ? nearestColorName(rgb[0], rgb[1], rgb[2]) : null;
+            return {
+                hex: rgbToHex(rgb),
+                name: near ? near.name : "—",
+                rgb,
+                lab: lab.map(v => +v.toFixed(2)),
+                delta_e: near ? +near.de.toFixed(2) : null,
+            };
+        },
         setRole(role) {
             if (!["weft", "warp", "mix"].includes(role)) return;
             state.activeRole = role;

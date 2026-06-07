@@ -2972,6 +2972,77 @@ img[data-blur][data-loaded="1"] {
     white-space: nowrap;
 }
 
+/* P6 — Varyant-başına AI (vision) renk analizi rozetleri (manuel renkten ayrı, #2) */
+.img-ai-colors:empty { display: none; }
+.img-ai-colors {
+    padding: 6px 8px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.iac-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: var(--text-muted, #888);
+}
+.iac-badge {
+    background: color-mix(in oklab, var(--accent, #7c3aed) 22%, var(--bg-elev));
+    color: var(--accent, #7c3aed);
+    border: 1px solid color-mix(in oklab, var(--accent, #7c3aed) 35%, transparent);
+    border-radius: 999px;
+    padding: 1px 7px;
+    font-weight: 700;
+    font-size: 9px;
+    letter-spacing: 0.02em;
+}
+.iac-meta { font-size: 9px; opacity: 0.85; }
+.iac-chips { display: flex; flex-direction: column; gap: 4px; }
+.iac-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 5px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    font-size: 10px;
+    line-height: 1.2;
+}
+.iac-chip.is-applied { opacity: 0.55; }
+.iac-sw {
+    width: 16px; height: 16px;
+    border-radius: 4px;
+    border: 1px solid rgba(0,0,0,0.15);
+    flex-shrink: 0;
+}
+.iac-name {
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.iac-hex { font-variant-numeric: tabular-nums; opacity: 0.65; flex-shrink: 0; }
+.iac-apply { display: inline-flex; gap: 2px; flex-shrink: 0; }
+.iac-role {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 9px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+.iac-role:hover { background: var(--accent, #7c3aed); color: #fff; border-color: transparent; }
+.iac-role:disabled { opacity: 0.5; cursor: default; }
+.btn-ai-color.is-loading { opacity: 0.6; pointer-events: none; }
+
 /* --- Mobile (≤720px) — kompakt --- */
 @media (max-width: 720px) {
     .color-tools { gap: 10px; }
@@ -7839,6 +7910,36 @@ body.embed-calisma-right .urun-main-tabs .utab-btn[data-tab="galeri"] {
 }
 .ar-tax-badge.ar-tax-category { color: var(--text); border-color: var(--border-strong); }
 .ar-tax-badge.ar-tax-color-family { font-style: italic; }
+/* P6 — "Kabul N/M" rozeti (onay durumu listede görünür) */
+.ar-accept-badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 7px;
+    border-radius: var(--radius-pill);
+    background: var(--bg);
+    color: var(--text-muted, var(--text-dim));
+    border: 1px solid var(--border);
+    font-size: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+.ar-accept-badge.is-complete { color: var(--green); border-color: var(--green); }
+
+/* P6.3 — Master URL: ön çalışmada fazlalık → liste satırında gizli, düzenle çekmecesinde "+" ile açılır */
+.ar-item-master { display: none; }
+.ar-edit-master { margin: 2px 0 4px; }
+.ar-edit-master-sum {
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text-muted, var(--text-dim));
+    list-style: none;
+    user-select: none;
+    padding: 2px 0;
+}
+.ar-edit-master-sum::-webkit-details-marker { display: none; }
+.ar-edit-master-sum:hover { color: var(--accent, var(--text)); }
+.ar-edit-master[open] .ar-edit-master-sum { margin-bottom: 4px; }
 /* OnCalisma-V2 (Problem 2) — form içi çoklu seçim (dokuma etiketleri checkbox grubu) */
 .tax-checkboxes {
     display: flex;
@@ -7913,7 +8014,7 @@ body.embed-calisma-right .urun-main-tabs .utab-btn[data-tab="galeri"] {
     background: rgba(111, 174, 111, 0.10);
 }
 .ar-ai-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.ar-ai-accept-btn {
+.ar-ai-accept-btn, .ar-ai-suggest-btn {
     flex: none;
     font-size: 11px;
     padding: 2px 8px;
@@ -7924,13 +8025,25 @@ body.embed-calisma-right .urun-main-tabs .utab-btn[data-tab="galeri"] {
     cursor: pointer;
     white-space: nowrap;
 }
-.ar-ai-accept-btn:hover { color: var(--text); border-color: var(--accent); }
-.ar-ai-card.is-accepted .ar-ai-accept-btn {
+.ar-ai-accept-btn:hover, .ar-ai-suggest-btn:hover { color: var(--text); border-color: var(--accent); }
+.ar-ai-card.is-accepted .ar-ai-accept-btn,
+.ar-ai-card.is-accepted .ar-ai-suggest-btn {
     border-color: var(--green, #6fae6f);
     color: var(--green, #6fae6f);
     background: rgba(111, 174, 111, 0.12);
 }
-.ar-ai-accept-btn:disabled { opacity: .5; cursor: default; }
+.ar-ai-accept-btn:disabled, .ar-ai-suggest-btn:disabled { opacity: .5; cursor: default; }
+/* P5 — bölüm başlığı + güven rozeti + görsel analizi */
+.ar-ai-section-h { font-size: 11px; font-weight: 700; color: var(--text-dim); margin: 9px 0 4px; text-transform: uppercase; letter-spacing: .3px; }
+.ar-ai-conf { font-size: 9px; padding: 0 5px; border-radius: var(--radius-pill); border: 1px solid var(--border); vertical-align: middle; font-weight: 700; }
+.ar-ai-conf-high { color: var(--green, #6fae6f); border-color: var(--green, #6fae6f); }
+.ar-ai-conf-medium { color: var(--orange, #c68b50); border-color: rgba(198, 139, 80, .5); }
+.ar-ai-conf-low { color: var(--text-muted); }
+.ar-ai-image { font-size: 12px; color: var(--text); padding: 2px 0 4px; }
+.ar-ai-swatches { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 4px; }
+.ar-ai-swatch { width: 22px; height: 22px; border-radius: 4px; border: 1px solid var(--border-strong); display: inline-block; }
+.ar-ai-img-meta { font-size: 12px; color: var(--text-dim); }
+.ar-ai-applycc { font-size: 10px; padding: 1px 6px; border-radius: var(--radius-pill); border: 1px solid var(--border-strong); background: var(--bg); color: var(--text-dim); cursor: pointer; }
 .ar-ai-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
 .ar-ai-actions .btn { font-size: 12px; padding: 5px 10px; }
 /* P4a-2 — havuz enrich model seçici (aksiyon satırında kompakt) */

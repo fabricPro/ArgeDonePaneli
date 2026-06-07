@@ -83,6 +83,9 @@
             <button type="button" id="btn-refresh-list" class="btn btn-secondary" title="Yenile">
                 <svg class="icon"><use href="#ic-search"/></svg>
             </button>
+            {# P5 — bekleyen (raw) kayıtları AI ile topluca zenginleştir (seçili modelle, durdurulabilir) #}
+            <button type="button" id="btn-enrich-batch" class="btn btn-secondary" data-running="0"
+                    title="Listedeki bekleyen (raw) kayıtları AI ile topluca zenginleştir">AI Toplu</button>
         </div>
     </header>
 
@@ -125,6 +128,13 @@
 <datalist id="country-suggestions">
     {% for c in country_suggestions %}
     <option value="{{ c }}">
+    {% endfor %}
+</datalist>
+
+{# Marka önerileri — daha önce kaydedilmiş firmalar (input + datalist; ülke alanı gibi) #}
+<datalist id="brand-suggestions">
+    {% for b in brands %}
+    <option value="{{ b.name }}">
     {% endfor %}
 </datalist>
 
@@ -171,21 +181,20 @@
                             <option value="gemini-flash-latest">En Yeni — gemini-flash-latest</option>
                         </select>
                         <button type="button" class="btn btn-secondary ar-btn-enrich">AI ile Zenginleştir</button>
+                        {# P6 — tüm AI öğelerini (factual + öneri + AI notu) tek tıkla kabul/geri-al #}
+                        <button type="button" class="btn btn-secondary ar-btn-accept-all">✓ Tümünü Kabul</button>
                     </div>
                 </div>
                 <label>Ürün URL <input type="url" data-field="product_url"></label>
-                <label>Master URL <input type="url" data-field="master_url"></label>
+                {# Master URL — varsayılan gizli; "+" ile aç (fazlalık olmasın). Değer collapsed olsa da kaydedilir. #}
+                <details class="ar-edit-master">
+                    <summary class="ar-edit-master-sum">+ Master URL</summary>
+                    <label class="ar-edit-master-lbl">Master URL <input type="url" data-field="master_url" placeholder="Sitenin filtreli kategori sayfası (opsiyonel)"></label>
+                </details>
                 <div class="ar-edit-row-2">
-                    <label>Marka <select data-field="brand_slug">
-                        <option value="">— firma seç —</option>
-                        {% for b in brands %}
-                        <option value="{{ b.slug }}" data-country="{{ b.country or '' }}">{{ b.name }}</option>
-                        {% endfor %}
-                        <option value="__new__">+ Yeni firma…</option>
-                    </select></label>
+                    <label>Marka <input type="text" data-field="brand" list="brand-suggestions" placeholder="Firma adı (öncekiler önerilir)"></label>
                     <label>Ülke <input type="text" data-field="country" list="country-suggestions"></label>
                 </div>
-                <label class="ar-edit-newbrand" hidden>Yeni firma adı <input type="text" data-field="brand"></label>
                 <label>Not <input type="text" data-field="notes"></label>
                 {# OnCalisma-V2 (Problem 2) — Taksonomi: havuzda elle sınıflandırma #}
                 <div class="ar-edit-row-2">

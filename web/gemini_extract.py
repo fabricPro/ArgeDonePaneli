@@ -16,10 +16,13 @@ from __future__ import annotations
 import json
 import os
 import re
+import unicodedata
 from typing import Any
 
 import requests
 from bs4 import BeautifulSoup
+
+import store  # P5 — taksonomi vocab tek kaynak (VALID_*) + validate_* (döngü yok: store gx import etmez)
 
 # Gemini SDK opsiyonel — yoksa hatayı runtime'da göster, import zamanında crash etme
 try:
@@ -91,7 +94,7 @@ KESİN KURALLAR (uyulmazsa cevabın geçersizdir):
        * Birden fazla aday varsa (örn. reseller sitede hem "Etoffe" hem "Coordonné") ürünü ÜRETEN/TASARLAYAN markayı tercih et.
    - composition: tam alıntı yapamıyorsan NULL. "Mostly natural fibers" gibi belirsiz ifadeler NULL.
    - production_country: SAYFA "Made in Italy" gibi üretim yeri belirtiyorsa "İtalya". Marka HQ (firma merkezi) ile KARIŞTIRMA. Belirtmiyorsa NULL.
-   - brand_country: markanın MERKEZ/HQ ülkesi sayfada AÇIKÇA yazıyorsa al (ör. "based in Switzerland", firma künyesi). production_country (Made in) ile KARIŞTIRMA — bunlar farklı olabilir. Yoksa NULL.
+   - brand_country: markanın MERKEZ/HQ ülkesi. Sayfada yazmasa BİLE markayı tanıyorsan GENEL/DÜNYA BİLGİNDEN Türkçe ülke adı ver (ör. Kvadrat→Danimarka, Dedar/Rubelli→İtalya, JAB ANSTOETZ/Carlucci/Zimmer + Rohde→Almanya, Création Baumann→İsviçre, Sahco→İsveç). Bu bir ÇIKARIMDIR — sayfa kanıtı ŞART DEĞİL; evidence'a bilgi kaynağını yaz (ör. "marka bilgisi"). production_country (Made in) ile KARIŞTIRMA — bunlar farklı olabilir. Markayı GERÇEKTEN tanımıyorsan NULL (uydurma).
    - HİÇBİR şartla sertifika/FR/MOQ/teslim alanı doldurma — bunlar bu çıktıda zaten yok, ama metinden çıkarıp arge_notu_taslak'a da SIZDIRMA.
 
 6) REFERANS FİYAT (reference_price) — bu alan ÖZELDİR:
@@ -122,7 +125,23 @@ KESİN KURALLAR (uyulmazsa cevabın geçersizdir):
 
 8) arge_notu_taslak: Sayfanın "About this fabric" / "Description" gibi tanıtım metinlerini SADELEŞTİRMİŞ Türkçe (max 300 karakter) çevir. Pazarlama dili kullanma, sadece teknik özellikleri ve kullanım amacını özetle. Kaynakta açıkça yazanı çevir, ekleme yapma. Sertifika/FR/fiyat/MOQ/teslim bilgilerini buraya SIZDIRMA — bunlar ya kendi alanlarına gider ya null kalır.
 
-9) ÇIKTI FORMATI: response_schema'ya UYGUN JSON. Her alan ya {value, evidence} (fiyat için {value, type, evidence}) ya null. Hiçbir şekilde ek metin veya açıklama EKLEME. Tek JSON object döndür."""
+9) TAKSONOMİ (taxonomy) — SINIFLANDIRMA ÖNERİSİ (TAHMİN; verbatim kaynak şart değil ama gerekçeli ol):
+   - category / pattern / color_family: yalnız USER mesajındaki VALID_* listelerinden BİR değer seç; hiçbiri uymuyorsa "" bırak.
+   - weave_tags: VALID_WEAVE_TAGS'ten uygun olan(lar)ı (dizi; yoksa []).
+   - style_tags: Kumaşın STİLİNİ tanımlayan SERBEST Türkçe etiketler (vocab YOK) — bunları SEN üret, ÜÇ KAYNAĞI BİRLİKTE harmanla:
+       (1) GÖRSEL (sana kumaş görseli verildiyse): doku (düz/dokulu/kabartmalı), yüzey (mat/parlak), şeffaflık (tül/yarı-şeffaf/opak), desen, renk tonu/atmosfer;
+       (2) İÇERİK: sayfadaki açıklama/tanıtım metninin anlattığı tarz/kullanım;
+       (3) TEKNİK VERİ: kompozisyon, dokuma tipi, kategori.
+     3-7 kısa, SOMUT sıfat üret (ör. premium, minimal, dokulu, mat, parlak, şeffaf, doğal-keten, modern, klasik, geometrik, bohem, lüks, sade, rustik, akışkan). Pazarlama klişesi DEĞİL — kumaşı gerçekten tanımlayan stil sıfatları. Görsel YOKSA yalnız içerik+teknikten üret. (dizi; hiçbir şey çıkmıyorsa []).
+   - confidence (high|medium|low) + kısa reason (Türkçe). Emin değilsen "" + low. Bu bir TAHMİN — makul sınıflandırma yap, uydurma.
+
+10) GÖRSEL ANALİZİ (image_analysis) — YALNIZ sana bir GÖRSEL verildiyse doldur; görsel YOKSA image_analysis = null:
+   - dominant_colors: kumaşın baskın renkleri, hex (#RRGGBB) dizisi.
+   - texture: kısa (düz/dokulu/kabartmalı/mat/parlak). transparency: tül | yarı-şeffaf | opak.
+   - color_count: görselde sayılabilen renk/varyant sayısı (yalnız sayı). confidence + kısa note (Türkçe).
+   - Görseldeki yazı/filigranı veri olarak kullanma; yalnız fiziksel görünümü yorumla.
+
+11) ÇIKTI FORMATI: response_schema'ya UYGUN JSON. Her factual alan ya {value, evidence} (fiyat için {value, type, evidence}) ya null. taxonomy ve image_analysis nesnelerini uygunsa doldur, değilse null. Ek metin/açıklama EKLEME. Tek JSON object döndür."""
 
 
 # ============================================================
@@ -166,6 +185,37 @@ _PRICE_FIELD_OBJECT = {
     "required": ["value", "type", "evidence"],
 }
 
+# P5 — güven skoru (her AI çıkarımında; Anayasa: inference'ta confidence zorunlu)
+_CONFIDENCE = {"type": "string", "enum": ["high", "medium", "low"]}
+
+# P5 — Taksonomi ÖNERİSİ (INFERENCE; serbest string → backend validate_* ile temizler;
+# izinli sözlük USER promptunda listelenir; emin değilse "" bırakabilir).
+_TAXONOMY_OBJECT = {
+    "type": "object",
+    "properties": {
+        "category":     {"type": "string", "description": "VALID_CATEGORIES'ten biri ya da ''"},
+        "pattern":      {"type": "string", "description": "VALID_PATTERNS'ten biri ya da ''"},
+        "weave_tags":   {"type": "array", "items": {"type": "string"}, "description": "VALID_WEAVE_TAGS alt kümesi"},
+        "color_family": {"type": "string", "description": "VALID_COLOR_FAMILIES'ten biri ya da ''"},
+        "style_tags":   {"type": "array", "items": {"type": "string"}, "description": "Serbest Türkçe stil etiketleri — GÖRSEL (doku/şeffaflık/renk) + İÇERİK + TEKNİK sentezi; 3-7 somut sıfat"},
+        "confidence":   _CONFIDENCE,
+        "reason":       {"type": "string", "description": "Kısa gerekçe (Türkçe)"},
+    },
+}
+
+# P5 — Görsel analizi (INFERENCE; yalnız görsel verildiğinde doldurulur).
+_IMAGE_ANALYSIS_OBJECT = {
+    "type": "object",
+    "properties": {
+        "dominant_colors": {"type": "array", "items": {"type": "string"}, "description": "Baskın renkler, hex (#RRGGBB)"},
+        "texture":         {"type": "string", "description": "Doku/yüzey (kısa: düz, dokulu, kabartmalı, mat, parlak…)"},
+        "transparency":    {"type": "string", "description": "tül | yarı-şeffaf | opak"},
+        "color_count":     {"type": "string", "description": "Görselde sayılabilen renk/varyant sayısı (yalnız sayı)"},
+        "confidence":      _CONFIDENCE,
+        "note":            {"type": "string", "description": "Kısa görsel notu (Türkçe)"},
+    },
+}
+
 RESPONSE_SCHEMA: dict[str, Any] = {
     "type": "object",
     "properties": {
@@ -184,6 +234,8 @@ RESPONSE_SCHEMA: dict[str, Any] = {
         "color_count":           _FIELD_OBJECT,   # P4b — renk/varyant sayısı (öneri; kullanıcı doğrular)
         "reference_price":       _PRICE_FIELD_OBJECT,  # v4.0-part-2 Sprint 11.5 — YENİ
         "arge_notu_taslak":      _FIELD_OBJECT,
+        "taxonomy":              _TAXONOMY_OBJECT,       # P5 — sınıflandırma ÖNERİSİ (inference)
+        "image_analysis":        _IMAGE_ANALYSIS_OBJECT, # P5 — görsel analizi (vision; görsel varsa)
         "error":                 {"type": "string"},
     },
 }
@@ -343,16 +395,23 @@ STRUCTURED_JSON (JS-render sayfa verisi, varsa — __NEXT_DATA__/application-jso
 PAGE_TEXT (temizlenmiş, gürültüsüz):
 {content.get('text', '')}
 
+VALID_TAXONOMY (taxonomy alanlarını SADECE bunlardan seç; uymuyorsa ""):
+- category:     {", ".join(store.VALID_CATEGORIES)}
+- pattern:      {", ".join(store.VALID_PATTERNS)}
+- weave_tags:   {", ".join(store.VALID_WEAVE_TAGS)}
+- color_family: {", ".join(store.VALID_COLOR_FAMILIES)}
+
 Bu sayfa bir kumaş ÜRÜN sayfası mı? Eğer evetse, sistem promptundaki kurallara göre alanları doldur. Eğer ürün sayfası değilse error: "page_not_product" döndür."""
 
 
-def extract_fabric_fields(content: dict, model: str | None = None) -> dict:
+def extract_fabric_fields(content: dict, model: str | None = None, image_bytes: bytes | None = None) -> dict:
     """Gemini ile sayfayı oku + form alanlarına eşle.
 
     Args:
       content: fetch_clean_content çıktısı
       model:   opsiyonel model adı (kullanıcı UI'dan override edebilir);
                None ise MODEL_NAME (env / default) kullanılır.
+      image_bytes: P5 — verilirse multimodal (vision) çağrı; image_analysis doldurulur.
 
     Returns:
       {field: {value, evidence} | null, "error"?: str}
@@ -372,10 +431,14 @@ def extract_fabric_fields(content: dict, model: str | None = None) -> dict:
     )
 
     user_prompt = _build_user_prompt(content)
+    # P5 — multimodal: görsel verildiyse [prompt + görsel]; yoksa yalnız metin
+    parts: Any = [user_prompt]
+    if image_bytes:
+        parts.append({"mime_type": "image/jpeg", "data": image_bytes})
 
     try:
         response = gen_model.generate_content(
-            user_prompt,
+            parts,
             generation_config={
                 "response_mime_type": "application/json",
                 "response_schema": RESPONSE_SCHEMA,
@@ -383,7 +446,8 @@ def extract_fabric_fields(content: dict, model: str | None = None) -> dict:
                 # v4.0-part-2 Sprint 11.5: 2000 -> 4000. Schema'da reference_price
                 # eklendi (+3 alan); arge_notu_taslak Türkçe karakter yoğun olduğundan
                 # token kullanımı artıyor — JSON yarıda kesilmesin diye yüksek tut.
-                "max_output_tokens": 4000,
+                # P5: taxonomy + image_analysis eklendi → 4000'den 6000'e.
+                "max_output_tokens": 6000,
             },
         )
     except Exception as e:
@@ -407,12 +471,13 @@ def extract_fabric_fields(content: dict, model: str | None = None) -> dict:
 # 3) Kullanışlı tek-çağrı sarmalayıcı
 # ============================================================
 
-def linkten_doldur(url: str, model: str | None = None) -> dict:
+def linkten_doldur(url: str, model: str | None = None, image_bytes: bytes | None = None) -> dict:
     """Tek çağrıda fetch + extract. Route'tan kullanılır.
 
     Args:
       url:   sayfa URL'i
       model: opsiyonel model override; None ise MODEL_NAME (env/default)
+      image_bytes: P5 — verilirse multimodal (vision) çağrı (image_analysis doldurulur)
 
     Returns:
       {"ok": True, "suggestions": {...}, "title": "...", "model_used": "..."}
@@ -448,8 +513,8 @@ def linkten_doldur(url: str, model: str | None = None) -> dict:
             "model_used": used,
         }
 
-    # 2) Extract
-    suggestions = extract_fabric_fields(content, model=model)
+    # 2) Extract (görsel verildiyse multimodal)
+    suggestions = extract_fabric_fields(content, model=model, image_bytes=image_bytes)
     if "error" in suggestions and not any(
         k for k in suggestions if k != "error"
     ):
@@ -466,8 +531,35 @@ def linkten_doldur(url: str, model: str | None = None) -> dict:
         "suggestions": suggestions,
         "title": content.get("title", ""),
         "truncated": content.get("truncated", False),
+        "source_text": _source_text_for_verify(content),   # P6.1 — kanıt doğrulama kaynağı
         "model_used": used,
     }
+
+
+# ============================================================
+# P6.1 — Kanıt doğrulama (uydurma koruması)
+# Model, sayfada olmayan değer + sahte "evidence" üretebiliyor (gözlemlendi: JAB/Carlucci
+# ürününde ağırlık/fiyat/rapor uydurma). Prompt yasağı (#3) tek başına yetmiyor → her factual
+# alanın evidence'ı, AI'ya GÖNDERİLEN sayfa metninde GERÇEKTEN geçmiyorsa o alan ATILIR.
+# ============================================================
+def _norm_for_match(s: str) -> str:
+    """Kanıt eşleştirme için normalize: NFKC + küçük harf + akıllı tırnak/çizgi sadeleştir + boşluk daralt."""
+    s = unicodedata.normalize("NFKC", str(s or "")).lower()
+    for a, b in (("’", "'"), ("‘", "'"), ("“", '"'), ("”", '"'),
+                 ("–", "-"), ("—", "-"), (" ", " ")):
+        s = s.replace(a, b)
+    return re.sub(r"\s+", " ", s).strip()
+
+
+def _source_text_for_verify(content: dict) -> str:
+    """AI'ya gönderilen tüm metinsel içerik (evidence bu metinde gerçekten geçmeli)."""
+    parts = [
+        content.get("title", ""), content.get("meta_description", ""),
+        content.get("og_description", ""),
+        json.dumps(content.get("json_ld") or [], ensure_ascii=False),
+        content.get("script_json", ""), content.get("text", ""),
+    ]
+    return "\n".join(p for p in parts if p)
 
 
 # ============================================================
@@ -485,7 +577,9 @@ _AI_SUMMARY_FIELD = "arge_notu_taslak"  # ai_inferences'e gider (factual değil)
 def _factual_field_names() -> list[str]:
     """RESPONSE_SCHEMA'dan factual alanlar (arge_notu_taslak + error hariç) — tek kaynak."""
     props = (RESPONSE_SCHEMA.get("properties") or {})
-    return [k for k in props if k not in (_AI_SUMMARY_FIELD, "error")]
+    # P5: taxonomy + image_analysis factual DEĞİL (inference) → ai_summary'e ayrı işlenir.
+    # P6.2: brand_country (firma HQ) ÇIKARIM (dünya bilgisi) → kanıt-doğrulamadan muaf, suggested'a gider.
+    return [k for k in props if k not in (_AI_SUMMARY_FIELD, "error", "taxonomy", "image_analysis", "brand_country")]
 
 
 def build_enrichment_payload(gemini_result: dict) -> dict:
@@ -505,6 +599,10 @@ def build_enrichment_payload(gemini_result: dict) -> dict:
         return out
 
     # 1) Factual → extracted_facts (yalnız value+evidence DOLU olanlar; #3)
+    # P6.1 — Kanıt doğrulama: source_text verildiyse evidence sayfada GERÇEKTEN geçmeli
+    # (model uydurma alıntı üretebiliyor → deterministik substring kontrolü; geçmeyen alan atılır).
+    src_norm = _norm_for_match(gemini_result.get("source_text") or "")
+    dropped: list[str] = []
     for name in _factual_field_names():
         v = suggestions.get(name)
         if not isinstance(v, dict):
@@ -515,10 +613,15 @@ def build_enrichment_payload(gemini_result: dict) -> dict:
         evidence_s = evidence.strip() if isinstance(evidence, str) else evidence
         if not value_s or not evidence_s:   # boş/kanıtsız factual ATLA (Anayasa #3)
             continue
+        if src_norm and _norm_for_match(evidence_s) not in src_norm:
+            dropped.append(name)            # P6.1 — kanıt sayfada YOK → uydurma, atla (#3)
+            continue
         fact = {"value": value_s, "evidence": evidence_s}
         if v.get("type"):                    # reference_price: exact|from
             fact["type"] = v.get("type")
         out["extracted_facts"][name] = fact
+    if dropped:
+        out["dropped_unverified"] = dropped   # şeffaflık: hangi alanlar uydurma şüphesiyle atıldı
 
     # 2) arge_notu_taslak → ai_summary.arge_notu (≤300) + model + generated_at
     from datetime import datetime, timezone
@@ -530,8 +633,112 @@ def build_enrichment_payload(gemini_result: dict) -> dict:
             summary["arge_notu"] = av.strip()[:300]
     summary["model"] = gemini_result.get("model_used") or gemini_result.get("model")
     summary["generated_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    # P4b kancası: ai_summary ileride suggested_category/suggested_weave_tags vb. taşıyabilir.
+
+    # 3) P5 — Taksonomi ÖNERİSİ (inference): validate_* ile vocab'a temizle → ai_summary.suggested
+    tax = suggestions.get("taxonomy")
+    if isinstance(tax, dict):
+        sug: dict = {}
+        cat = store.validate_category(tax.get("category"))
+        pat = store.validate_pattern(tax.get("pattern"))
+        cf = store.validate_color_family(tax.get("color_family"))
+        wt = store.validate_enum_list(tax.get("weave_tags") or [], store.VALID_WEAVE_TAGS)
+        st = store.validate_str_list(tax.get("style_tags") or [])   # serbest (vocab yok)
+        if cat: sug["category"] = cat
+        if pat: sug["pattern"] = pat
+        if cf: sug["color_family"] = cf
+        if wt: sug["weave_tags"] = wt
+        if st: sug["style_tags"] = st
+        if sug:
+            if tax.get("confidence"): sug["confidence"] = tax.get("confidence")
+            if tax.get("reason"): sug["reason"] = tax.get("reason")
+            summary["suggested"] = sug
+
+    # 3b) P6.2 — brand_country (firma HQ): ÇIKARIM (dünya bilgisi) → suggested (sayfa kanıtı GEREKMEZ).
+    # Üretim ülkesi DEĞİL; firma merkezi. norm_country app.py'de accept anında uygulanır.
+    bc = suggestions.get("brand_country")
+    if isinstance(bc, dict):
+        bc_val = bc.get("value")
+        bc_val = bc_val.strip() if isinstance(bc_val, str) else None
+        if bc_val:
+            summary.setdefault("suggested", {})["brand_country"] = bc_val
+
+    # 4) P5 — Görsel analizi (inference): temizle → ai_summary.image_analysis
+    ia = suggestions.get("image_analysis")
+    if isinstance(ia, dict):
+        img: dict = {}
+        dom = [str(c).strip() for c in (ia.get("dominant_colors") or []) if str(c).strip()]
+        if dom:
+            img["dominant_colors"] = dom
+        for k in ("texture", "transparency", "color_count", "confidence", "note"):
+            val = ia.get(k)
+            if isinstance(val, str) and val.strip():
+                img[k] = val.strip()
+        if img:
+            summary["image_analysis"] = img
+
     out["ai_summary"] = summary
+    return out
+
+
+# ============================================================
+# 5) P6 — Ürün varyant görseli için VISION-ONLY renk analizi (sayfa yok)
+# ============================================================
+_IMAGE_VISION_SCHEMA = {"type": "object", "properties": {"image_analysis": _IMAGE_ANALYSIS_OBJECT}}
+_IMAGE_VISION_PROMPT = (
+    "Sana bir KUMAŞ varyant görseli veriliyor. SADECE görsele bakarak image_analysis'i doldur:\n"
+    "- dominant_colors: baskın renkler, hex (#RRGGBB) dizisi (kumaşın gerçek renkleri, en baskından).\n"
+    "- texture: kısa (düz/dokulu/kabartmalı/mat/parlak). transparency: tül | yarı-şeffaf | opak.\n"
+    "- color_count: görselde ayırt edilebilen renk sayısı (yalnız sayı). confidence (high|medium|low) + kısa note (Türkçe).\n"
+    "Görseldeki yazı/filigranı veri olarak kullanma; yalnız kumaşın fiziksel görünümünü yorumla. "
+    "Yalnız image_analysis nesnesini içeren tek JSON döndür."
+)
+
+
+def analyze_fabric_image(image_bytes: bytes, model: str | None = None) -> dict:
+    """P6 — Sayfa YOK; yalnız görselden renk/doku/şeffaflık analizi (vision).
+    Dönüş: temizlenmiş image_analysis dict ya da {"error": ...}."""
+    if not _SDK_AVAILABLE:
+        return {"error": "sdk_not_installed"}
+    if not GEMINI_API_KEY:
+        return {"error": "no_api_key"}
+    if not image_bytes:
+        return {"error": "no_image"}
+    genai.configure(api_key=GEMINI_API_KEY)
+    model_name = (model or MODEL_NAME or "").strip() or MODEL_NAME
+    gen_model = genai.GenerativeModel(model_name)
+    try:
+        response = gen_model.generate_content(
+            [_IMAGE_VISION_PROMPT, {"mime_type": "image/jpeg", "data": image_bytes}],
+            generation_config={
+                "response_mime_type": "application/json",
+                "response_schema": _IMAGE_VISION_SCHEMA,
+                "temperature": 0.0,
+                "max_output_tokens": 1500,
+            },
+        )
+    except Exception as e:
+        return {"error": f"gemini_api_error: {e}"}
+    text = (response.text or "").strip()
+    if not text:
+        return {"error": "gemini_empty_response"}
+    try:
+        result = json.loads(text)
+    except json.JSONDecodeError as e:
+        return {"error": f"json_parse_failed: {e}"}
+    ia = result.get("image_analysis") if isinstance(result, dict) else None
+    if not isinstance(ia, dict):
+        return {"error": "no_image_analysis"}
+    out: dict = {}
+    dom = [str(c).strip() for c in (ia.get("dominant_colors") or []) if str(c).strip()]
+    if dom:
+        out["dominant_colors"] = dom
+    for k in ("texture", "transparency", "color_count", "confidence", "note"):
+        v = ia.get(k)
+        if isinstance(v, str) and v.strip():
+            out[k] = v.strip()
+    if not out:
+        return {"error": "empty_analysis"}
+    out["model"] = model_name
     return out
 
 

@@ -2405,6 +2405,52 @@ def api_set_image_colors(urun_id: str):
     })
 
 
+def _image_set_ai_colors(d: dict, key: str, ai_data: dict, key_field: str = "path") -> dict:
+    """P6 — Bir ürün görselinin ai_colors (vision renk analizi) alanını yazar.
+    Manuel 'colors' (Atkı/Çözgü/Toplam) alanına DOKUNMAZ (Anayasa #2)."""
+    images = d.get("images") or []
+    match = next((im for im in images if im.get(key_field) == key), None)
+    if not match:
+        raise ValueError("Görsel bulunamadı")
+    data = dict(ai_data or {})
+    data["analyzed_at"] = now_iso()
+    match["ai_colors"] = data
+    return data
+
+
+@app.route("/api/urun/<urun_id>/gorsel-vision", methods=["POST"])
+def api_urun_gorsel_vision(urun_id: str):
+    """P6 — Bir ürün VARYANT görselini AI (vision) ile analiz et → baskın renkler/doku/şeffaflık.
+    images[i].ai_colors'a yazar; manuel renk (Atkı/Çözgü/Toplam) DOKUNULMAZ (#2). Role atamayı
+    kullanıcı 'uygula' ile /gorsel-renk üzerinden yapar (#6)."""
+    if not _GEMINI_AVAILABLE:
+        return jsonify({"ok": False, "error": "gemini modülü yok"}), 503
+    if not os.environ.get("GEMINI_API_KEY"):
+        return jsonify({"ok": False, "error": "no_api_key", "message": "GEMINI_API_KEY tanımsız"}), 503
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    body = request.get_json(silent=True) or {}
+    path = (body.get("path") or "").strip()
+    if not path:
+        return jsonify({"ok": False, "error": "path zorunlu"}), 400
+    if not any(im.get("path") == path for im in (d.get("images") or [])):
+        return jsonify({"ok": False, "error": "Görsel bulunamadı"}), 404
+    requested_model = (body.get("model") or "").strip() or None
+    model_override = requested_model if requested_model in GEMINI_MODEL_WHITELIST else None
+    try:
+        img_bytes = store.download_image_bytes(path)
+    except Exception as e:
+        return jsonify({"ok": False, "error": f"Görsel indirilemedi: {e}"}), 502
+    ai = gx.analyze_fabric_image(img_bytes, model=model_override)
+    if ai.get("error"):
+        return jsonify({"ok": False, "error": ai["error"]}), 200   # DB'ye yazma
+    saved = _image_set_ai_colors(d, path, ai, key_field="path")
+    d["updated_at"] = now_iso()
+    store.upsert(d)
+    return jsonify({"ok": True, "path": path, "ai_colors": saved})
+
+
 @app.route("/api/urun/<urun_id>/album-atama", methods=["POST"])
 def api_album_assign(urun_id: str):
     """Toplu görsel ↔ albüm atama. Body: {slug, paths: [str], add: bool}.
@@ -3123,8 +3169,32 @@ def api_arastirma_enrich(research_id: str):
     requested_model = (data.get("model") or "").strip() or None
     model_override = requested_model if requested_model in GEMINI_MODEL_WHITELIST else None
 
-    result = gx.linkten_doldur(url, model=model_override)   # fetch + Gemini (DB'ye yazmaz)
+    # P5/P6 — YALNIZ KAPAK görseli vision'a gider (token verimli): is_cover/is_favorite öncelikli, yoksa ilk
+    image_bytes = None
+    try:
+        imgs = [im for im in (row.get("images") or []) if isinstance(im, dict) and im.get("storage_path")]
+        cover = next((im for im in imgs if im.get("is_cover") or im.get("is_favorite")), None) or (imgs[0] if imgs else None)
+        if cover:
+            image_bytes = store.download_image_bytes(cover["storage_path"])
+    except Exception:
+        image_bytes = None
+
+    result = gx.linkten_doldur(url, model=model_override, image_bytes=image_bytes)   # fetch + Gemini (DB'ye yazmaz)
     payload = gx.build_enrichment_payload(result)
+    # P6.2 — firma ülkesi (ÇIKARIM): AI vermediyse kayıt defterinden; her halükarda normalize et
+    # (accept anındaki değerle birebir tutsun). Üretim ülkesi DEĞİL — firma HQ.
+    if not payload.get("error"):
+        ai_sum = payload.get("ai_summary") or {}
+        sug = ai_sum.get("suggested") or {}
+        bc = sug.get("brand_country")
+        if not bc:
+            reg = next((b for b in get_brands_registry() if b.get("slug") == (row.get("brand_slug") or "")), None)
+            if reg and reg.get("country"):
+                bc = reg.get("country")
+        if bc and str(bc).strip():
+            sug["brand_country"] = norm_country(bc)
+            ai_sum["suggested"] = sug
+            payload["ai_summary"] = ai_sum
     if payload.get("error"):
         # Hata: DB'YE YAZMA, sadece bilgi döndür (model bilgisiyle).
         return jsonify({
@@ -3150,6 +3220,8 @@ def api_arastirma_enrich(research_id: str):
         "model": result.get("model_used") or gx.MODEL_NAME,
         "requested_model": requested_model,
         "model_invalid": bool(requested_model and not model_override),
+        "vision": bool(image_bytes),   # P5 — görsel analizi yapıldı mı
+        "dropped_unverified": payload.get("dropped_unverified") or [],  # P6.1 — uydurma şüphesiyle atılan alanlar
     })
 
 
@@ -3204,6 +3276,129 @@ def api_arastirma_accept_fact(research_id: str):
         patch["enrichment_status"] = "verified"
     store.research_save(research_id, patch)
     return jsonify({"ok": True, "field": field, "accepted": accepted, "enrichment_status": new_status})
+
+
+@app.route("/api/arastirma/<research_id>/accept-suggestion", methods=["POST"])
+def api_arastirma_accept_suggestion(research_id: str):
+    """P5/P6 — AI ÖNERİSİNİ alan-alan kabul/geri-al.
+    Taksonomi (category/pattern/weave_tags/color_family/style_tags) kaynağı ai_summary.suggested,
+    validate edilip kolona yazılır. P6: ai_notu kaynağı ai_summary.arge_notu (düz metin).
+    Geri-al → kolon temizlenir. Gerçek ÜRÜN kolonuna YAZMAZ (yalnız havuz; ürüne çevir = insan onayı, #6)."""
+    data = request.get_json(silent=True) or {}
+    field = (data.get("field") or "").strip()
+    accepted = bool(data.get("accepted"))
+    if field not in ("category", "pattern", "weave_tags", "color_family", "style_tags", "ai_notu", "brand_country"):
+        return jsonify({"ok": False, "error": "Geçersiz alan"}), 400
+    row = store.research_get(research_id)
+    if not row:
+        return jsonify({"ok": False, "error": "Bulunamadı"}), 404
+    if accepted:
+        if field == "ai_notu":
+            # P6 — ai_notu kaynağı suggested DEĞİL → ai_summary.arge_notu (düz metin, validator yok)
+            value = ((row.get("ai_summary") or {}).get("arge_notu") or "").strip() or None
+        elif field == "brand_country":
+            # P6.2 — firma HQ ülkesi (ÇIKARIM); suggested.brand_country zaten normalize edilmiş
+            raw = ((row.get("ai_summary") or {}).get("suggested") or {}).get("brand_country")
+            value = norm_country(raw) if (raw and str(raw).strip()) else None
+        else:
+            raw = ((row.get("ai_summary") or {}).get("suggested") or {}).get(field)
+            if field == "weave_tags":
+                value = store.validate_enum_list(raw or [], store.VALID_WEAVE_TAGS)
+            elif field == "style_tags":
+                value = store.validate_str_list(raw or [])   # serbest (vocab yok)
+            elif field == "category":
+                value = store.validate_category(raw)
+            elif field == "pattern":
+                value = store.validate_pattern(raw)
+            else:  # color_family
+                value = store.validate_color_family(raw)
+        if not value:
+            return jsonify({"ok": False, "error": "Geçerli öneri yok"}), 400
+    else:
+        value = [] if field in ("weave_tags", "style_tags") else None
+    if field == "brand_country":
+        # firma HQ → görünen country + brand_country alias + ISO kodları (tek geri-al/kabul'de hepsi)
+        cc = _country_iso(value) if value else None
+        store.research_update(research_id, {
+            "brand_country": value, "brand_country_code": cc,
+            "country": value, "country_code": cc,
+        })
+    else:
+        store.research_update(research_id, {field: value})
+    return jsonify({"ok": True, "field": field, "accepted": accepted, "value": value})
+
+
+@app.route("/api/arastirma/<research_id>/accept-all", methods=["POST"])
+def api_arastirma_accept_all(research_id: str):
+    """P6 — AI panelindeki HER ŞEYİ tek istekte kabul/geri-al (toggle, body {accepted: bool}).
+    Kabul: tüm extracted_facts[*].accepted=true + tüm suggested taksonomi (validate) research
+    kolonlarına + ai_notu ← ai_summary.arge_notu. Geri-al: ef flag'leri false + AI'nın önerdiği
+    kolonlar boş. Gerçek ÜRÜN kolonuna YAZMAZ (#6). image_analysis color_count DAHİL DEĞİL (manuel)."""
+    data = request.get_json(silent=True) or {}
+    accepted = bool(data.get("accepted"))
+    row = store.research_get(research_id)
+    if not row:
+        return jsonify({"ok": False, "error": "Bulunamadı"}), 404
+    ai_summary = row.get("ai_summary") or {}
+    suggested = ai_summary.get("suggested") or {}
+
+    # 1) Factual: extracted_facts[*].accepted (yalnız değerli alanlar) → research_save (whitelist'siz)
+    ef = row.get("extracted_facts") or {}
+    enrichment_status = row.get("enrichment_status")
+    for _k, _f in ef.items():
+        if isinstance(_f, dict) and _f.get("value"):
+            _f["accepted"] = accepted
+    save_patch = {"extracted_facts": ef}
+    if accepted and enrichment_status != "verified":
+        enrichment_status = "verified"
+        save_patch["enrichment_status"] = "verified"
+    store.research_save(research_id, save_patch)
+
+    # 2) Taksonomi + ai_notu → research kolonları (whitelist + strip-retry)
+    cols: dict = {}
+    if accepted:
+        cat = store.validate_category(suggested.get("category"))
+        pat = store.validate_pattern(suggested.get("pattern"))
+        cf = store.validate_color_family(suggested.get("color_family"))
+        wt = store.validate_enum_list(suggested.get("weave_tags") or [], store.VALID_WEAVE_TAGS)
+        st = store.validate_str_list(suggested.get("style_tags") or [])
+        an = (ai_summary.get("arge_notu") or "").strip() or None
+        if cat: cols["category"] = cat
+        if pat: cols["pattern"] = pat
+        if cf: cols["color_family"] = cf
+        if wt: cols["weave_tags"] = wt
+        if st: cols["style_tags"] = st
+        if an: cols["ai_notu"] = an
+        # P6.2 — firma ülkesi (ÇIKARIM) → country + brand_country + ISO kodları
+        bc = norm_country(suggested.get("brand_country")) if (suggested.get("brand_country") and str(suggested.get("brand_country")).strip()) else None
+        if bc:
+            _cc = _country_iso(bc)
+            cols["brand_country"] = bc; cols["brand_country_code"] = _cc
+            cols["country"] = bc; cols["country_code"] = _cc
+    else:
+        # Geri-al: yalnız AI'nın önerdiği alanları temizle (kullanıcının elle girdiğine dokunma)
+        if suggested.get("category"): cols["category"] = None
+        if suggested.get("pattern"): cols["pattern"] = None
+        if suggested.get("color_family"): cols["color_family"] = None
+        if suggested.get("weave_tags"): cols["weave_tags"] = []
+        if suggested.get("style_tags"): cols["style_tags"] = []
+        if ai_summary.get("arge_notu"): cols["ai_notu"] = None
+        if suggested.get("brand_country"):
+            cols["brand_country"] = None; cols["brand_country_code"] = None
+            cols["country"] = None; cols["country_code"] = None
+    if cols:
+        store.research_update(research_id, cols)
+
+    def _out(key):
+        return cols[key] if key in cols else row.get(key)
+    return jsonify({
+        "ok": True, "accepted": accepted,
+        "extracted_facts": ef, "enrichment_status": enrichment_status,
+        "category": _out("category"), "pattern": _out("pattern"),
+        "color_family": _out("color_family"), "weave_tags": _out("weave_tags"),
+        "style_tags": _out("style_tags"), "ai_notu": _out("ai_notu"),
+        "brand_country": _out("brand_country"), "country": _out("country"),
+    })
 
 
 @app.route("/api/arastirma/<research_id>", methods=["DELETE"])
@@ -3278,10 +3473,28 @@ def api_arastirma_update(research_id: str):
                 patch["brand_country"] = country_norm  # v4.0-part-2 Sprint 11.5 alias
                 patch["brand_country_code"] = cc
     elif "brand" in data and data.get("brand"):
+        # Marka artık düz metin (input+datalist). Mevcut bir firmayla (slug VEYA ad) eşleşirse
+        # onun slug'ını KORU (yeni kopya/-2 yaratma); değilse yeni unique slug üret.
         brand_name = (data.get("brand") or "").strip()
-        existing_slugs = {b.get("slug") for b in get_brands_registry()}
+        reg = get_brands_registry()
+        base = brand_slugify(brand_name)
+        match = next((b for b in reg
+                      if b.get("slug") == base
+                      or (b.get("name") or "").strip().casefold() == brand_name.casefold()), None)
         patch["brand"] = brand_name
-        patch["brand_slug"] = _unique_brand_slug(brand_name, existing_slugs)
+        if match:
+            patch["brand_slug"] = match.get("slug")
+            # Ülke verilmediyse bilinen firmadan otomatik doldur (eski 'change' autofill yerine)
+            if not (data.get("country") or "").strip() and match.get("country"):
+                cn = norm_country(match.get("country"))
+                cc = _country_iso(cn)
+                patch["country"] = cn
+                patch["country_code"] = cc
+                patch["brand_country"] = cn
+                patch["brand_country_code"] = cc
+        else:
+            existing_slugs = {b.get("slug") for b in reg}
+            patch["brand_slug"] = _unique_brand_slug(brand_name, existing_slugs)
 
     if "country" in data and data.get("country") and "country" not in patch:
         country_norm = norm_country((data.get("country") or "").strip())
