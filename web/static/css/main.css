@@ -5164,26 +5164,6 @@ body.image-select-on .img-manage-card .variant-label-input { pointer-events: non
 .uretim-card legend { color: var(--accent-cool, #5b8def); }
 .uretim-card legend .icon { color: var(--accent-cool, #5b8def); }
 
-/* Hafif modernleştirme (Alpine) — "Sade görünüm": set-once/ileri bölümleri (tk-setup) gizler.
-   Çekirdek hesap (dokuma, iplik, maliyet) öne çıkar; tek tıkla Detaylı'ya geçilir. */
-.teknik-grid.mode-sade .tk-setup { display: none; }
-.numune-sade-toggle {
-    margin-left: auto;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 12px;
-    border-radius: var(--radius-pill);
-    border: 1px solid var(--border);
-    background: var(--bg-elev);
-    color: var(--text-dim);
-    font-size: var(--type-caption);
-    font-weight: 600;
-    cursor: pointer;
-    white-space: nowrap;
-}
-.numune-sade-toggle:hover { border-color: var(--accent-cool, #5b8def); color: var(--text); }
-.numune-sade-toggle.is-detayli { border-color: var(--accent-cool, #5b8def); color: var(--accent-cool, #5b8def); }
 
 /* HESAPLANAN GRAMAJ — 3 hücre yatay */
 .gramaj-grid-single {
@@ -5500,15 +5480,74 @@ body.teknik-fullscreen {
 .numune-section { gap: 10px; }
 .dokuma-card { margin-top: 0; }
 
+/* === GÖRSEL FERAHLIK — Teknik sekmesi nefes alsın (yapı aynı; sadece daha çok boşluk + net başlık).
+   Masaüstü odaklı (mobil kompakt kalır). Geri bildirime göre değerler artırılır/azaltılır. === */
+@media (min-width: 721px) {
+    .numune-section { gap: 18px; }                       /* kartlar/bölümler arası nefes */
+    .analiz-top-row { gap: 16px; }
+    .iplik-cards { gap: 16px; }
+    .maliyet-row { gap: 16px; }
+    /* kart içi ferah padding (kompakt 12/14 → 18/20) */
+    .numune-section .kunye-card,
+    .numune-section .maliyet-card,
+    .numune-section .uretim-card,
+    .numune-section .iplik-card,
+    .numune-section .tarak-card,
+    .numune-section .desen-card,
+    .numune-section .teknik-card { padding: 18px 20px; }
+    /* başlıklar biraz daha belirgin + altında boşluk */
+    .numune-section legend { margin-bottom: 6px; letter-spacing: 0.02em; }
+    /* maliyet listesi satırları ferah */
+    .maliyet-list li { padding: 12px 0; }
+    /* plan blokları arası dikey ritim */
+    .plan-block { margin-bottom: 16px; }
+}
+
+/* === SAKİN RENKLER + DAHA AZ ÇİZGİ — Teknik sekmesi (TÜM ekranlarda).
+   Dekoratif gürültü azalır; İŞLEVSEL renkler korunur: maliyet donut'u + eşleşen noktalar,
+   renk örnekleri/swatch'lar, çözgü(sarı)/atkı(yeşil) renk kodları. === */
+/* 1) Bölüm başlıkları (legend) tek-tip nötr — "rengârenk header" gürültüsünü keser */
+.numune-section legend { color: var(--text-dim); }
+.numune-section legend .icon { color: var(--text-dim); opacity: 0.55; }
+.uretim-card legend,
+.uretim-card legend .icon { color: var(--text-dim); }
+/* 2) Daha az çizgi — maliyet satır ayraçları (kesik → çok hafif) */
+.maliyet-list li { border-bottom: 1px solid color-mix(in oklab, var(--border) 45%, transparent); }
+/* 3) Kart kenarları biraz daha yumuşak (renk-kodlu iplik kartları HARİÇ — onlar çözgü/atkı işareti) */
+.numune-section .kunye-card,
+.numune-section .maliyet-card,
+.numune-section .uretim-card,
+.numune-section .tarak-card,
+.numune-section .desen-card,
+.numune-section .teknik-card { border-color: color-mix(in oklab, var(--border) 70%, transparent); }
+
+/* Analiz ALT SIRA — Kumaş İçeriği (1/3) + Üretim & Finisaj (2/3) yan yana (en altta) */
+.analiz-alt-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;     /* eşit kutu: Üretim (sol) + İçerik (sağ) */
+    gap: 16px;
+    margin-top: 18px;
+    align-items: stretch;               /* iki kutu eşit yükseklik → alt kenarlar hizalı */
+}
+.analiz-alt-row .uretim-card { order: 1; }   /* Üretim & Finisaj — SOL */
+.analiz-alt-row .icerik-card { order: 2; }   /* Kumaş İçeriği — SAĞ */
+.analiz-alt-row .icerik-card,
+.analiz-alt-row .uretim-card { margin: 0; }   /* grid hücresinde üst marjı sıfırla */
+/* Üretim alanları: viewport-bazlı 6 kolon yerine KUTU genişliğine göre ak (dar kalmasın) */
+.analiz-alt-row .uretim-grid { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+@media (max-width: 720px) {
+    .analiz-alt-row { grid-template-columns: 1fr; }   /* mobilde alt alta */
+}
+
 /* C) HESAPLANAN GRAMAJ — kompakt */
 .gramaj-grid-single {
     grid-template-columns: 1.4fr 1fr 1fr;
-    gap: 8px;
-    margin-top: 8px;
+    gap: 6px;
+    margin-top: 6px;
 }
-.gramaj-cell { padding: 8px 12px; }
-.gramaj-value { font-size: 22px; }
-.gramaj-value-sm { font-size: 18px; }
+.gramaj-cell { padding: 5px 10px; }       /* daha küçük gramaj alanı */
+.gramaj-value { font-size: 18px; }
+.gramaj-value-sm { font-size: 15px; }
 .gramaj-hint {
     margin-top: 6px;
     padding: 5px 10px;

@@ -4,22 +4,6 @@
 {# v4.0-part-2 Sprint 8 — embed modu: Çalışma Alanı'ndaki iframe'lerden gelir #}
 {% block body_class %}{% if embed %}embed-calisma {% if embed != 'calisma' %}embed-{{ embed }}{% endif %}{% endif %}{% endblock %}
 
-{# Hafif modernleştirme — Alpine.js (yerel vendor, build yok). Yalnız görünüm/etkileşim; hesap mantığı teknik.js'te. #}
-{% block extra_head %}
-<script defer src="{{ url_for('static', filename='js/vendor/alpine.min.js') }}"></script>
-<style>[x-cloak]{display:none !important}</style>
-<script>
-// Fail-safe: Alpine yüklenmezse "Sade" gizlemesini kaldır (kurulum girdileri kaybolmasın).
-window.addEventListener('load', function () {
-    setTimeout(function () {
-        if (!window.Alpine) {
-            document.querySelectorAll('.mode-sade').forEach(function (el) { el.classList.remove('mode-sade'); });
-        }
-    }, 1500);
-});
-</script>
-{% endblock %}
-
 {% block content %}
 {% if not product %}
 <div class="empty-state">
@@ -680,7 +664,7 @@ window.addEventListener('load', function () {
         </form>
     </dialog>
 
-    <div class="teknik-grid mode-sade" id="teknik-grid" x-data="{ sade: true }" :class="{ 'mode-sade': sade }" {% if not teknik.surumler %}hidden{% endif %}>
+    <div class="teknik-grid" id="teknik-grid" {% if not teknik.surumler %}hidden{% endif %}>
         {# v4.0-part-2 Adım 1 — Numune Master üst bar (status + iç sekme) #}
         <div class="numune-bar">
             <div class="numune-status">
@@ -706,12 +690,6 @@ window.addEventListener('load', function () {
                     <span class="numune-tab-label">📝 Notlar</span>
                 </button>
             </nav>
-            {# Hafif modernleştirme (Alpine) — tek tıkla Sade ↔ Detaylı görünüm; kurulum/ileri bölümleri gizler #}
-            <button type="button" class="numune-sade-toggle" x-cloak @click="sade = !sade"
-                    :class="{ 'is-detayli': !sade }"
-                    :title="sade ? 'Kurulum / ileri bölümleri göster' : 'Sade görünüme dön'">
-                <span x-text="sade ? '🛠️ Detayları göster' : '🪶 Sadeleştir'">🛠️ Detayları göster</span>
-            </button>
         </div>
 
         {# 1 · Analiz — NUMUNE KÜNYESİ #}
@@ -926,7 +904,7 @@ window.addEventListener('load', function () {
 
             {# v4.0-part-2 Adım 2.4 — GRAMAJ DOĞRULAMA + KUMAŞ İÇERİĞİ + MALİYET + DAĞILIM + ÜRETİM PARAMETRELERİ #}
 
-            {# GRAMAJ DOĞRULAMA — sadece Hesaplanan + çekme faktörü hint #}
+            {# HESAPLANAN GRAMAJ — sadece Hesaplanan değerler (çekme faktörü hint'i kaldırıldı; hesabı etkilemiyordu) #}
             <fieldset class="maliyet-card gramaj-card">
                 <legend>
                     <svg class="icon"><use href="#ic-bar-chart"/></svg>
@@ -949,21 +927,6 @@ window.addEventListener('load', function () {
                         <span class="gramaj-unit">g/mt</span>
                     </div>
                 </div>
-                <div class="gramaj-hint" id="gramaj-cekme-hint">
-                    Çekme faktörü → atkı ×<b id="cekme-atki">1,000</b> (<span id="cekme-atki-yuzde">%0,00</span>)
-                </div>
-            </fieldset>
-
-            {# KUMAŞ İÇERİĞİ — elyaf dağılımı #}
-            <fieldset class="maliyet-card icerik-card">
-                <legend>
-                    <svg class="icon"><use href="#ic-target"/></svg>
-                    <span>KUMAŞ İÇERİĞİ</span>
-                </legend>
-                <div class="icerik-empty" id="icerik-empty">
-                    İpliklere içerik (elyaf cinsi/oran) eklenmedi — kompozisyon panelinden ekleyin.
-                </div>
-                <div class="icerik-list" id="icerik-list" hidden></div>
             </fieldset>
 
             {# MALİYET DÖKÜMÜ + DAĞILIM — yan yana grid #}
@@ -1015,8 +978,21 @@ window.addEventListener('load', function () {
                 </fieldset>
             </div>
 
-            {# ÜRETİM & FİNİSAJ PARAMETRELERİ — set-once kurulum (Sade görünümde gizlenir; tk-setup) #}
-            <fieldset class="maliyet-card uretim-card tk-setup">
+            {# ALT SIRA — Kumaş İçeriği (1/3) + Üretim & Finisaj (2/3) yan yana #}
+            <div class="analiz-alt-row">
+            {# KUMAŞ İÇERİĞİ — elyaf dağılımı #}
+            <fieldset class="maliyet-card icerik-card">
+                <legend>
+                    <svg class="icon"><use href="#ic-target"/></svg>
+                    <span>KUMAŞ İÇERİĞİ</span>
+                </legend>
+                <div class="icerik-empty" id="icerik-empty">
+                    İpliklere içerik (elyaf cinsi/oran) eklenmedi — kompozisyon panelinden ekleyin.
+                </div>
+                <div class="icerik-list" id="icerik-list" hidden></div>
+            </fieldset>
+            {# ÜRETİM & FİNİSAJ PARAMETRELERİ #}
+            <fieldset class="maliyet-card uretim-card">
                 <legend>
                     <svg class="icon"><use href="#ic-pencil"/></svg>
                     <span>ÜRETİM &amp; FİNİSAJ PARAMETRELERİ</span>
@@ -1066,6 +1042,7 @@ window.addEventListener('load', function () {
                     </label>
                 </div>
             </fieldset>
+            </div>{# /analiz-alt-row #}
 
             {# İçerik satırı template (info paneli içinde dinamik) #}
             <template id="tpl-iplik-icerik">
@@ -1298,8 +1275,8 @@ window.addEventListener('load', function () {
                 <span id="plan-status" class="plan-status" data-kind=""></span>
             </div>
 
-            {# ⚙️ Kur & Rapor Ayarı — set-once ayar (Sade görünümde gizli; tk-setup) #}
-            <fieldset class="teknik-card plan-block tk-setup">
+            {# ⚙️ Kur & Rapor Ayarı — BU PARÇADA ÇALIŞIR #}
+            <fieldset class="teknik-card plan-block">
                 <legend>⚙️ Kur &amp; Rapor Ayarı</legend>
                 <label class="plan-field">
                     <span>Rapor para birimi</span>
@@ -1323,8 +1300,8 @@ window.addEventListener('load', function () {
                 </div>
             </fieldset>
 
-            {# 0️⃣ Özet — READONLY referans (Sade görünümde gizli; tk-setup) #}
-            <fieldset class="teknik-card plan-block tk-setup">
+            {# 0️⃣ Özet — aktif teknik sürümden READONLY (teknik form DOM'undan okunur) #}
+            <fieldset class="teknik-card plan-block">
                 <legend>0️⃣ Özet (teknik)</legend>
                 <div class="plan-ozet-grid" id="plan-ozet">
                     <div class="stat-card"><span class="stat-value" data-ozet="cozgu_sikligi">—</span><span class="stat-label">Çözgü sıklığı</span></div>
@@ -1479,7 +1456,7 @@ window.addEventListener('load', function () {
                     <div class="plan-ihtiyac-table" id="plan-ekru-tuketim"></div>
                 </div>
 
-                <div class="plan-subblock tk-setup">
+                <div class="plan-subblock">
                     <div class="plan-sub-head">Boyahane profili</div>
                     <div class="plan-row">
                         <label class="plan-field"><span>Kazan kapasitesi <em>(kg)</em></span>
