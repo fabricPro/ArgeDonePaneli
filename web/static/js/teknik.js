@@ -1290,9 +1290,8 @@
     // === v4.0-part-2 Adım 2.4 — MALİYET HESABI + UI GÜNCELLEMESİ
     // ============================================================
 
-    // Sabit varsayım (kullanıcı sonradan input'a çevirebilir)
-    const ISCILIK_USD_PER_HOUR = 30;     // tezgah saat ücreti (varsayım)
-    const KDV_ORANI = 0.18;
+    // İşçilik: "1000 değeri" / üretim kapasitesi (mt/ay) × 1,10 (kullanıcı standardı)
+    const ISCILIK_CARPAN = 1.10;
 
     // Tek bir iplik satırı için g/m (kat dahil) — parseIplikValue + gPerMt sarmalı
     function rowGPerMt(row) {
@@ -1406,11 +1405,18 @@
         return { mt_per_hour: mtPerHour, mt_per_month: mtPerMonth };
     }
 
-    // İşçilik ($/mt) = saat_ücreti / kapasite_mt_saat × (1 + KDV)
-    function calcIscilik(kapasite) {
-        if (!kapasite || !kapasite.mt_per_hour || kapasite.mt_per_hour <= 0) return 0;
-        const usdPerMt = ISCILIK_USD_PER_HOUR / kapasite.mt_per_hour;
-        return usdPerMt * (1 + KDV_ORANI);
+    // "1000 değeri" — işçilik bazı (atkı sıklığına göre):
+    //   = EĞER(atkı_sıklığı < 12 ; ((12 - atkı_sıklığı) × 1000) + 8000 ; 8000)
+    function calcBinDegeri(dok) {
+        const atki = parseFloat(dok.atki_sikligi);
+        if (!isFinite(atki) || atki <= 0) return null;
+        return atki < 12 ? ((12 - atki) * 1000) + 8000 : 8000;
+    }
+
+    // İşçilik ($/mt) = "1000 değeri" / üretim kapasitesi (mt/ay) × 1,10
+    function calcIscilik(binDegeri, kapasite) {
+        if (binDegeri == null || !kapasite || !kapasite.mt_per_month || kapasite.mt_per_month <= 0) return 0;
+        return (binDegeri / kapasite.mt_per_month) * ISCILIK_CARPAN;
     }
 
     // Terbiye ($/mt) = (toplam_gramaj / 1000) × terbiye_fiyat
@@ -1551,7 +1557,8 @@
         // Maliyet (ham_en üzerinden — gerçek iplik tüketimi)
         const iplik = calcIplikMaliyet(hamEn);
         const kapasite = calcKapasite(uretim, dok);
-        const iscilik = calcIscilik(kapasite);
+        const binDegeri = calcBinDegeri(dok);                 // "1000 değeri" (işçilik bazı)
+        const iscilik = calcIscilik(binDegeri, kapasite);
         const terbiye = calcTerbiye(totalG, uretim.terbiye_fiyat);
         const fire = calcFire(iplik.total, iscilik, terbiye, uretim.genel_fire);
         const kursun = calcKursun(uretim);
@@ -1570,6 +1577,7 @@
             const el = document.querySelector(`[data-cost-out="${key}"]`);
             if (el) el.textContent = fmtTr(val, 3);
         };
+        set('bin-degeri-out', binDegeri != null ? fmtTrInt(binDegeri) : '—');   // "1000 değeri" (toplama eklenmez)
         setCost('iplik', iplik.total);
         setCost('iscilik', iscilik);
         setCost('terbiye', terbiye);

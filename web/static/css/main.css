@@ -5164,6 +5164,27 @@ body.image-select-on .img-manage-card .variant-label-input { pointer-events: non
 .uretim-card legend { color: var(--accent-cool, #5b8def); }
 .uretim-card legend .icon { color: var(--accent-cool, #5b8def); }
 
+/* Hafif modernleştirme (Alpine) — "Sade görünüm": set-once/ileri bölümleri (tk-setup) gizler.
+   Çekirdek hesap (dokuma, iplik, maliyet) öne çıkar; tek tıkla Detaylı'ya geçilir. */
+.teknik-grid.mode-sade .tk-setup { display: none; }
+.numune-sade-toggle {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    color: var(--text-dim);
+    font-size: var(--type-caption);
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.numune-sade-toggle:hover { border-color: var(--accent-cool, #5b8def); color: var(--text); }
+.numune-sade-toggle.is-detayli { border-color: var(--accent-cool, #5b8def); color: var(--accent-cool, #5b8def); }
+
 /* HESAPLANAN GRAMAJ — 3 hücre yatay */
 .gramaj-grid-single {
     display: grid;
@@ -5286,6 +5307,9 @@ body.image-select-on .img-manage-card .variant-label-input { pointer-events: non
     color: var(--text-dim);
 }
 .maliyet-list li:last-child { border-bottom: 0; }
+/* "1000 değeri" — maliyet kalemi değil, işçilik bazı (toplama eklenmez): soluk/italik yardımcı satır */
+.maliyet-list li.maliyet-info { font-style: italic; opacity: 0.8; }
+.maliyet-list li.maliyet-info em { font-style: normal; opacity: 0.7; margin-left: 4px; }
 .maliyet-list li b {
     margin-left: auto;
     font-weight: 600;

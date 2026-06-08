@@ -4,6 +4,22 @@
 {# v4.0-part-2 Sprint 8 — embed modu: Çalışma Alanı'ndaki iframe'lerden gelir #}
 {% block body_class %}{% if embed %}embed-calisma {% if embed != 'calisma' %}embed-{{ embed }}{% endif %}{% endif %}{% endblock %}
 
+{# Hafif modernleştirme — Alpine.js (yerel vendor, build yok). Yalnız görünüm/etkileşim; hesap mantığı teknik.js'te. #}
+{% block extra_head %}
+<script defer src="{{ url_for('static', filename='js/vendor/alpine.min.js') }}"></script>
+<style>[x-cloak]{display:none !important}</style>
+<script>
+// Fail-safe: Alpine yüklenmezse "Sade" gizlemesini kaldır (kurulum girdileri kaybolmasın).
+window.addEventListener('load', function () {
+    setTimeout(function () {
+        if (!window.Alpine) {
+            document.querySelectorAll('.mode-sade').forEach(function (el) { el.classList.remove('mode-sade'); });
+        }
+    }, 1500);
+});
+</script>
+{% endblock %}
+
 {% block content %}
 {% if not product %}
 <div class="empty-state">
@@ -664,7 +680,7 @@
         </form>
     </dialog>
 
-    <div class="teknik-grid" id="teknik-grid" {% if not teknik.surumler %}hidden{% endif %}>
+    <div class="teknik-grid mode-sade" id="teknik-grid" x-data="{ sade: true }" :class="{ 'mode-sade': sade }" {% if not teknik.surumler %}hidden{% endif %}>
         {# v4.0-part-2 Adım 1 — Numune Master üst bar (status + iç sekme) #}
         <div class="numune-bar">
             <div class="numune-status">
@@ -690,6 +706,12 @@
                     <span class="numune-tab-label">📝 Notlar</span>
                 </button>
             </nav>
+            {# Hafif modernleştirme (Alpine) — tek tıkla Sade ↔ Detaylı görünüm; kurulum/ileri bölümleri gizler #}
+            <button type="button" class="numune-sade-toggle" x-cloak @click="sade = !sade"
+                    :class="{ 'is-detayli': !sade }"
+                    :title="sade ? 'Kurulum / ileri bölümleri göster' : 'Sade görünüme dön'">
+                <span x-text="sade ? '🛠️ Detayları göster' : '🪶 Sadeleştir'">🛠️ Detayları göster</span>
+            </button>
         </div>
 
         {# 1 · Analiz — NUMUNE KÜNYESİ #}
@@ -954,6 +976,8 @@
                     <ul class="maliyet-list" id="maliyet-list">
                         <li data-cost="iplik"><span class="dot" style="--c:#5b8def"></span>İplik (çözgü+atkı)<b><span data-cost-out="iplik">0,000</span> $</b></li>
                         <li data-cost="iscilik"><span class="dot" style="--c:#d4af7f"></span>İşçilik (KDV dahil)<b><span data-cost-out="iscilik">0,000</span> $</b></li>
+                        <li class="maliyet-info" data-cost="bin_degeri" title="EĞER(atkı sıklığı &lt; 12 ; ((12 − atkı sıklığı) × 1000) + 8000 ; 8000) — işçilik bazı, toplama EKLENMEZ. İşçilik = 1000 değeri ÷ kapasite (mt/ay) × 1,10">
+                            <span class="dot" style="--c:#b0a8a0"></span>1000 değeri <em>(işçilik bazı)</em><b><span id="bin-degeri-out">—</span></b></li>
                         <li data-cost="terbiye"><span class="dot" style="--c:#7fb37f"></span>Terbiye<b><span data-cost-out="terbiye">0,000</span> $</b></li>
                         <li data-cost="fire"><span class="dot" style="--c:#e07260"></span>Fire<b><span data-cost-out="fire">0,000</span> $</b></li>
                         <li data-cost="kursun"><span class="dot" style="--c:#8b8a87"></span>Kurşum + Ek malzeme<b><span data-cost-out="kursun">0,000</span> $</b></li>
@@ -991,11 +1015,11 @@
                 </fieldset>
             </div>
 
-            {# ÜRETİM & FİNİSAJ PARAMETRELERİ #}
-            <fieldset class="maliyet-card uretim-card">
+            {# ÜRETİM & FİNİSAJ PARAMETRELERİ — set-once kurulum (Sade görünümde gizlenir; tk-setup) #}
+            <fieldset class="maliyet-card uretim-card tk-setup">
                 <legend>
                     <svg class="icon"><use href="#ic-pencil"/></svg>
-                    <span>ÜRETİM & FİNİSAJ PARAMETRELERİ</span>
+                    <span>ÜRETİM &amp; FİNİSAJ PARAMETRELERİ</span>
                 </legend>
                 <div class="uretim-grid">
                     <label class="iplik-field">
@@ -1274,8 +1298,8 @@
                 <span id="plan-status" class="plan-status" data-kind=""></span>
             </div>
 
-            {# ⚙️ Kur & Rapor Ayarı — BU PARÇADA ÇALIŞIR #}
-            <fieldset class="teknik-card plan-block">
+            {# ⚙️ Kur & Rapor Ayarı — set-once ayar (Sade görünümde gizli; tk-setup) #}
+            <fieldset class="teknik-card plan-block tk-setup">
                 <legend>⚙️ Kur &amp; Rapor Ayarı</legend>
                 <label class="plan-field">
                     <span>Rapor para birimi</span>
@@ -1299,8 +1323,8 @@
                 </div>
             </fieldset>
 
-            {# 0️⃣ Özet — aktif teknik sürümden READONLY (teknik form DOM'undan okunur) #}
-            <fieldset class="teknik-card plan-block">
+            {# 0️⃣ Özet — READONLY referans (Sade görünümde gizli; tk-setup) #}
+            <fieldset class="teknik-card plan-block tk-setup">
                 <legend>0️⃣ Özet (teknik)</legend>
                 <div class="plan-ozet-grid" id="plan-ozet">
                     <div class="stat-card"><span class="stat-value" data-ozet="cozgu_sikligi">—</span><span class="stat-label">Çözgü sıklığı</span></div>
@@ -1455,7 +1479,7 @@
                     <div class="plan-ihtiyac-table" id="plan-ekru-tuketim"></div>
                 </div>
 
-                <div class="plan-subblock">
+                <div class="plan-subblock tk-setup">
                     <div class="plan-sub-head">Boyahane profili</div>
                     <div class="plan-row">
                         <label class="plan-field"><span>Kazan kapasitesi <em>(kg)</em></span>
