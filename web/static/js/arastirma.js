@@ -172,7 +172,7 @@
     form.querySelector('[data-field="country"]').value = r.country || '';
     // Marka: artık düz input + datalist (ülke gibi) — select/yeni-firma mantığı yok
     const brandEl = form.querySelector('[data-field="brand"]');
-    if (brandEl) brandEl.value = r.brand || '';
+    if (brandEl) brandEl.value = r.brand || brandFactValue(r) || '';
     // OnCalisma-V2 (Problem 2) — taksonomi + AI notu alanlarını doldur (P6: ortak helper)
     syncTaxonomyForm(form, r);
     // OnCalisma-V2 (Problem 4a) — AI Zenginleştirme paneli (salt-okuma) + durum
@@ -326,6 +326,21 @@
   function isEverythingAccepted(r) {
     const { acc, total } = acceptCounts(r);
     return total > 0 && acc === total;
+  }
+  // Sprint 11.6 — AI'nın çıkardığı firma adı (factual). Kabul edilmişse firma input'una yansır.
+  // (Firma adı zorunlu; accept-all sonrası kaydet'in "firma adı boş" demesini önler.)
+  function brandFactValue(r) {
+    const f = r && r.extracted_facts && r.extracted_facts.brand;
+    if (f && f.accepted && typeof f.value === 'string') return f.value.trim();
+    return '';
+  }
+  // Firma input'u boşsa, kabul edilen AI firma adıyla doldur (kullanıcı yine de değiştirebilir).
+  function fillBrandFromFact(form, r) {
+    if (!form) return;
+    const el = form.querySelector('[data-field="brand"]');
+    if (!el || el.value.trim()) return;
+    const bf = brandFactValue(r);
+    if (bf) el.value = bf;
   }
   // P6 — Düzenle formundaki taksonomi/ai_notu alanlarını r'den senkronla (openEditMode + accept-all paylaşır)
   function syncTaxonomyForm(form, r) {
@@ -708,6 +723,7 @@
           });
           if (editForm) {
             syncTaxonomyForm(editForm, r);
+            fillBrandFromFact(editForm, r);   // Sprint 11.6 — kabul edilen firma adını input'a yansıt
             const p = editForm.querySelector('.ar-ai-panel'); if (p) p.innerHTML = renderAiPanel(r);
             const s = editForm.querySelector('.ar-enrich-status-edit'); if (s) s.textContent = enrichStatusLabel(r.enrichment_status) || 'ham';
           }
@@ -790,6 +806,7 @@
           if (!r.extracted_facts[field]) r.extracted_facts[field] = {};
           r.extracted_facts[field].accepted = d.accepted;
           if (d.enrichment_status) r.enrichment_status = d.enrichment_status;
+          if (field === 'brand' && d.accepted) fillBrandFromFact(editForm, r);  // Sprint 11.6 — firma adını input'a yansıt
           if (editForm) {
             const p = editForm.querySelector('.ar-ai-panel'); if (p) p.innerHTML = renderAiPanel(r);
             const s = editForm.querySelector('.ar-enrich-status-edit'); if (s) s.textContent = enrichStatusLabel(r.enrichment_status) || 'ham';
