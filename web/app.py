@@ -979,53 +979,32 @@ def api_brands_reseed():
 # API
 # ============================================================
 
-@app.route("/api/urun", methods=["POST"])
-def api_create_urun():
-    f = request.form
-    brand = clean(f.get("brand"))
-    product_name = clean(f.get("product_name"))
-    if not brand:
-        return jsonify({"ok": False, "error": "Marka zorunlu"}), 400
-    if not product_name:
-        return jsonify({"ok": False, "error": "Ürün adı zorunlu"}), 400
+def _normalize_brand_slug(brand: str, brand_slug: str | None = None) -> str:
+    bs = clean(brand_slug) or brand_slugify(brand)
+    return re.sub(r"[^a-z0-9_]", "_", bs.lower()) or "diger"
 
-    brand_slug = clean(f.get("brand_slug")) or brand_slugify(brand)
-    brand_slug = re.sub(r"[^a-z0-9_]", "_", brand_slug.lower()) or "diger"
-    product_code = clean(f.get("product_code"))
+
+def _new_product_id(brand_slug: str, product_code: str, product_name: str):
+    """(urun_id, folder_code, dest_prefix) üret. Çakışma varsa timestamp suffix."""
     code_slug = slugify(product_code or product_name)
-
     urun_id = f"{brand_slug}_{code_slug}"
     folder_code = code_slug
     if store.get(urun_id):
         suffix = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         folder_code = f"{code_slug}-{suffix}"
         urun_id = f"{brand_slug}_{folder_code}"
-    dest_prefix = f"{brand_slug}/{folder_code}"
+    return urun_id, folder_code, f"{brand_slug}/{folder_code}"
 
-    files = [x for x in request.files.getlist("files") if x and x.filename]
-    labels = request.form.getlist("variant_labels")
-    cover_index = parse_int(f.get("cover_index")) or 0
 
-    images = []
-
-    # v4.0-part-2 Sprint 10.5 — Ön Çalışmadan gelen görselleri ÖNCE kopyala
-    # (sıra: prefill → yeni upload; cover default = ilk prefill = ilk yakalanan)
-    # v4.0-part-2 Sprint 11 — albüm + renk verisini de araştırmadan ürüne taşı
-    prefill_paths = request.form.getlist("prefill_image_paths")
-    prefill_alts  = request.form.getlist("prefill_image_alts")
-    from_research_id = clean(f.get("from_research_id"))
-    research_row = None
-    research_img_by_path: dict[str, dict] = {}
-    if from_research_id:
-        try:
-            research_row = store.research_get(from_research_id)
-        except Exception:
-            research_row = None
-        if research_row:
-            for im in (research_row.get("images") or []):
-                if isinstance(im, dict) and im.get("storage_path"):
-                    research_img_by_path[im["storage_path"]] = im
+def _copy_research_images(research_row: dict | None, prefill_paths, prefill_alts, dest_prefix, images):
+    """Ön çalışma görsellerini ürün klasörüne kopyala (albüm+renk taşır).
+    images listesine ekler; kullanılan albüm slug set'ini döner."""
     used_album_slugs: set[str] = set()
+    by_path = {}
+    if research_row:
+        for im in (research_row.get("images") or []):
+            if isinstance(im, dict) and im.get("storage_path"):
+                by_path[im["storage_path"]] = im
     for i, src_path in enumerate(prefill_paths):
         if not src_path:
             continue
@@ -1034,14 +1013,8 @@ def api_create_urun():
             dst_path = f"{dest_prefix}/{len(images)}_{uuid.uuid4().hex[:8]}.jpg"
             store.upload_image(dst_path, data, "image/jpeg")
             alt = prefill_alts[i].strip() if i < len(prefill_alts) and prefill_alts[i].strip() else None
-            img_obj = {
-                "path": dst_path,
-                "variant_label": alt,
-                "is_cover": False,
-                "order": len(images),
-            }
-            # Araştırmadaki eşleşen görselin albüm + renk verisini taşı
-            r_im = research_img_by_path.get(src_path)
+            img_obj = {"path": dst_path, "variant_label": alt, "is_cover": False, "order": len(images)}
+            r_im = by_path.get(src_path)
             if r_im:
                 r_albums = [s for s in (r_im.get("albums") or []) if s]
                 if r_albums:
@@ -1053,7 +1026,118 @@ def api_create_urun():
             images.append(img_obj)
         except Exception as e:
             print(f"[Sprint 10.5] Prefill görsel kopyalanamadı ({src_path}): {e}")
+    return used_album_slugs
 
+
+def _assemble_and_save_product(*, urun_id, folder_code, fields: dict, images: list,
+                               research_row=None, used_album_slugs=None,
+                               pdfs_meta=None, from_research_id=None):
+    """Ürün dict'ini kur + albüm tohumla + 'Renkler' garanti + upsert + research'i imported işaretle.
+    fields: çözümlenmiş skaler değerler (brand, brand_slug, product_name, taksonomi, ülke, fiyat...).
+    Hem /ekle (form) hem araştırma→ürün (JSON) bunu kullanır. urun_id döner."""
+    used_album_slugs = used_album_slugs or set()
+    if images:
+        ci = fields.get("cover_index")
+        ci = ci if isinstance(ci, int) and 0 <= ci < len(images) else 0
+        images[ci]["is_cover"] = True
+
+    brand_country = norm_country(fields.get("brand_country") or fields.get("country"))
+    production_country = norm_country(fields.get("production_country"))
+    ref_price = clean(fields.get("reference_price")) or None
+    ref_price_type = fields.get("reference_price_type")
+    if ref_price_type not in ("exact", "from"):
+        ref_price_type = None
+    if not ref_price:
+        ref_price_type = None
+    ref_price_evidence = clean(fields.get("reference_price_evidence")) if ref_price else None
+    source_url = clean(fields.get("source_url"))
+
+    now = now_iso()
+    d = {
+        "urun_id": urun_id, "brand": fields["brand"], "brand_slug": fields["brand_slug"],
+        "country": brand_country, "brand_country": brand_country,
+        "brand_country_code": _country_iso(brand_country),
+        "production_country": production_country,
+        "production_country_code": _country_iso(production_country),
+        "reference_price": ref_price, "reference_price_type": ref_price_type,
+        "reference_price_evidence": ref_price_evidence,
+        "collection": clean(fields.get("collection")), "product_name": fields["product_name"],
+        "product_code": clean(fields.get("product_code")) or folder_code,
+        "composition": clean(fields.get("composition")), "width_cm": parse_int(fields.get("width_cm")),
+        "weight_gsm": parse_int(fields.get("weight_gsm")),
+        "weave_type": clean(fields.get("weave_type")),
+        "repeat_vertical_cm": parse_int(fields.get("repeat_vertical_cm")),
+        "repeat_horizontal_cm": parse_int(fields.get("repeat_horizontal_cm")),
+        "arge_notu": clean(fields.get("arge_notu")), "notes": clean(fields.get("notes")),
+        "source_url": source_url,
+        "source_url_hash": store.url_hash(source_url) if source_url else None,
+        "status": "active", "country_code": _country_iso(brand_country),
+        "created_at": now, "updated_at": now, "images": images,
+    }
+    # Albüm tohumla (sadece kullanılan slug'lar) + "Renkler" garanti
+    if research_row and used_album_slugs:
+        d["albums"] = [
+            a for a in (research_row.get("albums") or [])
+            if isinstance(a, dict) and a.get("slug") in used_album_slugs
+        ]
+    existing_albums = d.get("albums") or []
+    has_renkler = any(
+        ((a.get("slug") or "").lower() == "renkler" or (a.get("name") or "").strip().lower() == "renkler")
+        for a in existing_albums if isinstance(a, dict)
+    )
+    if not has_renkler:
+        d["albums"] = existing_albums + [{"slug": "renkler", "name": "Renkler"}]
+    if pdfs_meta:
+        d["pdfs"] = pdfs_meta
+    if from_research_id:
+        d["from_research_id"] = from_research_id
+    # Taksonomi (controlled vocab; geçersiz → temizlenir)
+    d["category"] = store.validate_category(fields.get("category"))
+    d["pattern"] = store.validate_pattern(fields.get("pattern"))
+    d["color_family"] = store.validate_color_family(fields.get("color_family"))
+    d["weave_tags"] = store.validate_enum_list(fields.get("weave_tags") or [], store.VALID_WEAVE_TAGS)
+    st = fields.get("style_tags")
+    if isinstance(st, str):
+        st = st.split(",")
+    d["style_tags"] = store.validate_str_list(st or [])
+    d["color_count"] = parse_int(fields.get("color_count"))
+    d["ai_notu"] = clean(fields.get("ai_notu"))
+    store.upsert(d)
+
+    if from_research_id:
+        try:
+            store.research_update_status(from_research_id, "imported", imported_product_id=urun_id)
+        except Exception:
+            pass  # best-effort, ürün yine de oluştu
+    return urun_id
+
+
+@app.route("/api/urun", methods=["POST"])
+def api_create_urun():
+    f = request.form
+    brand = clean(f.get("brand"))
+    product_name = clean(f.get("product_name"))
+    if not brand:
+        return jsonify({"ok": False, "error": "Marka zorunlu"}), 400
+    if not product_name:
+        return jsonify({"ok": False, "error": "Ürün adı zorunlu"}), 400
+
+    brand_slug = _normalize_brand_slug(brand, f.get("brand_slug"))
+    product_code = clean(f.get("product_code"))
+    urun_id, folder_code, dest_prefix = _new_product_id(brand_slug, product_code, product_name)
+
+    files = [x for x in request.files.getlist("files") if x and x.filename]
+    labels = request.form.getlist("variant_labels")
+    cover_index = parse_int(f.get("cover_index")) or 0
+
+    images = []
+    # Ön Çalışmadan gelen görseller (prefill) — albüm + renk taşır
+    from_research_id = clean(f.get("from_research_id"))
+    research_row = store.research_get(from_research_id) if from_research_id else None
+    used_album_slugs = _copy_research_images(
+        research_row, request.form.getlist("prefill_image_paths"),
+        request.form.getlist("prefill_image_alts"), dest_prefix, images,
+    )
     # Yeni upload'lar (file-input'tan)
     for i, fs in enumerate(files):
         try:
@@ -1062,101 +1146,40 @@ def api_create_urun():
             return jsonify({"ok": False, "error": f"Görsel yüklenemedi ({fs.filename}): {e}"}), 400
         label = labels[i].strip() if i < len(labels) and labels[i].strip() else None
         images.append({"path": path, "variant_label": label, "is_cover": False, "order": len(images)})
-    if images:
-        ci = cover_index if 0 <= cover_index < len(images) else 0
-        images[ci]["is_cover"] = True
 
-    # v4.0-part-2 Adım 8 — PDF dosyaları (opsiyonel)
-    pdf_files = [x for x in request.files.getlist("pdf_files") if x and x.filename]
+    # PDF dosyaları (opsiyonel)
     pdfs_meta: list[dict] = []
-    for fs in pdf_files:
+    for fs in [x for x in request.files.getlist("pdf_files") if x and x.filename]:
         try:
             pdfs_meta.append(save_pdf(fs, urun_id))
         except Exception as e:
             return jsonify({"ok": False, "error": f"PDF yüklenemedi ({fs.filename}): {e}"}), 400
 
-    source_url = clean(f.get("source_url"))
-
-    # v4.0-part-2 Sprint 11.5 — country ayrimi (brand HQ + production "Made in")
-    # Eski "country" form alani -> brand_country'ye yonlendi; geriye uyum icin
-    # backend tarafinda country = brand_country senkron tutulur.
-    brand_country_raw = clean(f.get("brand_country")) or clean(f.get("country"))  # eski form fallback
-    brand_country = norm_country(brand_country_raw)
-    production_country = norm_country(clean(f.get("production_country")))
-
-    # v4.0-part-2 Sprint 11.5 — reference_price (exact/from)
-    ref_price = clean(f.get("reference_price"))
-    ref_price_type = clean(f.get("reference_price_type"))
-    if ref_price_type not in ("exact", "from"):
-        ref_price_type = None   # enum disi degerlere izin verme (savunma)
-    if not ref_price:
-        ref_price_type = None   # value bossa type da bos
-    ref_price_evidence = clean(f.get("reference_price_evidence")) if ref_price else None
-
-    now = now_iso()
-    d = {
-        "urun_id": urun_id, "brand": brand, "brand_slug": brand_slug,
-        "country": brand_country,                       # geriye uyum alias = brand_country
-        "brand_country": brand_country,
-        "brand_country_code": _country_iso(brand_country),
-        "production_country": production_country,
-        "production_country_code": _country_iso(production_country),
-        "reference_price": ref_price,
-        "reference_price_type": ref_price_type,
-        "reference_price_evidence": ref_price_evidence,
-        "collection": clean(f.get("collection")), "product_name": product_name,
-        "product_code": product_code or folder_code,
-        "composition": clean(f.get("composition")), "width_cm": parse_int(f.get("width_cm")),
-        "weight_gsm": parse_int(f.get("weight_gsm")),
-        "weave_type": clean(f.get("weave_type")),
-        "repeat_vertical_cm": parse_int(f.get("repeat_vertical_cm")),
-        "repeat_horizontal_cm": parse_int(f.get("repeat_horizontal_cm")),
-        "arge_notu": clean(f.get("arge_notu")), "notes": clean(f.get("notes")),
-        "source_url": source_url,
-        "source_url_hash": store.url_hash(source_url) if source_url else None,
-        "status": "active",
-        "country_code": _country_iso(brand_country),   # eski alias
-        "created_at": now, "updated_at": now, "images": images,
+    fields = {
+        "brand": brand, "brand_slug": brand_slug, "product_name": product_name,
+        "product_code": product_code, "collection": f.get("collection"),
+        "composition": f.get("composition"), "width_cm": f.get("width_cm"),
+        "weight_gsm": f.get("weight_gsm"), "weave_type": f.get("weave_type"),
+        "repeat_vertical_cm": f.get("repeat_vertical_cm"),
+        "repeat_horizontal_cm": f.get("repeat_horizontal_cm"),
+        "arge_notu": f.get("arge_notu"), "notes": f.get("notes"),
+        "source_url": f.get("source_url"),
+        "brand_country": f.get("brand_country"), "country": f.get("country"),
+        "production_country": f.get("production_country"),
+        "reference_price": f.get("reference_price"),
+        "reference_price_type": f.get("reference_price_type"),
+        "reference_price_evidence": f.get("reference_price_evidence"),
+        "category": f.get("category"), "pattern": f.get("pattern"),
+        "color_family": f.get("color_family"),
+        "weave_tags": f.getlist("weave_tags"), "style_tags": f.get("style_tags") or "",
+        "color_count": f.get("color_count"), "ai_notu": f.get("ai_notu"),
+        "cover_index": cover_index,
     }
-    # v4.0-part-2 Sprint 11 — Araştırmadaki albüm tanımlarını ürüne tohumla
-    # (sadece kopyalanan görsellerde kullanılan albümler — yetim boş albüm bırakma)
-    if research_row and used_album_slugs:
-        d["albums"] = [
-            a for a in (research_row.get("albums") or [])
-            if isinstance(a, dict) and a.get("slug") in used_album_slugs
-        ]
-    # v4.0-part-2 Sprint 13 — Default "Renkler" albümü her yeni üründe garantili
-    existing_albums = d.get("albums") or []
-    has_renkler = any(
-        ((a.get("slug") or "").lower() == "renkler" or
-         (a.get("name") or "").strip().lower() == "renkler")
-        for a in existing_albums if isinstance(a, dict)
+    _assemble_and_save_product(
+        urun_id=urun_id, folder_code=folder_code, fields=fields, images=images,
+        research_row=research_row, used_album_slugs=used_album_slugs,
+        pdfs_meta=pdfs_meta, from_research_id=from_research_id,
     )
-    if not has_renkler:
-        d["albums"] = existing_albums + [{"slug": "renkler", "name": "Renkler"}]
-    if pdfs_meta:
-        d["pdfs"] = pdfs_meta
-    # v4.0-part-2 Sprint 14 — Ön çalışma kaynağını üründe sakla (sonradan göstermek için)
-    if from_research_id:
-        d["from_research_id"] = from_research_id
-    # OnCalisma-V2 (Problem 2) — taksonomi (controlled vocab ile doğrulanır; geçersiz → temizlenir)
-    d["category"] = store.validate_category(f.get("category"))
-    d["pattern"] = store.validate_pattern(f.get("pattern"))
-    d["color_family"] = store.validate_color_family(f.get("color_family"))
-    d["weave_tags"] = store.validate_enum_list(f.getlist("weave_tags"), store.VALID_WEAVE_TAGS)
-    d["style_tags"] = store.validate_str_list((f.get("style_tags") or "").split(","))
-    # OnCalisma-V2 (Problem 4b) — renk sayısı (color_family yerine) + AI notu (form'dan; AI prefill ile gelir)
-    d["color_count"] = parse_int(f.get("color_count"))
-    d["ai_notu"] = clean(f.get("ai_notu"))
-    store.upsert(d)
-
-    # v4.0-part-2 Adım 8 — Ön Çalışma kaydı varsa "imported" işaretle
-    if from_research_id:
-        try:
-            store.research_update_status(from_research_id, "imported", imported_product_id=urun_id)
-        except Exception:
-            pass  # best-effort, ürün yine de oluştu
-
     return jsonify({"ok": True, "urun_id": urun_id, "redirect": url_for("urun_detail", urun_id=urun_id)})
 
 
@@ -2848,6 +2871,7 @@ def arastirma_page():
         "arastirma.html",
         brands=brands,
         country_suggestions=COUNTRY_SUGGESTIONS,
+        weave_suggestions=WEAVE_SUGGESTIONS,   # Sprint 12 — çekmecedeki Dokuma alanı datalist'i
         rows=rows,
         # OnCalisma-V2 (Problem 2) — taksonomi sözlükleri (tek kaynak store.py; JS'e kopyalanmaz)
         category_vocab=store.VALID_CATEGORIES,
@@ -3152,24 +3176,11 @@ def api_arastirma_status(research_id: str):
     return jsonify({"ok": True, "row": row})
 
 
-# OnCalisma-V2 (Problem 4a) — "Linkten Doldur" motorunu havuza taşı: text-only zenginleştirme.
-# Çıktı İKİ KATMANLI staging'e yazılır (extracted_facts + ai_summary); gerçek kolonlara
-# OTOMATİK yazım YOK. Yalnız research_update (whitelist + strip-retry) kullanılır.
-@app.route("/api/arastirma/<research_id>/enrich", methods=["POST"])
-def api_arastirma_enrich(research_id: str):
-    row = store.research_get(research_id)
-    if not row:
-        return jsonify({"ok": False, "error": "Bulunamadı"}), 404
+def _run_enrich(row: dict, requested_model: str | None):
+    """gx.linkten_doldur + build_enrichment_payload + firma ülkesi (brand_country) fallback.
+    Dönüş: (payload, meta). payload['error'] doluysa başarısız. enrich + enrich-apply paylaşır."""
     url = (row.get("product_url") or "").strip()
-    if not url:
-        return jsonify({"ok": False, "error": "Bu kayıtta product_url yok"}), 400
-
-    # P4a-2 — Model override (panel dropdown'dan; kota dolunca flash↔flash-lite anında geçiş)
-    data = request.get_json(silent=True) or {}
-    requested_model = (data.get("model") or "").strip() or None
     model_override = requested_model if requested_model in GEMINI_MODEL_WHITELIST else None
-
-    # P5/P6 — YALNIZ KAPAK görseli vision'a gider (token verimli): is_cover/is_favorite öncelikli, yoksa ilk
     image_bytes = None
     try:
         imgs = [im for im in (row.get("images") or []) if isinstance(im, dict) and im.get("storage_path")]
@@ -3178,11 +3189,8 @@ def api_arastirma_enrich(research_id: str):
             image_bytes = store.download_image_bytes(cover["storage_path"])
     except Exception:
         image_bytes = None
-
-    result = gx.linkten_doldur(url, model=model_override, image_bytes=image_bytes)   # fetch + Gemini (DB'ye yazmaz)
+    result = gx.linkten_doldur(url, model=model_override, image_bytes=image_bytes)
     payload = gx.build_enrichment_payload(result)
-    # P6.2 — firma ülkesi (ÇIKARIM): AI vermediyse kayıt defterinden; her halükarda normalize et
-    # (accept anındaki değerle birebir tutsun). Üretim ülkesi DEĞİL — firma HQ.
     if not payload.get("error"):
         ai_sum = payload.get("ai_summary") or {}
         sug = ai_sum.get("suggested") or {}
@@ -3195,14 +3203,44 @@ def api_arastirma_enrich(research_id: str):
             sug["brand_country"] = norm_country(bc)
             ai_sum["suggested"] = sug
             payload["ai_summary"] = ai_sum
+    meta = {
+        "model": result.get("model_used") or gx.MODEL_NAME,
+        "requested_model": requested_model,
+        "model_invalid": bool(requested_model and not model_override),
+        "vision": bool(image_bytes),
+        "result": result,
+    }
+    return payload, meta
+
+
+def _accepted_fact(row: dict, key: str):
+    """Kabul edilmiş bir extracted_facts değerini döner (yoksa None)."""
+    f = (row.get("extracted_facts") or {}).get(key)
+    if isinstance(f, dict) and f.get("accepted") and f.get("value") not in (None, ""):
+        return f.get("value")
+    return None
+
+
+# OnCalisma-V2 (Problem 4a) — "Linkten Doldur" motorunu havuza taşı: text-only zenginleştirme.
+# Çıktı İKİ KATMANLI staging'e yazılır (extracted_facts + ai_summary); gerçek kolonlara
+# OTOMATİK yazım YOK. Yalnız research_update (whitelist + strip-retry) kullanılır.
+@app.route("/api/arastirma/<research_id>/enrich", methods=["POST"])
+def api_arastirma_enrich(research_id: str):
+    row = store.research_get(research_id)
+    if not row:
+        return jsonify({"ok": False, "error": "Bulunamadı"}), 404
+    if not (row.get("product_url") or "").strip():
+        return jsonify({"ok": False, "error": "Bu kayıtta product_url yok"}), 400
+
+    data = request.get_json(silent=True) or {}
+    requested_model = (data.get("model") or "").strip() or None
+    payload, meta = _run_enrich(row, requested_model)
     if payload.get("error"):
-        # Hata: DB'YE YAZMA, sadece bilgi döndür (model bilgisiyle).
         return jsonify({
             "ok": False, "error": payload["error"],
-            "message": result.get("message") or "Zenginleştirme başarısız",
-            "model": result.get("model_used") or gx.MODEL_NAME,
-            "requested_model": requested_model,
-            "model_invalid": bool(requested_model and not model_override),
+            "message": meta["result"].get("message") or "Zenginleştirme başarısız",
+            "model": meta["model"], "requested_model": requested_model,
+            "model_invalid": meta["model_invalid"],
         }), 200
 
     # SADECE staging alanlarını yaz (research_update; insert/save KULLANMA).
@@ -3212,17 +3250,160 @@ def api_arastirma_enrich(research_id: str):
         "enrichment_status": "enriched",
     })
     return jsonify({
-        "ok": True,
-        "enrichment_status": "enriched",
+        "ok": True, "enrichment_status": "enriched",
         "extracted_facts": payload["extracted_facts"],
         "ai_summary": payload["ai_summary"],
-        "suggestions": result.get("suggestions") or {},   # evidence paneli için ham çıktı
-        "model": result.get("model_used") or gx.MODEL_NAME,
-        "requested_model": requested_model,
-        "model_invalid": bool(requested_model and not model_override),
-        "vision": bool(image_bytes),   # P5 — görsel analizi yapıldı mı
-        "dropped_unverified": payload.get("dropped_unverified") or [],  # P6.1 — uydurma şüphesiyle atılan alanlar
+        "suggestions": meta["result"].get("suggestions") or {},
+        "model": meta["model"], "requested_model": requested_model,
+        "model_invalid": meta["model_invalid"], "vision": meta["vision"],
+        "dropped_unverified": payload.get("dropped_unverified") or [],
     })
+
+
+# Sprint 12 — "AI Doldur + üzerine yaz" (tek tık): enrich + sonuçları kolonlara/product_draft'a UYGULA.
+# Anayasa #6: açık, kullanıcı-tetikli "uygula" eylemi (otomatik arka plan yazımı değil).
+@app.route("/api/arastirma/<research_id>/enrich-apply", methods=["POST"])
+def api_arastirma_enrich_apply(research_id: str):
+    row = store.research_get(research_id)
+    if not row:
+        return jsonify({"ok": False, "error": "Bulunamadı"}), 404
+    if not (row.get("product_url") or "").strip():
+        return jsonify({"ok": False, "error": "Bu kayıtta product_url yok"}), 400
+    data = request.get_json(silent=True) or {}
+    requested_model = (data.get("model") or "").strip() or None
+    payload, meta = _run_enrich(row, requested_model)
+    if payload.get("error"):
+        return jsonify({
+            "ok": False, "error": payload["error"],
+            "message": meta["result"].get("message") or "Zenginleştirme başarısız",
+            "model": meta["model"], "requested_model": requested_model,
+            "model_invalid": meta["model_invalid"],
+        }), 200
+
+    ef = payload["extracted_facts"]
+    ai_sum = payload["ai_summary"]
+    sug = ai_sum.get("suggested") or {}
+
+    def efv(k):
+        v = (ef.get(k) or {}).get("value") if isinstance(ef.get(k), dict) else None
+        return v if v not in (None, "") else None
+
+    # 1) Staging + research kolonları (overwrite)
+    patch = {
+        "extracted_facts": ef, "ai_summary": ai_sum, "enrichment_status": "enriched",
+    }
+    if efv("brand"):
+        patch["brand"] = efv("brand")
+        patch["brand_slug"] = _normalize_brand_slug(efv("brand"), row.get("brand_slug"))
+    bc = sug.get("brand_country")
+    if bc and str(bc).strip():
+        bcn = norm_country(bc)
+        patch["country"] = bcn
+        patch["country_code"] = _country_iso(bcn)
+        patch["brand_country"] = bcn
+        patch["brand_country_code"] = _country_iso(bcn)
+    cat = store.validate_category(sug.get("category"))
+    if cat: patch["category"] = cat
+    pat = store.validate_pattern(sug.get("pattern"))
+    if pat: patch["pattern"] = pat
+    cf = store.validate_color_family(sug.get("color_family"))
+    if cf: patch["color_family"] = cf
+    wt = store.validate_enum_list(sug.get("weave_tags") or [], store.VALID_WEAVE_TAGS)
+    if wt: patch["weave_tags"] = wt
+    st = store.validate_str_list(sug.get("style_tags") or [])
+    if st: patch["style_tags"] = st
+    cc = parse_int(efv("color_count"))
+    if cc is not None: patch["color_count"] = cc
+    if ai_sum.get("arge_notu"):
+        patch["ai_notu"] = ai_sum["arge_notu"]
+
+    # 2) product_draft (overwrite — ürün-öncesi alanlar)
+    draft = dict(row.get("product_draft") or {})
+    for k in ("product_name", "product_code", "collection", "composition",
+              "width_cm", "weight_gsm", "weave_type",
+              "repeat_vertical_cm", "repeat_horizontal_cm", "production_country"):
+        v = efv(k)
+        if v is not None:
+            draft[k] = v
+    rp = ef.get("reference_price")
+    if isinstance(rp, dict) and rp.get("value"):
+        draft["reference_price"] = rp.get("value")
+        draft["reference_price_type"] = rp.get("type")
+        draft["reference_price_evidence"] = rp.get("evidence")
+    patch["product_draft"] = draft
+
+    store.research_update(research_id, patch)
+    return jsonify({
+        "ok": True, "row": store.research_get(research_id),
+        "model": meta["model"], "requested_model": requested_model,
+        "model_invalid": meta["model_invalid"], "vision": meta["vision"],
+        "dropped_unverified": payload.get("dropped_unverified") or [],
+    })
+
+
+# Sprint 12 — Ön Çalışmadan DOĞRUDAN ürün oluştur (Galeriye Gönder); /ekle formuna gerek yok.
+@app.route("/api/arastirma/<research_id>/to-product", methods=["POST"])
+def api_arastirma_to_product(research_id: str):
+    row = store.research_get(research_id)
+    if not row:
+        return jsonify({"ok": False, "error": "Bulunamadı"}), 404
+    draft = row.get("product_draft") or {}
+
+    def pick(k):
+        v = draft.get(k)
+        if v not in (None, ""):
+            return v
+        return _accepted_fact(row, k)
+
+    brand = clean(row.get("brand"))
+    product_name = clean(pick("product_name"))
+    if not brand:
+        return jsonify({"ok": False, "error": "Marka boş — önce markayı doldur"}), 400
+    if not product_name:
+        return jsonify({"ok": False, "error": "Ürün adı boş — AI Doldur ile getir veya elle yaz"}), 400
+
+    brand_slug = _normalize_brand_slug(brand, row.get("brand_slug"))
+    product_code = clean(pick("product_code"))
+    urun_id, folder_code, dest_prefix = _new_product_id(brand_slug, product_code, product_name)
+
+    images: list = []
+    research_imgs = [im for im in (row.get("images") or []) if isinstance(im, dict) and im.get("storage_path")]
+    prefill_paths = [im["storage_path"] for im in research_imgs]
+    prefill_alts = [im.get("alt") or "" for im in research_imgs]
+    used_album_slugs = _copy_research_images(row, prefill_paths, prefill_alts, dest_prefix, images)
+
+    # reference_price tip/evidence: draft önce, yoksa kabul edilmiş fact
+    ref_type = draft.get("reference_price_type")
+    ref_ev = draft.get("reference_price_evidence")
+    if not ref_type:
+        ef_rp = (row.get("extracted_facts") or {}).get("reference_price")
+        if isinstance(ef_rp, dict) and ef_rp.get("accepted"):
+            ref_type = ef_rp.get("type")
+            ref_ev = ref_ev or ef_rp.get("evidence")
+
+    fields = {
+        "brand": brand, "brand_slug": brand_slug, "product_name": product_name,
+        "product_code": product_code, "collection": pick("collection"),
+        "composition": pick("composition"), "width_cm": pick("width_cm"),
+        "weight_gsm": pick("weight_gsm"), "weave_type": pick("weave_type"),
+        "repeat_vertical_cm": pick("repeat_vertical_cm"),
+        "repeat_horizontal_cm": pick("repeat_horizontal_cm"),
+        "arge_notu": draft.get("arge_notu"), "notes": row.get("notes"),
+        "source_url": row.get("product_url"),
+        "brand_country": row.get("country"), "production_country": pick("production_country"),
+        "reference_price": pick("reference_price"), "reference_price_type": ref_type,
+        "reference_price_evidence": ref_ev,
+        "category": row.get("category"), "pattern": row.get("pattern"),
+        "color_family": row.get("color_family"),
+        "weave_tags": row.get("weave_tags") or [], "style_tags": row.get("style_tags") or [],
+        "color_count": row.get("color_count"), "ai_notu": row.get("ai_notu"),
+        "cover_index": 0,
+    }
+    _assemble_and_save_product(
+        urun_id=urun_id, folder_code=folder_code, fields=fields, images=images,
+        research_row=row, used_album_slugs=used_album_slugs, from_research_id=research_id,
+    )
+    return jsonify({"ok": True, "urun_id": urun_id, "redirect": url_for("urun_detail", urun_id=urun_id)})
 
 
 @app.route("/api/arastirma/<research_id>/verify", methods=["POST"])
@@ -3520,6 +3701,21 @@ def api_arastirma_update(research_id: str):
         patch["color_count"] = parse_int(data["color_count"])
     if "ai_notu" in data:
         patch["ai_notu"] = clean(data["ai_notu"])
+
+    # Sprint 12 — product_draft (çekmecedeki genişletilmiş ürün alanları, jsonb)
+    if "product_draft" in data and isinstance(data.get("product_draft"), dict):
+        draft = dict(row.get("product_draft") or {})
+        NUM = {"width_cm", "weight_gsm", "repeat_vertical_cm", "repeat_horizontal_cm"}
+        for k, v in data["product_draft"].items():
+            if k in NUM:
+                iv = parse_int(v)
+                draft.pop(k, None) if iv is None else draft.__setitem__(k, iv)
+            elif k == "reference_price_type":
+                draft["reference_price_type"] = v if v in ("exact", "from") else None
+            else:
+                cv = clean(v) if isinstance(v, str) else v
+                draft.pop(k, None) if cv in (None, "") else draft.__setitem__(k, cv)
+        patch["product_draft"] = draft
 
     if not patch:
         return jsonify({"ok": True, "row": row, "noop": True})

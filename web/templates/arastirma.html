@@ -138,6 +138,13 @@
     {% endfor %}
 </datalist>
 
+{# Sprint 12 — Dokuma önerileri (çekmecedeki Ürün Detayları) #}
+<datalist id="weave-suggestions">
+    {% for w in (weave_suggestions or []) %}
+    <option value="{{ w }}">
+    {% endfor %}
+</datalist>
+
 <template id="tpl-ar-list-item">
     <article class="ar-item" data-status="" data-favorite="false">
         <button type="button" class="ar-fav-star" title="Favori (yıldız)" aria-pressed="false">
@@ -181,6 +188,8 @@
                             <option value="gemini-flash-latest">En Yeni — gemini-flash-latest</option>
                         </select>
                         <button type="button" class="btn btn-secondary ar-btn-enrich">AI ile Zenginleştir</button>
+                        {# Sprint 12 — tek tık: zenginleştir + tüm alanları forma yaz (üzerine) #}
+                        <button type="button" class="btn btn-primary ar-btn-enrich-apply" title="Linkten doldur ve tüm form alanlarını AI değerleriyle üzerine yaz">⚡ AI Doldur (üzerine yaz)</button>
                         {# P6 — tüm AI öğelerini (factual + öneri + AI notu) tek tıkla kabul/geri-al #}
                         <button type="button" class="btn btn-secondary ar-btn-accept-all">✓ Tümünü Kabul</button>
                     </div>
@@ -219,9 +228,45 @@
                 <label>Stil Etiketleri <input type="text" data-field="style_tags" placeholder="virgülle ayır — örn. premium, minimal"></label>
                 {# OnCalisma-V2 (Problem 4b) — kalıcı AI notu (düzenlenebilir; AI doğruluğunu izlemek için) #}
                 <label>AI Notu <textarea data-field="ai_notu" rows="2" placeholder="AI'nın ürün notu — düzenlenebilir, kaydedilir"></textarea></label>
+
+                {# Sprint 12 — Ürün Detayları: ürüne çevirmeden önce doldurulan alanlar (product_draft jsonb) #}
+                <details class="ar-edit-product" open>
+                    <summary>Ürün Detayları <span class="ar-edit-product-hint">— Ürün Oluştur için (AI Doldur ile gelir)</span></summary>
+                    <label>Ürün Adı <span class="req">*</span> <input type="text" data-draft="product_name" placeholder="örn. Air Line"></label>
+                    <div class="ar-edit-row-2">
+                        <label>Ürün Kodu <input type="text" data-draft="product_code" placeholder="opsiyonel"></label>
+                        <label>Koleksiyon <input type="text" data-draft="collection" placeholder="opsiyonel"></label>
+                    </div>
+                    <label>Kompozisyon <input type="text" data-draft="composition" placeholder="örn. %100 Keten"></label>
+                    <div class="ar-edit-row-2">
+                        <label>En (cm) <input type="number" min="0" data-draft="width_cm"></label>
+                        <label>Gramaj (g/m²) <input type="number" min="0" data-draft="weight_gsm"></label>
+                    </div>
+                    <div class="ar-edit-row-2">
+                        <label>Dokuma <input type="text" data-draft="weave_type" list="weave-suggestions" placeholder="örn. dobby"></label>
+                        <label>Üretim Ülkesi <input type="text" data-draft="production_country" list="country-suggestions" placeholder="Made in… (AI çıkarır)"></label>
+                    </div>
+                    <div class="ar-edit-row-2">
+                        <label>Rapor — boy (cm) <input type="number" min="0" step="0.1" data-draft="repeat_vertical_cm"></label>
+                        <label>Rapor — en (cm) <input type="number" min="0" step="0.1" data-draft="repeat_horizontal_cm"></label>
+                    </div>
+                    <div class="ar-edit-row-2">
+                        <label>Renk Ailesi <select data-draft="color_family">
+                            <option value="">—</option>
+                            {% for cf in color_family_vocab %}<option value="{{ cf }}">{{ cf }}</option>{% endfor %}
+                        </select></label>
+                        <label>Referans Fiyat <input type="text" data-draft="reference_price" placeholder="örn. 140,74 EUR"></label>
+                    </div>
+                    <input type="hidden" data-draft="reference_price_type">
+                    <input type="hidden" data-draft="reference_price_evidence">
+                    <label>ARGE Notu <textarea data-draft="arge_notu" rows="2" placeholder="Stäubli yapılabilirlik, pazar fırsatı, stratejik not…"></textarea></label>
+                </details>
+
                 <div class="ar-edit-actions">
                     <button type="button" class="btn btn-secondary ar-edit-cancel">İptal</button>
-                    <button type="button" class="btn btn-primary ar-edit-save">Kaydet</button>
+                    <button type="button" class="btn btn-secondary ar-edit-save">Kaydet</button>
+                    {# Sprint 12 — doğrudan ürün oluştur (Galeriye Gönder); /ekle round-trip yok #}
+                    <button type="button" class="btn btn-primary ar-edit-to-product" title="Bu ön çalışmayı doğrudan ürüne çevir ve galeriye gönder">🏭 Ürün Oluştur</button>
                 </div>
             </div>
         </div>

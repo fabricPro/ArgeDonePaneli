@@ -22,17 +22,14 @@
         <div class="form-grid">
             <div class="form-row">
                 <label>Marka *</label>
-                <select id="brand-select" required>
-                    <option value="" disabled {% if not prefill %}selected{% endif %}>Marka seç…</option>
+                <input type="text" id="brand-input" list="ekle-brand-list" required
+                       placeholder="Firma adı (öncekiler önerilir; serbest de yazabilirsin)"
+                       value="{{ prefill.brand if prefill else '' }}">
+                <datalist id="ekle-brand-list">
                     {% for b in brands_registry %}
-                    <option value="{{ b.slug }}" data-name="{{ b.name }}"
-                            data-country="{{ b.country or '' }}"
-                            data-website="{{ b.website or '' }}"
-                            {% if prefill and prefill.brand_slug == b.slug %}selected{% endif %}>{{ b.name }}</option>
+                    <option value="{{ b.name }}" data-country="{{ b.country or '' }}">
                     {% endfor %}
-                    <option value="__other__">Diğer (elle yaz)…</option>
-                </select>
-                <input type="text" id="brand-other" placeholder="Marka adı yaz" style="display:none; margin-top:8px;">
+                </datalist>
                 <small class="form-hint">Yeni firma eklemek için <a href="{{ url_for('ayarlar') }}" style="color:var(--accent-cool);">⚙ Ayarlar</a></small>
             </div>
 
@@ -54,15 +51,15 @@
             {# v4.0-part-2 Sprint 11.5 — Ulke ayrimi #}
             <div class="form-row">
                 <label>Firma Ülkesi</label>
-                <select id="brand-country-select">
-                    <option value="" disabled {% if not prefill %}selected{% endif %}>Ülke seç…</option>
+                <input type="text" id="brand-country-input" list="ekle-country-list"
+                       placeholder="Ülke (öneriler; serbest de yazabilirsin)"
+                       value="{{ prefill.country if prefill else '' }}">
+                <datalist id="ekle-country-list">
                     {% for c in countries %}
-                    <option value="{{ c }}" {% if prefill and prefill.country == c %}selected{% endif %}>{{ c }}</option>
+                    <option value="{{ c }}">
                     {% endfor %}
-                    <option value="__other__">Diğer (elle yaz)…</option>
-                </select>
-                <input type="text" id="brand-country-other" placeholder="Ülke adı yaz" style="display:none; margin-top:8px;">
-                <small class="form-hint">Marka seçilince otomatik dolar — istersen değiştirebilirsin.</small>
+                </datalist>
+                <small class="form-hint">Marka yazılınca otomatik dolar — istersen değiştirebilirsin.</small>
             </div>
 
             <div class="form-row">
@@ -377,11 +374,10 @@
 
 {% block scripts %}
 <script>
-const brandSelect = document.getElementById('brand-select');
-const brandOther = document.getElementById('brand-other');
-// v4.0-part-2 Sprint 11.5 — Firma Ulkesi (brand_country)
-const countrySelect = document.getElementById('brand-country-select');
-const countryOther = document.getElementById('brand-country-other');
+const brandInput = document.getElementById('brand-input');
+const brandList = document.getElementById('ekle-brand-list');
+// v4.0-part-2 Sprint 11.5 — Firma Ulkesi (brand_country) — Sprint 12: serbest metin + datalist
+const brandCountryInput = document.getElementById('brand-country-input');
 // Uretim Ulkesi chip + hidden input (yalniz Gemini doldurur)
 const prodCountryChip  = document.getElementById('production-country-chip');
 const prodCountryInput = document.getElementById('production-country-input');
@@ -400,30 +396,15 @@ const submitBtn = document.getElementById('submit-btn');
 const sourceUrlInput = document.getElementById('source-url');
 const hiddenFromResearch = document.getElementById('hidden-from-research');
 
-brandSelect.addEventListener('change', () => {
-    brandOther.style.display = brandSelect.value === '__other__' ? 'block' : 'none';
-    // v4.0-part-2 Adım 6 — Firma seçilince ülke auto-fill (sadece boşsa, override etmiyor).
-    if (brandSelect.value && brandSelect.value !== '__other__') {
-        const opt = brandSelect.selectedOptions[0];
-        const c = (opt && opt.dataset.country) ? opt.dataset.country.trim() : '';
-        const ulkeBos = !countrySelect.value && !countryOther.value.trim();
-        if (c && ulkeBos) {
-            const matchOpt = [...countrySelect.options].find(o => o.value === c);
-            if (matchOpt) {
-                countrySelect.value = c;
-                countryOther.style.display = 'none';
-                countryOther.value = '';
-            } else {
-                countrySelect.value = '__other__';
-                countryOther.style.display = 'block';
-                countryOther.value = c;
-            }
-        }
-    }
-});
-
-countrySelect.addEventListener('change', () => {
-    countryOther.style.display = countrySelect.value === '__other__' ? 'block' : 'none';
+// Sprint 12 — Marka yazılınca/seçilince firma ülkesini boşsa otomatik doldur (registry'den)
+function brandKnownCountry(name) {
+    if (!brandList || !name) return '';
+    const opt = [...brandList.options].find(o => o.value.toLowerCase() === name.trim().toLowerCase());
+    return opt && opt.dataset.country ? opt.dataset.country.trim() : '';
+}
+brandInput.addEventListener('change', () => {
+    const c = brandKnownCountry(brandInput.value);
+    if (c && !brandCountryInput.value.trim()) brandCountryInput.value = c;
 });
 
 let selectedFiles = [];
@@ -478,31 +459,13 @@ function fillFromAside(item) {
     if (url) sourceUrlInput.value = url;
     if (hiddenFromResearch) hiddenFromResearch.value = researchId || '';
 
-    // Marka: registry'de varsa seç, yoksa "Diğer" + isim
-    if (brandSlug) {
-        const opt = [...brandSelect.options].find(o => o.value === brandSlug);
-        if (opt) {
-            brandSelect.value = brandSlug;
-        } else {
-            brandSelect.value = '__other__';
-            brandOther.style.display = 'block';
-            brandOther.value = brandName || '';
-        }
-        brandSelect.dispatchEvent(new Event('change'));
+    // Marka: serbest metin (datalist önerili). İsim doğrudan yazılır.
+    if (brandName) {
+        brandInput.value = brandName;
+        brandInput.dispatchEvent(new Event('change'));
     }
-    // Ülke
-    if (country) {
-        const cOpt = [...countrySelect.options].find(o => o.value === country);
-        if (cOpt) {
-            countrySelect.value = country;
-            countryOther.style.display = 'none';
-            countryOther.value = '';
-        } else {
-            countrySelect.value = '__other__';
-            countryOther.style.display = 'block';
-            countryOther.value = country;
-        }
-    }
+    // Ülke (serbest metin)
+    if (country) brandCountryInput.value = country;
     // Aside item highlight
     document.querySelectorAll('.aside-item.is-selected').forEach(el => el.classList.remove('is-selected'));
     item.classList.add('is-selected');
@@ -537,27 +500,18 @@ form.addEventListener('submit', async (e) => {
     e.preventDefault();
     msg.textContent = '';
 
-    // marka
-    let brandName = '', brandSlug = '';
-    if (brandSelect.value === '__other__') {
-        brandName = brandOther.value.trim();
-    } else if (brandSelect.value) {
-        const opt = brandSelect.selectedOptions[0];
-        brandName = opt.dataset.name;
-        brandSlug = brandSelect.value;
-    }
-    if (!brandName) { msg.textContent = 'Marka seç veya yaz.'; msg.className = 'form-msg err'; return; }
+    // marka (serbest metin; slug'ı backend isimden türetir / registry eşleşmesini korur)
+    const brandName = brandInput.value.trim();
+    if (!brandName) { msg.textContent = 'Marka yaz.'; msg.className = 'form-msg err'; brandInput.focus(); return; }
 
-    // ulke
-    let country = '';
-    if (countrySelect.value === '__other__') country = countryOther.value.trim();
-    else if (countrySelect.value) country = countrySelect.value;
+    // firma ülkesi (serbest metin)
+    const country = brandCountryInput.value.trim();
 
     const fd = new FormData(form);
     fd.set('brand', brandName);
-    fd.set('brand_slug', brandSlug);
-    fd.set('brand_country', country);   // v4.0-part-2 Sprint 11.5 — Firma Ulkesi
-    fd.set('country', country);          // geriye uyum alias
+    fd.set('brand_slug', '');             // boş → backend brand adından türetir
+    fd.set('brand_country', country);     // v4.0-part-2 Sprint 11.5 — Firma Ulkesi
+    fd.set('country', country);           // geriye uyum alias
 
     // dosyalar + etiketler (sirali)
     const labelInputs = preview.querySelectorAll('.variant-label');
@@ -667,10 +621,10 @@ document.querySelectorAll('.prefill-img-remove').forEach(btn => {
 
     // 3) Alan → form input eşleştirme
     // v4.0-part-2 Sprint 11.5/11.6: brand + production_country + reference_price Gemini'den önerilir.
-    // Brand kabul edilince change event tetiklenir → brand-select change handler brand_country
+    // Brand kabul edilince serbest metin alanına yazılır → firma ülkesi boşsa registry'den
     // auto-fill yapar (zincirleme).
     const FIELD_INFO = {
-        brand:                { label: 'Marka',           sel: '#brand-select', isBrand: true },
+        brand:                { label: 'Marka',           sel: '#brand-input', isBrand: true },
         product_name:         { label: 'Ürün Adı',        sel: 'input[name="product_name"]' },
         product_code:         { label: 'Ürün Kodu',       sel: 'input[name="product_code"]' },
         collection:           { label: 'Koleksiyon',      sel: 'input[name="collection"]' },
@@ -802,31 +756,11 @@ document.querySelectorAll('.prefill-img-remove').forEach(btn => {
         const v = String(value).trim();
 
         if (info.isBrand) {
-            // v4.0-part-2 Sprint 11.6 — Gemini brand önerisi:
-            // 1) Registry'de isim eşleşirse o slug'i seç (data-name veya slug match)
-            // 2) Yoksa __other__ + brand-other input'a yaz
-            // 3) change event tetikle → brand-select change handler brand_country auto-fill yapar
-            const lower = v.toLowerCase();
-            // slug normalize için basit kıyas: lowercase + boşluk/tire/altçizgi tek tip
-            const norm = (s) => (s || '').toLowerCase().replace(/[\s_]+/g, '-');
-            const opt = [...input.options].find(o =>
-                (o.dataset && o.dataset.name && o.dataset.name.toLowerCase() === lower) ||
-                (o.value && o.value.toLowerCase() === lower) ||
-                (o.value && norm(o.value) === norm(v))
-            );
-            if (opt) {
-                input.value = opt.value;
-                if (brandOther) {
-                    brandOther.style.display = 'none';
-                    brandOther.value = '';
-                }
-            } else {
-                input.value = '__other__';
-                if (brandOther) {
-                    brandOther.style.display = 'block';
-                    brandOther.value = v;
-                }
-            }
+            // Sprint 12 — Marka artık serbest metin: AI değerini doğrudan üzerine yaz.
+            input.value = v;
+            // Firma ülkesi boşsa registry'den otomatik doldur
+            const c = (typeof brandKnownCountry === 'function') ? brandKnownCountry(v) : '';
+            if (c && brandCountryInput && !brandCountryInput.value.trim()) brandCountryInput.value = c;
         } else if (info.isProdCountry) {
             // v4.0-part-2 Sprint 11.5 — Uretim Ulkesi chip + hidden input
             input.value = v;

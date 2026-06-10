@@ -5,6 +5,9 @@
   const $ = (sel, el = document) => el.querySelector(sel);
   const $$ = (sel, el = document) => Array.from(el.querySelectorAll(sel));
   const toast = (msg, type) => (window.toast || alert)(msg, type);
+  // AI paneli (kabul kartları) da [data-field] kullanıyor → form KONTROLLERİNİ tag ile sınırla.
+  // Aksi halde querySelector('[data-field="brand"]') AI kart <div>'ini seçip .value=undefined döndürür.
+  const CTRL = (name) => `input[data-field="${name}"], select[data-field="${name}"], textarea[data-field="${name}"]`;
 
   // v4.0-part-2 Sprint 5 — Client-side favicon URL hesaplayıcı.
   // Google s2 servisi her HTTPS domain için favicon döner; bot bloke / Cloudflare
@@ -163,18 +166,19 @@
   // ---- Edit mode helpers (v4.0-part-2 Sprint 6) ----
   function openEditMode(article, r) {
     const form = article.querySelector('.ar-item-edit');
-    form.querySelector('[data-field="product_url"]').value = r.product_url || '';
-    form.querySelector('[data-field="master_url"]').value = r.master_url || '';
+    const purlEl = form.querySelector(CTRL('product_url')); if (purlEl) purlEl.value = r.product_url || '';
+    const murlEl = form.querySelector(CTRL('master_url')); if (murlEl) murlEl.value = r.master_url || '';
     // Master URL collapsed kalır; özet etiketi kayıtlı olup olmadığını gösterir (içerik kaydedilir)
     const masterSum = form.querySelector('.ar-edit-master-sum');
     if (masterSum) masterSum.textContent = r.master_url ? '🔗 Master URL (kayıtlı) — göster/düzenle' : '+ Master URL';
-    form.querySelector('[data-field="notes"]').value = r.notes || '';
-    form.querySelector('[data-field="country"]').value = r.country || '';
+    const notesEl = form.querySelector(CTRL('notes')); if (notesEl) notesEl.value = r.notes || '';
+    const countryEl = form.querySelector(CTRL('country')); if (countryEl) countryEl.value = r.country || '';
     // Marka: artık düz input + datalist (ülke gibi) — select/yeni-firma mantığı yok
-    const brandEl = form.querySelector('[data-field="brand"]');
+    const brandEl = form.querySelector(CTRL('brand'));
     if (brandEl) brandEl.value = r.brand || brandFactValue(r) || '';
     // OnCalisma-V2 (Problem 2) — taksonomi + AI notu alanlarını doldur (P6: ortak helper)
     syncTaxonomyForm(form, r);
+    syncDraftForm(form, r);   // Sprint 12 — Ürün Detayları (product_draft)
     // OnCalisma-V2 (Problem 4a) — AI Zenginleştirme paneli (salt-okuma) + durum
     const aiPanel = form.querySelector('.ar-ai-panel');
     if (aiPanel) aiPanel.innerHTML = renderAiPanel(r);
@@ -201,26 +205,28 @@
       return el.value.trim();
     };
     const payload = {
-      product_url: val('[data-field="product_url"]'),
-      master_url: val('[data-field="master_url"]'),
-      notes: val('[data-field="notes"]'),
+      product_url: val(CTRL('product_url')),
+      master_url: val(CTRL('master_url')),
+      notes: val(CTRL('notes')),
     };
     // Marka: düz input (ülke gibi). Mevcut firmayla eşleşirse backend slug'ını korur.
-    const brand = val('[data-field="brand"]');
-    const country = val('[data-field="country"]');
+    const brand = val(CTRL('brand'));
+    const country = val(CTRL('country'));
     if (!brand) { toast('Firma adı boş', 'error'); return null; }
     payload.brand = brand;
     payload.country = country;
     // OnCalisma-V2 (Problem 2) — taksonomi (boş select → null; checkbox'lar → dizi; style → virgül böl)
     const selVal = (sel) => { const el = form.querySelector(sel); return el && el.value ? el.value : null; };
-    payload.category = selVal('[data-field="category"]');
-    payload.pattern = selVal('[data-field="pattern"]');
-    const ccRaw = val('[data-field="color_count"]');   // P4b renk sayısı
+    payload.category = selVal(CTRL('category'));
+    payload.pattern = selVal(CTRL('pattern'));
+    const ccRaw = val(CTRL('color_count'));   // P4b renk sayısı
     payload.color_count = ccRaw ? parseInt(ccRaw, 10) : null;
-    payload.ai_notu = val('[data-field="ai_notu"]') || null;          // P4b AI notu
+    payload.ai_notu = val(CTRL('ai_notu')) || null;          // P4b AI notu
     payload.weave_tags = [...form.querySelectorAll('.ar-edit-weavetags input[type="checkbox"]:checked')].map(cb => cb.value);
-    payload.style_tags = (form.querySelector('[data-field="style_tags"]')?.value || '')
+    payload.style_tags = (form.querySelector(CTRL('style_tags'))?.value || '')
       .split(',').map(s => s.trim()).filter(Boolean);
+    // Sprint 12 — Ürün Detayları (product_draft jsonb)
+    payload.product_draft = collectDraft(form);
     try {
       const res = await fetch(`/api/arastirma/${encodeURIComponent(r.id)}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -337,7 +343,7 @@
   // Firma input'u boşsa, kabul edilen AI firma adıyla doldur (kullanıcı yine de değiştirebilir).
   function fillBrandFromFact(form, r) {
     if (!form) return;
-    const el = form.querySelector('[data-field="brand"]');
+    const el = form.querySelector(CTRL('brand'));
     if (!el || el.value.trim()) return;
     const bf = brandFactValue(r);
     if (bf) el.value = bf;
@@ -345,18 +351,42 @@
   // P6 — Düzenle formundaki taksonomi/ai_notu alanlarını r'den senkronla (openEditMode + accept-all paylaşır)
   function syncTaxonomyForm(form, r) {
     if (!form) return;
-    const setSel = (sel, v) => { const el = form.querySelector(sel); if (el) el.value = v || ''; };
-    setSel('[data-field="country"]', r.country);   // P6.2 firma ülkesi (accept-all sonrası tazelensin)
-    setSel('[data-field="category"]', r.category);
-    setSel('[data-field="pattern"]', r.pattern);
-    setSel('[data-field="color_count"]', r.color_count);   // P4b: renk ailesi yerine renk sayısı
+    const setSel = (name, v) => { const el = form.querySelector(CTRL(name)); if (el) el.value = v || ''; };
+    setSel('country', r.country);   // P6.2 firma ülkesi (accept-all sonrası tazelensin)
+    setSel('category', r.category);
+    setSel('pattern', r.pattern);
+    setSel('color_count', r.color_count);   // P4b: renk ailesi yerine renk sayısı
     const wtags = Array.isArray(r.weave_tags) ? r.weave_tags : [];
     form.querySelectorAll('.ar-edit-weavetags input[type="checkbox"]').forEach(cb => { cb.checked = wtags.includes(cb.value); });
-    const stEl = form.querySelector('[data-field="style_tags"]');
+    const stEl = form.querySelector(CTRL('style_tags'));
     if (stEl) stEl.value = (Array.isArray(r.style_tags) ? r.style_tags : []).join(', ');
     // P4b: kalıcı AI notu (yoksa AI taslağından doldur)
-    const aiNotuEl = form.querySelector('[data-field="ai_notu"]');
+    const aiNotuEl = form.querySelector(CTRL('ai_notu'));
     if (aiNotuEl) aiNotuEl.value = r.ai_notu || (r.ai_summary && r.ai_summary.arge_notu) || '';
+  }
+  // Sprint 12 — "Ürün Detayları" alanlarını (product_draft) forma senkronla.
+  // Öncelik: product_draft → kabul edilmiş extracted_facts → boş.
+  function syncDraftForm(form, r) {
+    if (!form) return;
+    const pd = (r && r.product_draft) || {};
+    const ef = (r && r.extracted_facts) || {};
+    const acc = (k) => (ef[k] && ef[k].accepted && ef[k].value != null && ef[k].value !== '') ? ef[k].value : '';
+    form.querySelectorAll('[data-draft]').forEach(el => {
+      const k = el.dataset.draft;
+      let v = (pd[k] != null && pd[k] !== '') ? pd[k] : acc(k);
+      el.value = (v == null) ? '' : v;
+    });
+  }
+  // Sprint 12 — Formdaki product_draft alanlarını topla (boş → null).
+  function collectDraft(form) {
+    const out = {};
+    if (!form) return out;
+    form.querySelectorAll('[data-draft]').forEach(el => {
+      const k = el.dataset.draft;
+      const v = (el.value || '').trim();
+      out[k] = v === '' ? null : v;
+    });
+    return out;
   }
   // P4c — Edit drawer AI paneli: alan-alan KABUL kartları (Linkten Doldur tarzı).
   // Her kart: etiket + değer + kaynak alıntısı + Kabul/Geri-Al butonu. Anlık (accept-fact).
@@ -705,6 +735,62 @@
       } catch (e) { toast('Bağlantı hatası', 'error'); }
       finally { enrichBtn.disabled = false; enrichBtn.textContent = old; }
     });
+    // Sprint 12 — "AI Doldur (üzerine yaz)": enrich-apply → tüm form alanlarını AI ile üzerine yaz
+    const enrichApplyBtn = node.querySelector('.ar-btn-enrich-apply');
+    if (enrichApplyBtn) enrichApplyBtn.addEventListener('click', async () => {
+      const old = enrichApplyBtn.textContent;
+      enrichApplyBtn.disabled = true; enrichApplyBtn.textContent = 'AI dolduruyor…';
+      try {
+        const chosen = modelSel ? (modelSel.value || '') : '';
+        const res = await fetch(`/api/arastirma/${encodeURIComponent(r.id)}/enrich-apply`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(chosen ? { model: chosen } : {}),
+        });
+        const d = await res.json();
+        if (d.ok && d.row) {
+          Object.assign(r, d.row);   // kolonlar + product_draft + staging güncellendi
+          if (editForm) {
+            const bEl = editForm.querySelector(CTRL('brand')); if (bEl) bEl.value = r.brand || '';
+            syncTaxonomyForm(editForm, r);
+            syncDraftForm(editForm, r);
+            const p = editForm.querySelector('.ar-ai-panel'); if (p) p.innerHTML = renderAiPanel(r);
+            const s = editForm.querySelector('.ar-enrich-status-edit'); if (s) s.textContent = enrichStatusLabel(r.enrichment_status) || 'ham';
+          }
+          fillArgeLine(article, r);
+          updateAcceptBadge(article, r);
+          refreshAcceptAllLabel();
+          toast('AI dolduruldu (üzerine yazıldı)' + (d.model ? ' · ' + d.model : ''), 'success');
+          if (d.model_invalid) toast('Geçersiz model — server varsayılanı kullanıldı', 'error');
+          if (d.dropped_unverified && d.dropped_unverified.length) {
+            toast(`${d.dropped_unverified.length} alan sayfada doğrulanamadı, atıldı (uydurma koruması)`, 'error');
+          }
+        } else {
+          toast((d.message || d.error || 'Doldurulamadı') + (d.model ? ' (' + d.model + ')' : ''), 'error');
+        }
+      } catch (e) { toast('Bağlantı hatası', 'error'); }
+      finally { enrichApplyBtn.disabled = false; enrichApplyBtn.textContent = old; }
+    });
+    // Sprint 12 — "Ürün Oluştur (Galeriye Gönder)": önce kaydet → doğrudan ürüne çevir → /urun'e git
+    const toProductBtn = node.querySelector('.ar-edit-to-product');
+    if (toProductBtn) toProductBtn.addEventListener('click', async () => {
+      const brandEl = editForm && editForm.querySelector(CTRL('brand'));
+      const pnEl = editForm && editForm.querySelector('[data-draft="product_name"]');
+      if (brandEl && !brandEl.value.trim()) { toast('Marka boş', 'error'); brandEl.focus(); return; }
+      if (pnEl && !pnEl.value.trim()) { toast('Ürün adı boş — AI Doldur ile getir veya elle yaz', 'error'); pnEl.focus(); return; }
+      const old = toProductBtn.textContent;
+      toProductBtn.disabled = true; toProductBtn.textContent = 'Oluşturuluyor…';
+      try {
+        const saved = await saveEdit(article, r);     // product_draft + kolonlar kalıcılaşsın
+        if (!saved) { toProductBtn.disabled = false; toProductBtn.textContent = old; return; }
+        Object.assign(r, saved);
+        const res = await fetch(`/api/arastirma/${encodeURIComponent(r.id)}/to-product`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}',
+        });
+        const d = await res.json();
+        if (d.ok) { toast('Ürün oluşturuldu', 'success'); window.location.href = d.redirect || `/urun/${d.urun_id}`; }
+        else { toast(d.error || d.message || 'Ürün oluşturulamadı', 'error'); toProductBtn.disabled = false; toProductBtn.textContent = old; }
+      } catch (e) { toast('Bağlantı hatası', 'error'); toProductBtn.disabled = false; toProductBtn.textContent = old; }
+    });
     // P6 — Tümünü Kabul / Geri Al (toggle): tek istek, tüm AI öğeleri
     if (acceptAllBtn) acceptAllBtn.addEventListener('click', async () => {
       const wantAccept = !isEverythingAccepted(r);
@@ -743,7 +829,7 @@
       // P5 — görsel renk sayısını manuel color_count alanına uygula (client-only; Kaydet ile onaylanır)
       const applyCc = ev.target.closest('.ar-ai-applycc');
       if (applyCc) {
-        const cc = editForm && editForm.querySelector('[data-field="color_count"]');
+        const cc = editForm && editForm.querySelector(CTRL('color_count'));
         if (cc) { cc.value = String(applyCc.dataset.cc || '').replace(/[^0-9]/g, ''); toast('Renk sayısı alana yazıldı (Kaydet ile onayla)', 'success'); }
         return;
       }
@@ -770,14 +856,14 @@
                 const set = new Set(d.value || []);
                 editForm.querySelectorAll('.ar-edit-weavetags input[type="checkbox"]').forEach(cb => { cb.checked = set.has(cb.value); });
               } else if (sfield === 'style_tags') {
-                const el = editForm.querySelector('[data-field="style_tags"]'); if (el) el.value = (d.value || []).join(', ');
+                const el = editForm.querySelector(CTRL('style_tags')); if (el) el.value = (d.value || []).join(', ');
               } else if (sfield === 'ai_notu') {
-                const el = editForm.querySelector('[data-field="ai_notu"]'); if (el) el.value = d.value || '';
+                const el = editForm.querySelector(CTRL('ai_notu')); if (el) el.value = d.value || '';
               } else if (sfield === 'brand_country') {
-                const el = editForm.querySelector('[data-field="country"]'); if (el) el.value = d.value || '';
+                const el = editForm.querySelector(CTRL('country')); if (el) el.value = d.value || '';
                 r.country = d.value;   // firma ülkesi = görünen country
               } else {
-                const el = editForm.querySelector(`[data-field="${sfield}"]`); if (el) el.value = d.value || '';
+                const el = editForm.querySelector(CTRL(sfield)); if (el) el.value = d.value || '';
               }
               const p = editForm.querySelector('.ar-ai-panel'); if (p) p.innerHTML = renderAiPanel(r);
             }
@@ -919,12 +1005,20 @@
     openBtn.href = r.product_url;
 
     const importBtn = node.querySelector('.ar-item-import');
-    importBtn.href = `/ekle?from_research=${encodeURIComponent(r.id)}`;
     if (r.status === 'imported') {
       importBtn.classList.remove('btn-primary');
       importBtn.classList.add('btn-secondary');
       importBtn.querySelector('span').textContent = `Ürün: ${r.imported_product_id || ''}`;
       importBtn.href = r.imported_product_id ? `/urun/${r.imported_product_id}` : '#';
+    } else {
+      // Sprint 12 — /ekle round-trip yok: çekmeceyi aç, kullanıcı AI Doldur + Ürün Oluştur yapar
+      importBtn.href = '#';
+      importBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openEditMode(article, r);
+        const pd = article.querySelector('.ar-edit-product'); if (pd) pd.open = true;
+        article.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
     }
 
     const dismissBtn = node.querySelector('.ar-item-dismiss');

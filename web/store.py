@@ -61,6 +61,8 @@ RESEARCH_COLUMNS = [
     "extracted_facts", "ai_summary", "enrichment_status",
     # OnCalisma-V2 (Problem 4b) — renk sayısı + AI notu
     "color_count", "ai_notu",
+    # Sprint 12 — ürün taslağı (çekmecede düzenlenen ürün-öncesi alanlar; Ürün Oluştur'da taşınır)
+    "product_draft",
 ]
 
 # İplik Kataloğu Parça 1 — kartela kolonları (upsert whitelist)
@@ -739,6 +741,8 @@ RESEARCH_EDITABLE_FIELDS = {
     "extracted_facts", "ai_summary", "enrichment_status",
     # OnCalisma-V2 (Problem 4b) — renk sayısı + AI notu (kullanıcı drawer'da düzenler).
     "color_count", "ai_notu",
+    # Sprint 12 — ürün taslağı (çekmecedeki genişletilmiş ürün alanları, jsonb)
+    "product_draft",
 }
 
 
