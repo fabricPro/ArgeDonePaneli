@@ -78,27 +78,29 @@ check("(P5) suggested.confidence taşındı", _sug.get("confidence") == "high")
 _ia = ai.get("image_analysis") or {}
 check("(P5) image_analysis dominant_colors + transparency", _ia.get("dominant_colors") == ["#EEE8D5", "#C9B79C"] and _ia.get("transparency") == "tül")
 
-# ---------------- P6.1 — kanıt doğrulama (uydurma koruması) ----------------
+# ---------------- P6.1/P6.3 — kanıt doğrulama: şüpheli ATILMAZ, unverified:true ile işaretlenir ----------------
 RESULT_V = {
     "ok": True, "model_used": "gemini-2.5-pro",
     "source_text": 'Material 100% polyester  Width / Height 315 cm / 124"  Colour variations 5',
     "suggestions": {
         "composition": {"value": "%100 polyester", "evidence": "Material 100% polyester"},   # kanıt VAR
         "width_cm": {"value": "315", "evidence": 'Width / Height 315 cm / 124"'},             # VAR
-        "weight_gsm": {"value": "113", "evidence": "Weight 113 g/m²"},                         # YOK -> atılmalı
-        "reference_price": {"value": "120 EUR", "type": "from", "evidence": "Price from 120 EUR / m"},  # YOK -> atılmalı
+        "weight_gsm": {"value": "113", "evidence": "Weight 113 g/m²"},                         # YOK -> unverified
+        "reference_price": {"value": "120 EUR", "type": "from", "evidence": "Price from 120 EUR / m"},  # YOK -> unverified
     },
 }
 pv = gx.build_enrichment_payload(RESULT_V)
 efv = pv["extracted_facts"]
-check("(P6.1) kanıtı VAR composition kaldı", "composition" in efv)
-check("(P6.1) kanıtı VAR width_cm kaldı", "width_cm" in efv)
-check("(P6.1) kanıtı YOK weight_gsm atıldı (uydurma)", "weight_gsm" not in efv)
-check("(P6.1) kanıtı YOK reference_price atıldı (uydurma)", "reference_price" not in efv)
-check("(P6.1) dropped_unverified listesi doğru", sorted(pv.get("dropped_unverified") or []) == ["reference_price", "weight_gsm"])
-# source_text YOKSA doğrulama atlanır (geriye dönük uyum)
+check("(P6.3) composition kaldı + verified", "composition" in efv and efv["composition"].get("unverified") is None)
+check("(P6.3) width_cm kaldı + verified", "width_cm" in efv and efv["width_cm"].get("unverified") is None)
+check("(P6.3) weight_gsm KALDI + unverified:true", efv.get("weight_gsm", {}).get("unverified") is True)
+check("(P6.3) reference_price KALDI + unverified:true", efv.get("reference_price", {}).get("unverified") is True)
+check("(P6.3) reference_price.type şüphelide de korundu", efv.get("reference_price", {}).get("type") == "from")
+check("(P6.3) unverified_fields listesi doğru", sorted(pv.get("unverified_fields") or []) == ["reference_price", "weight_gsm"])
+# source_text YOKSA doğrulama atlanır (geriye dönük uyum) — bayrak konmaz
 _nosrc = gx.build_enrichment_payload({"ok": True, "suggestions": {"weave_type": {"value": "dobby", "evidence": "kanıtsız"}}})
-check("(P6.1) source_text yoksa doğrulama atlanır", "weave_type" in _nosrc["extracted_facts"] and not _nosrc.get("dropped_unverified"))
+check("(P6.3) source_text yoksa doğrulama atlanır", "weave_type" in _nosrc["extracted_facts"] and not _nosrc.get("unverified_fields"))
+check("(P6.3) source_text yoksa unverified bayrağı konmaz", _nosrc["extracted_facts"]["weave_type"].get("unverified") is None)
 
 # (d) error -> boş payload
 pe = gx.build_enrichment_payload({"ok": False, "error": "http_404"})

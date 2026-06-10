@@ -3250,7 +3250,7 @@ def api_arastirma_enrich(research_id: str):
         "suggestions": meta["result"].get("suggestions") or {},
         "model": meta["model"], "requested_model": requested_model,
         "model_invalid": meta["model_invalid"], "vision": meta["vision"],
-        "dropped_unverified": payload.get("dropped_unverified") or [],
+        "unverified_fields": payload.get("unverified_fields") or [],  # P6.3 — sayfada doğrulanamayan (⚠ Şüpheli) alanlar
     })
 
 
@@ -3331,7 +3331,7 @@ def api_arastirma_enrich_apply(research_id: str):
         "ok": True, "row": store.research_get(research_id),
         "model": meta["model"], "requested_model": requested_model,
         "model_invalid": meta["model_invalid"], "vision": meta["vision"],
-        "dropped_unverified": payload.get("dropped_unverified") or [],
+        "unverified_fields": payload.get("unverified_fields") or [],
     })
 
 
@@ -3521,7 +3521,8 @@ def api_arastirma_accept_all(research_id: str):
     ef = row.get("extracted_facts") or {}
     enrichment_status = row.get("enrichment_status")
     for _k, _f in ef.items():
-        if isinstance(_f, dict) and _f.get("value"):
+        # P6.3 — "Tümünü Kabul" ŞÜPHELİ (unverified) alanlara DOKUNMAZ; onlar yalnız elle kabul/geri-al
+        if isinstance(_f, dict) and _f.get("value") and not _f.get("unverified"):
             _f["accepted"] = accepted
     save_patch = {"extracted_facts": ef}
     if accepted and enrichment_status != "verified":

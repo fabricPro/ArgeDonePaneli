@@ -600,10 +600,11 @@ def build_enrichment_payload(gemini_result: dict) -> dict:
         return out
 
     # 1) Factual → extracted_facts (yalnız value+evidence DOLU olanlar; #3)
-    # P6.1 — Kanıt doğrulama: source_text verildiyse evidence sayfada GERÇEKTEN geçmeli
-    # (model uydurma alıntı üretebiliyor → deterministik substring kontrolü; geçmeyen alan atılır).
+    # P6.1/P6.3 — Kanıt doğrulama: source_text verildiyse evidence sayfada GERÇEKTEN geçmeli.
+    # Geçmiyorsa ARTIK ATILMAZ; fact["unverified"]=True ile işaretlenir → panelde "⚠ Şüpheli"
+    # grubunda gösterilir, bulk "Tümünü Kabul" ETMEZ, kullanıcı elle karar verir (#3 + #6).
     src_norm = _norm_for_match(gemini_result.get("source_text") or "")
-    dropped: list[str] = []
+    unverified: list[str] = []
     for name in _factual_field_names():
         v = suggestions.get(name)
         if not isinstance(v, dict):
@@ -614,15 +615,15 @@ def build_enrichment_payload(gemini_result: dict) -> dict:
         evidence_s = evidence.strip() if isinstance(evidence, str) else evidence
         if not value_s or not evidence_s:   # boş/kanıtsız factual ATLA (Anayasa #3)
             continue
-        if src_norm and _norm_for_match(evidence_s) not in src_norm:
-            dropped.append(name)            # P6.1 — kanıt sayfada YOK → uydurma, atla (#3)
-            continue
         fact = {"value": value_s, "evidence": evidence_s}
-        if v.get("type"):                    # reference_price: exact|from
+        if v.get("type"):                    # reference_price: exact|from (şüphelide de korunur)
             fact["type"] = v.get("type")
+        if src_norm and _norm_for_match(evidence_s) not in src_norm:
+            fact["unverified"] = True         # P6.3 — kanıt sayfada YOK → ŞÜPHELİ (atma; elle onay)
+            unverified.append(name)
         out["extracted_facts"][name] = fact
-    if dropped:
-        out["dropped_unverified"] = dropped   # şeffaflık: hangi alanlar uydurma şüphesiyle atıldı
+    if unverified:
+        out["unverified_fields"] = unverified   # şeffaflık: hangi alanlar sayfada doğrulanamadı (⚠ Şüpheli)
 
     # 2) arge_notu_taslak → ai_summary.arge_notu (≤300) + model + generated_at
     from datetime import datetime, timezone

@@ -5539,6 +5539,19 @@ body.teknik-fullscreen {
     .analiz-alt-row { grid-template-columns: 1fr; }   /* mobilde alt alta */
 }
 
+/* === TEKNİK SEKMESİ TUTARLILIK — tüm alt sekmeler (Analiz/Desen/Tarak/Plan) aynı ferah+sakin görünüm === */
+/* 1) Bütün bölüm başlıkları tek-tip nötr (içerik-yeşil, maliyet-mavi, desen/tarak renkli legend'leri sakinleşir).
+   Semantik renkler korunur: maliyet donut'u + noktalar, swatch'lar, çözgü(sarı)/atkı(yeşil) iplik noktaları,
+   sol-kenar "neyin nerede" renk kodları. */
+.numune-section legend,
+.numune-section legend > .icon { color: var(--text-dim) !important; }
+.numune-section legend > .icon { opacity: 0.55; }
+/* 2) Desen / Tarak iç ızgaraları da ferah (Analiz'le aynı boşluk) */
+@media (min-width: 721px) {
+    .desen-grid { gap: 16px; margin-top: 12px; }
+    .tarak-grid { gap: 16px; margin-top: 12px; }
+}
+
 /* C) HESAPLANAN GRAMAJ — kompakt */
 .gramaj-grid-single {
     grid-template-columns: 1.4fr 1fr 1fr;
@@ -8076,6 +8089,18 @@ body.embed-calisma-right .urun-main-tabs .utab-btn[data-tab="galeri"] {
     border-left-color: var(--green, #6fae6f);
     background: rgba(111, 174, 111, 0.10);
 }
+/* P6.3 — ŞÜPHELİ (sayfada doğrulanamayan) alanlar: amber uyarı. Kabul edilse bile amber kalır (uyarı kaybolmasın). */
+.ar-ai-card.is-unverified { border-left-color: var(--orange, #c68b50); background: rgba(198, 139, 80, 0.10); }
+.ar-ai-card.is-unverified.is-accepted { border-left-color: var(--orange, #c68b50); background: rgba(198, 139, 80, 0.14); }
+.ar-ai-warn { margin-left: 6px; font-size: 10px; font-weight: 700; color: var(--orange, #c68b50); white-space: nowrap; }
+.ar-ai-section-warn { color: var(--orange, #c68b50); }
+/* P6.3 — Şüpheli grubu varsayılan KAPALI; başlığa tıklayınca açılır */
+.ar-ai-unverified { margin-top: 4px; }
+.ar-ai-unverified > summary { cursor: pointer; list-style: none; user-select: none; }
+.ar-ai-unverified > summary::-webkit-details-marker { display: none; }
+.ar-ai-unverified > summary::before { content: "\25B8 "; color: var(--orange, #c68b50); }
+.ar-ai-unverified[open] > summary::before { content: "\25BE "; }
+.ar-ai-unverified[open] > .ar-ai-cards { margin-top: 6px; }
 .ar-ai-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .ar-ai-accept-btn, .ar-ai-suggest-btn {
     flex: none;

@@ -355,7 +355,8 @@
     let total = 0, acc = 0;
     Object.keys(ef).forEach(k => {
       const f = ef[k];
-      if (f && typeof f === 'object' && f.value) { total++; if (f.accepted) acc++; }
+      // P6.3 — ŞÜPHELİ alanlar "tümünü kabul" kapsamı DIŞI (sayıma katılmaz)
+      if (f && typeof f === 'object' && f.value && !f.unverified) { total++; if (f.accepted) acc++; }
     });
     ['category', 'pattern', 'color_family', 'weave_tags', 'style_tags', 'brand_country'].forEach(field => {
       const has = Array.isArray(sug[field]) ? sug[field].length : !!sug[field];
@@ -442,25 +443,45 @@
         `</div>`
       );
     }
-    const keys = Object.keys(ef).filter(k => ef[k] && typeof ef[k] === 'object' && ef[k].value);
-    if (keys.length) {
+    // P6.3 — factual'ı DOĞRULANMIŞ / ŞÜPHELİ (unverified) diye ayır; tek kart yardımcısı
+    const allKeys = Object.keys(ef).filter(k => ef[k] && typeof ef[k] === 'object' && ef[k].value);
+    const verKeys = allKeys.filter(k => !ef[k].unverified);
+    const unvKeys = allKeys.filter(k => ef[k].unverified);
+    const renderFactCard = (k) => {
+      const f = ef[k] || {};
+      const acc = !!f.accepted, unv = !!f.unverified;
+      const typ = f.type ? ` <em>(${escHtml(f.type)})</em>` : '';
+      const cls = 'ar-ai-card' + (acc ? ' is-accepted' : '') + (unv ? ' is-unverified' : '');
+      const warn = unv ? ' <span class="ar-ai-warn">⚠ doğrulanamadı</span>' : '';
+      const evid = unv
+        ? `Kanıt sayfada bulunamadı — model alıntısı: “${escHtml(f.evidence || '— (alıntı yok)')}”`
+        : `Kaynak: “${escHtml(f.evidence || '— (alıntı yok)')}”`;
+      return (
+        `<div class="${cls}" data-field="${escHtml(k)}">` +
+          `<div class="ar-ai-card-head">` +
+            `<span class="ar-ai-fact-k">${escHtml(FACT_LABELS[k] || k)}${warn}</span>` +
+            `<button type="button" class="ar-ai-accept-btn" data-field="${escHtml(k)}">${acc ? '✓ Kabul edildi — Geri Al' : '✓ Kabul'}</button>` +
+          `</div>` +
+          `<div class="ar-ai-fact-v">${escHtml(f.value)}${typ}</div>` +
+          `<div class="ar-ai-evidence">${evid}</div>` +
+        `</div>`
+      );
+    };
+    if (verKeys.length) {
       parts.push('<div class="ar-ai-cards">');
-      keys.forEach(k => {
-        const f = ef[k] || {};
-        const acc = !!f.accepted;
-        const typ = f.type ? ` <em>(${escHtml(f.type)})</em>` : '';
-        parts.push(
-          `<div class="ar-ai-card${acc ? ' is-accepted' : ''}" data-field="${escHtml(k)}">` +
-            `<div class="ar-ai-card-head">` +
-              `<span class="ar-ai-fact-k">${escHtml(FACT_LABELS[k] || k)}</span>` +
-              `<button type="button" class="ar-ai-accept-btn" data-field="${escHtml(k)}">${acc ? '✓ Kabul edildi — Geri Al' : '✓ Kabul'}</button>` +
-            `</div>` +
-            `<div class="ar-ai-fact-v">${escHtml(f.value)}${typ}</div>` +
-            `<div class="ar-ai-evidence">Kaynak: “${escHtml(f.evidence || '— (alıntı yok)')}”</div>` +
-          `</div>`
-        );
-      });
+      verKeys.forEach(k => parts.push(renderFactCard(k)));
       parts.push('</div>');
+    }
+    if (unvKeys.length) {
+      // P6.3 — varsayılan KAPALI; kullanıcı açıp elle seçer (native <details>, ekstra JS yok)
+      parts.push(
+        '<details class="ar-ai-unverified">' +
+          `<summary class="ar-ai-section-h ar-ai-section-warn">⚠ ${unvKeys.length} Şüpheli alan — sayfada doğrulanamadı (göster / elle seç)</summary>` +
+          '<div class="ar-ai-cards">' +
+            unvKeys.map(k => renderFactCard(k)).join('') +
+          '</div>' +
+        '</details>'
+      );
     }
     // P5 — Taksonomi ÖNERİLERİ (tahmin) → accept-suggestion
     const sug = ai.suggested || {};
@@ -751,8 +772,8 @@
         toast('Zenginleştirildi' + (d.model ? ' · ' + d.model : ''), 'success');
         if (d.model_invalid) toast('Geçersiz model — server varsayılanı kullanıldı', 'error');
         // P6.1 — sayfada kanıtı bulunamayan (uydurma şüpheli) alanlar elendiyse uyar
-        if (d.dropped_unverified && d.dropped_unverified.length) {
-          toast(`${d.dropped_unverified.length} alan sayfada doğrulanamadı, atıldı (uydurma koruması)`, 'error');
+        if (d.unverified_fields && d.unverified_fields.length) {
+          toast(`${d.unverified_fields.length} alan sayfada doğrulanamadı — panelde ⚠ Şüpheli grubunda, elle kontrol et`, 'error');
         }
         if (editForm) {
           const p = editForm.querySelector('.ar-ai-panel'); if (p) p.innerHTML = renderAiPanel(r);
@@ -788,8 +809,8 @@
         refreshAcceptAllLabel();
         toast('AI dolduruldu (üzerine yazıldı)' + (d.model ? ' · ' + d.model : ''), 'success');
         if (d.model_invalid) toast('Geçersiz model — server varsayılanı kullanıldı', 'error');
-        if (d.dropped_unverified && d.dropped_unverified.length) {
-          toast(`${d.dropped_unverified.length} alan sayfada doğrulanamadı, atıldı (uydurma koruması)`, 'error');
+        if (d.unverified_fields && d.unverified_fields.length) {
+          toast(`${d.unverified_fields.length} alan sayfada doğrulanamadı — panelde ⚠ Şüpheli grubunda, elle kontrol et`, 'error');
         }
       } else {
         toast((d.message || d.error || 'Doldurulamadı') + (d.model ? ' (' + d.model + ')' : ''), 'error');
