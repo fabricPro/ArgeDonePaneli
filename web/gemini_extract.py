@@ -235,7 +235,8 @@ RESPONSE_SCHEMA: dict[str, Any] = {
         "reference_price":       _PRICE_FIELD_OBJECT,  # v4.0-part-2 Sprint 11.5 — YENİ
         "arge_notu_taslak":      _FIELD_OBJECT,
         "taxonomy":              _TAXONOMY_OBJECT,       # P5 — sınıflandırma ÖNERİSİ (inference)
-        "image_analysis":        _IMAGE_ANALYSIS_OBJECT, # P5 — görsel analizi (vision; görsel varsa)
+        # Sprint 12.1 — image_analysis KALDIRILDI: enrich salt-metin (görsel analizi ayrı:
+        # analyze_fabric_image / _IMAGE_VISION_SCHEMA). Çıktı küçülür, AI doldurma hızlanır.
         "error":                 {"type": "string"},
     },
 }

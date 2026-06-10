@@ -9,6 +9,41 @@
   // Aksi halde querySelector('[data-field="brand"]') AI kart <div>'ini seçip .value=undefined döndürür.
   const CTRL = (name) => `input[data-field="${name}"], select[data-field="${name}"], textarea[data-field="${name}"]`;
 
+  // Sprint 12.1 — Uzun süren AI isteklerinde butonda geçen süre + iptal göster.
+  // runFn(signal) bir Promise döndürür; buton çalışırken tekrar tıklanınca isteği iptal eder (AbortController).
+  function runWithProgress(btn, runningLabel, runFn) {
+    if (!btn) return;
+    if (btn.dataset.acRunning === '1') {           // zaten çalışıyor → iptal
+      if (btn._acAbort) btn._acAbort.abort();
+      return;
+    }
+    const baseLabel = btn.textContent;
+    const ctrl = new AbortController();
+    btn._acAbort = ctrl;
+    btn.dataset.acRunning = '1';
+    btn.classList.add('is-running');
+    const t0 = Date.now();
+    const render = () => {
+      const s = Math.round((Date.now() - t0) / 1000);
+      btn.textContent = `⏳ ${runningLabel} ${s}s · İptal`;
+    };
+    render();
+    const timer = setInterval(render, 1000);
+    Promise.resolve()
+      .then(() => runFn(ctrl.signal))
+      .catch((e) => {
+        if (e && e.name === 'AbortError') toast('İptal edildi', 'warn');
+        else { console.error(e); toast('Bağlantı hatası', 'error'); }
+      })
+      .finally(() => {
+        clearInterval(timer);
+        btn.dataset.acRunning = '0';
+        btn._acAbort = null;
+        btn.classList.remove('is-running');
+        btn.textContent = baseLabel;
+      });
+  }
+
   // v4.0-part-2 Sprint 5 — Client-side favicon URL hesaplayıcı.
   // Google s2 servisi her HTTPS domain için favicon döner; bot bloke / Cloudflare
   // gibi sorunlarla karşılaşmaz, fetch yapmamızı gerektirmez.
@@ -702,74 +737,64 @@
       modelSel.addEventListener('change', () => { try { localStorage.setItem(MODEL_KEY, modelSel.value); } catch (e) {} });
     }
     const enrichBtn = node.querySelector('.ar-btn-enrich');
-    if (enrichBtn) enrichBtn.addEventListener('click', async () => {
-      const old = enrichBtn.textContent;
-      enrichBtn.disabled = true; enrichBtn.textContent = 'Zenginleştiriliyor…';
-      try {
-        const chosen = modelSel ? (modelSel.value || '') : '';
-        const res = await fetch(`/api/arastirma/${encodeURIComponent(r.id)}/enrich`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(chosen ? { model: chosen } : {}),
-        });
-        const d = await res.json();
-        if (d.ok) {
-          r.extracted_facts = d.extracted_facts || {};
-          r.ai_summary = d.ai_summary || {};
-          r.enrichment_status = d.enrichment_status || 'enriched';
-          toast('Zenginleştirildi' + (d.model ? ' · ' + d.model : ''), 'success');
-          if (d.model_invalid) toast('Geçersiz model — server varsayılanı kullanıldı', 'error');
-          // P6.1 — sayfada kanıtı bulunamayan (uydurma şüpheli) alanlar elendiyse uyar
-          if (d.dropped_unverified && d.dropped_unverified.length) {
-            toast(`${d.dropped_unverified.length} alan sayfada doğrulanamadı, atıldı (uydurma koruması)`, 'error');
-          }
-          if (editForm) {
-            const p = editForm.querySelector('.ar-ai-panel'); if (p) p.innerHTML = renderAiPanel(r);
-            const s = editForm.querySelector('.ar-enrich-status-edit'); if (s) s.textContent = enrichStatusLabel(r.enrichment_status) || 'ham';
-          }
-          fillArgeLine(article, r);
-          updateAcceptBadge(article, r);
-          refreshAcceptAllLabel();
-        } else {
-          toast((d.message || d.error || 'Zenginleştirilemedi') + (d.model ? ' (' + d.model + ')' : ''), 'error');
+    if (enrichBtn) enrichBtn.addEventListener('click', () => runWithProgress(enrichBtn, 'Zenginleştiriliyor…', async (signal) => {
+      const chosen = modelSel ? (modelSel.value || '') : '';
+      const res = await fetch(`/api/arastirma/${encodeURIComponent(r.id)}/enrich`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(chosen ? { model: chosen } : {}), signal,
+      });
+      const d = await res.json();
+      if (d.ok) {
+        r.extracted_facts = d.extracted_facts || {};
+        r.ai_summary = d.ai_summary || {};
+        r.enrichment_status = d.enrichment_status || 'enriched';
+        toast('Zenginleştirildi' + (d.model ? ' · ' + d.model : ''), 'success');
+        if (d.model_invalid) toast('Geçersiz model — server varsayılanı kullanıldı', 'error');
+        // P6.1 — sayfada kanıtı bulunamayan (uydurma şüpheli) alanlar elendiyse uyar
+        if (d.dropped_unverified && d.dropped_unverified.length) {
+          toast(`${d.dropped_unverified.length} alan sayfada doğrulanamadı, atıldı (uydurma koruması)`, 'error');
         }
-      } catch (e) { toast('Bağlantı hatası', 'error'); }
-      finally { enrichBtn.disabled = false; enrichBtn.textContent = old; }
-    });
+        if (editForm) {
+          const p = editForm.querySelector('.ar-ai-panel'); if (p) p.innerHTML = renderAiPanel(r);
+          const s = editForm.querySelector('.ar-enrich-status-edit'); if (s) s.textContent = enrichStatusLabel(r.enrichment_status) || 'ham';
+        }
+        fillArgeLine(article, r);
+        updateAcceptBadge(article, r);
+        refreshAcceptAllLabel();
+      } else {
+        toast((d.message || d.error || 'Zenginleştirilemedi') + (d.model ? ' (' + d.model + ')' : ''), 'error');
+      }
+    }));
     // Sprint 12 — "AI Doldur (üzerine yaz)": enrich-apply → tüm form alanlarını AI ile üzerine yaz
     const enrichApplyBtn = node.querySelector('.ar-btn-enrich-apply');
-    if (enrichApplyBtn) enrichApplyBtn.addEventListener('click', async () => {
-      const old = enrichApplyBtn.textContent;
-      enrichApplyBtn.disabled = true; enrichApplyBtn.textContent = 'AI dolduruyor…';
-      try {
-        const chosen = modelSel ? (modelSel.value || '') : '';
-        const res = await fetch(`/api/arastirma/${encodeURIComponent(r.id)}/enrich-apply`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(chosen ? { model: chosen } : {}),
-        });
-        const d = await res.json();
-        if (d.ok && d.row) {
-          Object.assign(r, d.row);   // kolonlar + product_draft + staging güncellendi
-          if (editForm) {
-            const bEl = editForm.querySelector(CTRL('brand')); if (bEl) bEl.value = r.brand || '';
-            syncTaxonomyForm(editForm, r);
-            syncDraftForm(editForm, r);
-            const p = editForm.querySelector('.ar-ai-panel'); if (p) p.innerHTML = renderAiPanel(r);
-            const s = editForm.querySelector('.ar-enrich-status-edit'); if (s) s.textContent = enrichStatusLabel(r.enrichment_status) || 'ham';
-          }
-          fillArgeLine(article, r);
-          updateAcceptBadge(article, r);
-          refreshAcceptAllLabel();
-          toast('AI dolduruldu (üzerine yazıldı)' + (d.model ? ' · ' + d.model : ''), 'success');
-          if (d.model_invalid) toast('Geçersiz model — server varsayılanı kullanıldı', 'error');
-          if (d.dropped_unverified && d.dropped_unverified.length) {
-            toast(`${d.dropped_unverified.length} alan sayfada doğrulanamadı, atıldı (uydurma koruması)`, 'error');
-          }
-        } else {
-          toast((d.message || d.error || 'Doldurulamadı') + (d.model ? ' (' + d.model + ')' : ''), 'error');
+    if (enrichApplyBtn) enrichApplyBtn.addEventListener('click', () => runWithProgress(enrichApplyBtn, 'AI dolduruyor…', async (signal) => {
+      const chosen = modelSel ? (modelSel.value || '') : '';
+      const res = await fetch(`/api/arastirma/${encodeURIComponent(r.id)}/enrich-apply`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(chosen ? { model: chosen } : {}), signal,
+      });
+      const d = await res.json();
+      if (d.ok && d.row) {
+        Object.assign(r, d.row);   // kolonlar + product_draft + staging güncellendi
+        if (editForm) {
+          const bEl = editForm.querySelector(CTRL('brand')); if (bEl) bEl.value = r.brand || '';
+          syncTaxonomyForm(editForm, r);
+          syncDraftForm(editForm, r);
+          const p = editForm.querySelector('.ar-ai-panel'); if (p) p.innerHTML = renderAiPanel(r);
+          const s = editForm.querySelector('.ar-enrich-status-edit'); if (s) s.textContent = enrichStatusLabel(r.enrichment_status) || 'ham';
         }
-      } catch (e) { toast('Bağlantı hatası', 'error'); }
-      finally { enrichApplyBtn.disabled = false; enrichApplyBtn.textContent = old; }
-    });
+        fillArgeLine(article, r);
+        updateAcceptBadge(article, r);
+        refreshAcceptAllLabel();
+        toast('AI dolduruldu (üzerine yazıldı)' + (d.model ? ' · ' + d.model : ''), 'success');
+        if (d.model_invalid) toast('Geçersiz model — server varsayılanı kullanıldı', 'error');
+        if (d.dropped_unverified && d.dropped_unverified.length) {
+          toast(`${d.dropped_unverified.length} alan sayfada doğrulanamadı, atıldı (uydurma koruması)`, 'error');
+        }
+      } else {
+        toast((d.message || d.error || 'Doldurulamadı') + (d.model ? ' (' + d.model + ')' : ''), 'error');
+      }
+    }));
     // Sprint 12 — "Ürün Oluştur (Galeriye Gönder)": önce kaydet → doğrudan ürüne çevir → /urun'e git
     const toProductBtn = node.querySelector('.ar-edit-to-product');
     if (toProductBtn) toProductBtn.addEventListener('click', async () => {

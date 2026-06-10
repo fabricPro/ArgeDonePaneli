@@ -3178,18 +3178,12 @@ def api_arastirma_status(research_id: str):
 
 def _run_enrich(row: dict, requested_model: str | None):
     """gx.linkten_doldur + build_enrichment_payload + firma ülkesi (brand_country) fallback.
-    Dönüş: (payload, meta). payload['error'] doluysa başarısız. enrich + enrich-apply paylaşır."""
+    Dönüş: (payload, meta). payload['error'] doluysa başarısız. enrich + enrich-apply paylaşır.
+    Sprint 12.1 — VISION KALDIRILDI: enrich artık SALT-METİN (görsel renk analizi ayrı yapılıyor,
+    /gorsel-renk + analyze_fabric_image). Bu, AI doldurmayı belirgin hızlandırır."""
     url = (row.get("product_url") or "").strip()
     model_override = requested_model if requested_model in GEMINI_MODEL_WHITELIST else None
-    image_bytes = None
-    try:
-        imgs = [im for im in (row.get("images") or []) if isinstance(im, dict) and im.get("storage_path")]
-        cover = next((im for im in imgs if im.get("is_cover") or im.get("is_favorite")), None) or (imgs[0] if imgs else None)
-        if cover:
-            image_bytes = store.download_image_bytes(cover["storage_path"])
-    except Exception:
-        image_bytes = None
-    result = gx.linkten_doldur(url, model=model_override, image_bytes=image_bytes)
+    result = gx.linkten_doldur(url, model=model_override)   # görsel gönderilmez (salt-metin)
     payload = gx.build_enrichment_payload(result)
     if not payload.get("error"):
         ai_sum = payload.get("ai_summary") or {}
@@ -3207,7 +3201,7 @@ def _run_enrich(row: dict, requested_model: str | None):
         "model": result.get("model_used") or gx.MODEL_NAME,
         "requested_model": requested_model,
         "model_invalid": bool(requested_model and not model_override),
-        "vision": bool(image_bytes),
+        "vision": False,
         "result": result,
     }
     return payload, meta
