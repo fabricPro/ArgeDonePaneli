@@ -23,6 +23,8 @@ import requests
 from bs4 import BeautifulSoup
 
 import store  # P5 — taksonomi vocab tek kaynak (VALID_*) + validate_* (döngü yok: store gx import etmez)
+# v4.0-part-2 Adım 8 — Birim/kısaltma normalize (paylaşılan modül)
+from normalize import parse_width_cm, parse_weight_gsm, normalize_composition
 
 # Gemini SDK opsiyonel — yoksa hatayı runtime'da göster, import zamanında crash etme
 try:
@@ -73,11 +75,19 @@ KESİN KURALLAR (uyulmazsa cevabın geçersizdir):
 
 3) Veriyi DEĞİŞTİRMEDEN çevir. Örnekler:
    - "100% Trevira CS" → composition.value: "%100 Trevira CS" (sayı + marka adı korunur)
-   - "70% cotton, 30% linen" → composition.value: "%70 pamuk, %30 keten"
+   - "70% cotton, 30% linen" → composition.value: "%70 Pamuk, %30 Keten"
    - "Width 137 cm" → width_cm.value: 137
    - "Jacquard" → weave_type.value: "jacquard" (lowercase, mevcut listeyi tercih: dobby, jacquard, plain, leno, sheer, bouclé, saten, twill)
    - Renk varyantı, ürün kodu, SKU, marka adı: olduğu gibi bırak (çevirme)
    - Koleksiyon adı: orijinal dilinde bırak ("Cobra Collection" → "Cobra Collection")
+   - KOMPOZİSYON KISALTMASI (ISO 1419): sayfa "%50 PES, %50 CO" gibi kısaltma kullanıyorsa
+     Türkçe tam ad ver: "%50 Polyester, %50 Pamuk". Bilinen kısaltmalar:
+       PES/PL/PET = Polyester, CO = Pamuk, VI/CV/VIS = Viskon, PA = Poliamid,
+       WO = Yün, LI/FL = Keten, AC/PAN = Akrilik, EA/EL/SP = Elastan,
+       SI/SE = İpek, KA/WS = Kaşmir, CMD/MD = Modal, TEN = Tencel, LY = Liyosel,
+       CA = Asetat, RAM = Rami, JU = Jüt, HE = Kenevir, BA = Bambu, MO = Tiftik (Mohair).
+     "Recycled X" / "rX" / "GRS X" → "Geri Dönüştürülmüş X" (örn. rPES → Geri Dönüştürülmüş Polyester).
+     Tanımadığın kısaltmayı OLDUĞU GİBİ bırak (Python tarafı güvenlik ağı çevirir).
 
 4) SAYISAL ALANLAR (width_cm, weight_gsm, repeat_*):
    - "Width: 137 cm" → 137 (integer)
@@ -85,6 +95,10 @@ KESİN KURALLAR (uyulmazsa cevabın geçersizdir):
    - "g/m²" yoksa weight_gsm null
    - Sayı kesirli (137.5) ise integer'a yuvarlama YAPMA — null bırak ve evidence ver, kullanıcı karar versin
    - color_count (renk/varyant sayısı): "Available in N colours" / "N renk" / "N colourways" gibi AÇIK ifade ya da sayfada AÇIKÇA sayılabilir swatch/renk listesi → N (integer). Aralık ("5-7 renk") veya belirsizlik → null. TAHMİN YASAK (anayasa #3); evidence o ifadeyi içersin.
+   - YABANCI BİRİM (inch, oz/yd², mm, m, kg/m²): sayfada YAZAN birimi STRING olarak ver,
+     dönüştürme. Örnek: value="60 inch" / value="8 oz/yd²" / value="1.5 m" / value="0.18 kg/m²".
+     Python tarafı dönüştürür (1 inch=2.54 cm, 1 oz/yd²=33.906 g/m², 1 kg=1000 g, vb.).
+     "g/m²" / "gsm" / "cm" zaten Türkçe sistem birimi → integer ver (eski davranış).
 
 5) ANAYASA KURAL #3 — bu alanlar AŞIRI HASSAS:
    - brand: Sayfanın header / meta etiketi (og:site_name, application_name) / footer / page title / breadcrumb içinde AÇIKÇA YAZAN marka adını al. Domain (örn. "kvadrat.dk") TEK BAŞINA evidence olarak yetmez — sayfa metninde mutlaka geçmeli; geçtiği yeri evidence'a yaz.
@@ -472,6 +486,75 @@ def extract_fabric_fields(content: dict, model: str | None = None, image_bytes: 
 # 3) Kullanışlı tek-çağrı sarmalayıcı
 # ============================================================
 
+# ============================================================
+# v4.0-part-2 Adım 8 — Post-process: birim çevirisi + kompozisyon normalize
+# ============================================================
+def _post_process_suggestions(sug: dict) -> dict:
+    """Gemini çıktısı → normalize: inch→cm, oz/yd²→g/m², kısaltma→tam isim.
+    Evidence'a orijinal birim ipucu eklenir (kullanıcı doğrulayabilir).
+    """
+    if not isinstance(sug, dict):
+        return sug
+
+    def _convert_numeric(field_key: str, converter, unit_label: str):
+        """width_cm / weight_gsm için birim çevirisi + evidence enrichment."""
+        field = sug.get(field_key)
+        if not isinstance(field, dict):
+            return
+        raw = field.get("value")
+        if raw is None:
+            return
+        # Eğer Gemini zaten integer döndürdüyse, dokunma (zaten dönüştürülmüş)
+        if isinstance(raw, (int, float)) and not isinstance(raw, bool):
+            field["value"] = int(raw)
+            return
+        # String ise: parse + convert
+        if isinstance(raw, str) and raw.strip():
+            raw_str = raw.strip()
+            converted = converter(raw_str)
+            if converted is not None:
+                # Gerçek dönüşüm var mı? (raw'daki sayı ≠ converted ise birim çevrildi)
+                m = re.search(r"\d+(?:[.,]\d+)?", raw_str)
+                actually_converted = False
+                if m:
+                    try:
+                        raw_num = float(m.group().replace(",", "."))
+                        actually_converted = abs(raw_num - converted) > 0.5
+                    except (ValueError, TypeError):
+                        pass
+                if actually_converted:
+                    ev = field.get("evidence") or raw_str
+                    arrow = f" → {converted} {unit_label}"
+                    if arrow not in ev:
+                        field["evidence"] = f"{ev}{arrow}"
+                field["value"] = converted
+            else:
+                # Parse edemedi (range vs.) — value null, evidence ham metni tut
+                if not field.get("evidence"):
+                    field["evidence"] = raw
+                field["value"] = None
+
+    _convert_numeric("width_cm", parse_width_cm, "cm")
+    _convert_numeric("weight_gsm", parse_weight_gsm, "g/m²")
+    _convert_numeric("repeat_vertical_cm", parse_width_cm, "cm")
+    _convert_numeric("repeat_horizontal_cm", parse_width_cm, "cm")
+
+    # Kompozisyon — kısaltma sözlüğü ile normalize
+    comp = sug.get("composition")
+    if isinstance(comp, dict):
+        raw = comp.get("value")
+        if isinstance(raw, str) and raw.strip():
+            normalized = normalize_composition(raw)
+            if normalized and normalized != raw:
+                ev = comp.get("evidence") or raw
+                tag = f" (orijinal: {raw})"
+                if raw not in ev and tag not in ev:
+                    comp["evidence"] = f"{ev}{tag}"
+                comp["value"] = normalized
+
+    return sug
+
+
 def linkten_doldur(url: str, model: str | None = None, image_bytes: bytes | None = None) -> dict:
     """Tek çağrıda fetch + extract. Route'tan kullanılır.
 
@@ -526,6 +609,9 @@ def linkten_doldur(url: str, model: str | None = None, image_bytes: bytes | None
             "message": _human_error(suggestions["error"]),
             "model_used": used,
         }
+
+    # v4.0-part-2 Adım 8 — Birim/kısaltma normalize (post-process)
+    suggestions = _post_process_suggestions(suggestions)
 
     return {
         "ok": True,
