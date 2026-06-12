@@ -1,0 +1,75 @@
+/* ============================================================
+   FAS Stüdyo — Tasarım Token'ları (fas-design-system skill §1)
+   Tek doğruluk kaynağı: renk/boşluk/radius DEĞERLERİ yalnız buradan.
+
+   Geçiş mimarisi:
+   - :root → Stüdyo token'larının nihai/son-durum kaynağı.
+   - main.css (en sonda yüklenir) :root'ta çakışan 6 adı KOYU temaya
+     geri çeker → eski ekranlar değişmez.
+   - .studio{} bloğu o 6 adı geri kazanır → .studio alt ağacındaki
+     yeni ekranlar/krom Stüdyo değerlerini alır (yakın ata kazanır).
+   ============================================================ */
+:root {
+  /* zemin & yüzey */
+  --bg: #f7f7f8;
+  --surface: #ffffff;
+  --surface-2: #fbfbfc;
+  --border: #e4e5e9;
+  --border-strong: #d2d4da;
+
+  /* metin */
+  --ink: #1d1f27;
+  --ink-2: #5f6370;
+  --ink-3: #999da8;
+
+  /* vurgu (indigo) */
+  --accent: #5253c8;
+  --accent-strong: #4344b0;
+  --accent-bg: #eeeefb;
+  --accent-border: #cfd0f2;
+
+  /* rol renkleri: çözgü = indigo, atkı = teal */
+  --warp: #5253c8;
+  --warp-bg: #eeeefb;
+  --weft: #0f857c;
+  --weft-bg: #e3f3f1;
+
+  /* semantik */
+  --green: #178f5c;  --green-bg: #e6f4ed;   /* doğrulama, kaydedildi */
+  --red: #d23b3b;    --red-bg: #fbeaea;     /* silme, hata, DO/NEXT işaretçi */
+  --amber: #a8730f;  --amber-bg: #faf1de;   /* uyarı, "Belirsiz" */
+  --cost: #d8a13a;                          /* maliyet kartı sol kenar */
+
+  /* grafik paleti (donut, yığılmış çubuk, dağılım — bu sırayla) */
+  --chart-1: #5253c8;
+  --chart-2: #9a9bdc;
+  --chart-3: #0f857c;
+  --chart-4: #c9cad3;
+  --chart-5: #84868f;
+  --chart-6: #b98a3e;
+  --chart-7: #c2657e;
+
+  /* yazı */
+  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* biçim */
+  --r: 8px;
+  --r-sm: 6px;
+  --sh: 0 1px 2px rgba(23, 24, 31, .05);
+  --sh-pop: 0 4px 16px rgba(23, 24, 31, .10);
+
+  /* geçiş */
+  --tb-h: 48px;   /* Stüdyo topbar yüksekliği */
+}
+
+/* main.css :root ile çakışan 6 ad — .studio alt ağacında Stüdyo değerine
+   zorla (özgüllük + yakın ata: :root'taki main.css değerini yener). */
+.studio {
+  --bg: #f7f7f8;
+  --border: #e4e5e9;
+  --border-strong: #d2d4da;
+  --accent: #5253c8;
+  --green: #178f5c;
+  --red: #d23b3b;
+}

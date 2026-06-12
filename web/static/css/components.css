@@ -1,0 +1,366 @@
+/* ============================================================
+   FAS Stüdyo — Ortak Bileşenler (fas-design-system skill §2-4)
+   TÜM kurallar .studio kapsamı altında → özgüllük (0,2,0) eski
+   main.css (.btn = 0,1,0) bileşenlerini yükleme sırasından bağımsız
+   yener. .studio atası OLMAYAN eski ekranlar etkilenmez.
+   ============================================================ */
+
+/* ---- .studio-kapsamlı temel/reset (global değil → sızıntı yok) ---- */
+.studio,
+.studio *,
+.studio *::before,
+.studio *::after { box-sizing: border-box; }
+
+.studio {
+  font-family: var(--font);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.studio img { display: block; max-width: 100%; }
+.studio button,
+.studio input,
+.studio select,
+.studio textarea { font: inherit; color: inherit; }
+.studio h1, .studio h2, .studio h3, .studio h4,
+.studio p, .studio dl, .studio dd, .studio figure { margin: 0; }
+.studio a { color: var(--accent-strong); text-decoration: none; }
+.studio a:hover { text-decoration: underline; }
+.studio .num,
+.studio .table td,
+.studio .calc,
+.studio .metric-val { font-variant-numeric: tabular-nums; }
+.studio .mono { font-family: var(--mono); }
+
+/* ---- Eyebrow / bölüm başlığı (skill §2) ---- */
+.studio .eyebrow {
+  font-size: 11px; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--ink-2);
+}
+
+/* ============================================================
+   Topbar (appbar) — Stüdyo krom (skill §5)
+   48px sticky, blur beyaz, z-index içerikten yüksek
+   ============================================================ */
+.appbar {
+  position: sticky; top: 0; z-index: 200;
+  height: var(--tb-h);
+  display: flex; align-items: center; gap: 18px;
+  padding: 0 24px;
+  background: rgba(255, 255, 255, .82);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.appbar-brand {
+  display: inline-flex; align-items: center; gap: 9px;
+  color: var(--ink); font-weight: 600; letter-spacing: -.01em;
+  flex-shrink: 0;
+}
+.appbar-brand:hover { text-decoration: none; }
+.appbar-logo {
+  width: 22px; height: 22px; flex-shrink: 0;
+  color: var(--accent);
+}
+.appbar-wordmark { font-size: 14px; letter-spacing: .02em; }
+
+.appbar-nav {
+  display: flex; align-items: center; gap: 2px;
+  min-width: 0; overflow-x: auto;
+  scrollbar-width: none;
+}
+.appbar-nav::-webkit-scrollbar { display: none; }
+.appbar-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 32px; padding: 0 11px;
+  font-size: 13px; font-weight: 500; color: var(--ink-2);
+  border-radius: var(--r-sm); white-space: nowrap;
+  position: relative;
+  transition: color .14s, background .14s;
+}
+.appbar-link:hover { color: var(--ink); background: var(--surface-2); text-decoration: none; }
+.appbar-link .icon { width: 15px; height: 15px; }
+.appbar-link.is-active { color: var(--accent-strong); }
+.appbar-link.is-active::after {
+  content: ""; position: absolute; left: 11px; right: 11px; bottom: -1px;
+  height: 2px; background: var(--accent); border-radius: 2px 2px 0 0;
+}
+
+.appbar-right {
+  margin-left: auto; display: flex; align-items: center; gap: 8px;
+  flex-shrink: 0;
+}
+.kur-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 28px; padding: 0 10px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--r-sm); font-size: 12px; color: var(--ink-2);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.kur-pill b { color: var(--ink); font-weight: 600; }
+.kur-pill .kur-sep { color: var(--ink-3); }
+.kur-pill[hidden] { display: none; }
+.appbar-icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px;
+  border: 1px solid transparent; border-radius: var(--r-sm);
+  color: var(--ink-2); background: transparent; cursor: pointer;
+  transition: color .14s, background .14s;
+}
+.appbar-icon-btn:hover { color: var(--ink); background: var(--surface-2); text-decoration: none; }
+.appbar-icon-btn .icon { width: 16px; height: 16px; }
+.appbar-icon-btn.is-active { color: var(--accent-strong); }
+
+@media (max-width: 720px) {
+  .appbar { display: none; }   /* mobilde eski mobile-tabbar devralır */
+}
+
+/* ============================================================
+   Buton (skill §4) — .btn 32px, primary en fazla 1-2 adet
+   ============================================================ */
+.studio .btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  height: 32px; padding: 0 13px;
+  font-size: 13px; font-weight: 500;
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+  background: var(--surface); color: var(--ink);
+  box-shadow: var(--sh); cursor: pointer;
+  transition: background .14s, border-color .14s, color .14s;
+}
+.studio .btn:hover { background: var(--surface-2); border-color: var(--border-strong); text-decoration: none; }
+.studio .btn:active { transform: translateY(.5px); }
+.studio .btn:disabled { opacity: .5; cursor: not-allowed; }
+.studio .btn .icon { width: 15px; height: 15px; }
+.studio .btn-sm { height: 27px; padding: 0 10px; font-size: 12.5px; }
+
+.studio .btn-primary {
+  background: var(--accent); border-color: var(--accent); color: #fff;
+}
+.studio .btn-primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+
+.studio .btn-ghost {
+  background: transparent; border-color: transparent; box-shadow: none;
+  color: var(--ink-2);
+}
+.studio .btn-ghost:hover { background: var(--surface-2); color: var(--ink); border-color: transparent; }
+
+.studio .btn-danger {
+  background: transparent; border-color: transparent; box-shadow: none;
+  color: var(--red);
+}
+.studio .btn-danger:hover { background: var(--red-bg); color: var(--red); border-color: transparent; }
+
+/* ============================================================
+   Input / Select / Field (skill §4) — beyaz zemin, accent focus
+   ============================================================ */
+.studio .field,
+.studio input[type="text"]:not([class]),
+.studio input[type="password"]:not([class]),
+.studio input[type="number"]:not([class]),
+.studio input[type="url"]:not([class]),
+.studio input[type="search"]:not([class]),
+.studio input[type="date"]:not([class]),
+.studio select.field,
+.studio textarea.field {
+  width: 100%; height: 32px; padding: 0 11px;
+  font-size: 13px; color: var(--ink);
+  background: #fff; border: 1px solid var(--border);
+  border-radius: var(--r-sm); box-shadow: var(--sh);
+  transition: border-color .14s, box-shadow .14s;
+}
+.studio textarea.field { height: auto; min-height: 72px; padding: 9px 11px; line-height: 1.5; resize: vertical; }
+.studio .field:focus,
+.studio .field:focus-visible {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+.studio .field::placeholder { color: var(--ink-3); }
+
+.studio select.field {
+  appearance: none; -webkit-appearance: none;
+  padding-right: 30px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235f6370' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 9px center;
+}
+
+/* "Gemini ile gelir" / readonly hesaplı görünüm */
+.studio .field[readonly],
+.studio .field-locked {
+  background: var(--surface-2); color: var(--ink-2); cursor: default;
+}
+
+.studio .form-label {
+  display: block; font-size: 11.5px; font-weight: 500;
+  color: var(--ink-2); margin-bottom: 5px;
+}
+
+/* ============================================================
+   Düzenlenebilir vs HESAPLANAN (skill §4) — .calc şeridi
+   ============================================================ */
+.studio .calc {
+  display: block; padding: 6px 10px;
+  background: var(--surface-2); border-radius: var(--r-sm);
+  font-family: var(--mono); font-size: 11px; color: var(--ink-2);
+}
+.studio .calc b { color: var(--ink); font-weight: 600; }
+
+/* ============================================================
+   Chip / rozet (skill §4)
+   ============================================================ */
+.studio .chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 22px; padding: 0 9px;
+  font-size: 11.5px; font-weight: 500;
+  background: var(--surface-2); border: 1px solid var(--border);
+  color: var(--ink-2); border-radius: 999px;
+}
+.studio .chip .icon { width: 13px; height: 13px; }
+.studio .chip.is-active { background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent-strong); }
+.studio .chip.is-ok     { background: var(--green-bg); border-color: transparent; color: var(--green); }
+.studio .chip.is-warn   { background: var(--amber-bg); border-color: transparent; color: var(--amber); }
+.studio .chip.is-danger { background: var(--red-bg);   border-color: transparent; color: var(--red); }
+
+/* rol chip'i (Ç / A1 / A2): 24px kare */
+.studio .chip-role {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; border-radius: var(--r-sm);
+  font-size: 11px; font-weight: 700;
+}
+.studio .chip-warp { background: var(--warp-bg); color: var(--warp); }
+.studio .chip-weft { background: var(--weft-bg); color: var(--weft); }
+
+/* ============================================================
+   Sekme (skill §4) — ana alt-çizgili, alt segmented
+   ============================================================ */
+.studio .tabs {
+  display: flex; gap: 2px; border-bottom: 1px solid var(--border);
+}
+.studio .tab {
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 38px; padding: 0 14px;
+  font-size: 13px; font-weight: 500; color: var(--ink-2);
+  background: transparent; border: none; cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+}
+.studio .tab:hover { color: var(--ink); }
+.studio .tab.is-active { color: var(--accent-strong); border-bottom-color: var(--accent); }
+.studio .tab-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  font-size: 10.5px; font-weight: 600;
+  background: var(--surface-2); color: var(--ink-2); border-radius: 999px;
+}
+.studio .tab.is-active .tab-count { background: var(--accent-bg); color: var(--accent-strong); }
+
+.studio .seg {
+  display: inline-flex; padding: 3px; gap: 2px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+}
+.studio .seg-btn {
+  height: 26px; padding: 0 12px;
+  font-size: 12.5px; font-weight: 500; color: var(--ink-2);
+  background: transparent; border: none; border-radius: 4px; cursor: pointer;
+}
+.studio .seg-btn.is-active { background: var(--accent); color: #fff; }
+
+/* ============================================================
+   Tablo (skill §4) — çerçevesiz satır
+   ============================================================ */
+.studio .table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.studio .table th {
+  text-align: left; padding: 8px 10px;
+  font-size: 10.5px; font-weight: 600; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--ink-3);
+  border-bottom: 1px solid var(--border);
+}
+.studio .table td {
+  padding: 9px 10px; border-bottom: 1px solid var(--surface-2);
+  color: var(--ink);
+}
+.studio .table tr:hover td { background: var(--surface-2); }
+.studio .table .num { text-align: right; font-family: var(--mono); }
+.studio .table .row-total td { font-weight: 600; font-size: 13px; }
+
+/* ============================================================
+   Kart (skill §3) — birincil yüzey, sol-kenar yalnız anlam taşırsa
+   ============================================================ */
+.studio .card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); box-shadow: var(--sh);
+  padding: 14px;
+}
+.studio .card-h {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--ink-2);
+  margin-bottom: 10px;
+}
+.studio .card-h .icon { width: 14px; height: 14px; color: var(--ink-3); }
+.studio .card--warp { border-left: 3px solid var(--warp); }
+.studio .card--weft { border-left: 3px solid var(--weft); }
+.studio .card--cost { border-left: 3px solid var(--cost); }
+.studio .card--info { border-left: 3px solid var(--ink-3); }
+/* Kart içi alt bölge: yeni çerçeve YOK → ton + ayraç (skill §3) */
+.studio .card-sub { background: var(--surface-2); border-radius: var(--r-sm); padding: 10px 12px; }
+.studio .card-divider { border-bottom: 1px solid var(--surface-2); }
+
+/* ============================================================
+   Metric / kahraman değer (skill §3) — ekranda TEK kahraman
+   ============================================================ */
+.studio .metric { display: flex; flex-direction: column; gap: 2px; }
+.studio .metric-label { font-size: 11px; color: var(--ink-2); }
+.studio .metric-val { font-size: 20px; font-weight: 600; color: var(--ink); }
+.studio .metric--hero {
+  background: var(--accent-bg); border-radius: var(--r);
+  padding: 12px 14px;
+}
+.studio .metric--hero .metric-val { font-size: 26px; color: var(--accent-strong); }
+
+/* ============================================================
+   Modal (skill §4)
+   ============================================================ */
+.studio.modal,
+.studio .modal {
+  position: fixed; inset: 0; z-index: 300;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+  background: rgba(23, 24, 31, .35);
+  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+}
+.studio .modal-card {
+  width: 100%; max-width: 460px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); box-shadow: var(--sh-pop);
+  padding: 18px;
+}
+.studio .modal-h { font-size: 15px; font-weight: 600; margin-bottom: 14px; }
+.studio .modal-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+
+/* ============================================================
+   Login ekranı (tam Stüdyo — standalone, main.css yüklemez)
+   ============================================================ */
+.studio.login-page {
+  min-height: 100vh; margin: 0;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+}
+.studio .login-card {
+  width: 100%; max-width: 340px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); box-shadow: var(--sh-pop);
+  padding: 28px 26px; text-align: center;
+}
+.studio .login-logo {
+  width: 34px; height: 34px; color: var(--accent); margin: 0 auto 14px;
+}
+.studio .login-brand { font-size: 18px; font-weight: 600; letter-spacing: -.01em; color: var(--ink); }
+.studio .login-sub { font-size: 12.5px; color: var(--ink-2); margin-top: 3px; margin-bottom: 20px; }
+.studio .login-card .field { height: 38px; text-align: center; }
+.studio .login-card .btn { width: 100%; height: 38px; margin-top: 12px; }
+.studio .login-error {
+  margin-top: 12px; padding: 8px 10px;
+  background: var(--red-bg); color: var(--red);
+  border-radius: var(--r-sm); font-size: 12.5px;
+}

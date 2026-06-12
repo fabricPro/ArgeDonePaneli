@@ -8,6 +8,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    {# FAS Stüdyo (tasarim-v2 Faz 0) — token + bileşen TEMELİ.
+       main.css EN SONDA: :root'ta çakışan adları koyu temaya çeker → eski
+       ekranlar değişmez. Yeni krom/ekranlar .studio kapsamıyla Stüdyo görünür. #}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 
     {# === PWA === #}
@@ -29,32 +34,46 @@
     {% if git_branch_show %}
     <div class="dev-branch-badge" title="Bu, deneme git branch'i — üretim (main) değil">🌿 {{ git_branch }}</div>
     {% endif %}
-    <nav class="topbar">
-        <a href="{{ url_for('index') }}" class="topbar-brand" aria-label="Fabric Agent System ana sayfa">
-            <img src="{{ url_for('static', filename='img/fas-logo-dark.svg') }}" alt="Fabric Agent System" class="brand-logo">
+    {# === FAS Stüdyo topbar (tasarim-v2 Faz 0) — .studio kapsamı + harici icons.svg.
+         Tüm url_for endpoint'leri + active-state KORUNUR. === #}
+    {% set sprite = url_for('static', filename='icons.svg') %}
+    <nav class="studio appbar" aria-label="Ana menü">
+        <a href="{{ url_for('index') }}" class="appbar-brand" aria-label="Fabric Agent System ana sayfa">
+            <svg class="appbar-logo" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <rect x="3" y="4" width="8" height="3.4" rx="1.2"/>
+                <rect x="13.6" y="3" width="3.4" height="8" rx="1.2"/>
+                <rect x="7" y="13" width="3.4" height="8" rx="1.2"/>
+                <rect x="13" y="16.6" width="8" height="3.4" rx="1.2"/>
+            </svg>
+            <span class="appbar-wordmark">FAS</span>
         </a>
-        <div class="topbar-nav">
-            <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint in ('index', 'urun_detail') %}active{% endif %}">
-                Galeri
+        <div class="appbar-nav">
+            <a href="{{ url_for('index') }}" class="appbar-link {% if request.endpoint in ('index', 'urun_detail') %}is-active{% endif %}">Galeri</a>
+            <a href="{{ url_for('ekle') }}" class="appbar-link {% if request.endpoint == 'ekle' %}is-active{% endif %}">
+                <svg class="icon"><use href="{{ sprite }}#ic-plus"/></svg> Yeni Ürün
             </a>
-            <a href="{{ url_for('ekle') }}" class="nav-link nav-add {% if request.endpoint == 'ekle' %}active{% endif %}">
-                <svg class="icon"><use href="#ic-plus"/></svg> Yeni Ürün
+            <a href="{{ url_for('arastirma_page') }}" class="appbar-link {% if request.endpoint == 'arastirma_page' %}is-active{% endif %}">
+                <svg class="icon"><use href="{{ sprite }}#ic-list"/></svg> Ön Çalışma
             </a>
-            <a href="{{ url_for('arastirma_page') }}" class="nav-link {% if request.endpoint == 'arastirma_page' %}active{% endif %}">
-                <svg class="icon"><use href="#ic-list"/></svg> Ön Çalışma
+            <a href="{{ url_for('calisma_page') }}" class="appbar-link {% if request.endpoint == 'calisma_page' %}is-active{% endif %}">
+                <svg class="icon"><use href="{{ sprite }}#ic-pin"/></svg> Çalışma
             </a>
-            <a href="{{ url_for('calisma_page') }}" class="nav-link {% if request.endpoint == 'calisma_page' %}active{% endif %}">
-                <svg class="icon"><use href="#ic-pin"/></svg> Çalışma
+            <a href="{{ url_for('analiz') }}" class="appbar-link {% if request.endpoint == 'analiz' %}is-active{% endif %}">
+                <svg class="icon"><use href="{{ sprite }}#ic-bar-chart"/></svg> Analiz
             </a>
-            <a href="{{ url_for('analiz') }}" class="nav-link {% if request.endpoint == 'analiz' %}active{% endif %}">
-                <svg class="icon"><use href="#ic-bar-chart"/></svg> Analiz
+            <a href="{{ url_for('iplik_katalog_list') }}" class="appbar-link {% if request.endpoint and request.endpoint.startswith('iplik_katalog') %}is-active{% endif %}">
+                <svg class="icon"><use href="{{ sprite }}#ic-spool"/></svg> İplik Kataloğu
             </a>
-            <a href="{{ url_for('iplik_katalog_list') }}" class="nav-link {% if request.endpoint and request.endpoint.startswith('iplik_katalog') %}active{% endif %}">🧵 İplik Kataloğu</a>
-            <a href="{{ url_for('ayarlar') }}" class="nav-link {% if request.endpoint == 'ayarlar' %}active{% endif %}">
-                <svg class="icon"><use href="#ic-gear"/></svg> Ayarlar
+        </div>
+        <div class="appbar-right">
+            <span class="kur-pill" id="kur-pill" hidden aria-label="Güncel döviz kuru">
+                $ <b id="kur-usd">—</b> <span class="kur-sep">·</span> € <b id="kur-eur">—</b>
+            </span>
+            <a href="{{ url_for('ayarlar') }}" class="appbar-icon-btn {% if request.endpoint == 'ayarlar' %}is-active{% endif %}" title="Ayarlar" aria-label="Ayarlar">
+                <svg class="icon"><use href="{{ sprite }}#ic-gear"/></svg>
             </a>
-            <a href="{{ url_for('logout') }}" class="nav-link nav-logout">
-                <svg class="icon"><use href="#ic-log-out"/></svg> Çıkış
+            <a href="{{ url_for('logout') }}" class="appbar-icon-btn" title="Çıkış" aria-label="Çıkış">
+                <svg class="icon"><use href="{{ sprite }}#ic-log-out"/></svg>
             </a>
         </div>
     </nav>
@@ -190,6 +209,23 @@
                 apply(m);
             });
         });
+    })();
+    </script>
+
+    <script>
+    // --- tasarim-v2 Faz 0 — Stüdyo topbar kur hapı (salt-okuma, /api/kur) ---
+    (function () {
+        const pill = document.getElementById('kur-pill');
+        if (!pill) return;
+        const usdEl = document.getElementById('kur-usd');
+        const eurEl = document.getElementById('kur-eur');
+        const fmt = (n) => (n == null ? '—' : Number(n).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        fetch('/api/kur').then(r => r.json()).then(d => {
+            if (!d || (d.usd_try == null && d.eur_try == null)) return;  // veri yoksa hap gizli kalır
+            usdEl.textContent = fmt(d.usd_try);
+            eurEl.textContent = fmt(d.eur_try);
+            pill.hidden = false;
+        }).catch(() => { /* sessiz — hap gizli kalır */ });
     })();
     </script>
 </body>
