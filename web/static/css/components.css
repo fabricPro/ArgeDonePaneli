@@ -337,6 +337,31 @@
 }
 .studio .modal-h { font-size: 15px; font-weight: 600; margin-bottom: 14px; }
 .studio .modal-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+/* hidden attribute, .studio .modal display:flex'i yenmeli (Faz 1 fix) */
+.studio .modal[hidden] { display: none; }
+
+/* ---- Form satırı (paylaşımlı — modal + form ekranları) ---- */
+.studio .form-row { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+.studio .form-row label {
+  font-size: 11.5px; font-weight: 500; color: var(--ink-2);
+}
+.studio .form-row label .req { color: var(--red); }
+.studio .form-row small { font-size: 11px; color: var(--ink-3); }
+
+/* ---- Boş durum (paylaşımlı .studio override) ---- */
+.studio .empty-state {
+  text-align: center; padding: 56px 24px;
+  color: var(--ink-2);
+}
+.studio .empty-state .empty-icon-wrap {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 64px; height: 64px; margin-bottom: 14px;
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 50%;
+}
+.studio .empty-state .empty-icon,
+.studio .empty-state .icon-xl { width: 30px; height: 30px; color: var(--ink-3); }
+.studio .empty-state h2, .studio .empty-state h3 { font-size: 16px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+.studio .empty-state p { font-size: 13px; color: var(--ink-2); max-width: 380px; margin: 0 auto 14px; }
 
 /* ============================================================
    Login ekranı (tam Stüdyo — standalone, main.css yüklemez)

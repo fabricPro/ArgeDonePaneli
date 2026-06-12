@@ -1,0 +1,104 @@
+/* ============================================================
+   FAS Stüdyo — Ayarlar ekranı (settings.html)  ·  tasarim-v2 Faz 1
+   Tümü .studio kapsamlı. Yalnız ayarlar sayfasında yüklenir.
+   JS-bağı (settings.js) id'leri korunur — sadece stil + modal markup dili.
+   ============================================================ */
+
+.studio .page-header { margin-bottom: 18px; }
+.studio .page-header h1 { font-size: 19px; font-weight: 600; letter-spacing: -.015em; color: var(--ink); }
+.studio .page-header .subtitle { font-size: 12.5px; color: var(--ink-2); margin-top: 3px; }
+
+.studio .settings-section { margin-top: 4px; }
+.studio .settings-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; margin-bottom: 14px;
+}
+.studio .settings-header h2 {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 14px; font-weight: 600; color: var(--ink);
+}
+.studio .settings-header .cnt {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 20px; height: 19px; padding: 0 6px;
+  font-size: 11px; font-weight: 600; color: var(--ink-2);
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+}
+.studio .settings-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ---- Firma tablosu (skill §4) ---- */
+.studio .brands-table-wrap {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); box-shadow: var(--sh); overflow: hidden;
+}
+.studio .brands-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.studio .brands-table th {
+  text-align: left; padding: 9px 14px;
+  font-size: 10.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--ink-3); background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+}
+.studio .brands-table td {
+  padding: 10px 14px; border-bottom: 1px solid var(--surface-2);
+  color: var(--ink); vertical-align: middle;
+}
+.studio .brands-table tbody tr:last-child td { border-bottom: none; }
+.studio .brands-table tbody tr:hover td { background: var(--surface-2); }
+.studio .brands-table .b-name { font-weight: 600; }
+/* Slug → mono chip (skill: "slug mono chip kalır") */
+.studio .brands-table .b-slug code {
+  display: inline-block; padding: 2px 7px;
+  font-family: var(--mono); font-size: 11px; color: var(--ink-2);
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 4px;
+}
+.studio .brands-table .b-country { color: var(--ink-2); }
+.studio .brands-table .b-count { text-align: center; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.studio .brands-table .b-website a {
+  display: inline-flex; align-items: center; gap: 5px; max-width: 260px;
+  color: var(--accent-strong); text-decoration: none;
+}
+.studio .brands-table .b-website a:hover { text-decoration: underline; }
+.studio .brands-table .b-website .icon { width: 14px; height: 14px; flex-shrink: 0; }
+.studio .brands-table .b-website .b-website-text {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px;
+}
+.studio .brands-table .b-actions { display: flex; gap: 4px; justify-content: flex-end; }
+
+/* edit/sil → ghost ikon buton */
+.studio .brands-table .btn-mini {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; padding: 0;
+  background: transparent; border: 1px solid transparent; border-radius: var(--r-sm);
+  color: var(--ink-2); cursor: pointer; box-shadow: none;
+  transition: background .14s, color .14s;
+}
+.studio .brands-table .btn-mini .icon { width: 15px; height: 15px; }
+.studio .brands-table .btn-mini:hover { background: var(--surface-2); color: var(--ink); }
+.studio .brands-table .btn-mini.btn-danger { color: var(--red); }
+.studio .brands-table .btn-mini.btn-danger:hover { background: var(--red-bg); color: var(--red); }
+
+/* ---- Mobil: tablo → kart (≤720px) ---- */
+@media (max-width: 720px) {
+  .studio .settings-header { flex-direction: column; align-items: stretch; }
+  .studio .settings-actions { justify-content: flex-end; }
+  .studio .brands-table-wrap { background: transparent; border: none; box-shadow: none; overflow: visible; }
+  .studio .brands-table, .studio .brands-table tbody { display: block; width: 100%; }
+  .studio .brands-table thead { display: none; }
+  .studio .brands-table tbody tr {
+    display: block; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r); box-shadow: var(--sh); padding: 12px 14px; margin-bottom: 10px;
+  }
+  .studio .brands-table tbody tr:hover td { background: transparent; }
+  .studio .brands-table td {
+    display: flex; justify-content: space-between; align-items: center;
+    border: none; padding: 5px 0; font-size: 13px;
+  }
+  .studio .brands-table td::before {
+    content: attr(data-label);
+    font-size: 10px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3);
+  }
+  .studio .brands-table .b-name { font-size: 15px; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 4px; }
+  .studio .brands-table .b-name::before { display: none; }
+  .studio .brands-table .b-actions { justify-content: flex-end; border-top: 1px solid var(--border); padding-top: 8px; margin-top: 4px; }
+  .studio .brands-table .b-actions::before { display: none; }
+}

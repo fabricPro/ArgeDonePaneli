@@ -1,7 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Galeri — {{ total }} kumaş{% endblock %}
+{% block body_class %}studio{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/screens/gallery.css') }}">
+{% endblock %}
 
 {% block content %}
+{% set sprite = url_for('static', filename='icons.svg') %}
 <div class="page-header">
     <h1>Kumaş Galerisi</h1>
     <p class="page-subtitle">{{ total }} kumaş · {{ country_groups|length }} ülke · Mobidik ARGE referans koleksiyonu</p>
@@ -9,8 +14,9 @@
 
 <div class="filter-bar">
     <div class="search-wrap">
-        <svg class="icon search-icon"><use href="#ic-search"/></svg>
+        <svg class="icon search-icon"><use href="{{ sprite }}#ic-search"/></svg>
         <input type="text" id="search-input" placeholder="Marka, ürün veya ülke ara…" class="search-input">
+        <kbd class="search-kbd">⌘K</kbd>
     </div>
     <select id="filter-brand" class="filter-select">
         <option value="">Tüm markalar</option>
@@ -31,35 +37,36 @@
         <option value="archived">Çalışma Yapıldı</option>
     </select>
     <div class="view-toggle" role="group" aria-label="Görüntüleme modu">
-        <button class="view-btn" data-mode="grid" title="Kart grid"><svg class="icon"><use href="#ic-grid"/></svg></button>
-        <button class="view-btn" data-mode="list" title="Liste"><svg class="icon"><use href="#ic-list"/></svg></button>
+        <button class="view-btn" data-mode="grid" title="Kart grid"><svg class="icon"><use href="{{ sprite }}#ic-grid"/></svg></button>
+        <button class="view-btn" data-mode="list" title="Liste"><svg class="icon"><use href="{{ sprite }}#ic-list"/></svg></button>
     </div>
     <div class="design-controls" id="design-controls">
         <span id="design-hint" class="design-hint" hidden>↔ Başlıkları veya kartları sürükleyip bırakarak sırala</span>
         <button id="design-save" class="btn btn-primary" hidden>Kaydet</button>
-        <button id="design-cancel" class="btn btn-secondary" hidden>İptal</button>
-        <button id="design-toggle" class="btn btn-secondary"><svg class="icon"><use href="#ic-pencil"/></svg> Tasarım Modu</button>
-        <button id="select-toggle" class="btn btn-secondary"><svg class="icon"><use href="#ic-check"/></svg> Seç</button>
+        <button id="design-cancel" class="btn btn-ghost" hidden>İptal</button>
+        <button id="design-toggle" class="btn btn-ghost"><svg class="icon"><use href="{{ sprite }}#ic-pencil"/></svg> Tasarım Modu</button>
+        <button id="select-toggle" class="btn btn-ghost"><svg class="icon"><use href="{{ sprite }}#ic-check"/></svg> Seç</button>
     </div>
+    <a href="{{ url_for('ekle') }}" class="btn btn-primary gal-new"><svg class="icon"><use href="{{ sprite }}#ic-plus"/></svg> Yeni Ürün</a>
 </div>
 
 <div id="select-actionbar" class="select-actionbar" hidden>
     <span class="sel-count"><strong id="sel-count-num">0</strong> seçili</span>
     <div class="sel-actions">
-        <button id="sel-cancel" class="btn btn-secondary">İptal</button>
-        <button id="sel-delete" class="btn btn-danger"><svg class="icon"><use href="#ic-trash"/></svg> Sil</button>
+        <button id="sel-cancel" class="btn btn-ghost">İptal</button>
+        <button id="sel-delete" class="btn btn-danger"><svg class="icon"><use href="{{ sprite }}#ic-trash"/></svg> Sil</button>
     </div>
 </div>
 
 {% if total == 0 %}
 <div class="empty-state">
     <div class="empty-icon-wrap">
-        <svg class="empty-icon"><use href="#ic-image"/></svg>
+        <svg class="empty-icon"><use href="{{ sprite }}#ic-image"/></svg>
     </div>
     <h2>Galeri henüz boş</h2>
     <p>İlk kumaşını ekle — marka, ülke, görsel ve varyantlarıyla birlikte burada görünecek.</p>
     <a href="{{ url_for('ekle') }}" class="btn btn-primary">
-        <svg class="icon"><use href="#ic-plus"/></svg> İlk kumaşı ekle
+        <svg class="icon"><use href="{{ sprite }}#ic-plus"/></svg> İlk kumaşı ekle
     </a>
 </div>
 {% endif %}
@@ -67,7 +74,7 @@
 {% for country, items in country_groups %}
 <section class="country-group" data-country="{{ country }}">
     <h2 class="country-group-title">
-        <span class="cg-flag">📍</span> {{ country }}
+        {{ country }}
         <span class="cg-count">{{ items|length }}</span>
     </h2>
     <div class="product-grid">
@@ -80,16 +87,16 @@
            data-country="{{ (p.country or '')|lower }}"
            data-country-raw="{{ p.country or '' }}"
            data-status="{{ p.status or 'active' }}">
-            <button type="button" class="card-delete-btn" data-urunid="{{ p.urun_id }}" data-name-label="{{ p.product_name }}" aria-label="Bu ürünü sil" title="Bu ürünü sil"><svg class="icon"><use href="#ic-x"/></svg></button>
+            <button type="button" class="card-delete-btn" data-urunid="{{ p.urun_id }}" data-name-label="{{ p.product_name }}" aria-label="Bu ürünü sil" title="Bu ürünü sil"><svg class="icon"><use href="{{ sprite }}#ic-x"/></svg></button>
             {# v4.0-part-2 Sprint 8 — Çalışma Alanına pin/unpin #}
             <button type="button" class="card-pin-btn {% if p.in_workspace %}is-pinned{% endif %}"
                     data-urunid="{{ p.urun_id }}"
                     data-pinned="{{ 'true' if p.in_workspace else 'false' }}"
                     aria-label="Çalışma Alanına ekle/çıkar"
                     title="{% if p.in_workspace %}Çalışmadan çıkar{% else %}Çalışmaya ekle{% endif %}">
-                <svg class="icon"><use href="#ic-pin"/></svg>
+                <svg class="icon"><use href="{{ sprite }}#ic-pin"/></svg>
             </button>
-            <span class="card-select-check" aria-hidden="true"><svg class="icon"><use href="#ic-check"/></svg></span>
+            <span class="card-select-check" aria-hidden="true"><svg class="icon"><use href="{{ sprite }}#ic-check"/></svg></span>
             {# v4.0-part-2 Sprint 13: üstteki "RENKLER X X" chip kaldırıldı — kart altı ikonlara taşındı #}
             <div class="card-media">
                 {% if p.cover_image %}
@@ -116,25 +123,25 @@
                 <div class="card-indicators" aria-label="Veri durumu">
                     <span class="ind {% if p.has_teknik %}on{% else %}off{% endif %}"
                           data-tooltip="{% if p.has_teknik %}Teknik çalışma tamamlanmış (v{{ p.teknik_surum_count }}){% else %}Teknik çalışma henüz girilmemiş{% endif %}">
-                        <svg class="icon"><use href="#ic-grid"/></svg>
+                        <svg class="icon"><use href="{{ sprite }}#ic-grid"/></svg>
                     </span>
                     <span class="ind {% if p.has_pdf %}on{% else %}off{% endif %}"
                           data-tooltip="{% if p.has_pdf %}{{ p.pdf_count }} PDF doküman yüklü{% else %}PDF doküman yok{% endif %}">
-                        <svg class="icon"><use href="#ic-file"/></svg>
+                        <svg class="icon"><use href="{{ sprite }}#ic-file"/></svg>
                     </span>
                     <span class="ind {% if p.has_notlar %}on{% else %}off{% endif %}"
                           data-tooltip="{% if p.has_notlar %}Notlar mevcut{% else %}Not girilmemiş{% endif %}">
-                        <svg class="icon"><use href="#ic-pencil"/></svg>
+                        <svg class="icon"><use href="{{ sprite }}#ic-pencil"/></svg>
                     </span>
                     {# Renkler ikonu — fotoğraf sayısı + palette parıltısı #}
                     <span class="ind ind-renkler {% if p.has_color_album %}on{% else %}off{% endif %}{% if p.palette_completed %} is-completed{% endif %}"
                           data-tooltip="{% if p.palette_completed %}Renkler albümü: {{ p.color_album_image_count }} görsel · palet tamamlandı{% elif p.palette_size %}Renkler albümü: {{ p.color_album_image_count }} görsel · {{ p.palette_size }} renk atanmış{% else %}Renkler albümü boş{% endif %}">
-                        <svg class="icon"><use href="#ic-image"/></svg>
+                        <svg class="icon"><use href="{{ sprite }}#ic-image"/></svg>
                         {% if p.color_album_image_count %}<sup class="ind-count">{{ p.color_album_image_count }}</sup>{% endif %}
                     </span>
                     {% if p.status == 'archived' %}
                     <span class="ind ind-archived" data-tooltip="Çalışma yapıldı (arşivde)">
-                        <svg class="icon"><use href="#ic-check"/></svg>
+                        <svg class="icon"><use href="{{ sprite }}#ic-check"/></svg>
                     </span>
                     {% endif %}
                 </div>
@@ -408,5 +415,18 @@ document.addEventListener('click', (e) => {
                 .forEach(o => o.classList.remove('is-tooltip-open'));
     }
 });
+</script>
+
+<script>
+// tasarim-v2 Faz 1 — ⌘K / Ctrl+K → arama kutusuna odaklan (sunum kısayolu)
+(function () {
+    document.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+            e.preventDefault();
+            const s = document.getElementById('search-input');
+            if (s) { s.focus(); s.select(); }
+        }
+    });
+})();
 </script>
 {% endblock %}
