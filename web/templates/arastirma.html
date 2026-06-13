@@ -90,8 +90,26 @@
             {# P5 — bekleyen (raw) kayıtları AI ile topluca zenginleştir (seçili modelle, durdurulabilir) #}
             <button type="button" id="btn-enrich-batch" class="btn btn-secondary" data-running="0"
                     title="Listedeki bekleyen (raw) kayıtları AI ile topluca zenginleştir">AI Toplu</button>
+            {# Çoklu seçim modu — seçilenleri sırayla ürüne çevir #}
+            <button type="button" id="btn-select-mode" class="btn btn-secondary" title="Çoklu seçim: kayıtları seç, sırayla ürüne çevir">
+                <svg class="icon"><use href="#ic-check"/></svg> Seç
+            </button>
         </div>
     </header>
+
+    {# Çoklu seçim aksiyon çubuğu (seç modunda görünür) — sırayla toplu ürüne çevir #}
+    <div id="ar-select-actionbar" class="ar-select-actionbar" hidden>
+        <span class="ar-sel-count"><strong id="ar-sel-count-num">0</strong> seçili</span>
+        <div class="ar-sel-actions">
+            <button type="button" id="ar-sel-select-done" class="btn btn-secondary" title="Tamamlandı (AI + foto) olan tüm kayıtları seç">
+                <svg class="icon"><use href="#ic-check"/></svg> Tamamlandı'ları Seç
+            </button>
+            <button type="button" id="ar-sel-cancel" class="btn btn-ghost">İptal</button>
+            <button type="button" id="ar-sel-convert" class="btn btn-primary" data-running="0" title="Seçili (Tamamlandı) kayıtları sırayla ürüne çevir + galeriye gönder">
+                <svg class="icon"><use href="#ic-factory"/></svg> Ürüne Çevir
+            </button>
+        </div>
+    </div>
 
     <div class="ar-list" id="ar-list">
         <!-- JS render eder; ilk yüklemede backend'ten rows ile init -->
@@ -151,6 +169,8 @@
 
 <template id="tpl-ar-list-item">
     <article class="ar-item" data-status="" data-favorite="false">
+        {# Çoklu seçim işareti — yalnız seç modunda görünür (.ar-select-on) #}
+        <span class="ar-select-check" aria-hidden="true"><svg class="icon"><use href="#ic-check"/></svg></span>
         <button type="button" class="ar-fav-star" title="Favori (yıldız)" aria-pressed="false">
             <svg class="icon"><use href="#ic-star"/></svg>
         </button>

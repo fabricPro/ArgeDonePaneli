@@ -279,3 +279,34 @@
 .studio .ar-group-add-trigger:hover { border-color: var(--accent); color: var(--accent-strong); background: var(--accent-bg); }
 .studio .ar-group-add-hint { color: var(--ink-3); }
 .studio .ar-group-add-form { background: var(--surface); border: 1px solid var(--accent-border); border-radius: var(--r-sm); }
+
+/* ============================================================
+   Çoklu seçim modu (galeri seç modunun pool muadili) · Faz 7
+   "Seç" → body.ar-select-on; öğelerde işaret + sticky action bar.
+   ============================================================ */
+.studio #btn-select-mode.is-active { background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent-strong); }
+/* Seç işareti — yalnız seç modunda görünür (top-left hap) */
+.studio .ar-select-check {
+  position: absolute; top: 8px; left: 8px; z-index: 6;
+  display: none; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 999px;
+  background: rgba(255,255,255,.92); border: 1px solid var(--border); color: transparent;
+  box-shadow: var(--sh); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+}
+.studio .ar-select-check .icon { width: 13px; height: 13px; }
+.studio.ar-select-on .ar-item { cursor: pointer; }
+.studio.ar-select-on .ar-select-check { display: inline-flex; }
+.studio .ar-item.is-selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-bg), var(--sh); }
+.studio .ar-item.is-selected .ar-select-check { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* Sticky seçim aksiyon çubuğu (galeri .select-actionbar muadili) */
+.studio .ar-select-actionbar {
+  position: sticky; top: calc(var(--tb-h) + 8px); z-index: 60;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding: 10px 14px; margin-bottom: 16px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh-pop);
+}
+.studio .ar-select-actionbar[hidden] { display: none; }
+.studio .ar-sel-count { font-size: 13px; color: var(--ink-2); }
+.studio .ar-sel-count strong { color: var(--accent-strong); font-variant-numeric: tabular-nums; }
+.studio .ar-sel-actions { display: flex; gap: 8px; flex-wrap: wrap; }

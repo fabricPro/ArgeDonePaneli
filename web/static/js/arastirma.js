@@ -304,6 +304,10 @@
 
   // OnCalisma-V2 — son çekilen satırlar (sıralama değişince yeniden render; fetch yok)
   let lastRows = [];
+  // Çoklu seçim modu (galeri seç modu muadili): seç → sırayla toplu ürüne çevir
+  let arSelectMode = false;
+  const arSelectedIds = new Set();
+  let batchConvertStop = false;
   // OnCalisma-V2 — "olası varyant" rozeti/filtresi için aile sayımı (her render'da listeden türetilir)
   let familyCounts = new Map();
   // OnCalisma-V2 — ISO (UTC) eklenme tarihini yerel saat:dakika ile göster
@@ -749,6 +753,17 @@
     article.dataset.status = r.status || 'pending';
     article.dataset.id = r.id;
     article.dataset.favorite = r.is_favorite ? 'true' : 'false';
+    // Çoklu seçim: re-render'da seçim korunur + seç modunda öğeye tıkla → seç/bırak
+    if (arSelectedIds.has(r.id)) article.classList.add('is-selected');
+    article.addEventListener('click', (e) => {
+      if (!arSelectMode) return;
+      if (e.target.closest('button, a, input, select, textarea, label')) return;  // kontrolleri ezme
+      e.preventDefault();
+      const id = article.dataset.id;
+      if (arSelectedIds.has(id)) { arSelectedIds.delete(id); article.classList.remove('is-selected'); }
+      else { arSelectedIds.add(id); article.classList.add('is-selected'); }
+      arUpdateSelCount();
+    });
 
     // Yıldız (favori) — v4.0-part-2 Sprint 6
     const star = node.querySelector('.ar-fav-star');
@@ -1359,6 +1374,78 @@
     batchBtn.dataset.running = '0'; batchBtn.textContent = 'AI Toplu';
     toast(`Toplu bitti: ${ok} ok · ${err} hata${batchStop ? ' (durduruldu)' : ''}`, err ? 'error' : 'success');
     renderListFromAPI();   // sonuçlar listeye yansısın (kabul için kartları aç)
+  });
+
+  // ============================================================
+  // Çoklu seçim modu + sıralı toplu "Ürüne Çevir" kuyruğu
+  // ============================================================
+  function arUpdateSelCount() {
+    const num = document.getElementById('ar-sel-count-num');
+    if (num) num.textContent = String(arSelectedIds.size);
+    const conv = document.getElementById('ar-sel-convert');
+    if (conv && conv.dataset.running !== '1') {
+      conv.innerHTML = '<svg class="icon"><use href="#ic-factory"/></svg> Ürüne Çevir'
+        + (arSelectedIds.size ? ` (${arSelectedIds.size})` : '');
+    }
+  }
+  function arSetSelectMode(on) {
+    arSelectMode = on;
+    document.body.classList.toggle('ar-select-on', on);
+    const btn = document.getElementById('btn-select-mode'); if (btn) btn.classList.toggle('is-active', on);
+    const bar = document.getElementById('ar-select-actionbar'); if (bar) bar.hidden = !on;
+    if (!on) {
+      arSelectedIds.clear();
+      document.querySelectorAll('.ar-item.is-selected').forEach(el => el.classList.remove('is-selected'));
+    }
+    arUpdateSelCount();
+  }
+  const selModeBtn = $('#btn-select-mode');
+  if (selModeBtn) selModeBtn.addEventListener('click', () => arSetSelectMode(!arSelectMode));
+  const selCancelBtn = $('#ar-sel-cancel');
+  if (selCancelBtn) selCancelBtn.addEventListener('click', () => arSetSelectMode(false));
+  // "Tamamlandı'ları Seç": görünür/gizli tüm done kayıtları seç (kapalı accordion dahil)
+  const selDoneBtn = $('#ar-sel-select-done');
+  if (selDoneBtn) selDoneBtn.addEventListener('click', () => {
+    if (!arSelectMode) arSetSelectMode(true);
+    (lastRows || []).filter(r => researchCompletion(r).done).forEach(r => arSelectedIds.add(r.id));
+    $$('.ar-item').forEach(el => { if (arSelectedIds.has(el.dataset.id)) el.classList.add('is-selected'); });
+    arUpdateSelCount();
+    if (!arSelectedIds.size) toast('Tamamlandı (AI + foto) kayıt yok', 'error');
+  });
+  // Sıralı toplu çevir (batch-enrich deseni): seçili Tamamlandı kayıtları tek tek /to-product
+  const selConvertBtn = $('#ar-sel-convert');
+  if (selConvertBtn) selConvertBtn.addEventListener('click', async () => {
+    if (selConvertBtn.dataset.running === '1') { batchConvertStop = true; selConvertBtn.textContent = 'Durduruluyor…'; return; }
+    const targets = (lastRows || []).filter(r => arSelectedIds.has(r.id) && researchCompletion(r).done);
+    const skipped = arSelectedIds.size - targets.length;   // seçili ama tamamlanmamış
+    if (!targets.length) {
+      toast('Çevrilecek Tamamlandı kayıt seçili değil' + (skipped ? ` (${skipped} kayıt tamamlanmadığı için hariç)` : ''), 'error');
+      return;
+    }
+    if (!confirm(`${targets.length} kaydı sırayla ürüne çevir + galeriye gönder?`
+      + (skipped ? `\n(${skipped} tamamlanmamış kayıt atlanacak.)` : '')
+      + `\nİstediğin an "Durdur" diyebilirsin.`)) return;
+    batchConvertStop = false; selConvertBtn.dataset.running = '1';
+    let ok = 0, err = 0, k = 0;
+    for (const r of targets) {
+      if (batchConvertStop) break;
+      k++; selConvertBtn.innerHTML = `Durdur (${k}/${targets.length})`;
+      try {
+        const res = await fetch(`/api/arastirma/${encodeURIComponent(r.id)}/to-product`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}',
+        });
+        const d = await res.json();
+        d.ok ? ok++ : err++;
+      } catch (e) { err++; }
+    }
+    selConvertBtn.dataset.running = '0';
+    const parts = [`${ok} ürün oluşturuldu`];
+    if (err) parts.push(`${err} hata/eksik`);
+    if (skipped) parts.push(`${skipped} tamamlanmamış atlandı`);
+    if (batchConvertStop) parts.push('durduruldu');
+    toast(parts.join(' · '), err ? 'error' : 'success', 6000);
+    arSetSelectMode(false);
+    renderListFromAPI();   // çevrilenler 'imported' → pending'den düşer; accordion korunur
   });
 
   // Initial render
