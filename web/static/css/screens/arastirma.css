@@ -131,7 +131,7 @@
 .studio .ar-grp-photo .icon { width: 11px; height: 11px; }
 .studio .ar-grp-done  { background: var(--green-bg);  color: var(--green); }          /* Tamamlandı (AI+foto) */
 .studio .ar-grp-ai    { background: var(--accent-bg); color: var(--accent-strong); }   /* AI dolduruldu / toplam */
-.studio .ar-grp-photo { background: var(--weft-bg);   color: var(--weft); }            /* Fotoğraflı / toplam */
+.studio .ar-grp-photo { background: var(--amber-bg);  color: var(--amber); }            /* Fotoğraflı / toplam (yeşil Tamamlandı'dan ayrı) */
 /* Kapalı: başlık dışındaki her şey gizli */
 .studio .ar-group:not(.is-open) > :not(.ar-group-head) { display: none; }
 
