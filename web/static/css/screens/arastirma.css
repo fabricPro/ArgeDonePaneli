@@ -117,16 +117,21 @@
   color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--border);
   border-radius: 999px; font-variant-numeric: tabular-nums;
 }
-/* Grup özeti (accordion açmadan): tamamlanan / bekleyen */
-.studio .ar-group-prog { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; }
+/* Grup özeti (accordion açmadan): Tamamlandı + AI kırılımı + Foto kırılımı */
+.studio .ar-group-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio .ar-group-prog { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .studio .ar-grp-done,
-.studio .ar-grp-wait {
+.studio .ar-grp-ai,
+.studio .ar-grp-photo {
   display: inline-flex; align-items: center; gap: 4px; height: 19px; padding: 0 8px;
   font-size: 11px; font-weight: 600; border-radius: 999px; font-variant-numeric: tabular-nums; white-space: nowrap;
 }
-.studio .ar-grp-done { background: var(--green-bg); color: var(--green); }
-.studio .ar-grp-done .icon { width: 11px; height: 11px; }
-.studio .ar-grp-wait { background: var(--amber-bg); color: var(--amber); }
+.studio .ar-grp-done .icon,
+.studio .ar-grp-ai .icon,
+.studio .ar-grp-photo .icon { width: 11px; height: 11px; }
+.studio .ar-grp-done  { background: var(--green-bg);  color: var(--green); }          /* Tamamlandı (AI+foto) */
+.studio .ar-grp-ai    { background: var(--accent-bg); color: var(--accent-strong); }   /* AI dolduruldu / toplam */
+.studio .ar-grp-photo { background: var(--weft-bg);   color: var(--weft); }            /* Fotoğraflı / toplam */
 /* Kapalı: başlık dışındaki her şey gizli */
 .studio .ar-group:not(.is-open) > :not(.ar-group-head) { display: none; }
 

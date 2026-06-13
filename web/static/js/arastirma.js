@@ -623,15 +623,16 @@
       groupEl.dataset.key = key;   // accordion açık-durumunu re-render sonrası eşleştirmek için
       const head = document.createElement('div');
       head.className = 'ar-group-head';
-      // Grup özeti: accordion açmadan kaç tamamlandı / kaç bekliyor (kullanıcı kuralı: AI+%50 VE foto)
-      const doneN = groups[key].filter(x => researchCompletion(x).done).length;
-      const waitN = groups[key].length - doneN;
+      // Grup özeti (accordion açmadan): Tamamlandı (AI+foto) + AI ve Foto kırılımı (kaç var / toplam).
+      const n = groups[key].length;
+      let doneN = 0, aiN = 0, photoN = 0;
+      groups[key].forEach(x => { const c = researchCompletion(x); if (c.done) doneN++; if (c.ai) aiN++; if (c.photo) photoN++; });
       const progHtml =
-        (doneN ? `<span class="ar-grp-done" title="Tamamlanan kayıt"><svg class="icon"><use href="#ic-check"/></svg>${doneN}</span>` : '') +
-        (waitN ? `<span class="ar-grp-wait" title="Bekleyen kayıt">${waitN} bekliyor</span>` : '');
+        (doneN ? `<span class="ar-grp-done" title="Tamamlandı (AI + foto) · bekleyen: ${n - doneN}"><svg class="icon"><use href="#ic-check"/></svg>${doneN}</span>` : '') +
+        `<span class="ar-grp-ai" title="AI dolduruldu: ${aiN} · eksik: ${n - aiN}"><svg class="icon"><use href="#ic-zap"/></svg>${aiN}/${n}</span>` +
+        `<span class="ar-grp-photo" title="Fotoğraflı: ${photoN} · foto yok: ${n - photoN}"><svg class="icon"><use href="#ic-image"/></svg>${photoN}/${n}</span>`;
       head.innerHTML = `<span class="ar-group-title">${key}</span>`
-        + `<span class="ar-group-prog">${progHtml}</span>`
-        + `<span class="ar-group-count" title="Toplam kayıt">${groups[key].length}</span>`;
+        + `<span class="ar-group-prog">${progHtml}</span>`;
       groupEl.appendChild(head);
 
       groups[key].forEach(r => {
