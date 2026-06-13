@@ -7511,6 +7511,10 @@ body.cw-fullscreen main { padding: 0 !important; max-width: 100% !important; }
 }
 
 /* ---- Embed mode (urun.html iframe içinde gösterilirken) ---- */
+/* Faz 7: .topbar → .appbar (Faz 0'da üst nav .appbar oldu). Embed iframe'lerde
+   üst nav + parite hapı (.kur-pill, .appbar'ın içinde) gizlenir → Çalışma
+   split'inde 3 appbar/parite yerine yalnız ana sayfanınki (tek) görünür. */
+body.embed-calisma .appbar,
 body.embed-calisma .topbar,
 body.embed-calisma .mobile-tabbar,
 body.embed-calisma .flash-bar {
