@@ -857,8 +857,37 @@
         toast((d.message || d.error || 'Doldurulamadı') + (d.model ? ' (' + d.model + ')' : ''), 'error');
       }
     }));
-    // Sprint 12 + UX: "Ürün Oluştur" = oluştur & LİSTEDE KAL (toast + re-render, accordion korunur);
-    // "Oluştur ve Aç" = oluştur & ürüne git (eski davranış). İkisi ortak convertToProduct() kullanır.
+    // Ortak çekirdek: kaydı ürüne çevir — FORM-BAĞIMSIZ (to-product sunucuda kalıcı
+    // product_draft + kabul edilmiş extracted_facts'ten okur; DOM formu gerekmez).
+    // openAfter=true → ürün sayfasına git · false → toast + listede kal (accordion korunur).
+    // Hata/eksik veride (örn. product_name boş → 400) onFail() çağrılır.
+    async function createFromResearch(openAfter, onFail) {
+      try {
+        const res = await fetch(`/api/arastirma/${encodeURIComponent(r.id)}/to-product`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}',
+        });
+        const d = await res.json();
+        if (d.ok) {
+          if (openAfter) {
+            toast('Ürün oluşturuldu', 'success');
+            window.location.href = d.redirect || `/urun/${d.urun_id}`;
+          } else {
+            // Listede kal: satır 'imported'a döner (pending'de listeden düşer). renderListFromAPI accordion korur.
+            toast('Ürün oluşturuldu ✓ — ' + (d.urun_id || ''), 'success', 5000);
+            renderListFromAPI();
+          }
+          return true;
+        }
+        toast(d.error || d.message || 'Ürün oluşturulamadı', 'error');
+        if (onFail) onFail();
+        return false;
+      } catch (e) {
+        toast('Bağlantı hatası', 'error');
+        if (onFail) onFail();
+        return false;
+      }
+    }
+    // Çekmece butonları: "Ürün Oluştur" (kal) / "Oluştur ve Aç" (git). Form doğrula + kaydet → createFromResearch.
     async function convertToProduct(btn, openAfter) {
       const brandEl = editForm && editForm.querySelector(CTRL('brand'));
       const pnEl = editForm && editForm.querySelector('[data-draft="product_name"]');
@@ -869,26 +898,12 @@
       const undo = () => snapshot.forEach(x => { x.b.disabled = false; x.b.innerHTML = x.html; });
       convBtns.forEach(b => { b.disabled = true; });
       btn.innerHTML = 'Oluşturuluyor…';
-      try {
-        const saved = await saveEdit(article, r);     // product_draft + kolonlar kalıcılaşsın
-        if (!saved) { undo(); return; }
-        Object.assign(r, saved);
-        const res = await fetch(`/api/arastirma/${encodeURIComponent(r.id)}/to-product`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}',
-        });
-        const d = await res.json();
-        if (d.ok) {
-          if (openAfter) {
-            toast('Ürün oluşturuldu', 'success');
-            window.location.href = d.redirect || `/urun/${d.urun_id}`;
-          } else {
-            // Listede kal: kullanıcı sıradaki kaydı çevirebilsin. renderListFromAPI accordion+scroll korur;
-            // satır 'imported'a döner (pending filtresinde listeden düşer = bitti geri-bildirimi).
-            toast('Ürün oluşturuldu ✓ — ' + (d.urun_id || ''), 'success', 5000);
-            renderListFromAPI();
-          }
-        } else { toast(d.error || d.message || 'Ürün oluşturulamadı', 'error'); undo(); }
-      } catch (e) { toast('Bağlantı hatası', 'error'); undo(); }
+      let saved;
+      try { saved = await saveEdit(article, r); }   // çekmece açık → form senkron; product_draft kalıcılaşsın
+      catch (e) { toast('Kaydet hatası', 'error'); undo(); return; }
+      if (!saved) { undo(); return; }
+      Object.assign(r, saved);
+      await createFromResearch(openAfter, undo);
     }
     const toProductBtn = node.querySelector('.ar-edit-to-product');
     if (toProductBtn) toProductBtn.addEventListener('click', () => convertToProduct(toProductBtn, false));
@@ -1114,13 +1129,33 @@
       importBtn.querySelector('span').textContent = `Ürün: ${r.imported_product_id || ''}`;
       importBtn.href = r.imported_product_id ? `/urun/${r.imported_product_id}` : '#';
     } else {
-      // Sprint 12 — /ekle round-trip yok: çekmeceyi aç, kullanıcı AI Doldur + Ürün Oluştur yapar
+      // UX: "Ürüne çevir" duruma-duyarlı. Bekliyor → çekmeceyi aç (bilgileri tamamla).
+      // Tamamlandı → doğrudan ürün oluştur + galeriye gönder + LİSTEDE KAL (açmaz).
       importBtn.href = '#';
-      importBtn.addEventListener('click', (e) => {
-        e.preventDefault();
+      const openDrawer = () => {
         openEditMode(article, r);
         const pd = article.querySelector('.ar-edit-product'); if (pd) pd.open = true;
         article.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+      // Görsel ipucu (render anı): hazırsa factory ("oluştur"), değilse plus ("aç")
+      const doneNow = researchCompletion(r).done;
+      const useEl = importBtn.querySelector('use');
+      if (useEl) useEl.setAttribute('href', doneNow ? '#ic-factory' : '#ic-plus');
+      importBtn.title = doneNow
+        ? 'Hazır — tıkla: ürünü oluştur ve galeriye gönder (sayfayı açmaz)'
+        : 'Bilgileri tamamlamak için aç';
+      importBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        // Tıklama anında yeniden değerlendir (çekmecede kabul/AI sonrası r güncellenmiş olabilir)
+        if (!researchCompletion(r).done) { openDrawer(); return; }   // Bekliyor → çekmece
+        // Tamamlandı → doğrudan oluştur. saveEdit YOK (form açık değil; to-product kalıcı veriden okur).
+        const span = importBtn.querySelector('span'); const old = span ? span.textContent : '';
+        if (span) span.textContent = 'Oluşturuluyor…';
+        importBtn.style.pointerEvents = 'none';
+        const restore = () => { if (span) span.textContent = old; importBtn.style.pointerEvents = ''; };
+        // Veri eksikse (örn. product_name boş → 400) çekmece açılır ki kullanıcı tamamlasın.
+        await createFromResearch(false, () => { restore(); openDrawer(); });
+        // Başarıda renderListFromAPI bu düğümü yeniler → restore gereksiz.
       });
     }
 
