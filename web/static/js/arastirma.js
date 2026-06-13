@@ -555,6 +555,7 @@
   // P6 — Listede "Kabul N/M" rozeti (çekmeceyi açmadan onay durumu görünür)
   function updateAcceptBadge(article, r) {
     updateDoneBadge(article, r);   // her çağrıda (render + accept/enrich sonrası) durum rozetini de tazele
+    updateGroupSummary(article);    // grup başlığı özet chip'lerini yerinde tazele (re-render/çekmece kapatmadan)
     const metaEl = article.querySelector('.ar-item-meta');
     if (!metaEl) return;
     let badge = metaEl.querySelector('.ar-accept-badge');
@@ -567,6 +568,26 @@
     }
     badge.textContent = `Kabul ${acc}/${total}`;
     badge.classList.toggle('is-complete', acc === total);
+  }
+  // Grup başlığı özet chip'leri (✓Tamamlandı + AI a/n + Foto p/n) — renderList + yerinde tazeleme paylaşır
+  function groupProgHtml(rows) {
+    const n = rows.length;
+    let doneN = 0, aiN = 0, photoN = 0;
+    rows.forEach(x => { const c = researchCompletion(x); if (c.done) doneN++; if (c.ai) aiN++; if (c.photo) photoN++; });
+    return (doneN ? `<span class="ar-grp-done" title="Tamamlandı (AI + foto) · bekleyen: ${n - doneN}"><svg class="icon"><use href="#ic-check"/></svg>${doneN}</span>` : '')
+      + `<span class="ar-grp-ai" title="AI dolduruldu: ${aiN} · eksik: ${n - aiN}"><svg class="icon"><use href="#ic-zap"/></svg>${aiN}/${n}</span>`
+      + `<span class="ar-grp-photo" title="Fotoğraflı: ${photoN} · foto yok: ${n - photoN}"><svg class="icon"><use href="#ic-image"/></svg>${photoN}/${n}</span>`;
+  }
+  // Çekmeceyi kapatmadan / listeyi re-render etmeden, yalnız ilgili grubun başlık sayılarını günceller.
+  // (accept-all / enrich-apply / kombo / tek-tek kabul sonrası updateAcceptBadge üzerinden çağrılır.)
+  function updateGroupSummary(article) {
+    const groupEl = article && article.closest && article.closest('.ar-group');
+    if (!groupEl) return;   // render anında (article henüz gruba eklenmemiş) → no-op
+    const key = groupEl.dataset.key;
+    const prog = groupEl.querySelector('.ar-group-prog');
+    if (!prog) return;
+    const rows = (lastRows || []).filter(x => brandCountryGroupKey(x) === key);
+    if (rows.length) prog.innerHTML = groupProgHtml(rows);
   }
   // Kayıt durum rozeti: "Tamamlandı" (yeşil) / "Bekliyor" (amber, title eksiği söyler)
   function updateDoneBadge(article, r) {
@@ -624,15 +645,8 @@
       const head = document.createElement('div');
       head.className = 'ar-group-head';
       // Grup özeti (accordion açmadan): Tamamlandı (AI+foto) + AI ve Foto kırılımı (kaç var / toplam).
-      const n = groups[key].length;
-      let doneN = 0, aiN = 0, photoN = 0;
-      groups[key].forEach(x => { const c = researchCompletion(x); if (c.done) doneN++; if (c.ai) aiN++; if (c.photo) photoN++; });
-      const progHtml =
-        (doneN ? `<span class="ar-grp-done" title="Tamamlandı (AI + foto) · bekleyen: ${n - doneN}"><svg class="icon"><use href="#ic-check"/></svg>${doneN}</span>` : '') +
-        `<span class="ar-grp-ai" title="AI dolduruldu: ${aiN} · eksik: ${n - aiN}"><svg class="icon"><use href="#ic-zap"/></svg>${aiN}/${n}</span>` +
-        `<span class="ar-grp-photo" title="Fotoğraflı: ${photoN} · foto yok: ${n - photoN}"><svg class="icon"><use href="#ic-image"/></svg>${photoN}/${n}</span>`;
       head.innerHTML = `<span class="ar-group-title">${key}</span>`
-        + `<span class="ar-group-prog">${progHtml}</span>`;
+        + `<span class="ar-group-prog">${groupProgHtml(groups[key])}</span>`;
       groupEl.appendChild(head);
 
       groups[key].forEach(r => {
