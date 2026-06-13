@@ -753,17 +753,19 @@
     article.dataset.status = r.status || 'pending';
     article.dataset.id = r.id;
     article.dataset.favorite = r.is_favorite ? 'true' : 'false';
-    // Çoklu seçim: re-render'da seçim korunur + seç modunda öğeye tıkla → seç/bırak
+    // Çoklu seçim: re-render'da seçim korunur
     if (arSelectedIds.has(r.id)) article.classList.add('is-selected');
+    // Seç modunda öğeye tıkla → SADECE seç. CAPTURE fazı + stopPropagation: olay iç hedeflere
+    // (fav-star, Düzenle, Ürüne çevir, master/ürün linkleri) ULAŞMADAN durur → gezinme/çekmece/oluşturma olmaz.
     article.addEventListener('click', (e) => {
       if (!arSelectMode) return;
-      if (e.target.closest('button, a, input, select, textarea, label')) return;  // kontrolleri ezme
       e.preventDefault();
+      e.stopPropagation();
       const id = article.dataset.id;
       if (arSelectedIds.has(id)) { arSelectedIds.delete(id); article.classList.remove('is-selected'); }
       else { arSelectedIds.add(id); article.classList.add('is-selected'); }
       arUpdateSelCount();
-    });
+    }, true);
 
     // Yıldız (favori) — v4.0-part-2 Sprint 6
     const star = node.querySelector('.ar-fav-star');
