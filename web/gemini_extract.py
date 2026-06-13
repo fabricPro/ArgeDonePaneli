@@ -45,7 +45,10 @@ MODEL_NAME = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
 # free-tier'ında limit=0. 2.5-flash hem hızlı hem JSON mode destekli.
 # Override için .env'e GEMINI_MODEL=... yaz.
 
-FETCH_TIMEOUT = 10.0          # sn
+# (connect, read) sn — bazı premium siteler (örn. casamance) yavaş yanıt veriyor; read
+# uzun tutuldu. gunicorn --timeout 120 olduğundan toplam istek bütçesi içinde güvenli.
+FETCH_TIMEOUT = (8.0, 25.0)
+FETCH_RETRIES = 1             # timeout / bağlantı hatasında 1 kez daha dene (geçici yavaşlık)
 FETCH_MAX_BYTES = 2_000_000   # 2 MB üst sınır (büyük sayfa savunması)
 # P4a-2: 8000 -> 16000. Gürültü (nav/menü/footer) temizlendi + flash token başlığı
 # yüksek; kırpma sınırına daha çok GERÇEK ürün metni sığsın diye yükseltildi.
@@ -277,16 +280,21 @@ def fetch_clean_content(url: str) -> dict:
       requests.HTTPError — 4xx/5xx response
       requests.RequestException — network/timeout
     """
-    resp = requests.get(
-        url,
-        headers={
-            "User-Agent": USER_AGENT,
-            "Accept": "text/html,application/xhtml+xml,*/*;q=0.8",
-            "Accept-Language": "tr,en;q=0.8",
-        },
-        timeout=FETCH_TIMEOUT,
-        allow_redirects=True,
-    )
+    headers = {
+        "User-Agent": USER_AGENT,
+        "Accept": "text/html,application/xhtml+xml,*/*;q=0.8",
+        "Accept-Language": "tr,en;q=0.8",
+    }
+    # Geçici timeout/bağlantı hatasında bir kez daha dene (HTTP 4xx/5xx retry edilmez).
+    resp = None
+    for _attempt in range(FETCH_RETRIES + 1):
+        try:
+            resp = requests.get(url, headers=headers, timeout=FETCH_TIMEOUT, allow_redirects=True)
+            break
+        except (requests.Timeout, requests.ConnectionError):
+            if _attempt >= FETCH_RETRIES:
+                raise
+            # tekrar dene (read timeout zaten uzun; ekstra bekleme yok)
     resp.raise_for_status()
 
     # Boyut sınırlama
@@ -580,6 +588,13 @@ def linkten_doldur(url: str, model: str | None = None, image_bytes: bytes | None
             "ok": False, "stage": "fetch",
             "error": f"http_{code}",
             "message": f"Sayfa erişim hatası (HTTP {code})",
+            "model_used": used,
+        }
+    except requests.Timeout:
+        return {
+            "ok": False, "stage": "fetch",
+            "error": "timeout",
+            "message": f"Sayfa zaman aşımına uğradı (~{int(FETCH_TIMEOUT[1])}sn × {FETCH_RETRIES + 1} deneme) — site yavaş yanıt veriyor. Birazdan tekrar dene; ya da alanları elle gir / AI Doldur yerine elle doldur.",
             "model_used": used,
         }
     except requests.RequestException as e:
