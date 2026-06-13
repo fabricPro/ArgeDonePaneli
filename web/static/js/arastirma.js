@@ -588,6 +588,7 @@
       groups[key].sort((a, b) => sortDir * String(a.added_at || '').localeCompare(String(b.added_at || '')));
       const groupEl = document.createElement('div');
       groupEl.className = 'ar-group';
+      groupEl.dataset.key = key;   // accordion açık-durumunu re-render sonrası eşleştirmek için
       const head = document.createElement('div');
       head.className = 'ar-group-head';
       head.innerHTML = `<span class="ar-group-title">${key}</span><span class="ar-group-count">${groups[key].length}</span>`;
@@ -816,27 +817,43 @@
         toast((d.message || d.error || 'Doldurulamadı') + (d.model ? ' (' + d.model + ')' : ''), 'error');
       }
     }));
-    // Sprint 12 — "Ürün Oluştur (Galeriye Gönder)": önce kaydet → doğrudan ürüne çevir → /urun'e git
-    const toProductBtn = node.querySelector('.ar-edit-to-product');
-    if (toProductBtn) toProductBtn.addEventListener('click', async () => {
+    // Sprint 12 + UX: "Ürün Oluştur" = oluştur & LİSTEDE KAL (toast + re-render, accordion korunur);
+    // "Oluştur ve Aç" = oluştur & ürüne git (eski davranış). İkisi ortak convertToProduct() kullanır.
+    async function convertToProduct(btn, openAfter) {
       const brandEl = editForm && editForm.querySelector(CTRL('brand'));
       const pnEl = editForm && editForm.querySelector('[data-draft="product_name"]');
       if (brandEl && !brandEl.value.trim()) { toast('Marka boş', 'error'); brandEl.focus(); return; }
       if (pnEl && !pnEl.value.trim()) { toast('Ürün adı boş — AI Doldur ile getir veya elle yaz', 'error'); pnEl.focus(); return; }
-      const old = toProductBtn.textContent;
-      toProductBtn.disabled = true; toProductBtn.textContent = 'Oluşturuluyor…';
+      const convBtns = [node.querySelector('.ar-edit-to-product'), node.querySelector('.ar-edit-to-product-open')].filter(Boolean);
+      const snapshot = convBtns.map(b => ({ b, html: b.innerHTML }));
+      const undo = () => snapshot.forEach(x => { x.b.disabled = false; x.b.innerHTML = x.html; });
+      convBtns.forEach(b => { b.disabled = true; });
+      btn.innerHTML = 'Oluşturuluyor…';
       try {
         const saved = await saveEdit(article, r);     // product_draft + kolonlar kalıcılaşsın
-        if (!saved) { toProductBtn.disabled = false; toProductBtn.textContent = old; return; }
+        if (!saved) { undo(); return; }
         Object.assign(r, saved);
         const res = await fetch(`/api/arastirma/${encodeURIComponent(r.id)}/to-product`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}',
         });
         const d = await res.json();
-        if (d.ok) { toast('Ürün oluşturuldu', 'success'); window.location.href = d.redirect || `/urun/${d.urun_id}`; }
-        else { toast(d.error || d.message || 'Ürün oluşturulamadı', 'error'); toProductBtn.disabled = false; toProductBtn.textContent = old; }
-      } catch (e) { toast('Bağlantı hatası', 'error'); toProductBtn.disabled = false; toProductBtn.textContent = old; }
-    });
+        if (d.ok) {
+          if (openAfter) {
+            toast('Ürün oluşturuldu', 'success');
+            window.location.href = d.redirect || `/urun/${d.urun_id}`;
+          } else {
+            // Listede kal: kullanıcı sıradaki kaydı çevirebilsin. renderListFromAPI accordion+scroll korur;
+            // satır 'imported'a döner (pending filtresinde listeden düşer = bitti geri-bildirimi).
+            toast('Ürün oluşturuldu ✓ — ' + (d.urun_id || ''), 'success', 5000);
+            renderListFromAPI();
+          }
+        } else { toast(d.error || d.message || 'Ürün oluşturulamadı', 'error'); undo(); }
+      } catch (e) { toast('Bağlantı hatası', 'error'); undo(); }
+    }
+    const toProductBtn = node.querySelector('.ar-edit-to-product');
+    if (toProductBtn) toProductBtn.addEventListener('click', () => convertToProduct(toProductBtn, false));
+    const toProductOpenBtn = node.querySelector('.ar-edit-to-product-open');
+    if (toProductOpenBtn) toProductOpenBtn.addEventListener('click', () => convertToProduct(toProductOpenBtn, true));
     // P6 — Tümünü Kabul / Geri Al (toggle): tek istek, tüm AI öğeleri
     if (acceptAllBtn) acceptAllBtn.addEventListener('click', async () => {
       const wantAccept = !isEverythingAccepted(r);
@@ -1117,8 +1134,30 @@
     }
   }
 
+  // ---- Accordion + scroll durumunu re-render boyunca koru ----
+  // renderList() listeyi sıfırdan kurar (innerHTML=''), açık grup/scroll kaybolurdu.
+  // Yakala → render → grupları data-key ile eşleştirip .is-open + scroll geri yükle.
+  function captureListState() {
+    return {
+      openKeys: Array.from(elListContainer.querySelectorAll('.ar-group.is-open'))
+        .map(g => g.dataset.key),
+      scrollY: window.scrollY,
+    };
+  }
+  function restoreListState(st) {
+    if (!st) return;
+    if (st.openKeys && st.openKeys.length) {
+      const open = new Set(st.openKeys);
+      elListContainer.querySelectorAll('.ar-group').forEach(g => {
+        if (open.has(g.dataset.key)) g.classList.add('is-open');
+      });
+    }
+    if (typeof st.scrollY === 'number') window.scrollTo(0, st.scrollY);
+  }
+
   // ---- Filtre uygula ----
   async function renderListFromAPI() {
+    const _st = captureListState();
     const status = $('#filter-status').value;
     const brand = $('#filter-brand').value;
     const country = $('#filter-country').value;
@@ -1134,6 +1173,7 @@
         renderList(lastRows);
         // Ülke filtresi seçeneklerini güncelle
         populateCountryFilter(lastRows);
+        restoreListState(_st);   // açık accordion + scroll'u koru
       }
     } catch (e) {
       toast('Liste yüklenemedi', 'error');
@@ -1165,7 +1205,7 @@
   // OnCalisma-V2 — "sadece olası varyantlar" istemci filtresi
   $('#filter-variants-only')?.addEventListener('change', applyClientFilters);
   // OnCalisma-V2 — sıralama değişince yeniden render (fetch yok, son satırları kullan)
-  $('#filter-sort')?.addEventListener('change', () => { renderList(lastRows); applyClientFilters(); });
+  $('#filter-sort')?.addEventListener('change', () => { const _st = captureListState(); renderList(lastRows); applyClientFilters(); restoreListState(_st); });
   $('#btn-refresh-list').addEventListener('click', renderListFromAPI);
 
   // P6 — Ctrl/Cmd+S: açık düzenleme çekmecesini kaydet (tek global listener)
@@ -1207,6 +1247,7 @@
   });
 
   // Initial render
+  lastRows = initialRows;   // sort/diğer fetch'siz re-render'lar boş listeyi render etmesin
   renderList(initialRows);
   populateCountryFilter(initialRows);
 })();
