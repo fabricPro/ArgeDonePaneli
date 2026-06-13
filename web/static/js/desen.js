@@ -48,10 +48,11 @@
     const MIN_LOOP_COUNT = 2, MAX_LOOP_COUNT = 99;
     const MIN_RAPOR = 1,  MAX_RAPOR = 8;
 
-    // İro renk paleti — 8 sabit renk, sırayla i1, i2, ...
+    // İro kontur paleti — Stüdyo (tasarim-v2 Faz 4). İlk 5 = skill spec;
+    // 6-8 mevcut Stüdyo/grafik token'larından distinct (MAX_IRO=8 → 8 ayrı renk).
     const IRO_COLORS = [
-        "#5b8def", "#f0a830", "#3fb6a8", "#36c98a",
-        "#e6b94a", "#e8674f", "#a78bfa", "#ec4899"
+        "#5253c8", "#0f857c", "#b98a3e", "#c2657e", "#84868f",
+        "#178f5c", "#9a9bdc", "#a8730f"
     ];
 
     // === Helpers — clamp + utility ===

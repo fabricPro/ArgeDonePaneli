@@ -1,0 +1,79 @@
+/* ============================================================
+   FAS Stüdyo — Desen & Tahar editörü  ·  tasarim-v2 Faz 4
+   KAPSAM: yalnız renk/biçim eşlemesi. Davranış JS'ine dokunulmaz.
+   HÜCRE BOYUTLARI (--desen-cell:22px / --desen-prev:14px) DEĞİŞMEZ.
+
+   Strateji: çoğu renk CSS custom property'leri üzerinden geliyor
+   (inline `var(--text)`/`var(--bg)` + main.css `--desen-*`). Bunları
+   `.desen-grid` kapsamında YENİDEN TANIMLAYARAK (köprü) açığa çekeriz —
+   JS'e dokunmadan. Yalnız 3 sabit-hex main.css kuralı + 2 JS renk sabiti
+   ayrıca elden geçer (desen.js IRO_COLORS, desen-ui.js bracket stroke).
+   teknik.css'ten SONRA yüklenir.
+   ============================================================ */
+
+/* ---- Değişken köprüsü — main.css'in `.desen-grid` --desen-* tanımlarını
+        burada (eşit eleman, daha yüksek özgüllük) yener ---- */
+.tek-module [data-numune-section="desen"] .desen-grid {
+  /* yüzey & zemin → açık */
+  --bg-card: var(--surface);
+  --bg: var(--surface-2);          /* BOŞ hücre + stepper zemini = surface-2 (spec) */
+  --bg-elev: var(--surface);       /* stepper buton + iro chip yüzeyi = beyaz */
+  /* metin → koyu mürekkep */
+  --text: var(--ink);              /* DOLU önizleme/cool hücre = --ink (spec) */
+  --text-dim: var(--ink-2);
+  --text-muted: var(--ink-3);
+  /* rol renkleri (spec: DOLU hücre = accent) */
+  --desen-warp-color: var(--accent);    /* tahar dolu hücre + tahar kartı */
+  --desen-armur-color: var(--accent);   /* armür dolu hücre + armür kartı */
+  --gold: var(--accent);                /* --desen-armur-color fallback'i */
+  --desen-marker-color: var(--red);     /* DO/NEXT marker ikon+etiket, loop kartı */
+  --accent-cool: var(--ink-3);          /* önizleme kartı sol kenarı → nötr */
+  /* radius → Stüdyo */
+  --radius-lg: var(--r);
+  --radius: var(--r-sm);
+  --radius-sm: var(--r-sm);
+}
+
+/* ---- Kart sol-kenar anlamları (teknik.css `.tek-module fieldset` border
+        shorthand'i bunları düzleştirir → yeniden bildir) ---- */
+.tek-module [data-numune-section="desen"] .desen-card-dim,
+.tek-module [data-numune-section="desen"] .desen-card-tahar,
+.tek-module [data-numune-section="desen"] .desen-card-armur { border-left: 3px solid var(--accent); }
+.tek-module [data-numune-section="desen"] .desen-card-loops { border-left: 3px solid var(--red); }
+.tek-module [data-numune-section="desen"] .desen-card-preview { border-left: 3px solid var(--ink-3); }
+
+/* ---- Stepper (−/+) — Stüdyo; 24×24 boyut KORUNUR.
+        Sabit-hex fix #1: main.css hover `color:#1a1410` → beyaz ---- */
+.tek-module [data-numune-section="desen"] .stepper button:hover:not([disabled]) {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+}
+
+/* ---- DO/NEXT marker pill — Sabit-hex fix #2: rgba(232,103,79,…) → --red ---- */
+.tek-module [data-numune-section="desen"] .desen-marker-pill {
+  background: var(--red-bg); border-color: var(--red);
+}
+
+/* ---- Döngü hatası — Sabit-hex fix #3: rgba(232,103,79,…) → --red ---- */
+.tek-module [data-numune-section="desen"] .desen-loop-error {
+  background: var(--red-bg); border-color: var(--red); color: var(--red);
+}
+
+/* ---- Döngü girdileri — §4: kullanıcı girdisi BEYAZ zemin ---- */
+.tek-module [data-numune-section="desen"] .desen-loop-field input {
+  background: #fff; box-shadow: var(--sh);
+}
+.tek-module [data-numune-section="desen"] .desen-loop-field input:focus {
+  outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+/* ---- İro kullanımı lejantı → chip dili ---- */
+.tek-module [data-numune-section="desen"] .iro-ozet-chip {
+  background: var(--surface-2); border-color: var(--border);
+}
+
+/* ---- 680px Çalışma split: sabit grid'ler kendi sarmalayıcılarında kaysın,
+        SAYFA yatay scroll çıkarmasın (min-width:0 overflow-x'i tetikler) ---- */
+.tek-module [data-numune-section="desen"] .desen-tahar-wrap,
+.tek-module [data-numune-section="desen"] .desen-armur-wrap,
+.tek-module [data-numune-section="desen"] .desen-armur-rows-wrap,
+.tek-module [data-numune-section="desen"] .desen-preview-wrap { min-width: 0; }

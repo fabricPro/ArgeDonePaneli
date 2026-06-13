@@ -315,7 +315,7 @@
             // DO marker (startPick) UI'da altta → yBot büyük
             const yBot = (weftCount - 1 - loop.startPick) * (CELL + ROW_GAP) + CELL / 2;
             lines.push(`<path d="M22 ${yTop} L4 ${yTop} L4 ${yBot} L22 ${yBot}"
-                        fill="none" stroke="#e8674f" stroke-width="1.75" stroke-linecap="round"/>`);
+                        fill="none" stroke="#d23b3b" stroke-width="1.75" stroke-linecap="round"/>`);
         });
         return `<svg class="desen-bracket" width="32" height="${H}" viewBox="0 0 32 ${H}" preserveAspectRatio="none" aria-hidden="true">${lines.join('')}</svg>`;
     }

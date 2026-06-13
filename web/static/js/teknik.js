@@ -1514,11 +1514,11 @@
         host.innerHTML = '';
         if (total <= 0) return;
         const colors = {
-            iplik: '#5b8def',
-            iscilik: '#d4af7f',
-            terbiye: '#7fb37f',
-            fire: '#e07260',
-            kursun: '#8b8a87'
+            iplik: '#5253c8',
+            iscilik: '#b98a3e',
+            terbiye: '#0f857c',
+            fire: '#c2657e',
+            kursun: '#84868f'
         };
         const order = ['iplik', 'iscilik', 'terbiye', 'fire', 'kursun'];
         const cx = 100, cy = 100, r = 80;

@@ -1302,7 +1302,8 @@
         };
     }
 
-    const MALIYET_RENK = { cozgu_iplik: '#5b8def', atki_iplik: '#7fb37f', cozgu_cozum: '#d4af7f', gecis: '#c68b50', top_boya_kazan: '#e07260' };
+    // tasarim-v2 Faz 5 — maliyet çubuğu grafik paleti Stüdyo chart token'larına çekildi (kontrastlı 5).
+    const MALIYET_RENK = { cozgu_iplik: '#5253c8', atki_iplik: '#9a9bdc', cozgu_cozum: '#0f857c', gecis: '#b98a3e', top_boya_kazan: '#c2657e' };
     function renderMaliyet() {
         if (!maliyetTableEl && !maliyetTotalEl) return;
         const m = computeMaliyet();

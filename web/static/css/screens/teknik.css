@@ -1,0 +1,429 @@
+/* ============================================================
+   FAS Stüdyo — Teknik Analiz modülü, BÖLÜM A  ·  tasarim-v2 Faz 3
+   KAPSAM: toolbar + numune sekme çubuğu + Gramaj&Maliyet (analiz) +
+           Tarak + Notlar alt sekmeleri.
+   Desen & Tahar (data-numune-section="desen") ve Plan (…="plan")
+   Faz 4-5'e dek `.tek-legacy` ile ESKİ koyu temada ada kalır.
+
+   §0: Modül kabı container-query ile 680px'e (Çalışma split) daralır,
+       hiçbir grid yatay scroll çıkarmaz (auto-fit/minmax + @container).
+   §4: düzenlenebilir = beyaz input · hesaplanan = .calc/chip (surface-2, mono).
+   JS-bağı id/class/data-attribute KORUNUR — yalnız stil.
+   ============================================================ */
+
+/* ---- Modül kabı: Stüdyo zemin + container-query kökü ---- */
+.studio.tek-module {
+  background: var(--bg);
+  padding: 18px 0 8px;
+  container-type: inline-size;
+  container-name: tek;
+}
+.tek-module .flex-spacer { flex: 1; }
+
+/* Küçük buton (.btn-mini) — toolbar + tarak; main.css koyu sürümünü ezer */
+.tek-module .btn-mini {
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  height: 30px; padding: 0 10px; font-size: 12.5px; font-weight: 500; color: var(--ink-2);
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); box-shadow: var(--sh); cursor: pointer;
+}
+.tek-module .btn-mini:hover { background: var(--surface-2); border-color: var(--border-strong); color: var(--ink); }
+.tek-module .btn-mini:disabled { opacity: .5; cursor: not-allowed; }
+.tek-module .btn-mini .icon { width: 14px; height: 14px; }
+.tek-module .btn-mini.btn-danger { color: var(--red); }
+.tek-module .btn-mini.btn-danger:hover { background: var(--red-bg); border-color: var(--red-bg); }
+.tek-module .fs-off { display: none; }
+
+/* ---- Desen & Plan: Faz 4-5'e dek eski koyu tema adası ----
+   Token'ları eski main.css değerlerine geri çekeriz → içindeki .studio
+   bileşenleri de koyu render eder; HTML'lerine dokunulmaz. */
+.tek-module .tek-legacy {
+  --bg: #0a0b0d; --surface: #15171a; --surface-2: #1c1f23;
+  --border: #26292e; --border-strong: #353940;
+  --ink: #e8e6e2; --ink-2: #8b8a87; --ink-3: #5a5d63;
+  --accent: #d4af7f; --accent-strong: #d4af7f; --accent-bg: #1c1f23; --accent-border: #353940;
+  background: var(--bg); color: var(--ink);
+  border-radius: var(--r); padding: 2px;
+}
+
+/* ============================================================
+   1 — Sürüm toolbar + boş durum + modal
+   ============================================================ */
+.tek-module .teknik-toolbar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 10px 12px; margin-bottom: 14px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); box-shadow: var(--sh);
+}
+.tek-module .teknik-toolbar .filter-select {
+  height: 32px; min-width: 170px; padding: 0 30px 0 11px;
+  font-size: 12.5px; color: var(--ink);
+  background-color: #fff; border: 1px solid var(--border); border-radius: var(--r-sm); box-shadow: var(--sh);
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235f6370' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 9px center;
+}
+.tek-module .teknik-surum-info { font-size: 11.5px; color: var(--ink-3); }
+.tek-module .teknik-empty {
+  text-align: center; padding: 36px 20px; margin-bottom: 14px;
+  background: var(--surface-2); border: 1px dashed var(--border-strong); border-radius: var(--r);
+  color: var(--ink-2);
+}
+.tek-module .teknik-empty p { font-size: 13px; margin-bottom: 12px; }
+/* Kaydet butonu durum noktası/spinner (teknik.js inner) */
+.tek-module .kaydet-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; display: inline-block; }
+.tek-module .kaydet-spinner {
+  width: 12px; height: 12px; border-radius: 50%; display: inline-block;
+  border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; animation: tek-spin .7s linear infinite;
+}
+@keyframes tek-spin { to { transform: rotate(360deg); } }
+.tek-module #teknik-kaydet.is-saved { background: var(--green); border-color: var(--green); }
+.tek-module #teknik-kaydet.is-error { background: var(--red); border-color: var(--red); }
+
+/* Yeni Sürüm modal (native <dialog>) */
+.tek-module .surum-modal {
+  border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh-pop);
+  padding: 0; max-width: 440px; width: 92vw; background: var(--surface); color: var(--ink);
+}
+.tek-module .surum-modal::backdrop { background: rgba(23,24,31,.4); }
+.tek-module .surum-modal-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--surface-2); }
+.tek-module .surum-modal-head h3 { font-size: 15px; font-weight: 600; }
+.tek-module .btn-icon { display: inline-flex; padding: 6px; border: none; background: transparent; color: var(--ink-2); cursor: pointer; border-radius: var(--r-sm); }
+.tek-module .btn-icon:hover { background: var(--surface-2); color: var(--ink); }
+.tek-module .surum-modal-body { padding: 16px; }
+.tek-module .surum-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.tek-module .surum-field > span { font-size: 11.5px; font-weight: 500; color: var(--ink-2); }
+.tek-module .surum-field input { height: 32px; padding: 0 11px; font-size: 13px; background: #fff; border: 1px solid var(--border); border-radius: var(--r-sm); box-shadow: var(--sh); }
+.tek-module .surum-field input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+.tek-module .surum-source { border: 1px solid var(--border); border-radius: var(--r-sm); padding: 12px; }
+.tek-module .surum-source legend { font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); padding: 0 6px; }
+.tek-module .surum-source-opt { display: flex; gap: 9px; align-items: flex-start; padding: 7px 0; }
+.tek-module .surum-source-opt strong { font-size: 13px; display: block; }
+.tek-module .surum-source-opt small { font-size: 11.5px; color: var(--ink-3); }
+.tek-module .surum-source-hint { font-size: 11.5px; color: var(--ink-3); margin-top: 8px; line-height: 1.5; }
+.tek-module .surum-modal-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 16px; border-top: 1px solid var(--surface-2); }
+
+/* ============================================================
+   2 — Numune master üst bar + alt sekmeler (segmented control)
+   ============================================================ */
+.tek-module .teknik-grid { display: block; }
+.tek-module .numune-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  margin-bottom: 16px;
+  background: transparent; border: none; padding: 0;   /* main.css koyu --bg-card'ı sıfırla */
+}
+.tek-module .numune-status { font-size: 11.5px; color: var(--ink-3); }
+.tek-module .numune-tabs {
+  display: inline-flex; padding: 3px; gap: 2px;
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-sm);
+  flex-wrap: wrap;
+}
+.tek-module .numune-tab {
+  height: 28px; padding: 0 12px; font-size: 12.5px; font-weight: 500; color: var(--ink-2);
+  background: transparent; border: none; border-radius: 4px; cursor: pointer;
+  white-space: nowrap; transition: background .14s, color .14s;
+}
+.tek-module .numune-tab:hover { color: var(--ink); }
+.tek-module .numune-tab.is-active { background: var(--accent); color: #fff; }
+
+/* ============================================================
+   3 — Kart temeli (fieldset/legend) + bölüm başlığı
+   ============================================================ */
+.tek-module fieldset {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
+  box-shadow: var(--sh); padding: 13px; min-width: 0; margin: 0;
+}
+.tek-module legend {
+  display: inline-flex; align-items: center; gap: 7px; padding: 0;
+  font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2);
+  margin-bottom: 10px;
+}
+.tek-module legend .icon { width: 14px; height: 14px; color: var(--ink-3); }
+
+/* ---- Analiz: künye + dokuma (yan yana, daralınca tek kolon) ---- */
+.tek-module .analiz-top-row,
+.tek-module .maliyet-row,
+.tek-module .analiz-alt-row {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-bottom: 14px;
+}
+.tek-module .kunye-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.tek-module .form-row { display: flex; flex-direction: column; gap: 5px; }
+.tek-module .form-row label,
+.tek-module .iplik-label { font-size: 11px; font-weight: 500; color: var(--ink-2); }
+.tek-module .iplik-label em { font-style: normal; color: var(--ink-3); }
+.tek-module .form-row input,
+.tek-module .iplik-field input,
+.tek-module .iplik-field select {
+  height: 32px; padding: 0 10px; font-size: 13px; color: var(--ink);
+  background: #fff; border: 1px solid var(--border); border-radius: var(--r-sm); box-shadow: var(--sh);
+}
+.tek-module .form-row input:focus,
+.tek-module .iplik-field input:focus,
+.tek-module .iplik-field select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+
+/* ============================================================
+   4 — İplik kartları (çözgü=indigo / atkı=teal) + satırlar
+   ============================================================ */
+.tek-module .iplik-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-bottom: 14px; }
+.tek-module .iplik-card-warp { border-left: 3px solid var(--warp); }
+.tek-module .iplik-card-weft { border-left: 3px solid var(--weft); }
+.tek-module .iplik-card legend { width: 100%; justify-content: flex-start; }
+.tek-module .iplik-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.tek-module .iplik-dot-warp { background: var(--warp); }
+.tek-module .iplik-dot-weft { background: var(--weft); }
+.tek-module .iplik-count {
+  margin-left: auto; min-width: 18px; height: 18px; padding: 0 5px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 10.5px; font-weight: 600; background: var(--surface-2); color: var(--ink-2); border-radius: 999px;
+}
+.tek-module .iplik-rows { display: flex; flex-direction: column; gap: 8px; }
+.tek-module .iplik-row {
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 9px;
+}
+.tek-module .iplik-row-main { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+.tek-module .iplik-field { display: flex; flex-direction: column; gap: 4px; min-width: 72px; flex: 1; }
+.tek-module .iplik-field-iplik { flex: 1.4 1 90px; }
+/* Çözgü Durumu yalnız çözgü yön'ünde görünür (JS data-yon) */
+.tek-module .iplik-card-weft .iplik-field-durum,
+.tek-module [data-yon="atki"] .iplik-field-durum { display: none; }
+.tek-module .iplik-actions { display: flex; gap: 4px; align-items: center; }
+.tek-module .iplik-act {
+  width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--ink-2); cursor: pointer;
+}
+.tek-module .iplik-act:hover { color: var(--ink); border-color: var(--border-strong); }
+.tek-module .iplik-act .icon { width: 14px; height: 14px; }
+.tek-module .iplik-act.is-active { background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent-strong); }
+.tek-module .iplik-act-delete:hover { color: var(--red); border-color: var(--red-bg); background: var(--red-bg); }
+
+/* Hesaplanan chip şeridi (§4 — input gibi DEĞİL) */
+.tek-module .iplik-row-calc { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.tek-module .iplik-calc-chip {
+  display: inline-flex; align-items: baseline; gap: 5px; padding: 3px 8px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm);
+  font-family: var(--mono); font-size: 11px; color: var(--ink);
+}
+.tek-module .iplik-calc-chip em { font-style: normal; font-family: var(--font); color: var(--ink-3); font-size: 10px; }
+.tek-module .iplik-calc-chip b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.tek-module .iplik-calc-chip[hidden] { display: none; }
+
+/* İplik alt panelleri (kompozisyon / info) — kart içi alt bölge: çerçeve YOK */
+.tek-module .iplik-panel { margin-top: 8px; padding: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); }
+.tek-module .iplik-panel[hidden] { display: none; }
+.tek-module .iplik-panel-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.tek-module .iplik-panel-title { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); }
+.tek-module .iplik-panel-title .icon { width: 13px; height: 13px; color: var(--ink-3); }
+.tek-module .iplik-panel-hint { font-size: 11px; color: var(--ink-3); }
+.tek-module .iplik-panel-hint-cool { color: var(--accent-strong); }
+.tek-module .iplik-panel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.tek-module .iplik-icerikler { display: flex; flex-direction: column; gap: 6px; margin: 6px 0; }
+.tek-module .iplik-icerikler-head { display: flex; align-items: center; justify-content: space-between; }
+.tek-module .iplik-icerik-row { display: flex; gap: 6px; align-items: center; }
+.tek-module .iplik-icerik-elyaf { flex: 1; }
+.tek-module .iplik-icerik-del { width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--ink-3); cursor: pointer; }
+.tek-module .iplik-icerik-del:hover { color: var(--red); background: var(--red-bg); border-color: var(--red-bg); }
+.tek-module .iplik-icerik-del .icon { width: 12px; height: 12px; }
+.tek-module .iplik-check { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: var(--ink-2); margin-top: 8px; }
+/* Birim son-ek input (rpm/%/$/kg) */
+.tek-module .iplik-input-suffix { position: relative; display: flex; align-items: center; }
+.tek-module .iplik-input-suffix input { width: 100%; padding-right: 38px; }
+.tek-module .iplik-input-unit { position: absolute; right: 9px; font-size: 11px; color: var(--ink-3); pointer-events: none; }
+.tek-module .iplik-input-suffix-tight input { padding-right: 26px; }
+
+/* İplik ekle / içerik ekle butonları (ghost) */
+.tek-module .btn-iplik-add,
+.tek-module .btn-icerik-add {
+  display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 11px;
+  font-size: 12.5px; font-weight: 500; color: var(--accent-strong);
+  background: var(--accent-bg); border: 1px solid var(--accent-border); border-radius: var(--r-sm); cursor: pointer;
+}
+.tek-module .btn-iplik-add:hover, .tek-module .btn-icerik-add:hover { background: var(--surface); }
+.tek-module .btn-iplik-add .icon, .tek-module .btn-icerik-add .icon { width: 14px; height: 14px; }
+.tek-module .iplik-footer { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+/* Doğrulama chip (Tel adedi X/Y) */
+.tek-module .iplik-validator {
+  display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 9px; margin-left: auto;
+  font-size: 11.5px; font-weight: 500; border-radius: 999px;
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--ink-2);
+}
+.tek-module .iplik-validator .icon { width: 13px; height: 13px; }
+.tek-module .iplik-validator[data-state="ok"] { background: var(--green-bg); border-color: transparent; color: var(--green); }
+.tek-module .iplik-validator[data-state="warn"] { background: var(--amber-bg); border-color: transparent; color: var(--amber); }
+
+/* ============================================================
+   5 — Hesaplanan Gramaj + Maliyet (hero) + Dağılım donut
+   ============================================================ */
+.tek-module .gramaj-grid-single { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+.tek-module .gramaj-cell {
+  display: flex; flex-direction: column; gap: 2px; padding: 10px;
+  background: var(--surface-2); border-radius: var(--r-sm); text-align: center;
+}
+.tek-module .gramaj-cell-result { background: var(--accent-bg); }
+.tek-module .gramaj-label { font-size: 11px; color: var(--ink-2); }
+.tek-module .gramaj-value { font-size: 22px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.tek-module .gramaj-cell-result .gramaj-value { color: var(--accent-strong); }
+.tek-module .gramaj-value-sm { font-size: 16px; }
+.tek-module .gramaj-unit { font-size: 10.5px; color: var(--ink-3); }
+
+.tek-module .maliyet-card-dokumu { border-left: 3px solid var(--cost); }
+.tek-module .maliyet-list { list-style: none; padding: 0; margin: 0 0 4px; }
+.tek-module .maliyet-list li {
+  display: flex; align-items: center; gap: 8px; padding: 7px 0;
+  border-bottom: 1px solid var(--surface-2); font-size: 12.5px; color: var(--ink);
+}
+.tek-module .maliyet-list li b { margin-left: auto; font-weight: 600; font-variant-numeric: tabular-nums; }
+.tek-module .maliyet-list li em { font-style: normal; color: var(--ink-3); font-size: 11px; }
+.tek-module .maliyet-list .maliyet-info { color: var(--ink-2); }
+.tek-module .dot { width: 9px; height: 9px; border-radius: 2px; background: var(--c, var(--ink-3)); flex: 0 0 auto; }
+/* Toplam $/mt — sayfanın TEK kahramanı (§3) */
+.tek-module .maliyet-total {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin-top: 8px; padding: 11px 13px; background: var(--accent-bg); border-radius: var(--r-sm);
+}
+.tek-module .maliyet-total span { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent-strong); }
+.tek-module .maliyet-total b { font-size: 22px; font-weight: 600; color: var(--accent-strong); font-variant-numeric: tabular-nums; }
+.tek-module .maliyet-foot { margin-top: 10px; font-size: 11px; color: var(--ink-3); line-height: 1.6; }
+.tek-module .maliyet-foot b { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+.tek-module .dagilim-wrap { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.tek-module .dagilim-donut { width: 130px; height: 130px; flex: 0 0 auto; }
+.tek-module .dagilim-legend { display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; color: var(--ink-2); }
+.tek-module .dagilim-legend > span { display: inline-flex; align-items: center; gap: 6px; }
+
+.tek-module .icerik-empty { font-size: 12px; color: var(--ink-3); line-height: 1.5; }
+.tek-module .icerik-list { display: flex; flex-direction: column; gap: 6px; }
+.tek-module .icerik-list[hidden] { display: none; }
+.tek-module .uretim-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+
+/* ============================================================
+   6 — Tarak
+   ============================================================ */
+.tek-module .tarak-grid { display: flex; flex-direction: column; gap: 14px; }
+.tek-module .tarak-card-grid { border-left: 3px solid var(--warp); }
+.tek-module .tarak-params-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; align-items: end; }
+.tek-module .tarak-field { display: flex; flex-direction: column; gap: 5px; }
+.tek-module .tarak-label { font-size: 11px; font-weight: 500; color: var(--ink-2); }
+.tek-module .tarak-label em { font-style: normal; color: var(--ink-3); }
+.tek-module .tarak-field input {
+  height: 32px; padding: 0 10px; font-size: 13px; color: var(--ink);
+  background: #fff; border: 1px solid var(--border); border-radius: var(--r-sm); box-shadow: var(--sh);
+}
+.tek-module .tarak-field input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+/* Mod toggle (segmented) */
+.tek-module .tarak-mode-toggle { display: inline-flex; padding: 3px; gap: 2px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-sm); }
+.tek-module .tarak-mode-btn { height: 26px; padding: 0 12px; font-size: 12px; font-weight: 500; color: var(--ink-2); background: transparent; border: none; border-radius: 4px; cursor: pointer; }
+.tek-module .tarak-mode-btn.is-active { background: var(--accent); color: #fff; }
+.tek-module .tarak-actions { justify-content: flex-end; }
+.tek-module .tarak-hint { margin-top: 10px; padding: 7px 10px; background: var(--surface-2); border-radius: var(--r-sm); font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
+.tek-module .tarak-hint[hidden] { display: none; }
+
+/* Hesaplanan değerler (calc) */
+.tek-module .tarak-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+.tek-module .tarak-stat { display: flex; flex-direction: column; gap: 2px; padding: 10px; background: var(--surface-2); border-radius: var(--r-sm); text-align: center; }
+.tek-module .tarak-stat-label { font-size: 11px; color: var(--ink-2); }
+.tek-module .tarak-stat-value { font-size: 18px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.tek-module .tarak-stat-unit { font-size: 10.5px; color: var(--ink-3); }
+.tek-module .tarak-stat-hero { background: var(--accent-bg); }
+.tek-module .tarak-stat-hero .tarak-stat-value { color: var(--accent-strong); }
+.tek-module .tarak-stat-green { background: var(--weft-bg); }
+.tek-module .tarak-stat-green .tarak-stat-value { color: var(--weft); }
+
+/* Diş dizimi grid (JS hücre/bar boyutunu inline yazar) */
+.tek-module .tarak-grid-hint { font-size: 11.5px; color: var(--ink-2); margin-bottom: 10px; }
+.tek-module .tarak-grid-hint b { color: var(--ink); }
+.tek-module .tarak-dent-wrap { overflow-x: auto; }
+.tek-module .tarak-dent-grid-inner { display: inline-flex; flex-direction: column; gap: 4px; min-width: 0; }
+.tek-module .tarak-dent-cells, .tek-module .tarak-dent-numbers, .tek-module .tarak-dent-bars { display: flex; gap: 3px; align-items: flex-end; }
+.tek-module .tarak-dent-cell {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 4px;
+  font-size: 11px; font-weight: 600; color: var(--ink-2); cursor: pointer; font-variant-numeric: tabular-nums;
+}
+.tek-module .tarak-dent-cell.is-filled { background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent-strong); }
+.tek-module .tarak-dent-numbers > span { font-size: 9px; color: var(--ink-3); text-align: center; }
+.tek-module .tarak-dent-bar { background: var(--accent); border-radius: 2px 2px 0 0; align-self: flex-end; }
+.tek-module .tarak-dent-bar.is-empty { background: var(--border); }
+.tek-module .tarak-empty { font-size: 12px; color: var(--ink-3); padding: 12px 0; }
+
+/* Tarak raporu (RLE) */
+.tek-module .tarak-card-report { border-left: 3px solid var(--weft); }
+.tek-module .tarak-report-summary { font-size: 12.5px; color: var(--ink); margin-bottom: 10px; }
+.tek-module .tarak-rle-list { display: flex; flex-direction: column; gap: 2px; margin-bottom: 12px; }
+.tek-module .tarak-rle-row {
+  display: flex; align-items: center; gap: 8px; padding: 6px 8px;
+  background: var(--surface-2); border-radius: var(--r-sm);
+  font-family: var(--mono); font-size: 11.5px; color: var(--ink); font-variant-numeric: tabular-nums;
+}
+.tek-module .tarak-rle-row.is-empty { color: var(--ink-3); }
+.tek-module .tarak-rle-row .rle-idx { color: var(--ink-3); min-width: 20px; }
+.tek-module .tarak-rle-row .rle-x, .tek-module .tarak-rle-row .rle-eq { color: var(--ink-3); }
+.tek-module .tarak-rle-row .rle-result { margin-left: auto; font-weight: 600; }
+.tek-module .tarak-report-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; margin-bottom: 12px; }
+.tek-module .tarak-mini-stat { display: flex; flex-direction: column; gap: 2px; padding: 9px; background: var(--surface-2); border-radius: var(--r-sm); text-align: center; }
+.tek-module .tarak-mini-stat .mini-label { font-size: 10.5px; color: var(--ink-2); }
+.tek-module .tarak-mini-stat .mini-value { font-size: 15px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.tek-module .tarak-mini-stat-hero { background: var(--accent-bg); }
+.tek-module .tarak-mini-stat-hero .mini-value { color: var(--accent-strong); }
+.tek-module .tarak-mini-stat-green { background: var(--weft-bg); }
+.tek-module .tarak-mini-stat-green .mini-value { color: var(--weft); }
+.tek-module .tarak-report-actions { display: flex; gap: 8px; }
+.tek-module #tarak-rle-copy.is-success { background: var(--green-bg); border-color: transparent; color: var(--green); }
+
+/* ============================================================
+   7 — Notlar (zengin editör)
+   ============================================================ */
+.tek-module .notlar-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.tek-module .notlar-head h2 { font-size: 16px; font-weight: 600; color: var(--ink); }
+.tek-module .notlar-actions { display: flex; align-items: center; gap: 10px; }
+.tek-module .notlar-status { font-size: 11.5px; color: var(--ink-3); background: transparent; padding: 0; }
+.tek-module .notlar-status[data-kind="ok"] { color: var(--green); }
+.tek-module .notlar-status[data-kind="dirty"] { color: var(--amber); }
+.tek-module .notlar-status[data-kind="error"] { color: var(--red); }
+.tek-module .rich-editor { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh); overflow: hidden; }
+.tek-module .rich-toolbar { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; padding: 8px 10px; border-bottom: 1px solid var(--surface-2); background: var(--surface-2); }
+.tek-module .rich-toolbar > button {
+  min-width: 28px; height: 28px; padding: 0 8px; font-size: 13px; color: var(--ink-2);
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); cursor: pointer;
+}
+.tek-module .rich-toolbar > button:hover { color: var(--ink); border-color: var(--border-strong); }
+.tek-module .rich-sep { width: 1px; height: 20px; background: var(--border); margin: 0 3px; }
+.tek-module #rich-fontsize {
+  height: 28px; padding: 0 24px 0 9px; font-size: 12px; color: var(--ink);
+  background-color: #fff; border: 1px solid var(--border); border-radius: var(--r-sm);
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235f6370' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 7px center;
+}
+.tek-module .rich-colors { display: inline-flex; gap: 4px; }
+.tek-module .rich-colors button { width: 22px; height: 22px; padding: 0; border-radius: 50%; border: 1px solid rgba(23,24,31,.15); background: var(--c, var(--ink)); cursor: pointer; }
+.tek-module .rich-content {
+  min-height: 280px; padding: 14px 16px; font-size: 13.5px; line-height: 1.6; color: var(--ink);
+  background: var(--surface); outline: none;
+}
+.tek-module .rich-content:focus { box-shadow: inset 0 0 0 2px var(--accent-bg); }
+.tek-module .notlar-fallback-hint { display: block; margin-top: 8px; font-size: 11.5px; color: var(--amber); }
+
+/* ============================================================
+   8 — Container query: modül 680-740px'e daralınca tek kolon
+   (Çalışma split görünümü — yatay scroll YOK)
+   ============================================================ */
+@container tek (max-width: 740px) {
+  .tek-module .analiz-top-row,
+  .tek-module .maliyet-row,
+  .tek-module .analiz-alt-row,
+  .tek-module .iplik-cards { grid-template-columns: 1fr; }
+  .tek-module .teknik-toolbar { gap: 6px; }
+  .tek-module .numune-tabs { width: 100%; }
+}
+@container tek (max-width: 560px) {
+  .tek-module .iplik-row-main { gap: 6px; }
+  .tek-module .iplik-field { flex-basis: calc(50% - 4px); }
+  .tek-module .dagilim-wrap { justify-content: center; }
+}
+
+/* Fallback: container-query desteklemeyen tarayıcı + dar viewport */
+@media (max-width: 720px) {
+  .tek-module .analiz-top-row,
+  .tek-module .maliyet-row,
+  .tek-module .analiz-alt-row,
+  .tek-module .iplik-cards { grid-template-columns: 1fr; }
+}

@@ -2,19 +2,31 @@
 {% block title %}{{ product.product_name if product else 'Ürün bulunamadı' }}{% endblock %}
 
 {# v4.0-part-2 Sprint 8 — embed modu: Çalışma Alanı'ndaki iframe'lerden gelir #}
-{% block body_class %}{% if embed %}embed-calisma {% if embed != 'calisma' %}embed-{{ embed }}{% endif %}{% endif %}{% endblock %}
+{% block body_class %}urun-page{% if embed %} embed-calisma {% if embed != 'calisma' %}embed-{{ embed }}{% endif %}{% endif %}{% endblock %}
+
+{# tasarim-v2 Faz 2 — Ürün detay kabuğu (Stüdyo). Teknik sekmesi hariç. #}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/screens/urun.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/screens/teknik.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/screens/desen.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/screens/plan.css') }}">
+{% endblock %}
 
 {% block content %}
 {% if not product %}
+<div class="studio urun-detail urun-empty">
 <div class="empty-state">
     <div class="empty-icon-wrap">
         <svg class="empty-icon"><use href="#ic-x"/></svg>
     </div>
     <h2>Ürün bulunamadı</h2>
     <p>Aradığın ürün silinmiş ya da kimliği değişmiş olabilir: <code>{{ urun_id }}</code></p>
-    <a href="{{ url_for('index') }}" class="btn btn-secondary">← Galeriye dön</a>
+    <a href="{{ url_for('index') }}" class="btn">← Galeriye dön</a>
+</div>
 </div>
 {% else %}
+{# tasarim-v2 Faz 2 — üst kabuk (.studio). Teknik sekmesi bu div'in DIŞINDA. #}
+<div class="studio urun-detail">
 {# v3.8 — Sticky hero wrapper #}
 <div class="urun-sticky-hero" id="urun-sticky-hero">
 {% if display_images %}
@@ -37,7 +49,7 @@
 
         {# v3.7 — Cetvel toggle #}
         <button class="hero-tool-btn" id="ruler-toggle" type="button"
-                title="Cetvel aç/kapat" aria-label="Cetvel">📏</button>
+                title="Cetvel aç/kapat" aria-label="Cetvel"><svg class="icon"><use href="#ic-target"/></svg></button>
 
         {# v3.7 — Cetvel overlay #}
         <div class="ruler-overlay" id="ruler-overlay" hidden>
@@ -64,8 +76,8 @@
 
     {# v3.7 — Cetvel toolbar (hero altında) #}
     <div class="ruler-toolbar" id="ruler-toolbar" hidden>
-        <button id="ruler-calibrate" class="btn-mini" type="button">🎯 Kalibre Et</button>
-        <button id="ruler-measure" class="btn-mini" type="button" disabled>📐 Mesafe Ölç</button>
+        <button id="ruler-calibrate" class="btn-mini" type="button">Kalibre Et</button>
+        <button id="ruler-measure" class="btn-mini" type="button" disabled>Mesafe Ölç</button>
         <span class="ruler-status" id="ruler-status">Kalibrasyon gerekli</span>
         <button id="ruler-save-v" class="btn-mini btn-primary" type="button" hidden>Boyuna Rapora Kaydet</button>
         <button id="ruler-save-h" class="btn-mini btn-primary" type="button" hidden>Enine Rapora Kaydet</button>
@@ -79,19 +91,19 @@
 <nav class="urun-main-tabs" id="urun-main-tabs" aria-label="Ana sekmeler">
     {# tasarim-v2 Sprint 16 — sezgisel emoji sekmeler + içerik-durumlu soluk/badge #}
     <button type="button" class="utab-btn is-active" data-tab="galeri">
-        <span>📷 Galeri</span>
+        <span><svg class="icon"><use href="#ic-image"/></svg> Galeri</span>
     </button>
     {% if from_research_row %}
     <button type="button" class="utab-btn" data-tab="on_calisma">
-        <span>🔍 Ön Çalışma</span>
+        <span><svg class="icon"><use href="#ic-search"/></svg> Ön Çalışma</span>
     </button>
     {% endif %}
     <button type="button" class="utab-btn {% if not teknik.surumler %}is-empty{% endif %}" data-tab="teknik">
-        <span>🔬 Teknik Analiz</span>
+        <span><svg class="icon"><use href="#ic-bar-chart"/></svg> Teknik Analiz</span>
         {% if teknik.surumler and teknik.surumler|length > 1 %}<span class="utab-cnt">{{ teknik.surumler|length }}</span>{% endif %}
     </button>
     <button type="button" class="utab-btn {% if not product.pdfs %}is-empty{% endif %}" data-tab="dokuman">
-        <span>📄 Dokümanlar</span>
+        <span><svg class="icon"><use href="#ic-file"/></svg> Dokümanlar</span>
         {% if product.pdfs %}<span class="utab-cnt">{{ product.pdfs|length }}</span>{% endif %}
     </button>
     {# v4.0-part-2 Sprint 8.4 — Notlar artık Teknik > 4·Notlar alt-sekmesinde (sürüm-spesifik) #}
@@ -114,8 +126,8 @@
     {% for a in albums %}
     <button type="button" class="album-tab" data-album="{{ a.slug }}" data-name="{{ a.name }}">
         {{ a.name }} <span class="cnt">{{ album_counts.get(a.slug, 0) }}</span>
-        <span class="album-edit" data-action="rename" title="Yeniden adlandır">✎</span>
-        <span class="album-edit" data-action="delete" title="Albümü sil">×</span>
+        <span class="album-edit" data-action="rename" title="Yeniden adlandır"><svg class="icon"><use href="#ic-pencil"/></svg></span>
+        <span class="album-edit" data-action="delete" title="Albümü sil"><svg class="icon"><use href="#ic-x"/></svg></span>
     </button>
     {% endfor %}
     <button type="button" class="album-tab album-new" id="album-new-btn" title="Yeni albüm">
@@ -328,7 +340,7 @@
             <svg class="icon ct-summary-icon"><use href="#ic-chevron-down"/></svg>
             <span>Renk Atama (Atkı · Çözgü · Toplam)</span>
             {% if not color_picker_images %}
-            <span class="ct-summary-badge">⚠ "Renkler" albümü yok</span>
+            <span class="ct-summary-badge">"Renkler" albümü yok</span>
             {% endif %}
         </summary>
 
@@ -357,19 +369,19 @@
                     <button id="cp-clear" class="btn-mini" type="button">Noktaları temizle</button>
                     {# tasarim-v2 Sprint 20 — otomatik dominant renk tespiti #}
                     <span class="cp-toolbar-sep" aria-hidden="true"></span>
-                    <button id="cp-auto-detect" class="btn-mini btn-auto" type="button">✨ Otomatik Tespit</button>
+                    <button id="cp-auto-detect" class="btn-mini btn-auto" type="button"><svg class="icon"><use href="#ic-palette"/></svg> Otomatik Tespit</button>
                     <select id="cp-auto-k" class="filter-select cp-k-sel" aria-label="Tespit edilecek renk sayısı" title="Renk sayısı">
                         <option value="4">4 renk</option>
                         <option value="6" selected>6 renk</option>
                         <option value="8">8 renk</option>
                     </select>
                 </div>
-                <p class="cp-hint">Tıkla = tek nokta · <kbd>Ctrl</kbd>+tık veya "Çoklu nokta" açık = nokta ekle · Mobilde sürükle-bırak · <strong>✨ Otomatik Tespit</strong> = görselden dominant renkleri bul</p>
+                <p class="cp-hint">Tıkla = tek nokta · <kbd>Ctrl</kbd>+tık veya "Çoklu nokta" açık = nokta ekle · Mobilde sürükle-bırak · <strong>Otomatik Tespit</strong> = görselden dominant renkleri bul</p>
 
                 {# tasarim-v2 Sprint 20 — Önerilen Renkler paneli #}
                 <div class="cp-suggest-panel" id="cp-suggest-panel" hidden>
                     <div class="cp-suggest-head">
-                        <h4>✨ Önerilen Renkler</h4>
+                        <h4>Önerilen Renkler</h4>
                         <button id="cp-suggest-all-weft" class="btn-mini" type="button" hidden>Tümünü Atkı'ya Ata</button>
                     </div>
                     <div class="cp-suggest-loading" id="cp-suggest-loading" hidden>
@@ -428,7 +440,7 @@
         <span id="design-hint" class="design-hint" hidden>↔ Kartları sürükleyip bırakarak sırala</span>
         <button id="design-save" class="btn btn-primary" hidden>Sıralamayı Kaydet</button>
         <button id="design-cancel" class="btn btn-secondary" hidden>İptal</button>
-        <button id="group-toggle" class="btn btn-secondary" title="Varyanta göre gruplama aç/kapat">🎨 Grupla</button>
+        <button id="group-toggle" class="btn btn-secondary" title="Varyanta göre gruplama aç/kapat"><svg class="icon"><use href="#ic-tag"/></svg> <span class="gt-label">Grupla</span></button>
         <button id="design-toggle" class="btn btn-secondary"><svg class="icon"><use href="#ic-pencil"/></svg> Tasarım Modu</button>
         <button id="img-select-toggle" class="btn btn-secondary"><svg class="icon"><use href="#ic-check"/></svg> Seç</button>
     </div>
@@ -587,12 +599,13 @@
     </div>
 </section>
 {% endif %}
+</div>{# /studio urun-detail (üst kabuk) — Teknik bilinçli olarak DIŞARIDA (Faz 3-5) #}
 
 {# === TEMEL ÇALIŞMA ALANI (v3.8 Faz 1, Sprint 14: rename) === #}
-<section data-tab="teknik" class="utab-section" hidden>
+<section data-tab="teknik" class="utab-section studio tek-module" hidden>
     {% if is_mobile_ua %}
     <div class="mobile-warning">
-        📱 Bu sekme tablet/masaüstü için tasarlandı. Telefonda da düzenlenebilir ama büyük ekran daha rahat.
+        Bu sekme tablet/masaüstü için tasarlandı. Telefonda da düzenlenebilir ama büyük ekran daha rahat.
     </div>
     {% endif %}
 
@@ -606,15 +619,15 @@
         {# tasarim-v2 Sprint 16 — aktif sürümün son kayıt tarihi (JS doldurur) #}
         <span class="teknik-surum-info" id="teknik-surum-info"></span>
         <button id="teknik-surum-yeni" class="btn-mini" type="button">+ Yeni Sürüm</button>
-        <button id="teknik-surum-rename" class="btn-mini" type="button" {% if not teknik.surumler %}disabled{% endif %}>✎ Adlandır</button>
-        <button id="teknik-surum-sil" class="btn-mini btn-danger" type="button" {% if not teknik.surumler %}disabled{% endif %}>× Sil</button>
+        <button id="teknik-surum-rename" class="btn-mini" type="button" {% if not teknik.surumler %}disabled{% endif %}><svg class="icon"><use href="#ic-pencil"/></svg> Adlandır</button>
+        <button id="teknik-surum-sil" class="btn-mini btn-danger" type="button" {% if not teknik.surumler %}disabled{% endif %}><svg class="icon"><use href="#ic-x"/></svg> Sil</button>
         <span class="flex-spacer"></span>
         <button id="teknik-fullscreen" class="btn-mini" type="button"
                 title="Teknik çalışmayı tam ekran aç / kapat (form doldururken aşağı-yukarı scroll'u azaltır)">
-            <span class="fs-on">⛶ Tam Ekran</span>
-            <span class="fs-off">⛶ Çıkış</span>
+            <span class="fs-on">Tam Ekran</span>
+            <span class="fs-off">Çıkış</span>
         </button>
-        <a id="teknik-pdf" class="btn btn-secondary" href="#" target="_blank" rel="noopener" {% if not teknik.surumler %}hidden{% endif %}>📄 PDF</a>
+        <a id="teknik-pdf" class="btn btn-secondary" href="#" target="_blank" rel="noopener" {% if not teknik.surumler %}hidden{% endif %}><svg class="icon"><use href="#ic-file"/></svg> PDF</a>
         <button id="teknik-kaydet" class="btn btn-primary" type="button" {% if not teknik.surumler %}disabled{% endif %}>Kaydet</button>
     </div>
 
@@ -673,21 +686,21 @@
             <nav class="numune-tabs" role="tablist" aria-label="Numune Master sekmeleri">
                 {# tasarim-v2 Sprint 16 — sezgisel emoji alt sekmeler (slug'lar değişmedi) #}
                 <button class="numune-tab is-active" data-numune-tab="analiz" type="button" role="tab" aria-selected="true">
-                    <span class="numune-tab-label">⚖️ Gramaj &amp; Maliyet</span>
+                    <span class="numune-tab-label">Gramaj &amp; Maliyet</span>
                 </button>
                 <button class="numune-tab" data-numune-tab="desen" type="button" role="tab" aria-selected="false">
-                    <span class="numune-tab-label">🧩 Desen &amp; Tahar</span>
+                    <span class="numune-tab-label">Desen &amp; Tahar</span>
                 </button>
                 <button class="numune-tab" data-numune-tab="tarak" type="button" role="tab" aria-selected="false">
-                    <span class="numune-tab-label">🔢 Tarak</span>
+                    <span class="numune-tab-label">Tarak</span>
                 </button>
                 {# tasarim-v2 Plan Parça 1 — 📋 Plan alt-sekmesi (tarak ile notlar arası) #}
                 <button class="numune-tab" data-numune-tab="plan" type="button" role="tab" aria-selected="false">
-                    <span class="numune-tab-label">📋 Plan</span>
+                    <span class="numune-tab-label">Plan</span>
                 </button>
                 {# v4.0-part-2 Sprint 8.4 — Notlar artık burada (sürüm-spesifik) #}
                 <button class="numune-tab" data-numune-tab="notlar" type="button" role="tab" aria-selected="false">
-                    <span class="numune-tab-label">📝 Notlar</span>
+                    <span class="numune-tab-label">Notlar</span>
                 </button>
             </nav>
         </div>
@@ -937,13 +950,13 @@
                         <span>MALİYET DÖKÜMÜ</span>
                     </legend>
                     <ul class="maliyet-list" id="maliyet-list">
-                        <li data-cost="iplik"><span class="dot" style="--c:#5b8def"></span>İplik (çözgü+atkı)<b><span data-cost-out="iplik">0,000</span> $</b></li>
-                        <li data-cost="iscilik"><span class="dot" style="--c:#d4af7f"></span>İşçilik (KDV dahil)<b><span data-cost-out="iscilik">0,000</span> $</b></li>
+                        <li data-cost="iplik"><span class="dot" style="--c:#5253c8"></span>İplik (çözgü+atkı)<b><span data-cost-out="iplik">0,000</span> $</b></li>
+                        <li data-cost="iscilik"><span class="dot" style="--c:#b98a3e"></span>İşçilik (KDV dahil)<b><span data-cost-out="iscilik">0,000</span> $</b></li>
                         <li class="maliyet-info" data-cost="bin_degeri" title="EĞER(atkı sıklığı &lt; 12 ; ((12 − atkı sıklığı) × 1000) + 8000 ; 8000) — işçilik bazı, toplama EKLENMEZ. İşçilik = 1000 değeri ÷ kapasite (mt/ay) × 1,10">
-                            <span class="dot" style="--c:#b0a8a0"></span>1000 değeri <em>(işçilik bazı)</em><b><span id="bin-degeri-out">—</span></b></li>
-                        <li data-cost="terbiye"><span class="dot" style="--c:#7fb37f"></span>Terbiye<b><span data-cost-out="terbiye">0,000</span> $</b></li>
-                        <li data-cost="fire"><span class="dot" style="--c:#e07260"></span>Fire<b><span data-cost-out="fire">0,000</span> $</b></li>
-                        <li data-cost="kursun"><span class="dot" style="--c:#8b8a87"></span>Kurşum + Ek malzeme<b><span data-cost-out="kursun">0,000</span> $</b></li>
+                            <span class="dot" style="--c:#c9cad3"></span>1000 değeri <em>(işçilik bazı)</em><b><span id="bin-degeri-out">—</span></b></li>
+                        <li data-cost="terbiye"><span class="dot" style="--c:#0f857c"></span>Terbiye<b><span data-cost-out="terbiye">0,000</span> $</b></li>
+                        <li data-cost="fire"><span class="dot" style="--c:#c2657e"></span>Fire<b><span data-cost-out="fire">0,000</span> $</b></li>
+                        <li data-cost="kursun"><span class="dot" style="--c:#84868f"></span>Kurşum + Ek malzeme<b><span data-cost-out="kursun">0,000</span> $</b></li>
                     </ul>
                     <div class="maliyet-total">
                         <span>TOPLAM</span>
@@ -964,15 +977,15 @@
                     </legend>
                     <div class="dagilim-wrap">
                         <svg viewBox="0 0 200 200" class="dagilim-donut" id="dagilim-donut" aria-label="Maliyet dağılımı">
-                            <circle cx="100" cy="100" r="80" fill="none" stroke="var(--bg-elev)" stroke-width="32"/>
+                            <circle cx="100" cy="100" r="80" fill="none" stroke="var(--surface-2)" stroke-width="32"/>
                             <g id="dagilim-segments"></g>
                         </svg>
                         <div class="dagilim-legend" id="dagilim-legend">
-                            <span><span class="dot" style="--c:#5b8def"></span>İplik</span>
-                            <span><span class="dot" style="--c:#d4af7f"></span>İşçilik</span>
-                            <span><span class="dot" style="--c:#7fb37f"></span>Terbiye</span>
-                            <span><span class="dot" style="--c:#e07260"></span>Fire</span>
-                            <span><span class="dot" style="--c:#8b8a87"></span>Kurşum+Ek</span>
+                            <span><span class="dot" style="--c:#5253c8"></span>İplik</span>
+                            <span><span class="dot" style="--c:#b98a3e"></span>İşçilik</span>
+                            <span><span class="dot" style="--c:#0f857c"></span>Terbiye</span>
+                            <span><span class="dot" style="--c:#c2657e"></span>Fire</span>
+                            <span><span class="dot" style="--c:#84868f"></span>Kurşum+Ek</span>
                         </div>
                     </div>
                 </fieldset>
@@ -1277,7 +1290,7 @@
 
             {# ⚙️ Kur & Rapor Ayarı — BU PARÇADA ÇALIŞIR #}
             <fieldset class="teknik-card plan-block">
-                <legend>⚙️ Kur &amp; Rapor Ayarı</legend>
+                <legend><svg class="icon"><use href="#ic-gear"/></svg> Kur &amp; Rapor Ayarı</legend>
                 <label class="plan-field">
                     <span>Rapor para birimi</span>
                     <span class="plan-seg" id="plan-rapor-para" role="group" aria-label="Rapor para birimi">
@@ -1295,14 +1308,14 @@
                         <span>1 USD =</span>
                         <input type="number" step="0.0001" id="plan-kur-usd" class="plan-input" placeholder="0"> <em>TL</em>
                     </label>
-                    <button type="button" class="btn btn-secondary" id="plan-kur-fetch" title="Şu anki TCMB kuruyla doldur (mevcut değerleri ezer)">🔄 Güncel TCMB Kurunu Kullan</button>
+                    <button type="button" class="btn btn-secondary" id="plan-kur-fetch" title="Şu anki TCMB kuruyla doldur (mevcut değerleri ezer)"><svg class="icon"><use href="#ic-refresh"/></svg> Güncel TCMB Kurunu Kullan</button>
                     <span class="plan-kur-info" id="plan-kur-info"></span>
                 </div>
             </fieldset>
 
             {# 0️⃣ Özet — aktif teknik sürümden READONLY (teknik form DOM'undan okunur) #}
             <fieldset class="teknik-card plan-block">
-                <legend>0️⃣ Özet (teknik)</legend>
+                <legend><span class="plan-num">0</span> Özet (teknik)</legend>
                 <div class="plan-ozet-grid" id="plan-ozet">
                     <div class="stat-card"><span class="stat-value" data-ozet="cozgu_sikligi">—</span><span class="stat-label">Çözgü sıklığı</span></div>
                     <div class="stat-card"><span class="stat-value" data-ozet="atki_sikligi">—</span><span class="stat-label">Atkı sıklığı</span></div>
@@ -1315,7 +1328,7 @@
 
             {# 1️⃣ Boya Yöntemi — BU PARÇADA ÇALIŞIR #}
             <fieldset class="teknik-card plan-block">
-                <legend>1️⃣ Boya Yöntemi</legend>
+                <legend><span class="plan-num">1</span> Boya Yöntemi</legend>
                 <label class="plan-field">
                     <span>Çözgü</span>
                     <span class="plan-seg" id="plan-boya-cozgu" role="group" aria-label="Çözgü boya yöntemi">
@@ -1335,7 +1348,7 @@
             {# 2️⃣-5️⃣ — Sonraki parçalar (placeholder, hesap yok) #}
             {# 2️⃣ Çözgü Planı — BU PARÇADA ÇALIŞIR #}
             <fieldset class="teknik-card plan-block" id="plan-cozgu-block">
-                <legend>2️⃣ Çözgü Planı</legend>
+                <legend><span class="plan-num">2</span> Çözgü Planı</legend>
 
                 {# Ortak: Varsayılan metraj (her çözgü kendi metrajını girer; boş bırakılan çözgüler bunu kullanır) #}
                 <div class="plan-row">
@@ -1407,7 +1420,7 @@
             </fieldset>
             {# 3️⃣ Atkı & Varyant — atki == iplik_boya ise görünür #}
             <fieldset class="teknik-card plan-block" id="plan-atki-block" hidden>
-                <legend>3️⃣ Atkı &amp; Varyant Planı</legend>
+                <legend><span class="plan-num">3</span> Atkı &amp; Varyant Planı</legend>
                 <div class="plan-row">
                     <label class="plan-field">
                         <span>Varyant sayısı</span>
@@ -1444,7 +1457,7 @@
 
             {# 4️⃣ Top Boya — atki == top_boya ise görünür #}
             <fieldset class="teknik-card plan-block" id="plan-topboya-block" hidden>
-                <legend>4️⃣ Top Boya Planı</legend>
+                <legend><span class="plan-num">4</span> Top Boya Planı</legend>
                 <div class="plan-row">
                     <label class="plan-field">
                         <span>Ekru metre</span>
@@ -1491,13 +1504,13 @@
             </fieldset>
             {# 5️⃣ Toplam Proje Maliyeti Özeti — BU PARÇADA ÇALIŞIR #}
             <fieldset class="teknik-card plan-block" id="plan-maliyet-block">
-                <legend>5️⃣ Toplam Proje Maliyeti Özeti</legend>
+                <legend><span class="plan-num">5</span> Toplam Proje Maliyeti Özeti</legend>
                 <div class="plan-maliyet-bar" id="plan-maliyet-bar"></div>
                 <div class="plan-ihtiyac-table" id="plan-maliyet-table"></div>
                 <div class="plan-maliyet-total" id="plan-maliyet-total"></div>
                 <div class="plan-maliyet-kurnote" id="plan-maliyet-kurnote"></div>
                 <div class="plan-pdf-row">
-                    <button type="button" class="btn btn-secondary" id="plan-pdf-btn">📄 Plan Raporu PDF İndir</button>
+                    <button type="button" class="btn btn-secondary" id="plan-pdf-btn"><svg class="icon"><use href="#ic-file"/></svg> Plan Raporu PDF İndir</button>
                 </div>
             </fieldset>
         </section>
@@ -1526,11 +1539,11 @@
                     </select>
                     <span class="rich-sep"></span>
                     <div class="rich-colors" role="toolbar" aria-label="Renk paleti">
-                        <button type="button" data-color="#e8e6e2" title="Beyaz (default)" style="--c:#e8e6e2"></button>
-                        <button type="button" data-color="#d4af7f" title="Champagne (vurgu)" style="--c:#d4af7f"></button>
-                        <button type="button" data-color="#5b8def" title="Mavi (link/info)" style="--c:#5b8def"></button>
-                        <button type="button" data-color="#7fb37f" title="Yeşil (olumlu)" style="--c:#7fb37f"></button>
-                        <button type="button" data-color="#e07260" title="Kırmızı (uyarı)" style="--c:#e07260"></button>
+                        <button type="button" data-color="#1d1f27" title="Varsayılan (siyah)" style="--c:#1d1f27"></button>
+                        <button type="button" data-color="#5253c8" title="İndigo (vurgu)" style="--c:#5253c8"></button>
+                        <button type="button" data-color="#0f857c" title="Teal (atkı)" style="--c:#0f857c"></button>
+                        <button type="button" data-color="#178f5c" title="Yeşil (olumlu)" style="--c:#178f5c"></button>
+                        <button type="button" data-color="#d23b3b" title="Kırmızı (uyarı)" style="--c:#d23b3b"></button>
                     </div>
                     <span class="rich-sep"></span>
                     <button type="button" data-cmd="insertUnorderedList" title="Liste">•</button>
@@ -1556,6 +1569,7 @@
     <script>window.PLAN_IMG_COUNT = {{ (display_images|length) or 0 }};</script>
 </section>{# /Teknik sekmesi #}
 
+<div class="studio urun-detail">{# tasarim-v2 Faz 2 — alt kabuk (.studio): Dokümanlar + lightbox #}
 {# === v4.0-part-2 Adım 7 — DOKÜMANLAR SEKMESİ === #}
 <section data-tab="dokuman" class="utab-section" hidden>
     <header class="pdf-tab-head">
@@ -1624,6 +1638,7 @@
         <button class="lb-zoom-btn" id="lb-zoom-in" aria-label="Yakınlaştır" title="Yakınlaştır">+</button>
     </div>
 </div>
+</div>{# /studio urun-detail (alt kabuk) #}
 {% endif %}
 {% endblock %}
 
@@ -2038,7 +2053,7 @@ grid.addEventListener('dragover', (e) => {
     function apply(on) {
         document.body.classList.toggle('group-variants', on);
         btn.classList.toggle('is-active', on);
-        btn.textContent = on ? '🎨 Gruplu' : '🎨 Grupla';
+        const lbl = btn.querySelector('.gt-label'); if (lbl) lbl.textContent = on ? 'Gruplu' : 'Grupla';
     }
     let saved = false;
     try { saved = localStorage.getItem(KEY) === '1'; } catch (e) {}

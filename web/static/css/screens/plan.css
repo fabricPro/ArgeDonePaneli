@@ -1,0 +1,112 @@
+/* ============================================================
+   FAS Stüdyo — Plan alt sekmesi  ·  tasarim-v2 Faz 5 (son faz)
+   KAPSAM: yalnız renk/biçim. Plan davranış JS'ine (TCMB kur, varyant
+   hesap, çözgü renk atama) DOKUNULMAZ. DATA renkleri (çözgü/atkı/boya
+   `.hex` swatch/band/varyant hücresi) gerçek iplik renkleri → DEĞİŞMEZ.
+
+   Strateji (Desen/Faz 4 ile aynı): main.css plan kuralları + JS-inline
+   tema renkleri CSS değişkenlerinden gelir; plan kapsamında bu
+   değişkenleri YENİDEN TANIMLAYARAK (köprü) açığa çekeriz. Tek JS
+   düzenlemesi plan.js MALIYET_RENK (stacked-bar grafik paleti).
+   teknik.css + desen.css'ten SONRA yüklenir.
+   ============================================================ */
+
+/* ---- Değişken köprüsü — :root/.studio koyu değerlerini Stüdyo'ya çek ---- */
+.tek-module [data-numune-section="plan"] {
+  --bg-card: var(--surface);     /* .plan-grup + assigned-chip + maliyet kartları */
+  --bg: #fff;                    /* .plan-input/.plan-vinput/.plan-moq-input = BEYAZ girdi (§4) */
+  --bg-elev: var(--surface-2);   /* segmented kutu, swatch, cozgu-card, maliyet-total zemini */
+  --text: var(--ink);
+  --text-dim: var(--ink-2);
+  --text-muted: var(--ink-3);
+  --radius: var(--r-sm);
+  --radius-sm: var(--r-sm);
+  --radius-lg: var(--r);
+}
+
+/* ---- §5 bölüm numarası rozeti (template'te yeni .plan-num span) ---- */
+.tek-module [data-numune-section="plan"] .plan-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; margin-right: 8px;
+  background: var(--accent-bg); color: var(--accent-strong);
+  border-radius: var(--r-sm); font-size: 11.5px; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Segmented (TL/EUR/USD + boya toggle) aktif metin — sabit-hex #1
+        (main.css 3969 color:#1a1410 açıkta okunmaz; zemin zaten --accent) ---- */
+.tek-module [data-numune-section="plan"] .plan-seg-btn.is-active { color: #fff; }
+
+/* ---- "+ Çözgü Ekle" yeşil bar → ghost buton — sabit-hex #2 (main.css 4069-79) ---- */
+.tek-module [data-numune-section="plan"] .plan-grup-head .plan-cozgu-add {
+  background: transparent; border: 1px solid transparent; color: var(--accent-strong);
+}
+.tek-module [data-numune-section="plan"] .plan-grup-head .plan-cozgu-add:hover {
+  background: var(--accent-bg);
+}
+
+/* ---- Çözgü grupları: çerçeve yığını DEĞİL ton katmanı (§5) ---- */
+.tek-module [data-numune-section="plan"] .plan-grup {
+  background: var(--surface-2); border-color: transparent;
+}
+.tek-module [data-numune-section="plan"] .plan-grup.is-active {
+  border-color: var(--accent-border); box-shadow: none;
+}
+.tek-module [data-numune-section="plan"] .plan-cozgu-card {
+  background: var(--surface); border-color: var(--border);
+}
+.tek-module [data-numune-section="plan"] .plan-cozgu-card.is-active {
+  border-color: var(--accent-border); box-shadow: none;
+}
+
+/* ---- GENEL TOPLAM = sayfanın TEK kahramanı (§3/§5) ---- */
+.tek-module [data-numune-section="plan"] .plan-maliyet-total {
+  background: var(--accent-bg); border-color: transparent;
+}
+.tek-module [data-numune-section="plan"] .plan-total-big { color: var(--accent-strong); font-weight: 600; }
+.tek-module [data-numune-section="plan"] .plan-total-big b { font-size: 26px; color: var(--accent-strong); }
+.tek-module [data-numune-section="plan"] .plan-total-trio { color: var(--ink-2); }
+
+/* ---- §0 Özet metrik şeridi: modest (ikinci kahraman olmasın; plan-scope) ---- */
+.tek-module [data-numune-section="plan"] .stat-card {
+  background: var(--surface-2); border-color: transparent; border-radius: var(--r-sm); padding: 11px 12px;
+}
+.tek-module [data-numune-section="plan"] .stat-card .stat-value { font-size: 18px; font-weight: 600; color: var(--ink); }
+.tek-module [data-numune-section="plan"] .stat-card .stat-label { font-size: 11px; color: var(--ink-2); margin-top: 4px; }
+
+/* ---- Sil butonu hover — sabit-hex #3 (main.css 4113 koyu mercan) ---- */
+.tek-module [data-numune-section="plan"] .plan-cozgu-del-btn:hover {
+  background: var(--red-bg); border-color: var(--red);
+}
+
+/* ---- Tablolar (varyant / maliyet / MOQ) — Stüdyo tablo (§4) ---- */
+.tek-module [data-numune-section="plan"] .plan-table th {
+  font-size: 10.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--ink-3); border-bottom-color: var(--border);
+}
+.tek-module [data-numune-section="plan"] .plan-table td {
+  font-size: 12px; color: var(--ink); border-bottom-color: var(--surface-2); font-family: var(--mono);
+}
+.tek-module [data-numune-section="plan"] .plan-table th:first-child,
+.tek-module [data-numune-section="plan"] .plan-table td:first-child,
+.tek-module [data-numune-section="plan"] .plan-td-ref { font-family: var(--font); color: var(--ink); }
+
+/* ---- Girdiler (§4: beyaz zemin + accent focus ring) ---- */
+.tek-module [data-numune-section="plan"] .plan-input,
+.tek-module [data-numune-section="plan"] .plan-vinput,
+.tek-module [data-numune-section="plan"] .plan-moq-input { box-shadow: var(--sh); }
+.tek-module [data-numune-section="plan"] .plan-input:focus,
+.tek-module [data-numune-section="plan"] .plan-vinput:focus,
+.tek-module [data-numune-section="plan"] .plan-moq-input:focus {
+  outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+/* ---- Readout (hesaplanan değer) → accent vurgu zaten --accent köprüden ---- */
+.tek-module [data-numune-section="plan"] .plan-readout { color: var(--accent-strong); }
+
+/* ---- .btn ikon boyutu (kur-fetch / PDF butonları .btn, .btn-mini değil) ---- */
+.tek-module [data-numune-section="plan"] .btn .icon { width: 14px; height: 14px; }
+
+/* ---- 680px Çalışma split: tablolar kendi sarmalayıcısında kaysın, sayfa değil ---- */
+.tek-module [data-numune-section="plan"] .plan-ihtiyac-table { min-width: 0; }
+.tek-module [data-numune-section="plan"] .plan-row { flex-wrap: wrap; }
