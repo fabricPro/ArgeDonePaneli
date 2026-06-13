@@ -799,33 +799,58 @@
       try { const saved = localStorage.getItem(MODEL_KEY); if (saved !== null) modelSel.value = saved; } catch (e) {}
       modelSel.addEventListener('change', () => { try { localStorage.setItem(MODEL_KEY, modelSel.value); } catch (e) {} });
     }
+    // Kullanıcı isteği — "AI ile Zenginleştir" TEK TIK = AI Doldur (üzerine yaz) → Tümünü Kabul
+    // (şüpheli/uydurma hariç, server P6.3) → Kaydet. Mevcut uçların zinciri; diğer butonlar +
+    // batch /enrich endpoint'i DEĞİŞMEZ.
     const enrichBtn = node.querySelector('.ar-btn-enrich');
-    if (enrichBtn) enrichBtn.addEventListener('click', () => runWithProgress(enrichBtn, 'Zenginleştiriliyor…', async (signal) => {
+    if (enrichBtn) enrichBtn.addEventListener('click', () => runWithProgress(enrichBtn, 'AI dolduruyor + kabul + kaydet…', async (signal) => {
       const chosen = modelSel ? (modelSel.value || '') : '';
-      const res = await fetch(`/api/arastirma/${encodeURIComponent(r.id)}/enrich`, {
+      // 1) AI Doldur (üzerine yaz) = enrich-apply (kolonlar + product_draft'a yaz)
+      const r1 = await fetch(`/api/arastirma/${encodeURIComponent(r.id)}/enrich-apply`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(chosen ? { model: chosen } : {}), signal,
       });
-      const d = await res.json();
-      if (d.ok) {
-        r.extracted_facts = d.extracted_facts || {};
-        r.ai_summary = d.ai_summary || {};
-        r.enrichment_status = d.enrichment_status || 'enriched';
-        toast('Zenginleştirildi' + (d.model ? ' · ' + d.model : ''), 'success');
-        if (d.model_invalid) toast('Geçersiz model — server varsayılanı kullanıldı', 'error');
-        // P6.1 — sayfada kanıtı bulunamayan (uydurma şüpheli) alanlar elendiyse uyar
-        if (d.unverified_fields && d.unverified_fields.length) {
-          toast(`${d.unverified_fields.length} alan sayfada doğrulanamadı — panelde ⚠ Şüpheli grubunda, elle kontrol et`, 'error');
+      const d1 = await r1.json();
+      if (!(d1.ok && d1.row)) {
+        toast((d1.message || d1.error || 'AI doldurulamadı') + (d1.model ? ' (' + d1.model + ')' : ''), 'error');
+        return;
+      }
+      Object.assign(r, d1.row);
+      if (d1.model_invalid) toast('Geçersiz model — server varsayılanı kullanıldı', 'error');
+      // 2) Tümünü Kabul (daima accept; server şüpheli/uydurma alanları P6.3 ile hariç tutar)
+      try {
+        const r2 = await fetch(`/api/arastirma/${encodeURIComponent(r.id)}/accept-all`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accepted: true }), signal,
+        });
+        const d2 = await r2.json();
+        if (d2.ok) {
+          if (d2.extracted_facts) r.extracted_facts = d2.extracted_facts;
+          ['category', 'pattern', 'color_family', 'weave_tags', 'style_tags', 'ai_notu', 'brand_country', 'country', 'enrichment_status'].forEach(k => { if (k in d2) r[k] = d2[k]; });
+        } else {
+          toast('Kabul kısmı başarısız — yine de kaydediliyor', 'error');
         }
-        if (editForm) {
-          const p = editForm.querySelector('.ar-ai-panel'); if (p) p.innerHTML = renderAiPanel(r);
-          const s = editForm.querySelector('.ar-enrich-status-edit'); if (s) s.textContent = enrichStatusLabel(r.enrichment_status) || 'ham';
-        }
-        fillArgeLine(article, r);
-        updateAcceptBadge(article, r);
-        refreshAcceptAllLabel();
-      } else {
-        toast((d.message || d.error || 'Zenginleştirilemedi') + (d.model ? ' (' + d.model + ')' : ''), 'error');
+      } catch (e) { toast('Kabul kısmı atlandı (bağlantı) — kaydediliyor', 'error'); }
+      // 3) Formu r'ye senkronla → Kaydet (saveEdit formdan kalıcılaştırır; extracted_facts'e dokunmaz)
+      if (editForm) {
+        const bEl = editForm.querySelector(CTRL('brand')); if (bEl) bEl.value = r.brand || '';
+        syncTaxonomyForm(editForm, r);
+        syncDraftForm(editForm, r);
+        fillBrandFromFact(editForm, r);
+      }
+      const saved = await saveEdit(article, r);   // 'Kaydedildi' toast'ı + kalıcılaştırma
+      if (saved) Object.assign(r, saved);
+      // Panel + durum + rozetleri tazele
+      if (editForm) {
+        const p = editForm.querySelector('.ar-ai-panel'); if (p) p.innerHTML = renderAiPanel(r);
+        const s = editForm.querySelector('.ar-enrich-status-edit'); if (s) s.textContent = enrichStatusLabel(r.enrichment_status) || 'ham';
+      }
+      fillArgeLine(article, r);
+      updateAcceptBadge(article, r);
+      refreshAcceptAllLabel();
+      // P6.1 — sayfada kanıtı bulunamayan (uydurma şüpheli) alanlar kabul EDİLMEDİ; uyar
+      if (d1.unverified_fields && d1.unverified_fields.length) {
+        toast(`${d1.unverified_fields.length} alan sayfada doğrulanamadı — ⚠ Şüpheli (kabul edilmedi), elle kontrol et`, 'error');
       }
     }));
     // Sprint 12 — "AI Doldur (üzerine yaz)": enrich-apply → tüm form alanlarını AI ile üzerine yaz
