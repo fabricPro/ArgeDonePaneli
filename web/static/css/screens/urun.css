@@ -344,6 +344,8 @@ body.urun-page { background: #f7f7f8; }
   font-size: 13px; font-weight: 500; color: var(--ink);
 }
 .urun-detail .ct-picker-summary::-webkit-details-marker { display: none; }
+/* main.css .ct-picker-summary:hover var(--bg-elev) KOYU → Stüdyo açık (akordiyon hover siyah olmasın) */
+.urun-detail .ct-picker-summary:hover { background: var(--surface-2); border-radius: var(--r-sm); }
 .urun-detail .ct-summary-icon { width: 15px; height: 15px; color: var(--ink-3); transition: transform .16s; }
 .urun-detail .ct-picker-details[open] .ct-summary-icon { transform: rotate(180deg); }
 .urun-detail .ct-summary-badge {
