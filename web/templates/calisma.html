@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Çalışma Alanı — {{ total }} kumaş{% endblock %}
+{% block body_class %}studio{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/screens/calisma.css') }}">
+{% endblock %}
 
 {% block content %}
 <div class="calisma-page" data-mode="grid" id="calisma-page">

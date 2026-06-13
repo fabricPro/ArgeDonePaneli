@@ -101,6 +101,38 @@ def main():
         tek.screenshot(path=str(OUT / "15-teknik-plan-v2.png"))
         print("[ok] 15-teknik-plan-v2.png")
 
+        # === Çalışma ekranı + Split görünüm (Faz 6) ===
+        # Split'in DOLU görünmesi için teknik-örnek ürünü geçici pinle → screenshot → çöz (net-sıfır)
+        page.request.post(f"{BASE}/api/calisma/ekle", data={"urun_id": TEKNIK})
+        page.goto(f"{BASE}/calisma", wait_until="networkidle")
+        page.wait_for_timeout(1000)
+        # 06 — Çalışma grid (pinli kartlar + albüm sekmeleri)
+        page.screenshot(path=str(OUT / "06-calisma-v2.png"))
+        print("[ok] 06-calisma-v2.png")
+        # 06b — SPLIT: teknik-örnek kartı seç → sol galeri + sağ teknik iframe'leri yüklensin
+        page.click(f'.cw-card-main[data-urunid="{TEKNIK}"]')
+        page.wait_for_timeout(400)
+        # Win dev-server: iki iframe AYNI ANDA /urun + gorsel httpx -> Supabase race (WinError 10035) -> 500.
+        # SIRAYLA yukle: once SAG (teknik) tek basina, httpx'i otursun, sonra SOL (galeri).
+        # Prod (gunicorn, ayri worker) bu race'i yasamaz.
+        page.eval_on_selector('#cw-right-iframe', f'e => {{ e.src = "/urun/{TEKNIK}?embed=calisma-right"; }}')
+        try:
+            page.frame_locator('#cw-right-iframe').locator(
+                '.numune-section[data-numune-section="analiz"]').wait_for(state="visible", timeout=15000)
+        except Exception:
+            pass
+        page.wait_for_timeout(2500)  # sag iframe tum httpx'ini bitirsin (race penceresi kapansin)
+        page.eval_on_selector('#cw-left-iframe', f'e => {{ e.src = "/urun/{TEKNIK}?embed=calisma-left"; }}')
+        try:
+            page.frame_locator('#cw-left-iframe').locator('.image-manage-grid').wait_for(state="visible", timeout=15000)
+        except Exception:
+            pass
+        page.wait_for_timeout(2000)
+        page.screenshot(path=str(OUT / "06-calisma-split-v2.png"))
+        print("[ok] 06-calisma-split-v2.png")
+        # temizle: pini geri al (net-sıfır)
+        page.request.post(f"{BASE}/api/calisma/cikar", data={"urun_id": TEKNIK})
+
         browser.close()
     print(f"\nÇıktı: {OUT}")
 

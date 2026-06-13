@@ -1,0 +1,95 @@
+/* ============================================================
+   FAS Stüdyo — Çalışma (workspace) ekranı  ·  tasarim-v2 Faz 6
+   Pinli kart ızgarası + albüm sekmeleri + SPLIT görünüm chrome'u.
+   Split pane'leri /urun?embed=calisma-{left,right} iframe'leri yükler
+   (kendi Stüdyo CSS'leri var; container query orada çalışır) — burada
+   yalnız Çalışma chrome'u Stüdyo'ya geçer.
+   Yöntem: değişken köprüsü (cw-* eski tema var'ları → Stüdyo) + polish.
+   calisma.js sözleşmeleri + split grid sizing (--cw-l/--cw-r) DEĞİŞMEZ.
+   ============================================================ */
+
+/* ---- Köprü: body.studio 6 çekirdek var'ı çevirir; cw-* kalanları ---- */
+.studio .calisma-page {
+  --bg-card: var(--surface);
+  --bg-elev: var(--surface-2);
+  --text: var(--ink);
+  --text-dim: var(--ink-2);
+  --text-muted: var(--ink-3);
+}
+
+/* ---- Başlık ---- */
+.studio .calisma-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+.studio .calisma-head h1 { font-size: 19px; font-weight: 600; letter-spacing: -.015em; color: var(--ink); }
+.studio .calisma-head .page-subtitle { font-size: 12.5px; color: var(--ink-2); margin-top: 3px; }
+.studio .calisma-head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ---- Boş durum ---- */
+.studio .cw-empty { text-align: center; padding: 56px 24px; color: var(--ink-2); }
+.studio .cw-empty .empty-icon-wrap { display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; margin-bottom: 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 50%; }
+.studio .cw-empty .empty-icon { width: 30px; height: 30px; color: var(--ink-3); }
+.studio .cw-empty h2 { font-size: 16px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+.studio .cw-empty p { font-size: 13px; color: var(--ink-2); max-width: 440px; margin: 0 auto 14px; line-height: 1.6; }
+
+/* ---- Albüm sekmeleri (chip dili) ---- */
+.studio .cw-album-tabs { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 0 0 12px; margin-bottom: 18px; border-bottom: 1px solid var(--border); }
+.studio .cw-tab { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; font-size: 12.5px; font-weight: 500; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; cursor: pointer; }
+.studio .cw-tab:hover { color: var(--ink); border-color: var(--border-strong); }
+.studio .cw-tab.is-active { background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent-strong); }
+.studio .cw-tab-cnt { font-size: 10.5px; font-weight: 600; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.studio .cw-tab.is-active .cw-tab-cnt { color: var(--accent-strong); }
+.studio .cw-tab-dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; }
+.studio .cw-tab-menu-btn { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; color: var(--ink-3); border-radius: 4px; font-size: 13px; }
+.studio .cw-tab-menu-btn:hover { background: var(--surface); color: var(--ink); }
+.studio .cw-tab-new { color: var(--accent-strong); background: transparent; border-style: dashed; }
+
+/* ---- Pinli kart ızgarası (gallery .product-card dili) ---- */
+.studio .cw-card { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh); overflow: hidden; transition: box-shadow .16s, transform .16s, border-color .16s; }
+.studio .cw-card:hover { box-shadow: var(--sh-pop); transform: translateY(-1px); border-color: var(--border-strong); }
+.studio .cw-card-main { display: block; width: 100%; text-align: left; background: transparent; border: none; padding: 0; cursor: pointer; color: inherit; }
+.studio .cw-card-thumb { position: relative; aspect-ratio: 4 / 3; overflow: hidden; background: var(--surface-2); background-image: repeating-linear-gradient(45deg, rgba(23,24,31,.018) 0 6px, transparent 6px 12px); }
+.studio .cw-card-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.studio .cw-card-noimg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--ink-3); }
+.studio .cw-card-noimg .icon { width: 28px; height: 28px; }
+.studio .cw-card-body { padding: 11px 13px 12px; }
+.studio .cw-brand { font-size: 10.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.studio .cw-name { font-size: 14px; font-weight: 600; color: var(--ink); margin: 3px 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.studio .cw-meta { font-size: 11.5px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.studio .calisma-page .card-indicators { display: flex; gap: 4px; margin-top: 10px; }
+.studio .calisma-page .card-indicators .ind { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: var(--r-sm); background: var(--surface-2); color: var(--ink-3); }
+.studio .calisma-page .card-indicators .ind .icon { width: 13px; height: 13px; }
+.studio .calisma-page .card-indicators .ind.on { background: var(--accent-bg); color: var(--accent-strong); }
+.studio .calisma-page .card-indicators .ind.off { opacity: .55; }
+
+/* Kart hover butonları (albüm / unpin) — beyaz hap (gallery .card-delete-btn dili) */
+.studio .cw-card-album-btn,
+.studio .cw-unpin {
+  position: absolute; top: 8px; z-index: 4;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 999px;
+  background: rgba(255,255,255,.92); border: 1px solid var(--border); color: var(--ink-2);
+  box-shadow: var(--sh); cursor: pointer; opacity: 0;
+  transition: opacity .14s, color .14s, background .14s, border-color .14s;
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+}
+.studio .cw-unpin { right: 8px; }
+.studio .cw-card-album-btn { right: 42px; font-size: 15px; line-height: 1; }
+.studio .cw-unpin .icon { width: 15px; height: 15px; }
+.studio .cw-card:hover .cw-card-album-btn,
+.studio .cw-card:hover .cw-unpin { opacity: 1; }
+.studio .cw-unpin:hover { background: var(--red-bg); color: var(--red); border-color: var(--red-bg); }
+.studio .cw-card-album-btn:hover { color: var(--accent-strong); border-color: var(--accent-border); }
+
+/* ---- Split görünüm chrome'u (grid sizing/--cw-l/--cw-r DOKUNULMAZ) ---- */
+.studio .cw-left-pane,
+.studio .cw-right-pane { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh); }
+.studio .cw-iframe { background: var(--surface); }
+.studio .cw-back { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); background: transparent; border: 1px solid transparent; border-radius: var(--r-sm); cursor: pointer; }
+.studio .cw-back:hover { color: var(--ink); background: var(--surface-2); }
+.studio .cw-rail-item { color: var(--ink-2); border-radius: var(--r-sm); }
+.studio .cw-rail-item.is-active { background: var(--accent-bg); color: var(--accent-strong); }
+.studio .cw-divider::before { background: var(--border-strong); }
+.studio .cw-divider:hover::before,
+.studio .cw-divider.is-dragging::before { background: var(--accent); }
+
+/* ---- Mobil "Yatay Aç" butonu (main.css görünürlüğü korunur) ---- */
+.studio .cw-rotate-btn .icon { width: 15px; height: 15px; }
