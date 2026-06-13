@@ -369,6 +369,16 @@
     const { acc, total } = acceptCounts(r);
     return total > 0 && acc === total;
   }
+  // Kayıt tamamlanma durumu — kullanıcı kuralı: A VE B.
+  //  A = AI dolduruldu (enriched/verified) ve önerilenin >%50'si kabul edildi.
+  //  B = en az 1 foto var.  done = A && B; aksi = "Bekliyor".
+  function researchCompletion(r) {
+    const { acc, total } = acceptCounts(r);
+    const ai = (r.enrichment_status === 'enriched' || r.enrichment_status === 'verified')
+      && total > 0 && (acc / total) > 0.5;
+    const photo = (r.images_count || (Array.isArray(r.images) ? r.images.length : 0)) >= 1;
+    return { done: ai && photo, ai, photo };
+  }
   // Sprint 11.6 — AI'nın çıkardığı firma adı (factual). Kabul edilmişse firma input'una yansır.
   // (Firma adı zorunlu; accept-all sonrası kaydet'in "firma adı boş" demesini önler.)
   function brandFactValue(r) {
@@ -544,6 +554,7 @@
   }
   // P6 — Listede "Kabul N/M" rozeti (çekmeceyi açmadan onay durumu görünür)
   function updateAcceptBadge(article, r) {
+    updateDoneBadge(article, r);   // her çağrıda (render + accept/enrich sonrası) durum rozetini de tazele
     const metaEl = article.querySelector('.ar-item-meta');
     if (!metaEl) return;
     let badge = metaEl.querySelector('.ar-accept-badge');
@@ -556,6 +567,27 @@
     }
     badge.textContent = `Kabul ${acc}/${total}`;
     badge.classList.toggle('is-complete', acc === total);
+  }
+  // Kayıt durum rozeti: "Tamamlandı" (yeşil) / "Bekliyor" (amber, title eksiği söyler)
+  function updateDoneBadge(article, r) {
+    const metaEl = article.querySelector('.ar-item-meta');
+    if (!metaEl) return;
+    let badge = metaEl.querySelector('.ar-done-badge');
+    if (!badge) {
+      badge = document.createElement('span');
+      badge.className = 'ar-done-badge';
+      metaEl.insertBefore(badge, metaEl.firstChild);   // satırın başında, en görünür
+    }
+    const c = researchCompletion(r);
+    badge.classList.toggle('is-done', c.done);
+    if (c.done) {
+      badge.textContent = 'Tamamlandı';
+      badge.title = 'AI dolduruldu (>%50 kabul) ve en az 1 foto var';
+    } else {
+      const eksik = [!c.ai ? 'AI/%50' : null, !c.photo ? 'foto' : null].filter(Boolean).join(' + ');
+      badge.textContent = 'Bekliyor';
+      badge.title = 'Bekliyor — eksik: ' + eksik;
+    }
   }
 
   function renderList(rows) {
@@ -591,7 +623,15 @@
       groupEl.dataset.key = key;   // accordion açık-durumunu re-render sonrası eşleştirmek için
       const head = document.createElement('div');
       head.className = 'ar-group-head';
-      head.innerHTML = `<span class="ar-group-title">${key}</span><span class="ar-group-count">${groups[key].length}</span>`;
+      // Grup özeti: accordion açmadan kaç tamamlandı / kaç bekliyor (kullanıcı kuralı: AI+%50 VE foto)
+      const doneN = groups[key].filter(x => researchCompletion(x).done).length;
+      const waitN = groups[key].length - doneN;
+      const progHtml =
+        (doneN ? `<span class="ar-grp-done" title="Tamamlanan kayıt"><svg class="icon"><use href="#ic-check"/></svg>${doneN}</span>` : '') +
+        (waitN ? `<span class="ar-grp-wait" title="Bekleyen kayıt">${waitN} bekliyor</span>` : '');
+      head.innerHTML = `<span class="ar-group-title">${key}</span>`
+        + `<span class="ar-group-prog">${progHtml}</span>`
+        + `<span class="ar-group-count" title="Toplam kayıt">${groups[key].length}</span>`;
       groupEl.appendChild(head);
 
       groups[key].forEach(r => {
