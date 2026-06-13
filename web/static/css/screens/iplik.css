@@ -1,0 +1,126 @@
+/* ============================================================
+   FAS Stüdyo — İplik Kataloğu (iplik_katalogu.html + _detay.html) · Faz 7
+   Liste: galeri kart dili (gallery.css ile birlikte yüklenir) + kartela
+   placeholder + renk rozeti. Detay: fieldset kartları + drop-zone +
+   sayfa ızgarası + renk yakalama modalı.
+   Yöntem: değişken köprüsü + sabit-hex override + emoji→sprite boyutlama.
+   color-picker.js / iplik_katalogu.js DEĞİŞMEZ. Canvas marker'ları (foto
+   üstü) bilinçli koyu kalır.
+   ============================================================ */
+
+/* ---- Köprü: liste placeholder + detay fieldset/header ---- */
+.studio .kartela-ph,
+.studio .katalog-detay-header,
+.studio .teknik-card {
+  --bg-card: var(--surface);
+  --bg-elev: var(--surface-2);
+  --text: var(--ink);
+  --text-dim: var(--ink-2);
+  --text-muted: var(--ink-3);
+}
+
+/* ============================================================
+   Liste görünümü (galeri kart dili gallery.css'ten gelir)
+   ============================================================ */
+.studio .kartela-ph {
+  background: var(--surface-2); color: var(--ink-3);
+  background-image: repeating-linear-gradient(45deg, rgba(23,24,31,.018) 0 6px, transparent 6px 12px);
+}
+.studio .kartela-ph .icon { width: 30px; height: 30px; }
+.studio .kartela-ph-initials { font-weight: 700; letter-spacing: .05em; color: var(--ink-2); }
+/* Renk rozeti: ikon + sayı sığsın (gallery .ind 22px karesini ez) */
+.studio .card-indicators .ind-renk { width: auto; min-width: 22px; padding: 0 7px; gap: 4px; font-size: 11px; font-variant-numeric: tabular-nums; }
+.studio .card-indicators .ind-renk .icon { width: 13px; height: 13px; }
+
+/* ============================================================
+   Detay — başlık + fieldset kartları
+   ============================================================ */
+.studio .katalog-head-left h1 { font-size: 19px; font-weight: 600; letter-spacing: -.015em; color: var(--ink); }
+
+.studio .teknik-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); box-shadow: var(--sh);
+}
+.studio .teknik-card legend {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2);
+}
+.studio .teknik-card legend .icon { width: 14px; height: 14px; color: var(--ink-3); }
+
+/* Form alanları — beyaz (skill §4) */
+.studio .teknik-card .form-row label { font-size: 11.5px; font-weight: 500; color: var(--ink-2); }
+.studio .teknik-card .form-row input,
+.studio .teknik-card textarea,
+.studio .teknik-card select {
+  background: #fff; border: 1px solid var(--border); border-radius: var(--r-sm);
+  color: var(--ink); box-shadow: var(--sh);
+}
+.studio .teknik-card select {
+  appearance: none; -webkit-appearance: none; height: 32px; padding: 0 30px 0 11px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235f6370' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 9px center;
+}
+.studio .teknik-card .form-row input:focus,
+.studio .teknik-card textarea:focus,
+.studio .teknik-card select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+
+/* ---- Dosya alanı → drop-zone (skill §4) ---- */
+.studio .upload-section { border: 1.5px dashed var(--border-strong); border-radius: var(--r); background: var(--surface-2); padding: 18px; text-align: center; transition: border-color .14s, background .14s; }
+.studio .upload-label { color: var(--ink-2); }
+.studio .upload-label .hint { color: var(--ink-3); }
+.studio .upload-label:hover { color: var(--accent-strong); }
+.studio .upload-icon { color: var(--ink-3); display: inline-flex; margin-bottom: 8px; }
+.studio .upload-icon .icon { width: 30px; height: 30px; }
+.studio .upload-text { color: var(--ink-2); }
+.studio .upload-progress { color: var(--accent-strong); }
+.studio .upload-spinner .icon { width: 16px; height: 16px; }
+
+/* ---- Sayfa ızgarası ---- */
+.studio .sayfa-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); }
+.studio .sayfa-card:hover { border-color: var(--accent); box-shadow: var(--sh); }
+.studio .sayfa-thumb { background: var(--surface-2); }
+.studio .sayfa-info { border-top: 1px solid var(--border); }
+.studio .sayfa-baslik { color: var(--ink); }
+.studio .sayfa-meta { color: var(--ink-2); }
+.studio .sayfa-empty { color: var(--ink-3); }
+
+/* ---- Durum pili (kaydedildi/hata) ---- */
+.studio .plan-status { font-size: 11.5px; color: var(--ink-2); }
+.studio .plan-status[data-kind="dirty"]  { color: var(--accent-strong); }
+.studio .plan-status[data-kind="ok"]     { color: var(--green); }
+.studio .plan-status[data-kind="error"]  { color: var(--red); }
+
+/* ============================================================
+   Renk yakalama modalı (#renk-modal = .modal overlay; .modal-body = panel)
+   ============================================================ */
+.studio #renk-modal .modal-body {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); box-shadow: var(--sh-pop); padding: 18px;
+}
+.studio .renk-modal-header { border-bottom: 1px solid var(--border); }
+.studio .renk-modal-header h3 { font-size: 15px; font-weight: 600; color: var(--ink); }
+.studio .modal-close { color: var(--ink-2); }
+.studio .modal-close:hover { background: var(--surface-2); color: var(--ink); }
+.studio .modal-close .icon { width: 16px; height: 16px; }
+.studio .renk-modal-toolbar { background: var(--surface-2); border-radius: var(--r-sm); }
+.studio .renk-toolbar-toggle { color: var(--ink-2); }
+.studio .renk-auto-count { background: #fff; border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--ink); }
+.studio .renk-modal-hint { color: var(--ink-3); }
+.studio .renk-canvas-scroll { border: 1px solid var(--border); background: var(--surface-2); border-radius: var(--r-sm); }
+.studio .renk-modal-list-area h4 { color: var(--ink); border-bottom: 1px solid var(--border); }
+.studio .renk-listesi-empty { color: var(--ink-3); }
+.studio .renk-satir { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); }
+.studio .renk-satir:hover { background: var(--surface-2); }
+.studio .renk-satir.is-hover-target,
+.studio .renk-satir.is-selected { background: var(--accent-bg); border-color: var(--accent); }
+.studio .renk-numara { background: var(--accent); color: #fff; }
+.studio .renk-swatch { border: 1px solid var(--border-strong); }   /* DATA rengi: arka plan korunur */
+.studio .renk-kod,
+.studio .renk-ad { background: #fff; border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--ink); }
+.studio .renk-kod:focus,
+.studio .renk-ad:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-bg); }
+.studio .renk-meta { color: var(--ink-3); }
+.studio .renk-sil-btn { background: transparent; border: 1px solid var(--border); color: var(--ink-2); border-radius: var(--r-sm); }
+.studio .renk-sil-btn:hover { background: var(--red); color: #fff; border-color: var(--red); }
+.studio .modal-actions { border-top: 1px solid var(--border); }
+/* Foto üstü işaretçiler — bilinçli koyu (skill istisnası): DOKUNULMAZ */

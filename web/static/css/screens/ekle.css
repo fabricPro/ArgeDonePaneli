@@ -1,0 +1,155 @@
+/* ============================================================
+   FAS Stüdyo — Yeni Kumaş Ekle (ekle.html)  ·  tasarim-v2 Faz 7
+   Sol form (bölüm alanları) + sağ aside (Ön Çalışma seç / Linkten Doldur).
+   Yöntem: değişken köprüsü + sabit-hex override + toggle-chip/drop-zone polish.
+   Inline form JS + color-picker.js/album-color-tools.js DEĞİŞMEZ.
+   ============================================================ */
+
+/* ---- Köprü: eski koyu var-adları + stragglerlar → Stüdyo ---- */
+.studio .ekle-layout {
+  --bg-card: var(--surface);
+  --bg-elev: var(--surface-2);
+  --text: var(--ink);
+  --text-dim: var(--ink-2);
+  --text-muted: var(--ink-3);
+  --accent-cool: var(--accent-strong);   /* linkler */
+}
+
+/* ---- Sağ aside (sticky kart) ---- */
+.studio .ekle-aside {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); box-shadow: var(--sh);
+}
+.studio .ekle-aside-head h3 { font-size: 13px; color: var(--accent-strong); }
+.studio .aside-more-link { color: var(--accent-strong); }
+
+/* ---- Beyaz input/select/textarea (skill §4: düzenlenebilir = beyaz) ---- */
+.studio .ekle-form-col select,
+.studio .ekle-form-col textarea,
+.studio .aside-search {
+  width: 100%; min-height: 32px; padding: 7px 11px;
+  font-size: 13px; color: var(--ink);
+  background: #fff; border: 1px solid var(--border);
+  border-radius: var(--r-sm); box-shadow: var(--sh);
+  transition: border-color .14s, box-shadow .14s;
+}
+.studio .ekle-form-col textarea { line-height: 1.5; resize: vertical; }
+.studio .ekle-form-col select {
+  appearance: none; -webkit-appearance: none; height: 32px; padding-right: 30px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235f6370' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 9px center;
+}
+.studio .ekle-form-col select:focus,
+.studio .ekle-form-col textarea:focus,
+.studio .aside-search:focus {
+  outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg);
+}
+.studio .form-hint { font-size: 11px; color: var(--ink-3); }
+.studio .form-hint a { color: var(--accent-strong); }
+.studio .form-msg { font-size: 12.5px; color: var(--ink-2); }
+.studio .form-msg.err { color: var(--red); }
+.studio .form-msg.ok { color: var(--green); }
+
+/* ---- Dosya alanları → drop-zone kartı (skill §4) ---- */
+.studio .upload-label { font-size: 11.5px; font-weight: 500; color: var(--ink-2); }
+.studio .upload-label .hint { font-weight: 400; color: var(--ink-3); }
+.studio .upload-section input[type="file"] {
+  display: block; width: 100%; margin-top: 8px; padding: 16px 14px;
+  font-size: 12.5px; color: var(--ink-2);
+  background: var(--surface-2); border: 1.5px dashed var(--border-strong);
+  border-radius: var(--r); cursor: pointer; transition: border-color .14s, background .14s;
+}
+.studio .upload-section input[type="file"]:hover { border-color: var(--accent); background: var(--accent-bg); }
+.studio .upload-section input[type="file"]::file-selector-button {
+  margin-right: 12px; padding: 7px 13px;
+  font: inherit; font-weight: 500; color: #fff;
+  background: var(--accent); border: none; border-radius: var(--r-sm); cursor: pointer;
+}
+
+/* ---- Ön Çalışma prefill bandı (green) ---- */
+.studio .prefill-banner {
+  background: var(--green-bg); border: 1px solid var(--green);
+  border-left: 3px solid var(--green); border-radius: var(--r-sm); color: var(--ink);
+}
+.studio .prefill-url { color: var(--accent-strong); }
+
+/* ---- Aside ağaç + item ---- */
+.studio .ekle-aside-tree summary::before { color: var(--ink-3); }
+.studio .aside-group-title { color: var(--ink); font-weight: 600; }
+.studio .aside-group-count { color: var(--ink-3); }
+.studio .aside-item:hover { background: var(--surface-2); }
+.studio .aside-item.is-selected { background: var(--accent-bg); outline: 1px solid var(--accent); }
+.studio .aside-item img,
+.studio .aside-thumb-ph { background: #fff; border: 1px solid var(--border); color: var(--ink-3); }
+.studio .aside-item-title { color: var(--ink); }
+.studio .ekle-aside-empty { color: var(--ink-2); }
+
+/* ---- Aside tabs (alt-çizgili) ---- */
+.studio .aside-tab { color: var(--ink-2); font-weight: 500; }
+.studio .aside-tab:hover:not(.is-active) { color: var(--ink); }
+.studio .aside-tab.is-active { color: var(--accent-strong); border-bottom-color: var(--accent); }
+
+/* ---- "Gemini ile gelir" chip'leri (kilitli / dolu) ---- */
+.studio .prod-country-chip,
+.studio .ref-price-chip {
+  background: var(--surface-2); border: 1px dashed var(--border-strong);
+  border-radius: var(--r-sm); color: var(--ink-2);
+}
+.studio .prod-country-chip.is-filled,
+.studio .ref-price-chip.is-filled {
+  background: var(--accent-bg); border-style: solid; border-color: var(--accent-border); color: var(--ink);
+}
+.studio .prod-country-chip.is-filled .prod-country-value,
+.studio .ref-price-chip.is-filled .ref-price-value { color: var(--accent-strong); }
+.studio .prod-country-hint,
+.studio .ref-price-hint { color: var(--ink-3); }
+.studio .ref-price-tag { color: var(--amber); background: var(--amber-bg); }
+
+/* ---- Gemini intro + model seçici ---- */
+.studio .gemini-intro p { color: var(--ink-2); }
+.studio .gemini-hint { color: var(--ink-3); }
+.studio .gemini-trigger { width: 100%; }
+.studio .gemini-model-row label { color: var(--ink-2); }
+.studio .gemini-model-select {
+  background: #fff; color: var(--ink); border: 1px solid var(--border); border-radius: var(--r-sm);
+}
+.studio .gemini-model-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+.studio .gemini-model-status { color: var(--ink-2); background: var(--accent-bg); border-left: 2px solid var(--accent); }
+
+/* ---- Gemini loading / error / öneri kartları ---- */
+.studio .gemini-loading { color: var(--ink-2); }
+.studio .gemini-error { background: var(--red-bg); border: 1px solid var(--red); color: var(--red); }
+.studio .gemini-page-title { background: var(--surface-2); color: var(--ink-2); }
+.studio .gemini-card { background: #fff; border: 1px solid var(--border); border-radius: var(--r-sm); }
+.studio .gemini-card.is-accepted { border-color: var(--green); opacity: .6; }
+.studio .gemini-card-label { color: var(--ink-2); }
+.studio .gemini-card-value { color: var(--ink); }
+.studio .gemini-card-evidence { color: var(--ink-3); border-left: 2px solid var(--border); }
+.studio .gemini-evidence-label { color: var(--ink-2); }
+.studio .gemini-accept {
+  background: var(--green-bg); border: 1px solid var(--green); color: var(--green); border-radius: var(--r-sm);
+}
+.studio .gemini-accept:hover { background: var(--green-bg); filter: brightness(.97); }
+.studio .gemini-suggestions-head h4 { color: var(--ink); }
+.studio .gemini-disclaimer { color: var(--ink-2); }
+.studio .gemini-card-type-badge.is-from { color: var(--amber); background: var(--amber-bg); border: 1px solid var(--amber-bg); }
+.studio .gemini-card-type-badge.is-exact { color: var(--green); background: var(--green-bg); border: 1px solid var(--green-bg); }
+
+/* ---- Toggle-chip dokuma etiketleri (skill §4) ---- */
+.studio .ekle-form-col .tax-checkboxes { display: flex; flex-wrap: wrap; gap: 6px; }
+.studio .ekle-form-col .tax-check {
+  display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 10px;
+  font-size: 12px; color: var(--ink-2); background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: 999px; cursor: pointer; user-select: none;
+}
+.studio .ekle-form-col .tax-check:hover { border-color: var(--border-strong); color: var(--ink); }
+.studio .ekle-form-col .tax-check input { position: absolute; opacity: 0; width: 0; height: 0; margin: 0; }
+.studio .ekle-form-col .tax-check:has(input:checked) {
+  background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent-strong); font-weight: 500;
+}
+
+/* ---- PDF önizleme + kaldır ---- */
+.studio .pdf-preview-list li { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-sm); }
+.studio .pdf-preview-list .pdf-size { color: var(--ink-3); }
+.studio .pdf-preview-list .pdf-remove { background: transparent; border: 1px solid var(--border); color: var(--ink-2); border-radius: var(--r-sm); }
+.studio .pdf-preview-list .pdf-remove:hover { border-color: var(--red-bg); color: var(--red); background: var(--red-bg); }

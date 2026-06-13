@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% from "_chart_macros.html" import bar_chart %}
 {% block title %}Veri Analizi{% endblock %}
+{% block body_class %}studio{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/screens/analiz.css') }}">
+{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -93,7 +97,7 @@
         {% if s.top_compositions %}
         <div class="chart-block">
             <div class="chart-title">En sık kompozisyon</div>
-            {{ bar_chart(s.top_compositions, comp_max, 'var(--altin)') }}
+            {{ bar_chart(s.top_compositions, comp_max, 'var(--chart-3)') }}
         </div>
         {% endif %}
     </section>

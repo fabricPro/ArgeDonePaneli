@@ -18,8 +18,7 @@
    korumalı; body.studio yapsaydık Teknik'in .btn/.table/.card'ları yanlışlıkla
    aydınlanırdı. Bu yüzden yalnız zemini köprüleriz (değer = Stüdyo --bg / main --bg). */
 body.urun-page { background: #f7f7f8; }
-/* Faz 3: Teknik modülü Stüdyo'ya geçti (screens/teknik.css · .tek-module).
-   Yalnız Desen & Plan alt sekmeleri orada `.tek-legacy` ile koyu ada kalır. */
+/* Faz 3-5: Teknik modülü tamamen Stüdyo'ya geçti (screens/teknik.css · .tek-module). */
 
 /* ============================================================
    1 — Hero carousel

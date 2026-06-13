@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Yeni Kumaş Ekle{% endblock %}
+{% block body_class %}studio{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/screens/ekle.css') }}">
+{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -12,7 +16,7 @@
     <form id="ekle-form" class="edit-form ekle-form-col">
         {% if prefill %}
         <div class="prefill-banner">
-            ✓ Ön Çalışmadan: <strong>{{ prefill.brand }}</strong> · {{ prefill.country }}
+            <svg class="icon"><use href="#ic-check"/></svg> Ön Çalışmadan: <strong>{{ prefill.brand }}</strong> · {{ prefill.country }}
             <a class="prefill-url" href="{{ prefill.product_url }}" target="_blank" rel="noopener">{{ prefill.product_url }}</a>
             <input type="hidden" name="from_research_id" value="{{ prefill.id }}">
         </div>
@@ -30,7 +34,7 @@
                     <option value="{{ b.name }}" data-country="{{ b.country or '' }}">
                     {% endfor %}
                 </datalist>
-                <small class="form-hint">Yeni firma eklemek için <a href="{{ url_for('ayarlar') }}" style="color:var(--accent-cool);">⚙ Ayarlar</a></small>
+                <small class="form-hint">Yeni firma eklemek için <a href="{{ url_for('ayarlar') }}"><svg class="icon"><use href="#ic-gear"/></svg> Ayarlar</a></small>
             </div>
 
             <div class="form-row">
@@ -264,7 +268,7 @@
             </button>
             <button type="button" class="aside-tab"
                     data-tab="gemini" role="tab" aria-selected="false">
-                🔮 Linkten Doldur
+                <svg class="icon"><use href="#ic-wand"/></svg> Linkten Doldur
             </button>
         </nav>
 
@@ -339,7 +343,7 @@
                     </select>
                 </div>
                 <button type="button" class="btn btn-primary gemini-trigger" id="gemini-trigger" disabled>
-                    🔮 Linkten Doldur
+                    <svg class="icon"><use href="#ic-wand"/></svg> Linkten Doldur
                 </button>
                 <p class="gemini-model-status" id="gemini-model-status" hidden></p>
                 <p class="gemini-hint">Gemini SADECE sayfada açıkça yazan bilgileri çıkarır. Her öneride kaynak alıntısı görürsün — kabul edip etmemek senin kararın.</p>
@@ -355,7 +359,7 @@
                 <header class="gemini-suggestions-head">
                     <h4>Öneriler</h4>
                     <button type="button" class="btn btn-secondary" id="gemini-accept-all">
-                        ✓ Tümünü Kabul
+                        <svg class="icon"><use href="#ic-check"/></svg> Tümünü Kabul
                     </button>
                 </header>
                 <div class="gemini-suggestions-list" id="gemini-list">

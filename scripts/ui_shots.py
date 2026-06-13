@@ -54,6 +54,50 @@ def main():
         page.screenshot(path=str(OUT / "10-ayarlar-v2.png"))
         print("[ok] 10-ayarlar-v2.png")
 
+        # === Faz 7 — Ön Çalışma / Ekle / Analiz / İplik Kataloğu (Stüdyo) ===
+        # 04 — Ön Çalışma (link havuzu) — ilk marka grubunu aç (accordion KAPALI başlar)
+        page.goto(f"{BASE}/arastirma", wait_until="networkidle")
+        page.wait_for_timeout(1000)
+        try:
+            head = page.locator(".ar-group-head").first
+            if head.count() > 0:
+                head.click()
+                page.wait_for_timeout(400)
+        except Exception:
+            pass
+        page.screenshot(path=str(OUT / "04-arastirma-v2.png"))
+        print("[ok] 04-arastirma-v2.png")
+
+        # 03 — Ekle formu (sol form + sağ aside)
+        page.goto(f"{BASE}/ekle", wait_until="networkidle")
+        page.wait_for_timeout(900)
+        page.screenshot(path=str(OUT / "03-ekle-v2.png"))
+        print("[ok] 03-ekle-v2.png")
+
+        # 07 — Analiz (KPI + tablo + ülke eğilim kartları)
+        page.goto(f"{BASE}/analiz", wait_until="networkidle")
+        page.wait_for_timeout(900)
+        page.screenshot(path=str(OUT / "07-analiz-v2.png"))
+        print("[ok] 07-analiz-v2.png")
+
+        # 08 — İplik Kataloğu (kartela listesi)
+        page.goto(f"{BASE}/iplik-katalogu", wait_until="networkidle")
+        page.wait_for_timeout(900)
+        page.screenshot(path=str(OUT / "08-iplik-v2.png"))
+        print("[ok] 08-iplik-v2.png")
+        # 08b — İplik kartela detayı (varsa ilk kartela) — fieldset kartları + form
+        try:
+            card = page.locator("#kartela-grid .product-card").first
+            if card.count() > 0:
+                href = card.get_attribute("href")
+                if href:
+                    page.goto(f"{BASE}{href}", wait_until="networkidle")
+                    page.wait_for_timeout(800)
+                    page.screenshot(path=str(OUT / "08b-iplik-detay-v2.png"))
+                    print("[ok] 08b-iplik-detay-v2.png")
+        except Exception as e:
+            print(f"[skip] 08b-iplik-detay-v2.png — {e}")
+
         # 11 — Ürün detay (Galeri sekmesi) — Faz 2 kabuğu, üst görünüm
         page.goto(f"{BASE}/urun/{URUN}", wait_until="networkidle")
         page.wait_for_timeout(1500)  # hero + palet + grid görselleri yüklensin

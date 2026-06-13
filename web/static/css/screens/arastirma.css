@@ -1,0 +1,165 @@
+/* ============================================================
+   FAS Stüdyo — Ön Çalışma (arastirma.html)  ·  tasarim-v2 Faz 7
+   Link havuzu: ekleme paneli + gruplu kayıt listesi + inline AI/düzenleme.
+   Yöntem: değişken köprüsü (eski koyu var-adları → Stüdyo) + sabit-hex
+   override + accordion/chip/kompakt polish. arastirma.js DEĞİŞMEZ
+   (accordion toggle template scripts'inde, event-delegation ile).
+   ============================================================ */
+
+/* ---- Köprü: .studio 6 çekirdek var'ı çevirir; kalan eski adlar + stragglerlar ---- */
+.studio .arastirma-add,
+.studio .arastirma-list {
+  --bg-card: var(--surface);
+  --bg-elev: var(--surface-2);
+  --text: var(--ink);
+  --text-dim: var(--ink-2);
+  --text-muted: var(--ink-3);
+  --orange: var(--amber);            /* varyant / belirsiz AI → amber */
+  --radius-pill: 999px;              /* eski tema var'ı (ar-ai-conf rozetleri) */
+}
+
+/* ---- Bölüm kartı + başlık ---- */
+.studio .arastirma-add,
+.studio .arastirma-list {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); box-shadow: var(--sh); padding: 18px 20px;
+}
+.studio .ar-section-head h2 { font-size: 15px; font-weight: 600; color: var(--ink); }
+.studio .ar-hint { font-size: 12px; color: var(--ink-2); }
+
+/* ---- Master URL satırı (vurgulu) ---- */
+.studio .ar-master-row {
+  background: var(--accent-bg); border: 1px solid var(--accent-border);
+  border-left: 3px solid var(--accent); border-radius: var(--r-sm);
+}
+.studio .ar-label { color: var(--accent-strong); font-weight: 700; }
+.studio .ar-required { color: var(--red); }
+.studio .ar-master-hint { color: var(--ink-2); }
+
+/* ---- Beyaz input/select (skill §4: düzenlenebilir = beyaz) ---- */
+.studio .ar-master-row input[type="url"],
+.studio .ar-row-cells input,
+.studio .ar-row-cells select,
+.studio .ar-list-filters select,
+.studio .ar-item-edit input,
+.studio .ar-item-edit select,
+.studio .ar-item-edit textarea,
+.studio .ar-group-add-form input {
+  background: #fff; border: 1px solid var(--border); border-radius: var(--r-sm);
+  color: var(--ink); box-shadow: var(--sh);
+}
+.studio .ar-master-row input[type="url"]:focus,
+.studio .ar-row-cells input:focus,
+.studio .ar-row-cells select:focus,
+.studio .ar-item-edit input:focus,
+.studio .ar-item-edit select:focus,
+.studio .ar-item-edit textarea:focus,
+.studio .ar-group-add-form input:focus {
+  outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+/* ---- Satır durum mesajı → renk eşlemesi ---- */
+.studio .ar-row[data-state="saved"] { border-color: var(--green); background: var(--green-bg); }
+.studio .ar-row-status.ok   { color: var(--green); }
+.studio .ar-row-status.err  { color: var(--red); }
+.studio .ar-row-status.warn { color: var(--amber); }
+
+/* Sil (btn-icon) — ghost, kırmızı hover */
+.studio .btn-icon { background: var(--surface); border: 1px solid var(--border); color: var(--ink-2); border-radius: var(--r-sm); }
+.studio .btn-icon:hover { border-color: var(--red-bg); color: var(--red); background: var(--red-bg); }
+
+/* ---- Filtre toggle'ları (chip dili) ---- */
+.studio .filter-fav-toggle,
+.studio .filter-variant-toggle {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 999px; color: var(--ink-2); padding: 0 12px; height: 28px; font-size: 12.5px;
+}
+.studio .filter-fav-toggle:hover { border-color: var(--border-strong); color: var(--ink); }
+.studio .filter-fav-toggle:has(input:checked) {
+  background: var(--amber-bg); border-color: var(--amber); color: var(--amber);
+}
+.studio .filter-fav-toggle:has(input:checked) .icon polygon { fill: var(--amber); }
+.studio .filter-variant-toggle:has(input:checked) {
+  background: var(--amber-bg); border-color: var(--amber); color: var(--amber);
+}
+
+/* ---- Favori yıldız (gold = --cost token) ---- */
+.studio .ar-fav-star { color: var(--ink-3); }
+.studio .ar-fav-star:hover { color: var(--cost); background: var(--amber-bg); }
+.studio .ar-item[data-favorite="true"] .ar-fav-star { color: var(--cost); }
+.studio .ar-item[data-favorite="true"] .ar-fav-star .icon polygon { fill: var(--cost); }
+.studio .ar-item[data-favorite="true"] { border-left: 3px solid var(--cost); }
+
+/* ============================================================
+   Gruplar — sticky başlık + KAPALI accordion (skill §5)
+   Toggle: template scripts'inde event-delegation (arastirma.js'e dokunmadan).
+   ============================================================ */
+.studio .ar-list { gap: 14px; }
+.studio .ar-group { gap: 6px; }
+.studio .ar-group-head {
+  position: sticky; top: calc(var(--tb-h) + 4px); z-index: 5;
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; cursor: pointer; user-select: none;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm);
+  border-bottom: 1px solid var(--border);
+}
+.studio .ar-group-head:hover { background: var(--surface-2); }
+.studio .ar-group-head::before {
+  content: ""; flex: 0 0 auto; width: 8px; height: 8px;
+  border-right: 1.6px solid var(--ink-3); border-bottom: 1.6px solid var(--ink-3);
+  transform: rotate(-45deg); transition: transform .16s; margin-right: 2px;
+}
+.studio .ar-group.is-open > .ar-group-head::before { transform: rotate(45deg); }
+.studio .ar-group-title { color: var(--accent-strong); font-weight: 600; letter-spacing: .04em; }
+.studio .ar-group-count {
+  margin-left: auto; display: inline-flex; align-items: center; justify-content: center;
+  min-width: 20px; height: 19px; padding: 0 6px; font-size: 11px; font-weight: 600;
+  color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 999px; font-variant-numeric: tabular-nums;
+}
+/* Kapalı: başlık dışındaki her şey gizli */
+.studio .ar-group:not(.is-open) > :not(.ar-group-head) { display: none; }
+
+/* ---- Liste item (kompakt) ---- */
+.studio .ar-item { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 9px 12px; }
+.studio .ar-item.is-editing { border-color: var(--accent); background: var(--surface); }
+.studio .ar-item-title { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+.studio .ar-item-meta { font-size: 11.5px; color: var(--ink-2); }
+.studio .ar-item-date { font-size: 11px; color: var(--ink-3); }
+.studio .ar-item-product { color: var(--accent-strong); }
+.studio .ar-item-product:hover { color: var(--accent-strong); }
+.studio .ar-item-master:hover { color: var(--accent-strong); }
+.studio .ar-item-notes { font-size: 11.5px; color: var(--ink-2); }
+
+/* ---- AI zenginleştirme paneli ---- */
+.studio .ar-ai-section { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-sm); }
+.studio .ar-ai-badge { background: var(--accent-bg); color: var(--accent-strong); }
+.studio .ar-ai-head { color: var(--ink-2); }
+.studio .ar-ai-fact { border-left: 2px solid var(--accent-border); background: var(--surface); }
+.studio .ar-ai-card.is-unverified,
+.studio .ar-ai-card.is-unverified.is-accepted { border-left-color: var(--amber); background: var(--amber-bg); }
+.studio .ar-ai-conf-high { color: var(--green); border-color: var(--green); }
+.studio .ar-ai-conf-medium { color: var(--amber); border-color: var(--amber); }
+.studio .ar-ai-accept-btn, .studio .ar-ai-suggest-btn,
+.studio .ar-ai-applycc { background: var(--surface); border: 1px solid var(--border); color: var(--ink-2); }
+.studio .ar-ai-accept-btn:hover, .studio .ar-ai-suggest-btn:hover { color: var(--ink); border-color: var(--accent); }
+.studio .ar-ai-swatch { border: 1px solid var(--border-strong); }
+
+/* ---- Toggle-chip dokuma etiketleri (skill §4) ---- */
+.studio .tax-checkboxes { display: flex; flex-wrap: wrap; gap: 6px; }
+.studio .tax-checkboxes .tax-check {
+  display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 10px;
+  font-size: 12px; color: var(--ink-2); background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: 999px; cursor: pointer; user-select: none;
+}
+.studio .tax-checkboxes .tax-check:hover { border-color: var(--border-strong); color: var(--ink); }
+.studio .tax-checkboxes .tax-check input { position: absolute; opacity: 0; width: 0; height: 0; margin: 0; }
+.studio .tax-checkboxes .tax-check:has(input:checked) {
+  background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent-strong); font-weight: 500;
+}
+
+/* ---- Grup altı hızlı satır ekleme (ghost) ---- */
+.studio .ar-group-add-trigger { background: transparent; border: 1px dashed var(--border); color: var(--ink-2); border-radius: var(--r-sm); }
+.studio .ar-group-add-trigger:hover { border-color: var(--accent); color: var(--accent-strong); background: var(--accent-bg); }
+.studio .ar-group-add-hint { color: var(--ink-3); }
+.studio .ar-group-add-form { background: var(--surface); border: 1px solid var(--accent-border); border-radius: var(--r-sm); }

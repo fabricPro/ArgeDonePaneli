@@ -3,7 +3,7 @@
    KAPSAM: toolbar + numune sekme çubuğu + Gramaj&Maliyet (analiz) +
            Tarak + Notlar alt sekmeleri.
    Desen & Tahar (data-numune-section="desen") ve Plan (…="plan")
-   Faz 4-5'e dek `.tek-legacy` ile ESKİ koyu temada ada kalır.
+   Faz 4-5'te Stüdyo'ya geçti — artık koyu ada yok (.tek-legacy kaldırıldı, Faz 7).
 
    §0: Modül kabı container-query ile 680px'e (Çalışma split) daralır,
        hiçbir grid yatay scroll çıkarmaz (auto-fit/minmax + @container).
@@ -32,18 +32,6 @@
 .tek-module .btn-mini.btn-danger { color: var(--red); }
 .tek-module .btn-mini.btn-danger:hover { background: var(--red-bg); border-color: var(--red-bg); }
 .tek-module .fs-off { display: none; }
-
-/* ---- Desen & Plan: Faz 4-5'e dek eski koyu tema adası ----
-   Token'ları eski main.css değerlerine geri çekeriz → içindeki .studio
-   bileşenleri de koyu render eder; HTML'lerine dokunulmaz. */
-.tek-module .tek-legacy {
-  --bg: #0a0b0d; --surface: #15171a; --surface-2: #1c1f23;
-  --border: #26292e; --border-strong: #353940;
-  --ink: #e8e6e2; --ink-2: #8b8a87; --ink-3: #5a5d63;
-  --accent: #d4af7f; --accent-strong: #d4af7f; --accent-bg: #1c1f23; --accent-border: #353940;
-  background: var(--bg); color: var(--ink);
-  border-radius: var(--r); padding: 2px;
-}
 
 /* ============================================================
    1 — Sürüm toolbar + boş durum + modal

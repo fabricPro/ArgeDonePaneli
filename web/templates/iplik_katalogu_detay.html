@@ -6,6 +6,11 @@
 {% set tip_known = tip_val in known_tipler %}
 {% set tip_other = tip_val and not tip_known %}
 
+{% block body_class %}studio{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/screens/iplik.css') }}">
+{% endblock %}
+
 {% block content %}
 <div class="page-header katalog-detay-header">
     <div class="katalog-head-left">
@@ -18,7 +23,7 @@
         <form method="post" action="{{ url_for('iplik_katalog_sil', kartela_id=kartela.kartela_id) }}"
               onsubmit="return confirm('Bu kartela silinsin mi?\nİçindeki tüm renkler de silinecek.');"
               style="display:inline">
-            <button type="submit" class="btn btn-danger">🗑 Sil</button>
+            <button type="submit" class="btn btn-danger"><svg class="icon"><use href="#ic-trash"/></svg> Sil</button>
         </form>
         {% endif %}
     </div>
@@ -29,7 +34,7 @@
 
 {# ① Kartela Bilgileri #}
 <fieldset class="teknik-card">
-    <legend>📋 Kartela Bilgileri</legend>
+    <legend><svg class="icon"><use href="#ic-clipboard"/></svg> Kartela Bilgileri</legend>
     <div class="form-grid">
         <div class="form-row">
             <label for="k-ad">Kartela Adı *</label>
@@ -72,7 +77,7 @@
 
 {# ② Fiyat & MOQ #}
 <fieldset class="teknik-card">
-    <legend>💰 Fiyat &amp; MOQ</legend>
+    <legend><svg class="icon"><use href="#ic-tag"/></svg> Fiyat &amp; MOQ</legend>
     <div class="form-grid">
         <div class="form-row">
             <label for="k-fiyat">Fiyat Tutar</label>
@@ -109,15 +114,15 @@
 {# ③ Sayfalar & Renkler — Parça 2-A: sayfa yönetimi (renk seçimi B2-b'de). #}
 {# Yeni kartela'da gizli: sayfa yüklemek için önce kaydedilmiş kartela_id şart (ilk kayıtta JS açar). #}
 <fieldset class="teknik-card" id="sayfalar-fieldset" {% if not kartela %}hidden{% endif %}>
-    <legend>🎨 Sayfalar &amp; Renkler</legend>
+    <legend><svg class="icon"><use href="#ic-palette"/></svg> Sayfalar &amp; Renkler</legend>
     <div class="upload-section">
         <input type="file" id="sayfa-foto-input" accept="image/jpeg,image/png,image/webp" hidden>
         <label for="sayfa-foto-input" class="upload-label">
-            <span class="upload-icon">📷</span>
+            <span class="upload-icon"><svg class="icon"><use href="#ic-image"/></svg></span>
             <span class="upload-text">Yeni sayfa fotoğrafı seç (JPG/PNG, max ~10 MB önerilir)</span>
         </label>
         <div id="sayfa-upload-progress" class="upload-progress" hidden>
-            <span class="upload-spinner">⏳</span> <span>Yükleniyor…</span>
+            <span class="upload-spinner"><svg class="icon"><use href="#ic-loader"/></svg></span> <span>Yükleniyor…</span>
         </div>
     </div>
     <div id="sayfa-empty" class="sayfa-empty" hidden>Henüz sayfa eklenmedi. Üstteki butonla ilk sayfa fotoğrafını ekleyin.</div>
@@ -128,12 +133,12 @@
         <div class="modal-body modal-body-wide">
             <div class="renk-modal-header">
                 <h3 id="renk-modal-baslik">Sayfa — Renkleri Düzenle</h3>
-                <button type="button" class="modal-close" id="renk-modal-x" aria-label="Kapat">✕</button>
+                <button type="button" class="modal-close" id="renk-modal-x" aria-label="Kapat"><svg class="icon"><use href="#ic-x"/></svg></button>
             </div>
             <div class="renk-modal-content">
                 <div class="renk-modal-canvas-area">
                     <div class="renk-modal-toolbar">
-                        <button type="button" class="btn btn-sm btn-primary" id="renk-auto">🎨 Otomatik Bul</button>
+                        <button type="button" class="btn btn-sm btn-primary" id="renk-auto"><svg class="icon"><use href="#ic-palette"/></svg> Otomatik Bul</button>
                         <label class="renk-toolbar-toggle">Renk sayısı
                             <select id="renk-auto-count" class="renk-auto-count">
                                 <option value="8">8</option>
@@ -144,7 +149,7 @@
                             </select>
                         </label>
                         <label class="renk-toolbar-toggle"><input type="checkbox" id="renk-avg" checked> 5×5 ortalama</label>
-                        <button type="button" class="btn btn-sm" id="renk-clear-all">🗑 Temizle</button>
+                        <button type="button" class="btn btn-sm" id="renk-clear-all"><svg class="icon"><use href="#ic-trash"/></svg> Temizle</button>
                         <span class="renk-modal-hint">Otomatik bul veya fotoğrafa tıkla</span>
                     </div>
                     <div class="renk-canvas-scroll" id="renk-canvas-scroll">

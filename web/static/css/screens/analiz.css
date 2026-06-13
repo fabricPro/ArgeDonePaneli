@@ -1,0 +1,71 @@
+/* ============================================================
+   FAS Stüdyo — Veri Analizi (analiz.html)  ·  tasarim-v2 Faz 7
+   KPI stat-card'lar + karşılaştırma tablosu + ülke eğilim kartları + bar chart.
+   Statik (JS yok); bar_chart makrosu paylaşımlı — analiz.html çağrı argümanı
+   (--altin → --chart-3) güncellenir, makro DEĞİŞMEZ.
+   Yöntem: değişken köprüsü + skill §3 yüzey hiyerarşisi (tek kahraman).
+   ============================================================ */
+
+/* ---- Köprü: eski koyu var-adları → Stüdyo (--space/--type/--radius main.css :root'tan gelir) ---- */
+.studio .stat-cards,
+.studio .analiz-table-wrap,
+.studio .country-detail-list {
+  --bg-card: var(--surface);
+  --bg-elev: var(--surface-2);
+  --text: var(--ink);
+  --text-dim: var(--ink-2);
+  --text-muted: var(--ink-3);
+}
+
+/* ---- Sayfa başlığı ikonu + bölüm başlığı ---- */
+.studio .page-header h1 .icon-xl { width: 22px; height: 22px; color: var(--accent); vertical-align: -3px; }
+.studio .section-title { font-size: 14px; font-weight: 600; color: var(--ink); margin: 0 0 14px; }
+
+/* ---- KPI stat-card'lar (skill §3: tek kahraman = Toplam ürün) ---- */
+.studio .stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); box-shadow: var(--sh); padding: 16px 18px;
+}
+.studio .stat-card .stat-icon { color: var(--ink-3); }
+.studio .stat-card .stat-value { font-size: 24px; font-weight: 700; color: var(--ink); }
+.studio .stat-card .stat-label { font-size: 12px; color: var(--ink-2); }
+/* Kahraman: ilk kart (Toplam ürün) */
+.studio .stat-cards .stat-card:first-child { background: var(--accent-bg); border-color: var(--accent-border); }
+.studio .stat-cards .stat-card:first-child .stat-icon { color: var(--accent); }
+.studio .stat-cards .stat-card:first-child .stat-value { color: var(--accent-strong); }
+
+/* ---- Karşılaştırma tablosu (skill §4: çerçevesiz satır) ---- */
+.studio .analiz-table-wrap {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); box-shadow: var(--sh); overflow-x: auto;
+}
+.studio .analiz-table th {
+  background: var(--surface-2); color: var(--ink-3);
+  font-size: 10.5px; letter-spacing: .04em; border-bottom: 1px solid var(--border);
+}
+.studio .analiz-table td { color: var(--ink); border-bottom: 1px solid var(--surface-2); }
+.studio .analiz-table tbody tr:hover td { background: var(--surface-2); }
+.studio .analiz-table .chip { background: var(--surface-2); border: 1px solid var(--border); color: var(--ink-2); }
+.studio .analiz-table .chip small { color: var(--ink-3); }
+.studio .analiz-table .muted { color: var(--ink-3); }
+
+/* ---- Ülke eğilim kartları (sol-kenar rol rengi) ---- */
+.studio .country-detail {
+  background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent); border-radius: var(--r); box-shadow: var(--sh);
+}
+.studio .country-detail-head { border-bottom: 1px solid var(--border); }
+.studio .country-detail-head h3 { font-size: 15px; font-weight: 600; color: var(--ink); }
+.studio .cg-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 20px; height: 19px; padding: 0 8px; font-size: 11px; font-weight: 600;
+  color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 999px; font-variant-numeric: tabular-nums;
+}
+.studio .country-detail .insight-body { color: var(--ink-2); }
+.studio .chart-title { color: var(--ink-3); font-size: 10.5px; letter-spacing: .04em; }
+
+/* ---- Yatay bar chart ---- */
+.studio .bar-label { color: var(--ink); }
+.studio .bar-track { background: var(--surface-2); }
+.studio .bar-value { color: var(--ink-2); }

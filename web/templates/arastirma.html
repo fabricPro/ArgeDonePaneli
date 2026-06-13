@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Ön Çalışma — Link havuzu{% endblock %}
+{% block body_class %}studio{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/screens/arastirma.css') }}">
+{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -189,9 +193,9 @@
                         </select>
                         <button type="button" class="btn btn-secondary ar-btn-enrich">AI ile Zenginleştir</button>
                         {# Sprint 12 — tek tık: zenginleştir + tüm alanları forma yaz (üzerine) #}
-                        <button type="button" class="btn btn-primary ar-btn-enrich-apply" title="Linkten doldur ve tüm form alanlarını AI değerleriyle üzerine yaz">⚡ AI Doldur (üzerine yaz)</button>
+                        <button type="button" class="btn btn-primary ar-btn-enrich-apply" title="Linkten doldur ve tüm form alanlarını AI değerleriyle üzerine yaz"><svg class="icon"><use href="#ic-zap"/></svg> AI Doldur (üzerine yaz)</button>
                         {# P6 — tüm AI öğelerini (factual + öneri + AI notu) tek tıkla kabul/geri-al #}
-                        <button type="button" class="btn btn-secondary ar-btn-accept-all">✓ Tümünü Kabul</button>
+                        <button type="button" class="btn btn-secondary ar-btn-accept-all"><svg class="icon"><use href="#ic-check"/></svg> Tümünü Kabul</button>
                     </div>
                 </div>
                 <label>Ürün URL <input type="url" data-field="product_url"></label>
@@ -266,7 +270,7 @@
                     <button type="button" class="btn btn-secondary ar-edit-cancel">İptal</button>
                     <button type="button" class="btn btn-secondary ar-edit-save">Kaydet</button>
                     {# Sprint 12 — doğrudan ürün oluştur (Galeriye Gönder); /ekle round-trip yok #}
-                    <button type="button" class="btn btn-primary ar-edit-to-product" title="Bu ön çalışmayı doğrudan ürüne çevir ve galeriye gönder">🏭 Ürün Oluştur</button>
+                    <button type="button" class="btn btn-primary ar-edit-to-product" title="Bu ön çalışmayı doğrudan ürüne çevir ve galeriye gönder"><svg class="icon"><use href="#ic-factory"/></svg> Ürün Oluştur</button>
                 </div>
             </div>
         </div>
@@ -301,4 +305,19 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/arastirma.js') }}"></script>
+{# Faz 7 (Stüdyo) — marka grupları KAPALI accordion. arastirma.js'e dokunmadan,
+   #ar-list üzerinde event-delegation ile başlığa tıklayınca grup aç/kapa.
+   Liste her render'da kapalı başlar (CSS), dinleyici sabit kapta kalır. #}
+<script>
+(function () {
+  var list = document.getElementById('ar-list');
+  if (!list) return;
+  list.addEventListener('click', function (e) {
+    var head = e.target.closest('.ar-group-head');
+    if (!head || !list.contains(head)) return;
+    var grp = head.closest('.ar-group');
+    if (grp) grp.classList.toggle('is-open');
+  });
+})();
+</script>
 {% endblock %}

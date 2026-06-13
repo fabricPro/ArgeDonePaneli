@@ -1,5 +1,10 @@
 {% extends "base.html" %}
 {% block title %}İplik Kataloğu — {{ items|length }} kartela{% endblock %}
+{% block body_class %}studio{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/screens/gallery.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/screens/iplik.css') }}">
+{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -53,7 +58,7 @@
             <img src="{{ k.kapak_url }}" alt="{{ k.ad }}" loading="lazy">
             {% else %}
             <div class="kartela-ph">
-                <span class="kartela-ph-icon">🧵</span>
+                <span class="kartela-ph-icon"><svg class="icon"><use href="#ic-spool"/></svg></span>
                 <span class="kartela-ph-initials">{{ (k.ad or '?')[:2]|upper }}</span>
             </div>
             {% endif %}
@@ -69,7 +74,7 @@
                 {% if k.kompozisyon %}<span class="card-stat">{{ k.kompozisyon }}</span>{% endif %}
             </div>
             <div class="card-indicators" aria-label="Veri durumu">
-                <span class="ind ind-renk {{ 'on' if k.toplam_renk else 'off' }}" data-tooltip="{{ k.toplam_renk or 0 }} renk">🎨 {{ k.toplam_renk or 0 }}</span>
+                <span class="ind ind-renk {{ 'on' if k.toplam_renk else 'off' }}" data-tooltip="{{ k.toplam_renk or 0 }} renk"><svg class="icon"><use href="#ic-palette"/></svg> {{ k.toplam_renk or 0 }}</span>
             </div>
         </div>
     </a>

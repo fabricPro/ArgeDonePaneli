@@ -90,62 +90,9 @@ a:hover { color: var(--accent); }
 
 a { color: var(--accent); text-decoration: none; }
 
-/* === Topbar === */
-.topbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 14px 32px;
-    background: var(--bg-card);
-    border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-
-.topbar-brand {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    color: inherit;
-}
-.brand-logo {
-    height: 40px;
-    width: auto;
-    display: block;
-    opacity: 0.95;
-    transition: opacity var(--t-base) var(--ease);
-}
-.topbar-brand:hover .brand-logo { opacity: 1; }
-
-/* Legacy text mark sınıfları — geriye uyum, kullanım kaldırıldı */
-.brand-mark, .brand-sub { display: none; }
-
-.topbar-nav { display: flex; gap: 20px; }
-
-.nav-link {
-    color: var(--text-dim);
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.nav-link:hover { background: var(--bg-elev); color: var(--text); }
-.nav-link.active { color: var(--accent); background: rgba(88, 166, 255, 0.1); }
-
-.nav-pending { color: var(--orange); }
-
-.badge-count {
-    background: var(--orange);
-    color: #fff;
-    border-radius: 10px;
-    padding: 2px 8px;
-    font-size: 11px;
-    font-weight: 700;
-}
+/* === Topbar === Faz 7 temizlik: eski koyu topbar (.topbar/.topbar-brand/.brand-logo/
+   .brand-mark/.brand-sub/.topbar-nav/.nav-link/.nav-pending/.badge-count) KALDIRILDI.
+   .appbar'a geçildi (components.css, tasarim-v2 Faz 0). Şablon/JS referansı: 0 (grep ile doğrulandı). */
 
 /* === Flash === */
 .flash-bar { padding: 12px 32px; }
