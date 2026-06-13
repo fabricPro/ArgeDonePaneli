@@ -158,6 +158,99 @@
   background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent-strong); font-weight: 500;
 }
 
+/* ============================================================
+   Ön Çalışma KAYIT DETAYI (arastirma_detail.html · .ardet-page)  · Faz 7
+   Bir havuz kaydının görsel galerisi + albüm/renk aracı. Köprü → .ardet-*
+   ve içindeki paylaşımlı album-color-tools (.ac-*/.album-tab/.palette-*/.cp-*)
+   açık temaya döner; lightbox bilinçli koyu kalır (tam ekran görsel izleyici).
+   ============================================================ */
+.studio .ardet-page {
+  --bg-card: var(--surface);
+  --bg-elev: var(--surface-2);
+  --text: var(--ink);
+  --text-dim: var(--ink-2);
+  --text-muted: var(--ink-3);
+  --accent-cool: var(--accent-strong);
+  --orange: var(--amber);
+  --radius-pill: 999px;
+}
+
+/* ---- Başlık + meta ---- */
+.studio .ardet-head { border-bottom: 1px solid var(--border); }
+.studio .ardet-head-text h1 { font-size: 19px; font-weight: 600; letter-spacing: -.015em; color: var(--ink); }
+.studio .ardet-breadcrumb a { color: var(--ink-2); }
+.studio .ardet-breadcrumb a:hover { color: var(--accent-strong); }
+.studio .ardet-meta { color: var(--ink-2); }
+.studio .ardet-master-link,
+.studio .ardet-product-url a { color: var(--ink-2); }
+.studio .ardet-master-link:hover,
+.studio .ardet-product-url a:hover { color: var(--accent-strong); }
+.studio .ardet-page-title { color: var(--ink); }
+.studio .ardet-notes { background: var(--amber-bg); border-left: 3px solid var(--amber); color: var(--ink); border-radius: var(--r-sm); }
+.studio .ardet-notes .icon { width: 13px; height: 13px; color: var(--amber); vertical-align: -2px; }
+.studio .ardet-img-badge .icon { width: 11px; height: 11px; vertical-align: -1px; }
+
+/* ---- Stat şeridi ---- */
+.studio .ardet-stats { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh); }
+.studio .ardet-stat-n { color: var(--accent-strong); }
+.studio .ardet-stat-l { color: var(--ink-2); }
+.studio .ardet-stat-fav .icon { color: var(--cost); }
+.studio .ardet-stat-fav .icon polygon { fill: var(--cost); }
+
+/* ---- Görsel galerisi ---- */
+.studio .ardet-img-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh); }
+.studio .ardet-img-card:hover { border-color: var(--border-strong); box-shadow: var(--sh-pop); }
+.studio .ardet-img-wrap { background: var(--surface-2); }
+.studio .ardet-img-missing { color: var(--ink-3); }
+.studio .ardet-img-badge { background: var(--accent-bg); color: var(--accent-strong); }
+.studio .ardet-img-alt { color: var(--ink-2); }
+.studio .ardet-img-source { color: var(--accent-strong); }
+.studio .ardet-empty { background: var(--surface); border: 1px dashed var(--border-strong); color: var(--ink-2); border-radius: var(--r); }
+
+/* ---- Lightbox: BİLİNÇLİ koyu (tam ekran görsel izleyici) → sabit değerler ---- */
+.studio .ardet-lb-close,
+.studio .ardet-lb-prev,
+.studio .ardet-lb-next {
+  background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.25); color: #fff;
+}
+.studio .ardet-lb-close:hover,
+.studio .ardet-lb-prev:hover,
+.studio .ardet-lb-next:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+.studio .ardet-lb-caption { color: #fff; background: rgba(0,0,0,.8); }
+
+/* ---- Paylaşımlı album-color-tools: champagne aktif durumları → indigo ---- */
+.studio .ardet-page .album-tab.is-active { background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent-strong); }
+.studio .ardet-page .album-tab.album-new { color: var(--accent-strong); background: transparent; border-style: dashed; }
+.studio .ardet-page .ac-toolbar-hint { color: var(--ink-2); }
+.studio .ardet-page .ct-side-head h3 { font-size: 13px; font-weight: 600; color: var(--ink); }
+.studio .ardet-page .palette-mode-btn.is-active { background: var(--accent); color: #fff; }
+.studio .ardet-page .palette-chip .chip-role-warp { background: var(--warp-bg); color: var(--warp); }
+.studio .ardet-page .palette-chip .chip-role-weft { background: var(--weft-bg); color: var(--weft); }
+.studio .ardet-page .palette-chip .chip-role-mix { background: var(--accent-bg); color: var(--accent-strong); }
+.studio .ardet-page .cp-role-tab.is-active { background: var(--accent); color: #fff; }
+.studio .ardet-page .ct-summary-badge { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-bg); }
+/* Album-tool kapsayıcı zeminleri — main.css var(--bg-card) koyusunu açıkça nötrle (urun.css deseni) */
+.studio .ardet-page .color-tools { background: transparent; }
+.studio .ardet-page .ct-palette-bar { background: transparent; border: none; padding: 0; }
+.studio .ardet-page .ct-picker-details { background: transparent; border: none; border-top: 1px solid var(--surface-2); border-radius: 0; padding: 12px 0 0; margin-top: 14px; }
+.studio .ardet-page .ct-picker-details[open] > .ct-picker-summary { border-bottom: 1px solid var(--surface-2); }
+.studio .ardet-page .ct-picker-summary { color: var(--ink); }
+.studio .ardet-page .ct-picker-summary:hover { background: var(--surface-2); }
+.studio .ardet-page .ct-canvas-side,
+.studio .ardet-page .ct-result-side { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); }
+.studio .ardet-page .ct-no-album { color: var(--ink-2); }
+/* Seç modu aksiyon çubuğu (varsayılan gizli) + albüm atama select'leri */
+.studio .ardet-page .img-select-actionbar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh); }
+.studio .ardet-page .sel-count strong { color: var(--accent-strong); }
+.studio .ardet-page .album-assign-select { background: #fff; border: 1px solid var(--border); border-radius: var(--r-sm); color: var(--ink); }
+.studio .ardet-page .album-assign-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+.studio .ardet-page .ct-empty,
+.studio .ardet-page .cp-saved-empty { color: var(--ink-3); }
+.studio .ardet-page .img-check-overlay { background: rgba(255,255,255,.92); border: 1px solid var(--border); }
+.studio .ardet-page .ardet-img-card.ac-selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-bg), var(--sh); }
+.studio .ardet-page .ardet-img-card.ac-selected .img-check-overlay { background: var(--accent); border-color: var(--accent); }
+.studio .ardet-page .ardet-img-card.ac-selected .img-check-overlay .icon { color: #fff; opacity: 1; }
+
 /* ---- Grup altı hızlı satır ekleme (ghost) ---- */
 .studio .ar-group-add-trigger { background: transparent; border: 1px dashed var(--border); color: var(--ink-2); border-radius: var(--r-sm); }
 .studio .ar-group-add-trigger:hover { border-color: var(--accent); color: var(--accent-strong); background: var(--accent-bg); }

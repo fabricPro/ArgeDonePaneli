@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 {% block title %}{% if entry %}{{ entry.brand }} — {{ entry.product_url }}{% else %}Bulunamadı{% endif %}{% endblock %}
+{% block body_class %}studio{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/screens/arastirma.css') }}">
+{% endblock %}
 
 {% block content %}
 {% if not entry %}
@@ -35,7 +39,7 @@
             <p class="ardet-page-title">{{ entry.page_title }}</p>
             {% endif %}
             {% if entry.notes %}
-            <p class="ardet-notes">📝 {{ entry.notes }}</p>
+            <p class="ardet-notes"><svg class="icon"><use href="#ic-pencil"/></svg> {{ entry.notes }}</p>
             {% endif %}
         </div>
         <div class="ardet-head-actions">
@@ -90,7 +94,7 @@
             </div>
             <div class="ardet-img-meta">
                 {% if loop.first %}
-                <span class="ardet-img-badge ardet-img-cover">⭐ Kapak</span>
+                <span class="ardet-img-badge ardet-img-cover"><svg class="icon"><use href="#ic-star"/></svg> Kapak</span>
                 {% endif %}
                 {% if im.alt %}
                 <span class="ardet-img-alt">{{ im.alt }}</span>

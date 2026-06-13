@@ -583,7 +583,7 @@
             <h4>Araştırma Görselleri <span class="oc-cnt">({{ from_research_row.images|length }})</span></h4>
             <div class="oc-img-grid">
                 {% for im in from_research_row.images %}
-                {% set _imurl = im.url or (im.storage_path and ('https://' ~ (request.host if request else '') ~ '/storage/' ~ im.storage_path)) or '' %}
+                {% set _imurl = im.url or '' %}
                 <a class="oc-img-card" href="{{ _imurl }}" target="_blank" rel="noopener" title="{{ im.alt or '' }}">
                     {% if _imurl %}
                     <img src="{{ _imurl }}" loading="lazy" alt="{{ im.alt or '' }}">

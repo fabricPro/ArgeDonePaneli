@@ -701,6 +701,12 @@ def urun_detail(urun_id: str):
             from_research_row = store.research_get(fr_id)
         except Exception:
             from_research_row = None
+        # Ön Çalışma sekmesi görselleri: ham research_get .url içermez → storage_path'ten
+        # public_url üret (arastirma_detail ile aynı; yoksa template kırık https://host/storage'a düşer).
+        if from_research_row and from_research_row.get("images"):
+            for _im in from_research_row["images"]:
+                if isinstance(_im, dict) and not _im.get("url") and _im.get("storage_path"):
+                    _im["url"] = store.public_url(_im["storage_path"])
     return render_template(
         "urun.html", product=d, urun_id=urun_id,
         cover_image=store.public_url(cover_path(d)),
