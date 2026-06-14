@@ -354,6 +354,17 @@
 .snk-toggle input { width: 15px; height: 15px; accent-color: var(--accent); }
 .snk-actual-m { width: 84px; }
 
+/* Çok-sürüm — sürüm bölümleri */
+.snk-vsection { margin-bottom: 16px; }
+.snk-vsection-head { display: flex; align-items: center; gap: 10px; }
+.snk-vsection-title { font: 600 13px/1 var(--font); letter-spacing: 0; text-transform: none; color: var(--ink); }
+.snk-vselect { margin-left: auto; }
+.snk-vsection-off .snk-vsection-body { opacity: .45; }
+.snk-vsection-off { border-style: dashed; }
+.snk-dokuma-block { border-top: 1px solid var(--surface-2); }
+.snk-dokuma-h { padding: 10px 16px 4px; font: 600 11px/1 var(--font); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); }
+.snk-dokuma-h .snk-soft { text-transform: none; letter-spacing: 0; }
+
 @media (max-width: 860px) {
     .snk-cols { grid-template-columns: 1fr; }
     .snk-form .form-grid { grid-template-columns: 1fr; }

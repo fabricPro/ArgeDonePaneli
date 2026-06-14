@@ -30,6 +30,7 @@ TABLE_WARPS = "warps"  # Senkron Sprint 4 — çözgü
 TABLE_WARP_YARNS = "warp_yarns"  # Senkron Sprint 4 — çözgü iplikleri
 TABLE_WARP_ALLOCATIONS = "warp_product_allocations"  # Senkron Sprint 4 — metre bütçesi
 TABLE_WEFT_VARIANT_ACTUALS = "weft_variant_actuals"  # Senkron Sprint 5 — dokuma sonrası gerçekleşen
+TABLE_LOOM_PRODUCT_VERSIONS = "loom_product_versions"  # Senkron — çok-sürümlü atkı (sürüm seçimi)
 
 PRODUCT_COLUMNS = [
     "urun_id", "brand", "brand_slug", "country", "collection", "product_name",
@@ -710,6 +711,39 @@ def weft_variant_actual_set(loom_product_id: str, surum_id: str, variant_index: 
            "surum_id": surum_id, "variant_index": int(variant_index),
            "woven": bool(woven), "actual_m": actual_m, "notes": notes, "created_at": _now_iso()}
     client().table(TABLE_WEFT_VARIANT_ACTUALS).insert(row).execute()
+    return row
+
+
+# ============================================================
+# Senkron — çok-sürümlü atkı: loom_product_versions (hangi sürümler seçili)
+# Şema: scripts/supabase_schema_senkron_part6.sql. Read'ler migration öncesi boş döner.
+# selected default TRUE → row yoksa sürüm seçili sayılır (regresyon: tek sürüm = eski davranış).
+# ============================================================
+
+def loom_product_versions_for(loom_product_id: str) -> dict:
+    """{surum_id: selected(bool)} — bir loom_product'ın sürüm seçim durumu."""
+    try:
+        rows = (client().table(TABLE_LOOM_PRODUCT_VERSIONS).select("*")
+                .eq("loom_product_id", loom_product_id).execute()).data or []
+    except Exception as e:  # noqa: BLE001
+        if _missing_table(e):
+            return {}
+        raise
+    return {r.get("surum_id"): bool(r.get("selected")) for r in rows}
+
+
+def loom_product_version_set(loom_product_id: str, surum_id: str, selected: bool) -> dict:
+    """Doğal anahtara (lp, surum_id) seçim yaz — varsa güncelle, yoksa ekle."""
+    existing = (client().table(TABLE_LOOM_PRODUCT_VERSIONS).select("id")
+                .eq("loom_product_id", loom_product_id).eq("surum_id", surum_id).limit(1).execute()).data
+    if existing:
+        vid = existing[0]["id"]
+        client().table(TABLE_LOOM_PRODUCT_VERSIONS).update(
+            {"selected": bool(selected)}).eq("id", vid).execute()
+        return {"id": vid, "updated": True}
+    row = {"id": "lpv_" + _uuid.uuid4().hex[:10], "loom_product_id": loom_product_id,
+           "surum_id": surum_id, "selected": bool(selected), "created_at": _now_iso()}
+    client().table(TABLE_LOOM_PRODUCT_VERSIONS).insert(row).execute()
     return row
 
 
