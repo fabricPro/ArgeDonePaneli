@@ -40,21 +40,10 @@
     </div>
     {% endif %}
 
-    {# v4.0-part-2 Sprint 13 — Albüm tab çubuğu #}
+    {# Faz 3 — Klasör ağacı (sol) + kart grid (sağ) yan yana #}
     {% if total > 0 %}
-    <nav class="cw-album-tabs" id="cw-album-tabs" role="tablist" aria-label="Albümler">
-        <button type="button" class="cw-tab is-active" data-album-id="" role="tab" aria-selected="true">
-            Tümü <span class="cw-tab-cnt">{{ total }}</span>
-        </button>
-        {% for a in workspace_albums %}
-        <button type="button" class="cw-tab" data-album-id="{{ a.id }}" role="tab" aria-selected="false">
-            {% if a.color %}<span class="cw-tab-dot" style="background:{{ a.color }}"></span>{% endif %}
-            {{ a.name }} <span class="cw-tab-cnt">{{ a.count }}</span>
-            <span class="cw-tab-menu-btn" data-album-id="{{ a.id }}" title="Albüm ayarları">⋯</span>
-        </button>
-        {% endfor %}
-        <button type="button" class="cw-tab cw-tab-new" id="cw-album-new-btn">+ Yeni Albüm</button>
-    </nav>
+    <div class="cw-browse" id="cw-browse">
+        <aside class="cw-tree" id="cw-tree" role="tree" aria-label="Klasörler">{# calisma.js doldurur — ağaç + "Tümü" + "+ Yeni klasör" #}</aside>
     {% endif %}
 
     <!-- STATE 1: GRID -->
@@ -108,7 +97,8 @@
             </button>
         </article>
         {% endfor %}
-    </div>
+    </div>{# /cw-grid #}
+    {% if total > 0 %}</div>{# /cw-browse #}{% endif %}
 
     <!-- STATE 2: SPLIT -->
     <div class="cw-split" id="cw-split" hidden>

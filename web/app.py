@@ -4205,22 +4205,54 @@ def _workspace_summary_list() -> list[dict]:
 
 
 def _workspace_albums_with_counts() -> list[dict]:
-    """v4.0-part-2 Sprint 13: albüm listesi + her albümde kaç ürün var (workspace içinde)."""
+    """v4.0-part-2 Sprint 13 + Faz 3: albüm/klasör listesi.
+    Her düğüm için parent_id + depth + roll-up sayım (doğrudan üyeler + tüm alt klasör üyeleri)."""
     data = store.workspace_data_get()
     workspace_ids = set(store.workspace_get_ids())
     membership = data.get("membership") or {}
-    counts: dict[str, int] = {}
+    albums = data.get("albums") or []
+    # Doğrudan üye sayıları (sadece workspace'te olan ürünler)
+    direct: dict[str, int] = {}
     for urun_id, alb in membership.items():
         if urun_id not in workspace_ids or not alb:
             continue
-        counts[alb] = counts.get(alb, 0) + 1
+        direct[alb] = direct.get(alb, 0) + 1
+    # parent -> children haritası
+    children: dict = {}
+    for a in albums:
+        children.setdefault(a.get("parent_id") or None, []).append(a.get("id"))
+    by_id = {a.get("id"): a for a in albums}
+
+    def subtree_count(aid, seen=None):
+        if seen is None:
+            seen = set()
+        if aid in seen:
+            return 0  # döngü koruması
+        seen.add(aid)
+        total = direct.get(aid, 0)
+        for c in children.get(aid, []):
+            total += subtree_count(c, seen)
+        return total
+
+    def depth_of(aid):
+        d, pid, guard = 0, (by_id.get(aid) or {}).get("parent_id"), set()
+        while pid and pid in by_id and pid not in guard:
+            guard.add(pid)
+            d += 1
+            pid = by_id[pid].get("parent_id")
+        return d
+
     out = []
-    for a in (data.get("albums") or []):
+    for a in albums:
+        aid = a.get("id")
         out.append({
-            "id": a.get("id"),
+            "id": aid,
             "name": a.get("name"),
             "color": a.get("color"),
-            "count": counts.get(a.get("id"), 0),
+            "parent_id": a.get("parent_id") or None,   # Faz 3 — ağaç
+            "depth": depth_of(aid),
+            "count": subtree_count(aid),                # roll-up (alt klasörler dahil)
+            "direct_count": direct.get(aid, 0),         # yalnız doğrudan üyeler
             "created_at": a.get("created_at"),
         })
     return out
@@ -4294,14 +4326,15 @@ def api_calisma_sirala():
 
 @app.route("/api/calisma/album/ekle", methods=["POST"])
 def api_calisma_album_ekle():
-    """Body: {name, color?} → yeni albüm objesi."""
+    """Body: {name, color?, parent_id?} → yeni albüm/klasör objesi (Faz 3: parent_id ile ağaç)."""
     data = request.get_json(silent=True) or {}
     name = (data.get("name") or "").strip()
     color = (data.get("color") or "").strip() or None
+    parent_id = (data.get("parent_id") or "").strip() or None
     if not name:
         return jsonify({"ok": False, "error": "name zorunlu"}), 400
     try:
-        album = store.workspace_album_create(name, color)
+        album = store.workspace_album_create(name, color, parent_id)
     except ValueError as e:
         return jsonify({"ok": False, "error": str(e)}), 400
     return jsonify({"ok": True, "album": album, "albums": _workspace_albums_with_counts()})

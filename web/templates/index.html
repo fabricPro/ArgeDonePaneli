@@ -54,6 +54,7 @@
     <span class="sel-count"><strong id="sel-count-num">0</strong> seçili</span>
     <div class="sel-actions">
         <button id="sel-cancel" class="btn btn-ghost">İptal</button>
+        <button id="sel-folder" class="btn btn-secondary"><svg class="icon"><use href="{{ sprite }}#ic-folder-plus"/></svg> Klasöre Taşı</button>
         <button id="sel-delete" class="btn btn-danger"><svg class="icon"><use href="{{ sprite }}#ic-trash"/></svg> Sil</button>
     </div>
 </div>
@@ -95,6 +96,11 @@
                     aria-label="Çalışma Alanına ekle/çıkar"
                     title="{% if p.in_workspace %}Çalışmadan çıkar{% else %}Çalışmaya ekle{% endif %}">
                 <svg class="icon"><use href="{{ sprite }}#ic-pin"/></svg>
+            </button>
+            {# Faz 3 — Çalışma klasörüne ata (pin + atama tek tık) #}
+            <button type="button" class="card-folder-btn" data-urunid="{{ p.urun_id }}" data-name-label="{{ p.product_name }}"
+                    aria-label="Çalışma klasörüne ata" title="Çalışma klasörüne ata">
+                <svg class="icon"><use href="{{ sprite }}#ic-folder-plus"/></svg>
             </button>
             <span class="card-select-check" aria-hidden="true"><svg class="icon"><use href="{{ sprite }}#ic-check"/></svg></span>
             {# v4.0-part-2 Sprint 13: üstteki "RENKLER X X" chip kaldırıldı — kart altı ikonlara taşındı #}
@@ -324,6 +330,86 @@ selDelete?.addEventListener('click', async () => {
     } else {
         (window.toast || alert)(data.error || 'Toplu silme hatası', 'error');
     }
+});
+
+// --- Faz 3 — Galeriden Çalışma klasörüne ata (⋯) + toplu ---
+let cwAlbumsCache = null;
+async function getCwAlbums(force) {
+    if (cwAlbumsCache && !force) return cwAlbumsCache;
+    try {
+        const res = await fetch('/api/calisma/list');
+        const d = await res.json();
+        cwAlbumsCache = d.ok ? (d.albums || []) : [];
+    } catch (e) { cwAlbumsCache = []; }
+    return cwAlbumsCache;
+}
+function cwMoveOptions(albums) {
+    const lines = ['0 — (Tümü / klasörsüz)'];
+    const idMap = [null];
+    const childrenOf = (pid) => albums
+        .filter(a => (a.parent_id || null) === (pid || null))
+        .sort((x, y) => String(x.name).localeCompare(String(y.name), 'tr'));
+    (function walk(pid, depth) {
+        childrenOf(pid).forEach(a => {
+            lines.push(`${idMap.length} — ${'　'.repeat(depth)}${a.name}`);
+            idMap.push(a.id);
+            walk(a.id, depth + 1);
+        });
+    })(null, 0);
+    return { lines, idMap };
+}
+// Klasör seçtir (prompt + "Y" ile yeni klasör). Dönüş: {albumId} | null (iptal)
+async function pickCwFolder(title) {
+    const albums = await getCwAlbums();
+    const { lines, idMap } = cwMoveOptions(albums);
+    const choice = prompt(title + '\n(Seçilen kumaş Çalışma Alanına da eklenir.)\n\n' + lines.join('\n') + '\n\nY — + Yeni klasör oluştur');
+    if (choice === null || choice.trim() === '') return null;
+    if (choice.trim().toLowerCase() === 'y') {
+        const nn = prompt('Yeni klasör adı:');
+        if (!nn || !nn.trim()) return null;
+        const res = await fetch('/api/calisma/album/ekle', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: nn.trim() }) });
+        const d = await res.json();
+        if (!d.ok) { (window.toast || alert)(d.error || 'Klasör oluşturulamadı', 'error'); return null; }
+        cwAlbumsCache = d.albums || cwAlbumsCache;
+        return { albumId: d.album.id };
+    }
+    const idx = parseInt(choice, 10);
+    if (isNaN(idx) || idx < 0 || idx >= idMap.length) { (window.toast || alert)('Geçersiz seçim', 'warn'); return null; }
+    return { albumId: idMap[idx] };
+}
+async function pinAndAssign(uid, albumId) {
+    await fetch('/api/calisma/ekle', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ urun_id: uid }) });
+    const res = await fetch('/api/calisma/urun-albume-tasi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ urun_id: uid, album_id: albumId }) });
+    const d = await res.json();
+    if (d.ok) cwAlbumsCache = d.albums || cwAlbumsCache;
+    const pinBtn = document.querySelector(`.card-pin-btn[data-urunid="${CSS.escape(uid)}"]`);
+    if (pinBtn) { pinBtn.dataset.pinned = 'true'; pinBtn.classList.add('is-pinned'); pinBtn.title = 'Çalışmadan çıkar'; }
+    return d.ok;
+}
+// Tekil kart "⋯"
+document.querySelectorAll('.card-folder-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+        e.preventDefault(); e.stopPropagation();
+        if (selectMode) return;   // seç modunda gizli zaten
+        const uid = btn.dataset.urunid;
+        const name = btn.dataset.nameLabel || uid;
+        const pick = await pickCwFolder(`"${name}" kumaşını hangi Çalışma klasörüne at?`);
+        if (!pick) return;
+        const ok = await pinAndAssign(uid, pick.albumId);
+        (window.toast || alert)(ok ? (pick.albumId ? 'Çalışma klasörüne eklendi' : 'Çalışmaya eklendi') : 'Atanamadı', ok ? 'success' : 'error');
+    });
+});
+// Toplu "Klasöre Taşı"
+const selFolder = document.getElementById('sel-folder');
+selFolder?.addEventListener('click', async () => {
+    if (selectedIds.size === 0) { (window.toast || alert)('Önce kumaş seç', 'warn'); return; }
+    const ids = [...selectedIds];
+    const pick = await pickCwFolder(`${ids.length} kumaşı hangi Çalışma klasörüne at?`);
+    if (!pick) return;
+    let ok = 0;
+    for (const uid of ids) { if (await pinAndAssign(uid, pick.albumId)) ok++; }
+    (window.toast || alert)(`${ok}/${ids.length} kumaş klasöre eklendi`, 'success');
+    setSelectMode(false);
 });
 
 // --- Dashboard Tasarım Modu (drag-drop sıralama) ---

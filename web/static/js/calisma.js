@@ -8,6 +8,7 @@
 
   const page = $('#calisma-page');
   const grid = $('#cw-grid');
+  const browse = $('#cw-browse');   // Faz 3 — ağaç + grid sarmalı
   const split = $('#cw-split');
   const railList = $('#cw-rail-list');
   const leftIframe = $('#cw-left-iframe');
@@ -148,6 +149,7 @@
     activeId = urun_id;
     page.dataset.mode = 'focus';
     grid.hidden = true;
+    if (browse) browse.hidden = true;   // ağaç + grid'i birlikte gizle
     split.hidden = false;
     applySplitRatio();
     requestAnimationFrame(positionDivider);   // layout oturunca bölücüyü konumla
@@ -167,6 +169,7 @@
     page.dataset.mode = 'grid';
     split.hidden = true;
     grid.hidden = false;
+    if (browse) browse.hidden = false;   // ağaç + grid'i tekrar göster
     leftIframe.src = 'about:blank';
     rightIframe.src = 'about:blank';
     document.title = 'Çalışma Alanı';
@@ -259,8 +262,9 @@
      v4.0-part-2 Sprint 13 — Çalışma Alanı Albümleri
      ============================================================ */
   let albums = (window.CW_ALBUMS || []).slice();
-  let activeAlbumId = '';   // boş string = Tümü
-  const tabsEl = $('#cw-album-tabs');
+  let activeAlbumId = '';            // '' = Tümü
+  const collapsed = new Set();       // daraltılmış düğüm id'leri (varsayılan: hepsi açık)
+  const treeEl = $('#cw-tree');
 
   function escAttr(s) {
     return String(s ?? '').replace(/[&<>"']/g, c => ({
@@ -268,115 +272,135 @@
     }[c]));
   }
 
+  // ---- Ağaç yardımcıları (parent_id ile sınırsız derinlik) ----
+  function childrenOf(pid) {
+    return albums
+      .filter(a => (a.parent_id || null) === (pid || null))
+      .sort((x, y) => String(x.name || '').localeCompare(String(y.name || ''), 'tr'));
+  }
+  function descendantsOf(id) {
+    const out = new Set();
+    (function walk(pid) { childrenOf(pid).forEach(c => { out.add(c.id); walk(c.id); }); })(id);
+    return out;
+  }
+
   function applyAlbumFilter() {
+    const showAll = !activeAlbumId;
+    let allowed = null;
+    if (!showAll) { allowed = descendantsOf(activeAlbumId); allowed.add(activeAlbumId); }
     $$('.cw-card').forEach(card => {
-      const cardAlb = card.dataset.albumId || '';
-      const show = !activeAlbumId || cardAlb === activeAlbumId;
+      const alb = card.dataset.albumId || '';
+      const show = showAll || (alb && allowed.has(alb));
       card.style.display = show ? '' : 'none';
     });
   }
 
-  function recountAlbumTabs() {
-    // Tümü
-    const allCnt = items.length;
-    const allBtn = tabsEl?.querySelector('.cw-tab[data-album-id=""]');
-    if (allBtn) {
-      const span = allBtn.querySelector('.cw-tab-cnt');
-      if (span) span.textContent = allCnt;
-    }
-    // Her albüm
-    const counts = {};
-    items.forEach(it => {
-      const a = it.album_id;
-      if (a) counts[a] = (counts[a] || 0) + 1;
-    });
-    tabsEl?.querySelectorAll('.cw-tab[data-album-id]:not([data-album-id=""])').forEach(b => {
-      const id = b.dataset.albumId;
-      const span = b.querySelector('.cw-tab-cnt');
-      if (span) span.textContent = counts[id] || 0;
-    });
+  function nodeHtml(a) {
+    const kids = childrenOf(a.id);
+    const hasKids = kids.length > 0;
+    const open = !collapsed.has(a.id);
+    const isActive = a.id === activeAlbumId;
+    const dot = a.color ? `<span class="cw-tree-dot" style="background:${escAttr(a.color)}"></span>` : '';
+    const toggle = hasKids
+      ? `<button type="button" class="cw-tree-toggle${open ? ' is-open' : ''}" data-toggle="${escAttr(a.id)}" aria-label="Aç/Kapat"><svg class="icon"><use href="#ic-chevron-down"/></svg></button>`
+      : `<span class="cw-tree-toggle-sp" aria-hidden="true"></span>`;
+    let html =
+      `<li class="cw-tree-node" role="treeitem" style="--depth:${a.depth || 0}">` +
+      `<div class="cw-tree-row${isActive ? ' is-active' : ''}">` +
+        toggle +
+        `<button type="button" class="cw-tree-label" data-album-id="${escAttr(a.id)}" title="${escAttr(a.name)}">${dot}<span class="cw-tree-name">${escAttr(a.name)}</span><span class="cw-tree-cnt">${a.count || 0}</span></button>` +
+        `<button type="button" class="cw-tree-menu" data-menu="${escAttr(a.id)}" title="Klasör ayarları" aria-label="Klasör ayarları">⋯</button>` +
+      `</div>`;
+    if (hasKids && open) html += `<ul class="cw-tree-children" role="group">${kids.map(nodeHtml).join('')}</ul>`;
+    return html + `</li>`;
   }
 
-  function setActiveTab(albId) {
-    activeAlbumId = albId || '';
-    tabsEl?.querySelectorAll('.cw-tab[data-album-id]').forEach(b => {
-      const isActive = (b.dataset.albumId || '') === activeAlbumId;
-      b.classList.toggle('is-active', isActive);
-      b.setAttribute('aria-selected', isActive ? 'true' : 'false');
-    });
+  function renderTree() {
+    if (!treeEl) return;
+    const allActive = activeAlbumId === '';
+    const roots = childrenOf(null);
+    treeEl.innerHTML =
+      `<button type="button" class="cw-tree-all cw-tree-row${allActive ? ' is-active' : ''}" data-album-id=""><svg class="icon"><use href="#ic-grid"/></svg><span class="cw-tree-name">Tümü</span><span class="cw-tree-cnt">${items.length}</span></button>` +
+      `<ul class="cw-tree-root" role="group">${roots.map(nodeHtml).join('')}</ul>` +
+      `<button type="button" class="cw-tree-newroot" data-newroot="1"><svg class="icon"><use href="#ic-plus"/></svg> Yeni klasör</button>`;
     applyAlbumFilter();
   }
 
-  // Tab click handler (delegation — yeni tab'lar da yakalanır)
-  tabsEl?.addEventListener('click', async (e) => {
-    // Album menü "⋯"
-    const menuBtn = e.target.closest('.cw-tab-menu-btn');
-    if (menuBtn) {
-      e.preventDefault(); e.stopPropagation();
-      const albId = menuBtn.dataset.albumId;
-      const album = albums.find(a => a.id === albId);
-      const action = prompt(
-        `"${album?.name || albId}" albümü:\n` +
-        `  1 — Yeniden adlandır\n` +
-        `  2 — Sil\n` +
-        `(1 veya 2 yaz, vazgeçmek için boş bırak)`
-      );
-      if (action === '1') {
-        const newName = prompt('Yeni isim:', album?.name || '');
-        if (newName && newName.trim()) {
-          await renameAlbum(albId, newName.trim());
-        }
-      } else if (action === '2') {
-        if (confirm(`"${album?.name || albId}" albümü silinsin mi?\n(İçindeki ürünler "Tümü"de kalır.)`)) {
-          await deleteAlbum(albId);
-        }
-      }
+  function setActiveNode(id) {
+    activeAlbumId = id || '';
+    renderTree();
+  }
+
+  // Ağaç tıklamaları (delegation)
+  treeEl?.addEventListener('click', async (e) => {
+    const tog = e.target.closest('.cw-tree-toggle');
+    if (tog) {
+      e.stopPropagation();
+      const id = tog.dataset.toggle;
+      if (collapsed.has(id)) collapsed.delete(id); else collapsed.add(id);
+      renderTree();
       return;
     }
-    // + Yeni Albüm
-    if (e.target.closest('#cw-album-new-btn')) {
-      e.preventDefault();
-      const name = prompt('Yeni albüm adı:');
-      if (name && name.trim()) {
-        await createAlbum(name.trim());
-      }
+    const menu = e.target.closest('.cw-tree-menu');
+    if (menu) { e.stopPropagation(); await openNodeMenu(menu.dataset.menu); return; }
+    if (e.target.closest('.cw-tree-newroot')) {
+      const name = prompt('Yeni klasör adı:');
+      if (name && name.trim()) await createAlbum(name.trim(), null);
       return;
     }
-    // Tab seçimi
-    const tab = e.target.closest('.cw-tab[data-album-id]');
-    if (tab && !tab.classList.contains('cw-tab-new')) {
-      setActiveTab(tab.dataset.albumId || '');
-    }
+    if (e.target.closest('.cw-tree-all')) { setActiveNode(''); return; }
+    const lbl = e.target.closest('.cw-tree-label');
+    if (lbl) { setActiveNode(lbl.dataset.albumId); return; }
   });
 
-  async function createAlbum(name) {
+  async function openNodeMenu(id) {
+    const a = albums.find(x => x.id === id);
+    const action = prompt(
+      `"${a?.name || ''}" klasörü:\n` +
+      `  1 — Yeniden adlandır\n` +
+      `  2 — Sil (alt klasör/ürünler bir üste taşınır)\n` +
+      `  3 — Alt klasör ekle\n` +
+      `(1/2/3 yaz, vazgeç: boş)`
+    );
+    if (action === '1') {
+      const nn = prompt('Yeni isim:', a?.name || '');
+      if (nn && nn.trim()) await renameAlbum(id, nn.trim());
+    } else if (action === '2') {
+      if (confirm(`"${a?.name || ''}" klasörü silinsin mi?\n(Alt klasörler ve ürünler bir üst düzeye taşınır — veri kaybı yok.)`)) await deleteAlbum(id);
+    } else if (action === '3') {
+      const nn = prompt('Alt klasör adı:');
+      if (nn && nn.trim()) { collapsed.delete(id); await createAlbum(nn.trim(), id); }
+    }
+  }
+
+  async function createAlbum(name, parentId) {
     try {
       const res = await fetch('/api/calisma/album/ekle', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, parent_id: parentId || null }),
       });
       const d = await res.json();
       if (!d.ok) { toast(d.error || 'Hata', 'error'); return; }
       albums = d.albums || [];
-      rerenderTabs();
+      renderTree();
       toast(`"${name}" oluşturuldu`, 'success');
     } catch (err) { toast('Bağlantı hatası', 'error'); }
   }
 
   async function deleteAlbum(albId) {
+    const parent = (albums.find(a => a.id === albId) || {}).parent_id || '';
     try {
       const res = await fetch(`/api/calisma/album/${albId}/sil`, { method: 'POST' });
       const d = await res.json();
       if (!d.ok) { toast(d.error || 'Hata', 'error'); return; }
       albums = d.albums || [];
-      // Local kart membership cleanup
-      items.forEach(it => { if (it.album_id === albId) it.album_id = null; });
-      $$('.cw-card').forEach(card => {
-        if ((card.dataset.albumId || '') === albId) card.dataset.albumId = '';
-      });
-      if (activeAlbumId === albId) activeAlbumId = '';
-      rerenderTabs();
-      toast('Albüm silindi', 'success');
+      // Silinen düğümdeki kartlar/ürünler ebeveyne taşındı (promote)
+      $$('.cw-card').forEach(card => { if ((card.dataset.albumId || '') === albId) card.dataset.albumId = parent; });
+      items.forEach(it => { if (it.album_id === albId) it.album_id = parent || null; });
+      if (activeAlbumId === albId) activeAlbumId = parent || '';
+      collapsed.delete(albId);
+      renderTree();
+      toast('Klasör silindi', 'success');
     } catch (err) { toast('Bağlantı hatası', 'error'); }
   }
 
@@ -389,68 +413,59 @@
       const d = await res.json();
       if (!d.ok) { toast(d.error || 'Hata', 'error'); return; }
       albums = d.albums || [];
-      rerenderTabs();
+      renderTree();
       toast('Yeniden adlandırıldı', 'success');
     } catch (err) { toast('Bağlantı hatası', 'error'); }
   }
 
-  function rerenderTabs() {
-    if (!tabsEl) return;
-    const allBtn = `<button type="button" class="cw-tab ${activeAlbumId === '' ? 'is-active' : ''}" data-album-id="" role="tab" aria-selected="${activeAlbumId === '' ? 'true' : 'false'}">Tümü <span class="cw-tab-cnt">${items.length}</span></button>`;
-    const albBtns = albums.map(a => {
-      const isAct = a.id === activeAlbumId;
-      const dot = a.color ? `<span class="cw-tab-dot" style="background:${escAttr(a.color)}"></span>` : '';
-      return `<button type="button" class="cw-tab ${isAct ? 'is-active' : ''}" data-album-id="${escAttr(a.id)}" role="tab" aria-selected="${isAct ? 'true' : 'false'}">${dot}${escAttr(a.name)} <span class="cw-tab-cnt">${a.count || 0}</span><span class="cw-tab-menu-btn" data-album-id="${escAttr(a.id)}" title="Albüm ayarları">⋯</span></button>`;
-    }).join('');
-    const newBtn = `<button type="button" class="cw-tab cw-tab-new" id="cw-album-new-btn">+ Yeni Albüm</button>`;
-    tabsEl.innerHTML = allBtn + albBtns + newBtn;
-    recountAlbumTabs();
-    applyAlbumFilter();
+  // Kart "⋯" → klasöre taşı (girintili ağaç listesi)
+  function moveOptions() {
+    const lines = ['0 — (yok / Tümü)'];
+    const idMap = [null];
+    (function walk(pid, depth) {
+      childrenOf(pid).forEach(a => {
+        lines.push(`${idMap.length} — ${'　'.repeat(depth)}${a.name}`);
+        idMap.push(a.id);
+        walk(a.id, depth + 1);
+      });
+    })(null, 0);
+    return { lines, idMap };
   }
 
-  // Kart "⋯" menü → albüme taşı
+  async function moveCardToAlbum(uid, albumId) {
+    try {
+      const res = await fetch('/api/calisma/urun-albume-tasi', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ urun_id: uid, album_id: albumId }),
+      });
+      const d = await res.json();
+      if (!d.ok) { toast(d.error || 'Hata', 'error'); return; }
+      albums = d.albums || [];
+      const card = $(`.cw-card[data-urunid="${uid}"]`);
+      if (card) card.dataset.albumId = albumId || '';
+      const it = items.find(i => i.urun_id === uid);
+      if (it) it.album_id = albumId || null;
+      renderTree();
+      toast(albumId ? 'Klasöre taşındı' : 'Tümü\'ye alındı', 'success');
+    } catch (err) { toast('Bağlantı hatası', 'error'); }
+  }
+
   $$('.cw-card-album-btn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
+    btn.addEventListener('click', (e) => {
       e.preventDefault(); e.stopPropagation();
       const uid = btn.dataset.urunid;
-      if (!albums.length) {
-        toast('Önce + Yeni Albüm ile bir albüm yarat', 'warn');
-        return;
-      }
-      // Basit prompt — pratik
-      const options = ['(yok / Tümü)'].concat(albums.map(a => a.name));
-      const choice = prompt(
-        `Bu kumaşı hangi albüme taşı?\n` +
-        options.map((n, i) => `  ${i} — ${n}`).join('\n')
-      );
-      if (choice === null || choice === '') return;
+      if (!albums.length) { toast('Önce "+ Yeni klasör" ile bir klasör oluştur', 'warn'); return; }
+      const { lines, idMap } = moveOptions();
+      const choice = prompt(`Bu kumaşı hangi klasöre taşı?\n` + lines.join('\n'));
+      if (choice === null || choice.trim() === '') return;
       const idx = parseInt(choice, 10);
-      if (isNaN(idx) || idx < 0 || idx > albums.length) {
-        toast('Geçersiz seçim', 'warn');
-        return;
-      }
-      const albumId = idx === 0 ? null : albums[idx - 1].id;
-      try {
-        const res = await fetch('/api/calisma/urun-albume-tasi', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ urun_id: uid, album_id: albumId }),
-        });
-        const d = await res.json();
-        if (!d.ok) { toast(d.error || 'Hata', 'error'); return; }
-        albums = d.albums || [];
-        // Local güncelle
-        const card = $(`.cw-card[data-urunid="${uid}"]`);
-        if (card) card.dataset.albumId = albumId || '';
-        const it = items.find(i => i.urun_id === uid);
-        if (it) it.album_id = albumId || null;
-        rerenderTabs();
-        toast(albumId ? 'Albüme taşındı' : 'Tümü\'ye alındı', 'success');
-      } catch (err) { toast('Bağlantı hatası', 'error'); }
+      if (isNaN(idx) || idx < 0 || idx >= idMap.length) { toast('Geçersiz seçim', 'warn'); return; }
+      moveCardToAlbum(uid, idMap[idx]);
     });
   });
 
-  // Initial filter
-  applyAlbumFilter();
+  // İlk ağaç render
+  renderTree();
 
   // ESC → liste'ye dön
   document.addEventListener('keydown', (e) => {

@@ -854,16 +854,21 @@ def _workspace_data_save(data: dict) -> dict:
     return data
 
 
-def workspace_album_create(name: str, color: str | None = None) -> dict:
-    """Yeni albüm yarat. Aynı isimde birden fazla olabilir (UUID id'leriyle ayrılır)."""
+def workspace_album_create(name: str, color: str | None = None, parent_id: str | None = None) -> dict:
+    """Yeni albüm/klasör yarat. Faz 3: parent_id ile sınırsız derinlik (None = kök).
+    Aynı isimde birden fazla olabilir (UUID id'leriyle ayrılır)."""
     name = (name or "").strip()
     if not name:
         raise ValueError("Albüm adı boş olamaz")
     data = workspace_data_get()
+    parent_id = (parent_id or "").strip() or None
+    if parent_id and parent_id not in {a.get("id") for a in data["albums"]}:
+        raise ValueError("Üst klasör bulunamadı")
     album = {
         "id": _uuid.uuid4().hex,
         "name": name,
         "color": (color or "").strip() or None,
+        "parent_id": parent_id,   # Faz 3 — ağaç
         "created_at": _now_iso(),
     }
     data["albums"].append(album)
@@ -872,17 +877,23 @@ def workspace_album_create(name: str, color: str | None = None) -> dict:
 
 
 def workspace_album_delete(album_id: str) -> bool:
-    """Albümü sil. İçindeki ürünlerin membership'i None'a düşer (workspace'te kalırlar)."""
+    """Klasörü sil. Faz 3: alt klasörler ve üye ürünler bir ÜST düzeye taşınır (promote) —
+    veri kaybı yok. Silinen kök ise çocuklar/üyeler "Tümü"ye (None) düşer."""
     if not album_id:
         return False
     data = workspace_data_get()
-    before = len(data["albums"])
-    data["albums"] = [a for a in data["albums"] if a.get("id") != album_id]
-    if len(data["albums"]) == before:
+    target = next((a for a in data["albums"] if a.get("id") == album_id), None)
+    if not target:
         return False
-    # Membership cleanup
-    new_membership = {k: (v if v != album_id else None) for k, v in (data["membership"] or {}).items()}
-    data["membership"] = new_membership
+    parent_id = target.get("parent_id") or None  # silinenin ebeveyni (kök ise None)
+    # Çocukları bir üste taşı
+    for a in data["albums"]:
+        if (a.get("parent_id") or None) == album_id:
+            a["parent_id"] = parent_id
+    # Düğümü kaldır
+    data["albums"] = [a for a in data["albums"] if a.get("id") != album_id]
+    # Üye ürünleri ebeveyne taşı (None ise "Tümü")
+    data["membership"] = {k: (parent_id if v == album_id else v) for k, v in (data["membership"] or {}).items()}
     _workspace_data_save(data)
     return True
 

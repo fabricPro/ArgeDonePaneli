@@ -30,17 +30,49 @@
 .studio .cw-empty h2 { font-size: 16px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
 .studio .cw-empty p { font-size: 13px; color: var(--ink-2); max-width: 440px; margin: 0 auto 14px; line-height: 1.6; }
 
-/* ---- Albüm sekmeleri (chip dili) ---- */
-.studio .cw-album-tabs { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 0 0 12px; margin-bottom: 18px; border-bottom: 1px solid var(--border); }
-.studio .cw-tab { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; font-size: 12.5px; font-weight: 500; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; cursor: pointer; }
-.studio .cw-tab:hover { color: var(--ink); border-color: var(--border-strong); }
-.studio .cw-tab.is-active { background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent-strong); }
-.studio .cw-tab-cnt { font-size: 10.5px; font-weight: 600; color: var(--ink-3); font-variant-numeric: tabular-nums; }
-.studio .cw-tab.is-active .cw-tab-cnt { color: var(--accent-strong); }
-.studio .cw-tab-dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; }
-.studio .cw-tab-menu-btn { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; color: var(--ink-3); border-radius: 4px; font-size: 13px; }
-.studio .cw-tab-menu-btn:hover { background: var(--surface); color: var(--ink); }
-.studio .cw-tab-new { color: var(--accent-strong); background: transparent; border-style: dashed; }
+/* ---- Faz 3 — Klasör ağacı (sol) + kart grid (sağ) ---- */
+.studio .cw-browse { display: flex; align-items: flex-start; gap: 18px; margin-bottom: 4px; }
+.studio .cw-browse[hidden] { display: none; }
+.studio .cw-browse .cw-grid { flex: 1 1 auto; min-width: 0; }
+.studio .cw-tree {
+  flex: 0 0 232px; width: 232px; align-self: stretch;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh);
+  padding: 8px; position: sticky; top: calc(var(--tb-h, 48px) + 12px);
+  max-height: calc(100vh - var(--tb-h, 48px) - 28px); overflow: auto;
+}
+.studio .cw-tree .cw-tree-root, .studio .cw-tree .cw-tree-children { list-style: none; margin: 0; padding: 0; }
+.studio .cw-tree .cw-tree-children { padding-left: 15px; margin-left: 9px; border-left: 1px solid var(--surface-2); }
+/* "Tümü" kökü */
+.studio .cw-tree-all { display: flex; align-items: center; gap: 6px; width: 100%; padding: 6px 7px; margin-bottom: 4px; background: transparent; border: none; cursor: pointer; font: inherit; text-align: left; border-radius: var(--r-sm); color: var(--ink-2); }
+.studio .cw-tree-all .icon { width: 14px; height: 14px; color: var(--ink-3); }
+.studio .cw-tree-all:hover { background: var(--surface-2); }
+.studio .cw-tree-all.is-active { background: var(--accent-bg); color: var(--accent-strong); }
+/* Düğüm satırı */
+.studio .cw-tree-row { display: flex; align-items: center; gap: 2px; width: 100%; border-radius: var(--r-sm); }
+.studio .cw-tree-row:hover { background: var(--surface-2); }
+.studio .cw-tree-row.is-active { background: var(--accent-bg); }
+.studio .cw-tree-toggle, .studio .cw-tree-toggle-sp { flex: 0 0 auto; width: 18px; height: 24px; display: inline-flex; align-items: center; justify-content: center; }
+.studio .cw-tree-toggle { background: transparent; border: none; cursor: pointer; color: var(--ink-3); padding: 0; }
+.studio .cw-tree-toggle .icon { width: 13px; height: 13px; transform: rotate(-90deg); transition: transform .12s; }
+.studio .cw-tree-toggle.is-open .icon { transform: rotate(0); }
+.studio .cw-tree-label { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 6px; padding: 5px 4px; background: transparent; border: none; cursor: pointer; font: inherit; text-align: left; color: var(--ink); }
+.studio .cw-tree-row.is-active .cw-tree-label { color: var(--accent-strong); font-weight: 600; }
+.studio .cw-tree-dot { flex: 0 0 auto; width: 9px; height: 9px; border-radius: 50%; }
+.studio .cw-tree-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; }
+.studio .cw-tree-cnt { flex: 0 0 auto; font-size: 10.5px; font-weight: 600; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.studio .cw-tree-row.is-active .cw-tree-cnt { color: var(--accent-strong); }
+.studio .cw-tree-menu { flex: 0 0 auto; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: none; cursor: pointer; color: var(--ink-3); border-radius: var(--r-sm); font-size: 14px; line-height: 1; opacity: 0; }
+.studio .cw-tree-row:hover .cw-tree-menu { opacity: 1; }
+.studio .cw-tree-menu:hover { background: var(--surface); color: var(--ink); }
+.studio .cw-tree-newroot { display: flex; align-items: center; gap: 6px; width: 100%; margin-top: 6px; padding: 6px 7px; background: transparent; border: 1px dashed var(--border-strong); border-radius: var(--r-sm); color: var(--accent-strong); cursor: pointer; font: inherit; font-size: 12px; }
+.studio .cw-tree-newroot .icon { width: 13px; height: 13px; }
+.studio .cw-tree-newroot:hover { background: var(--accent-bg); border-color: var(--accent-border); }
+/* Mobil: ağaç üstte, tam genişlik */
+@media (max-width: 720px) {
+  .studio .cw-browse { flex-direction: column; }
+  .studio .cw-tree { position: static; width: 100%; flex-basis: auto; max-height: 260px; }
+  .studio .cw-tree-menu { opacity: 1; }
+}
 
 /* ---- Pinli kart ızgarası (gallery .product-card dili) ---- */
 .studio .cw-card { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh); overflow: hidden; transition: box-shadow .16s, transform .16s, border-color .16s; }

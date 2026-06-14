@@ -166,6 +166,7 @@
 
 /* ---- Kart hover aksiyonları (sil / pin / seç) ---- */
 .studio .card-delete-btn,
+.studio .card-folder-btn,
 .studio .card-pin-btn {
   position: absolute; top: 8px; z-index: 4;
   display: inline-flex; align-items: center; justify-content: center;
@@ -177,12 +178,16 @@
 }
 .studio .card-delete-btn { right: 8px; }
 .studio .card-pin-btn { right: 42px; }
+.studio .card-folder-btn { right: 76px; }
 .studio .card-delete-btn .icon,
+.studio .card-folder-btn .icon,
 .studio .card-pin-btn .icon { width: 15px; height: 15px; }
 .studio .product-card:hover .card-delete-btn,
+.studio .product-card:hover .card-folder-btn,
 .studio .product-card:hover .card-pin-btn { opacity: 1; }
 .studio .card-delete-btn:hover { background: var(--red-bg); color: var(--red); border-color: var(--red-bg); }
-.studio .card-pin-btn:hover { color: var(--accent-strong); border-color: var(--accent-border); }
+.studio .card-pin-btn:hover,
+.studio .card-folder-btn:hover { color: var(--accent-strong); border-color: var(--accent-border); }
 .studio .card-pin-btn.is-pinned { opacity: 1; background: var(--accent-bg); color: var(--accent-strong); border-color: var(--accent-border); }
 
 .studio .card-select-check {
@@ -197,6 +202,7 @@
 .studio.select-on .product-card { cursor: pointer; }
 .studio.select-on .card-select-check { display: inline-flex; }
 .studio.select-on .card-delete-btn,
+.studio.select-on .card-folder-btn,
 .studio.select-on .card-pin-btn { display: none; }
 .studio .product-card.is-selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-bg), var(--sh); }
 .studio .product-card.is-selected .card-select-check { background: var(--accent); border-color: var(--accent); color: #fff; }
@@ -237,8 +243,10 @@
 .studio.view-list .card-meta-row { display: none; }
 .studio.view-list .card-indicators { margin-top: 0; }
 .studio.view-list .card-delete-btn,
+.studio.view-list .card-folder-btn,
 .studio.view-list .card-pin-btn { top: 50%; transform: translateY(-50%); }
 .studio.view-list .card-pin-btn { right: 44px; }
+.studio.view-list .card-folder-btn { right: 80px; }
 
 /* ============================================================
    Mobil (≤720px)
@@ -254,6 +262,7 @@
   .studio .card-title { font-size: 13px; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .studio .card-meta { font-size: 11px; }
   .studio .card-delete-btn,
+  .studio .card-folder-btn,
   .studio .card-pin-btn { opacity: 1; }   /* mobilde hover yok → görünür */
   .studio.view-list .product-card { grid-template-columns: 48px 1fr; }
   .studio.view-list .card-media { width: 48px; height: 48px; }
