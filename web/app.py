@@ -5168,30 +5168,31 @@ def _workspace_albums_with_counts() -> list[dict]:
     workspace_ids = set(store.workspace_get_ids())
     membership = data.get("membership") or {}
     albums = data.get("albums") or []
-    # Doğrudan üye sayıları (çoka-çok: ürün N albümdeyse her birinde +1 — üyelik-bazlı, doğru)
-    direct: dict[str, int] = {}
+    # Doğrudan üyeler (çoka-çok: albüm → o albümdeki ürün KÜMESİ)
+    direct_sets: dict[str, set] = {}
     for urun_id, albs in membership.items():
         if urun_id not in workspace_ids:
             continue
         for alb in albs:
             if alb:
-                direct[alb] = direct.get(alb, 0) + 1
+                direct_sets.setdefault(alb, set()).add(urun_id)
     # parent -> children haritası
     children: dict = {}
     for a in albums:
         children.setdefault(a.get("parent_id") or None, []).append(a.get("id"))
     by_id = {a.get("id"): a for a in albums}
 
-    def subtree_count(aid, seen=None):
+    def subtree_set(aid, seen=None):
+        """Alt-ağaçtaki TEKİL ürünler (çoka-çokta ürün hem üst hem alt klasördeyse bir kez sayılır)."""
         if seen is None:
             seen = set()
         if aid in seen:
-            return 0  # döngü koruması
+            return set()  # döngü koruması
         seen.add(aid)
-        total = direct.get(aid, 0)
+        s = set(direct_sets.get(aid) or ())
         for c in children.get(aid, []):
-            total += subtree_count(c, seen)
-        return total
+            s |= subtree_set(c, seen)
+        return s
 
     def depth_of(aid):
         d, pid, guard = 0, (by_id.get(aid) or {}).get("parent_id"), set()
@@ -5210,8 +5211,8 @@ def _workspace_albums_with_counts() -> list[dict]:
             "color": a.get("color"),
             "parent_id": a.get("parent_id") or None,   # Faz 3 — ağaç
             "depth": depth_of(aid),
-            "count": subtree_count(aid),                # roll-up (alt klasörler dahil)
-            "direct_count": direct.get(aid, 0),         # yalnız doğrudan üyeler
+            "count": len(subtree_set(aid)),             # roll-up — alt klasörler dahil TEKİL ürün
+            "direct_count": len(direct_sets.get(aid) or ()),  # yalnız doğrudan üyeler
             "created_at": a.get("created_at"),
         })
     return out

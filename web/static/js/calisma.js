@@ -329,7 +329,7 @@
       return `<span class="cw-folder-chip" data-album-id="${escAttr(id)}" title="Klasör: ${escAttr(albumPath(id))}">` +
         `<svg class="icon"${col}><use href="#ic-folder"/></svg>` +
         `<span class="cwf-name">${escAttr(a.name || '')}</span>` +
-        `<button type="button" class="cwf-x" title="Bu klasörden çıkar" aria-label="Klasörden çıkar"><svg class="icon"><use href="#ic-x"/></svg></button>` +
+        `<span class="cwf-x" role="button" tabindex="0" title="Bu klasörden çıkar" aria-label="Klasörden çıkar"><svg class="icon"><use href="#ic-x"/></svg></span>` +
         `</span>`;
     }).join('');
   }
