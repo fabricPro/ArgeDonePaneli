@@ -131,8 +131,10 @@
 .studio .card-meta-row { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
 .studio .card-stat { font-size: 11px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .studio .card-stat-sep { color: var(--ink-3); }
-/* Faz 3.1 — Çalışma klasör etiketi (kart altı; ikon album rengiyle) */
-.studio .card-folder-tag { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; margin-top: 6px; padding: 2px 9px 2px 7px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; font-size: 11px; font-weight: 500; color: var(--ink-2); }
+/* Çoka-çok — Çalışma klasör rozetleri (kart altı; salt gösterim, çoklu çip) */
+.studio .card-folder-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.studio .card-folder-tags:empty { display: none; }
+.studio .card-folder-tag { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; padding: 2px 9px 2px 7px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; font-size: 11px; font-weight: 500; color: var(--ink-2); }
 .studio .card-folder-tag .icon { width: 13px; height: 13px; flex: 0 0 auto; color: var(--ink-3); }
 .studio .card-folder-tag .cft-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .studio .card-folder-tag[hidden] { display: none; }

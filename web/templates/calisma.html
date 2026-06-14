@@ -23,6 +23,11 @@
             <button type="button" class="btn btn-ghost" id="cw-design-toggle">
                 <svg class="icon"><use href="#ic-pencil"/></svg> Tasarım Modu
             </button>
+            {% if total > 0 %}
+            <button type="button" class="btn btn-ghost" id="cw-select-toggle" title="Çoklu seç">
+                <svg class="icon"><use href="#ic-check"/></svg> Seç
+            </button>
+            {% endif %}
             {% endif %}
             {# Sprint 8.6 — Mobile portrait'ta manuel yatay aç butonu #}
             <button type="button" class="btn btn-secondary cw-rotate-btn" id="cw-rotate-btn" title="Yatay moda geç">
@@ -35,6 +40,15 @@
             </a>
         </div>
     </header>
+
+    {# Çoka-çok — toplu seç aksiyon barı (seç modunda görünür) #}
+    <div class="cw-select-bar" id="cw-select-bar" hidden>
+        <span class="cw-sel-count"><strong id="cw-sel-n">0</strong> seçili</span>
+        <button type="button" class="btn btn-sm btn-primary" id="cw-sel-folder">
+            <svg class="icon"><use href="#ic-folder"/></svg> Klasöre Ekle
+        </button>
+        <button type="button" class="btn btn-sm btn-ghost" id="cw-sel-cancel">Vazgeç</button>
+    </div>
 
     {% if total == 0 %}
     <!-- BOŞ DURUM -->
@@ -58,7 +72,7 @@
     <!-- STATE 1: GRID -->
     <div class="cw-grid" id="cw-grid" {% if total == 0 %}hidden{% endif %}>
         {% for p in items %}
-        <article class="cw-card" data-urunid="{{ p.urun_id }}" data-album-id="{{ p.album_id or '' }}">
+        <article class="cw-card" data-urunid="{{ p.urun_id }}" data-album-ids="{{ p.album_ids|join(',') }}">
             <button type="button" class="cw-card-main" data-urunid="{{ p.urun_id }}">
                 <div class="cw-card-thumb">
                     {% if p.cover_image %}
@@ -83,11 +97,15 @@
                         {% if p.color_family %}<span class="chip">{{ p.color_family|replace('-',' ') }}</span>{% endif %}
                     </div>
                     {% endif %}
-                    {# Faz 3.1 — Çalışma klasör etiketi (her zaman render; klasörsüzse hidden — taşımada canlı güncellenir) #}
-                    <div class="cw-card-folder" data-urunid="{{ p.urun_id }}" {% if not p.workspace_album %}hidden{% endif %}
-                         title="Klasör: {{ p.workspace_album.path if p.workspace_album else '' }}">
-                        <svg class="icon"{% if p.workspace_album and p.workspace_album.color %} style="color:{{ p.workspace_album.color }}"{% endif %}><use href="#ic-folder"/></svg>
-                        <span class="cwf-name">{{ p.workspace_album.name if p.workspace_album else '' }}</span>
+                    {# Çoka-çok — Çalışma klasör rozetleri (her klasör ayrı çip; × ile çıkar). JS canlı günceller. #}
+                    <div class="cw-card-folders" data-urunid="{{ p.urun_id }}">
+                        {% for al in p.workspace_albums %}
+                        <span class="cw-folder-chip" data-album-id="{{ al.id }}" title="Klasör: {{ al.path }}">
+                            <svg class="icon"{% if al.color %} style="color:{{ al.color }}"{% endif %}><use href="#ic-folder"/></svg>
+                            <span class="cwf-name">{{ al.name }}</span>
+                            <button type="button" class="cwf-x" title="Bu klasörden çıkar" aria-label="Klasörden çıkar"><svg class="icon"><use href="#ic-x"/></svg></button>
+                        </span>
+                        {% endfor %}
                     </div>
                     {# Mevcut indikatörlerini de göster #}
                     <div class="card-indicators">
@@ -103,9 +121,9 @@
                     </div>
                 </div>
             </button>
-            {# v4.0-part-2 Sprint 13 — kart albüm menüsü #}
+            {# Çoka-çok — karta klasör EKLE (mevcut klasörler korunur) #}
             <button type="button" class="cw-card-album-btn" data-urunid="{{ p.urun_id }}"
-                    title="Albüme taşı" aria-label="Albüme taşı">⋯</button>
+                    title="Klasöre ekle" aria-label="Klasöre ekle">+</button>
             <button type="button" class="cw-unpin" data-urunid="{{ p.urun_id }}"
                     title="Çalışmadan çıkar" aria-label="Çalışmadan çıkar">
                 <svg class="icon"><use href="#ic-x"/></svg>

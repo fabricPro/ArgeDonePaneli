@@ -44,8 +44,8 @@
                         <div class="snk-row-name">{{ it.product_name }}
                             <span class="snk-surum-chip{% if it.surum_missing %} snk-surum-chip-warn{% endif %}" title="Tezgaha atanan sürüm">{{ it.surum_ad }}{% if it.surum_missing %} · sürüm yok{% endif %}</span>
                         </div>
-                        <div class="snk-row-meta">{{ it.brand }}{% if it.workspace_album %}
-                            · <span class="snk-folder" title="{{ it.workspace_album.path }}"><svg class="icon"><use href="#ic-folder"/></svg> {{ it.workspace_album.name }}</span>{% endif %}{% if it.ust_tahar %}
+                        <div class="snk-row-meta">{{ it.brand }}{% for al in it.workspace_albums %}
+                            · <span class="snk-folder" title="{{ al.path }}"><svg class="icon"><use href="#ic-folder"/></svg> {{ al.name }}</span>{% endfor %}{% if it.ust_tahar %}
                             · <span class="snk-ust-tahar" title="Bu sürüm üst çözgüye de dağıtılmış">üst çözgü taharı</span>{% endif %}</div>
                     </div>
                     <div class="snk-row-actions">

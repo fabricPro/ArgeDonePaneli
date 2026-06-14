@@ -90,11 +90,14 @@
 .studio .cw-taxo { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
 .studio .cw-taxo .chip { height: 20px; font-size: 11px; padding: 0 8px; }
 .studio .cw-rail-taxo { font-size: 10.5px; color: var(--ink-3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-/* Faz 3.1 — Çalışma kartında klasör etiketi (ikon album rengiyle) */
-.studio .cw-card-folder { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; margin-top: 8px; padding: 2px 9px 2px 7px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; font-size: 11px; font-weight: 500; color: var(--ink-2); }
-.studio .cw-card-folder .icon { width: 13px; height: 13px; flex: 0 0 auto; color: var(--ink-3); }
-.studio .cw-card-folder .cwf-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.studio .cw-card-folder[hidden] { display: none; }
+/* Çoka-çok — Çalışma kartında klasör rozetleri (her klasör ayrı çip; × ile çıkar) */
+.studio .cw-card-folders { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.studio .cw-folder-chip { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; padding: 2px 4px 2px 7px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; font-size: 11px; font-weight: 500; color: var(--ink-2); }
+.studio .cw-folder-chip > .icon { width: 13px; height: 13px; flex: 0 0 auto; color: var(--ink-3); }
+.studio .cw-folder-chip .cwf-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio .cw-folder-chip .cwf-x { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; padding: 0; border: 0; border-radius: 999px; background: transparent; color: var(--ink-3); cursor: pointer; flex: 0 0 auto; }
+.studio .cw-folder-chip .cwf-x .icon { width: 11px; height: 11px; }
+.studio .cw-folder-chip .cwf-x:hover { background: var(--red-bg); color: var(--red); }
 .studio .calisma-page .card-indicators { display: flex; gap: 4px; margin-top: 10px; }
 .studio .calisma-page .card-indicators .ind { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: var(--r-sm); background: var(--surface-2); color: var(--ink-3); }
 .studio .calisma-page .card-indicators .ind .icon { width: 13px; height: 13px; }
@@ -129,6 +132,16 @@
 /* sıralama sırasında yönetim butonları pasif (yanlışlıkla unpin/taşı önlenir) */
 .studio .cw-design-on .cw-unpin,
 .studio .cw-design-on .cw-card-album-btn { pointer-events: none; opacity: .35; }
+
+/* ---- Çoka-çok toplu seç (Klasöre Ekle) ---- */
+.studio .cw-select-bar { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; padding: 8px 12px; background: var(--accent-bg); border: 1px solid var(--accent-border); border-radius: var(--r-sm); }
+.studio .cw-select-bar .cw-sel-count { font-size: 12.5px; color: var(--ink-2); margin-right: auto; }
+.studio #cw-select-toggle.is-active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.studio .cw-select-on .cw-card { cursor: pointer; }
+.studio .cw-select-on .cw-card-main { cursor: pointer; }
+.studio .cw-select-on .cw-card-album-btn { pointer-events: none; opacity: .3; }
+.studio .cw-card.is-selected { outline: 2px solid var(--accent); outline-offset: 1px; border-radius: var(--r); }
+.studio .cw-card.is-selected::after { content: ""; position: absolute; top: 8px; left: 8px; width: 18px; height: 18px; border-radius: 999px; background: var(--accent); box-shadow: 0 0 0 2px #fff; z-index: 5; }
 
 /* ---- Split görünüm chrome'u (grid sizing/--cw-l/--cw-r DOKUNULMAZ) ---- */
 .studio .cw-left-pane,

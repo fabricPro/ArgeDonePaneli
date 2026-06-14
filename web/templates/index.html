@@ -125,11 +125,14 @@
                     <span class="card-stat-sep">·</span>
                     <span class="card-stat">{{ p.color_album_image_count }} varyant</span>
                 </div>
-                {# Faz 3.1 — Çalışma klasör etiketi (her zaman render; klasörsüzse hidden — canlı güncelleme) #}
-                <div class="card-folder-tag" data-urunid="{{ p.urun_id }}" {% if not p.workspace_album %}hidden{% endif %}
-                     title="Klasör: {{ p.workspace_album.path if p.workspace_album else '' }}">
-                    <svg class="icon"{% if p.workspace_album and p.workspace_album.color %} style="color:{{ p.workspace_album.color }}"{% endif %}><use href="{{ sprite }}#ic-folder"/></svg>
-                    <span class="cft-name">{{ p.workspace_album.name if p.workspace_album else '' }}</span>
+                {# Çoka-çok — Çalışma klasör rozetleri (salt gösterim; yönetim Çalışma'da). JS canlı günceller. #}
+                <div class="card-folder-tags" data-urunid="{{ p.urun_id }}">
+                    {% for al in p.workspace_albums %}
+                    <span class="card-folder-tag" data-album-id="{{ al.id }}" title="Klasör: {{ al.path }}">
+                        <svg class="icon"{% if al.color %} style="color:{{ al.color }}"{% endif %}><use href="{{ sprite }}#ic-folder"/></svg>
+                        <span class="cft-name">{{ al.name }}</span>
+                    </span>
+                    {% endfor %}
                 </div>
                 {# v4.0-part-2 Adım 8 + tasarim-v2 Sprint 18 — kart altı durum ikonları + zengin tooltip #}
                 <div class="card-indicators" aria-label="Veri durumu">
@@ -390,27 +393,29 @@ function cwAlbumPath(albums, id) {
     while (cur && !guard.has(cur.id)) { guard.add(cur.id); names.push(cur.name || ''); cur = byId[cur.parent_id]; }
     return names.reverse().filter(Boolean).join(' / ');
 }
-// Galeri kartının klasör etiketini canlı güncelle (atama sonrası)
-function setGalleryCardFolder(uid, albumId) {
-    const tag = document.querySelector(`.card-folder-tag[data-urunid="${CSS.escape(uid)}"]`);
-    if (!tag) return;
-    const album = (cwAlbumsCache || []).find(a => a.id === albumId);
-    if (!albumId || !album) { tag.hidden = true; return; }
-    const nameEl = tag.querySelector('.cft-name');
-    const iconEl = tag.querySelector('.icon');
-    if (nameEl) nameEl.textContent = album.name || '';
-    if (iconEl) iconEl.style.color = album.color || '';
-    tag.title = 'Klasör: ' + cwAlbumPath(cwAlbumsCache, albumId);
-    tag.hidden = false;
+// Galeri kartının klasör rozetlerini canlı güncelle (çoka-çok; album_ids listesinden yeniden çiz)
+function setGalleryCardFolders(uid, albumIds) {
+    const box = document.querySelector(`.card-folder-tags[data-urunid="${CSS.escape(uid)}"]`);
+    if (!box) return;
+    const escAttr = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const spritePath = (document.querySelector('svg use')?.getAttribute('href') || '#').split('#')[0];
+    box.innerHTML = (albumIds || []).filter(Boolean).map(id => {
+        const a = (cwAlbumsCache || []).find(x => x.id === id);
+        if (!a) return '';
+        const col = a.color ? ` style="color:${escAttr(a.color)}"` : '';
+        return `<span class="card-folder-tag" data-album-id="${escAttr(id)}" title="Klasör: ${escAttr(cwAlbumPath(cwAlbumsCache, id))}">` +
+            `<svg class="icon"${col}><use href="${spritePath}#ic-folder"/></svg>` +
+            `<span class="cft-name">${escAttr(a.name || '')}</span></span>`;
+    }).join('');
 }
 async function pinAndAssign(uid, albumId) {
     await fetch('/api/calisma/ekle', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ urun_id: uid }) });
-    const res = await fetch('/api/calisma/urun-albume-tasi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ urun_id: uid, album_id: albumId }) });
+    const res = await fetch('/api/calisma/urun-albume-ekle', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ urun_id: uid, album_id: albumId }) });
     const d = await res.json();
     if (d.ok) cwAlbumsCache = d.albums || cwAlbumsCache;
     const pinBtn = document.querySelector(`.card-pin-btn[data-urunid="${CSS.escape(uid)}"]`);
     if (pinBtn) { pinBtn.dataset.pinned = 'true'; pinBtn.classList.add('is-pinned'); pinBtn.title = 'Çalışmadan çıkar'; }
-    if (d.ok) setGalleryCardFolder(uid, albumId);
+    if (d.ok) setGalleryCardFolders(uid, d.album_ids || []);
     return d.ok;
 }
 // Tekil kart "⋯"

@@ -1354,12 +1354,29 @@ import uuid as _uuid
 WORKSPACE_DATA_KEY = "workspace_data"
 
 
+def _normalize_membership(m) -> dict:
+    """Çoka-çok: her urun_id → albüm id LİSTESİ. Eski skaler değeri [skaler]'e çevirir
+    (migration-suz backfill / self-healing), None/boş düşürür, dedup eder, sırayı korur."""
+    out: dict = {}
+    for uid, v in (m or {}).items():
+        vals = v if isinstance(v, list) else ([v] if v else [])
+        seen, lst = set(), []
+        for a in vals:
+            a = a or ""
+            if a and a not in seen:
+                seen.add(a)
+                lst.append(a)
+        if lst:
+            out[uid] = lst
+    return out
+
+
 def workspace_data_get() -> dict:
     state = get_app_state(WORKSPACE_DATA_KEY) or {}
     if not isinstance(state, dict):
         return {"albums": [], "membership": {}, "updated_at": _now_iso()}
     state.setdefault("albums", [])
-    state.setdefault("membership", {})
+    state["membership"] = _normalize_membership(state.get("membership"))  # çoka-çok: değerler liste
     return state
 
 
@@ -1407,8 +1424,13 @@ def workspace_album_delete(album_id: str) -> bool:
             a["parent_id"] = parent_id
     # Düğümü kaldır
     data["albums"] = [a for a in data["albums"] if a.get("id") != album_id]
-    # Üye ürünleri ebeveyne taşı (None ise "Tümü")
-    data["membership"] = {k: (parent_id if v == album_id else v) for k, v in (data["membership"] or {}).items()}
+    # Çoka-çok: silinen albümü her ürünün üyelik LİSTESİNDEN çıkar (promote YOK); boşalan anahtarı düşür.
+    new_m: dict = {}
+    for k, v in (data["membership"] or {}).items():
+        lst = [x for x in v if x != album_id]   # v normalize-on-read garantisiyle liste
+        if lst:
+            new_m[k] = lst
+    data["membership"] = new_m
     _workspace_data_save(data)
     # Silinen klasörün kapsam sırasını da temizle (workspace_fabric_ids.scope_orders)
     try:
@@ -1436,21 +1458,33 @@ def workspace_album_rename(album_id: str, new_name: str, color: str | None = Non
     return False
 
 
-def workspace_set_album(urun_id: str, album_id: str | None) -> dict:
-    """Bir ürünü belirli albüme taşı. album_id=None → "Tümü" (albümsüz)."""
-    if not urun_id:
+def workspace_album_add(urun_id: str, album_id: str) -> dict:
+    """Çoka-çok: ürünü bir albüme EKLE (diğer üyelikler korunur). Zaten varsa no-op."""
+    if not urun_id or not album_id:
         return workspace_data_get()
     data = workspace_data_get()
-    # album_id geçerli mi kontrol et (None hariç)
-    if album_id:
-        known_ids = {a.get("id") for a in data["albums"]}
-        if album_id not in known_ids:
-            raise ValueError("Albüm bulunamadı")
+    if album_id not in {a.get("id") for a in data["albums"]}:
+        raise ValueError("Albüm bulunamadı")
     membership = data.get("membership") or {}
-    if album_id is None:
-        membership.pop(urun_id, None)
+    lst = membership.get(urun_id) or []
+    if album_id not in lst:
+        membership[urun_id] = lst + [album_id]
+        data["membership"] = membership
+        _workspace_data_save(data)
+    return data
+
+
+def workspace_album_remove(urun_id: str, album_id: str) -> dict:
+    """Çoka-çok: ürünü bir albümden ÇIKAR (diğer üyelikleri korunur). Boşalırsa anahtarı düşür (→ Tümü)."""
+    if not urun_id or not album_id:
+        return workspace_data_get()
+    data = workspace_data_get()
+    membership = data.get("membership") or {}
+    lst = [a for a in (membership.get(urun_id) or []) if a != album_id]
+    if lst:
+        membership[urun_id] = lst
     else:
-        membership[urun_id] = album_id
+        membership.pop(urun_id, None)
     data["membership"] = membership
     _workspace_data_save(data)
     return data

@@ -495,7 +495,7 @@ def index():
         s["dashboard_order"] = order_map.get(s["urun_id"])
         in_ws = s.get("urun_id") in workspace_ids
         s["in_workspace"] = in_ws
-        s["workspace_album"] = _workspace_album_display(membership.get(s["urun_id"]), albums_by_id) if in_ws else None
+        s["workspace_albums"] = _workspace_albums_display(membership.get(s["urun_id"]), albums_by_id) if in_ws else []
     # Ulkelere grupla
     groups: dict[str, list] = {}
     for p in products:
@@ -993,7 +993,7 @@ def _loom_assigned_items(loom_id: str) -> list:
         summ["surum_id"] = sid
         summ["surum_ad"] = (s.get("ad") if s else None) or sid
         summ["surum_missing"] = (d is not None and s is None)   # sürüm sonradan silinmişse uyar
-        summ["workspace_album"] = _workspace_album_display(
+        summ["workspace_albums"] = _workspace_albums_display(
             membership.get(lp.get("urun_id")), albums_by_id)
         items.append(summ)
     return items
@@ -5151,6 +5151,16 @@ def _workspace_album_display(album_id, albums_by_id) -> dict | None:
     return {"name": a.get("name"), "color": a.get("color"), "path": " / ".join(n for n in names if n)}
 
 
+def _workspace_albums_display(album_ids, albums_by_id) -> list:
+    """Çoka-çok: albüm id LİSTESİ → {id,name,color,path} listesi (geçersizler atlanır). Çoklu rozet için."""
+    out = []
+    for aid in (album_ids or []):
+        disp = _workspace_album_display(aid, albums_by_id)
+        if disp:
+            out.append({**disp, "id": aid})
+    return out
+
+
 def _workspace_albums_with_counts() -> list[dict]:
     """v4.0-part-2 Sprint 13 + Faz 3: albüm/klasör listesi.
     Her düğüm için parent_id + depth + roll-up sayım (doğrudan üyeler + tüm alt klasör üyeleri)."""
@@ -5158,12 +5168,14 @@ def _workspace_albums_with_counts() -> list[dict]:
     workspace_ids = set(store.workspace_get_ids())
     membership = data.get("membership") or {}
     albums = data.get("albums") or []
-    # Doğrudan üye sayıları (sadece workspace'te olan ürünler)
+    # Doğrudan üye sayıları (çoka-çok: ürün N albümdeyse her birinde +1 — üyelik-bazlı, doğru)
     direct: dict[str, int] = {}
-    for urun_id, alb in membership.items():
-        if urun_id not in workspace_ids or not alb:
+    for urun_id, albs in membership.items():
+        if urun_id not in workspace_ids:
             continue
-        direct[alb] = direct.get(alb, 0) + 1
+        for alb in albs:
+            if alb:
+                direct[alb] = direct.get(alb, 0) + 1
     # parent -> children haritası
     children: dict = {}
     for a in albums:
@@ -5214,9 +5226,9 @@ def calisma_page():
     membership = data.get("membership") or {}
     albums_by_id = {a.get("id"): a for a in (data.get("albums") or [])}
     for it in items:
-        aid = membership.get(it.get("urun_id")) or None
-        it["album_id"] = aid
-        it["workspace_album"] = _workspace_album_display(aid, albums_by_id)
+        aids = membership.get(it.get("urun_id")) or []
+        it["album_ids"] = aids
+        it["workspace_albums"] = _workspace_albums_display(aids, albums_by_id)
     return render_template("calisma.html", items=items, total=len(items),
                            workspace_albums=_workspace_albums_with_counts(),
                            workspace_scope_orders=store.workspace_scope_orders())
@@ -5230,9 +5242,9 @@ def api_calisma_list():
     membership = data.get("membership") or {}
     albums_by_id = {a.get("id"): a for a in (data.get("albums") or [])}
     for it in items:
-        aid = membership.get(it.get("urun_id")) or None
-        it["album_id"] = aid
-        it["workspace_album"] = _workspace_album_display(aid, albums_by_id)
+        aids = membership.get(it.get("urun_id")) or []
+        it["album_ids"] = aids
+        it["workspace_albums"] = _workspace_albums_display(aids, albums_by_id)
     return jsonify({
         "ok": True, "items": items, "count": len(items),
         "albums": _workspace_albums_with_counts(),
@@ -5318,23 +5330,65 @@ def api_calisma_album_rename(album_id: str):
     return jsonify({"ok": True, "albums": _workspace_albums_with_counts()})
 
 
-@app.route("/api/calisma/urun-albume-tasi", methods=["POST"])
-def api_calisma_urun_albume_tasi():
-    """Body: {urun_id, album_id | null} → ürünü belirli albüme taşı (null = Tümü)."""
+@app.route("/api/calisma/urun-albume-ekle", methods=["POST"])
+def api_calisma_urun_albume_ekle():
+    """Çoka-çok: {urun_id, album_id} → ürünü bir albüme EKLE (diğer üyelikler korunur)."""
     body = request.get_json(silent=True) or {}
     urun_id = (body.get("urun_id") or "").strip()
-    album_id = body.get("album_id")
-    if not urun_id:
-        return jsonify({"ok": False, "error": "urun_id zorunlu"}), 400
-    if album_id == "":
-        album_id = None
+    album_id = (body.get("album_id") or "").strip()
+    if not urun_id or not album_id:
+        return jsonify({"ok": False, "error": "urun_id + album_id zorunlu"}), 400
     if urun_id not in set(store.workspace_get_ids()):
         return jsonify({"ok": False, "error": "Ürün workspace'te yok"}), 400
     try:
-        store.workspace_set_album(urun_id, album_id)
+        store.workspace_album_add(urun_id, album_id)
     except ValueError as e:
         return jsonify({"ok": False, "error": str(e)}), 400
     return jsonify({"ok": True, "urun_id": urun_id, "album_id": album_id,
+                    "album_ids": (store.workspace_data_get().get("membership") or {}).get(urun_id) or [],
+                    "albums": _workspace_albums_with_counts()})
+
+
+@app.route("/api/calisma/urun-albume-cikar", methods=["POST"])
+def api_calisma_urun_albume_cikar():
+    """Çoka-çok: {urun_id, album_id} → ürünü bir albümden ÇIKAR (diğer üyelikler korunur)."""
+    body = request.get_json(silent=True) or {}
+    urun_id = (body.get("urun_id") or "").strip()
+    album_id = (body.get("album_id") or "").strip()
+    if not urun_id or not album_id:
+        return jsonify({"ok": False, "error": "urun_id + album_id zorunlu"}), 400
+    store.workspace_album_remove(urun_id, album_id)
+    return jsonify({"ok": True, "urun_id": urun_id, "album_id": album_id,
+                    "album_ids": (store.workspace_data_get().get("membership") or {}).get(urun_id) or [],
+                    "albums": _workspace_albums_with_counts()})
+
+
+@app.route("/api/calisma/toplu-albume-ekle", methods=["POST"])
+def api_calisma_toplu_albume_ekle():
+    """Çoka-çok toplu: {urun_ids:[...], album_id} → seçili ürünleri bir albüme EKLE (mevcut üyelikler korunur).
+    workspace'te olmayan ürünler önce eklenir (pin)."""
+    body = request.get_json(silent=True) or {}
+    urun_ids = body.get("urun_ids") or []
+    album_id = (body.get("album_id") or "").strip()
+    if not isinstance(urun_ids, list) or not album_id:
+        return jsonify({"ok": False, "error": "urun_ids listesi + album_id zorunlu"}), 400
+    added = 0
+    err = None
+    for uid in urun_ids:
+        uid = (uid or "").strip()
+        if not uid or not store.get(uid):
+            continue
+        if uid not in set(store.workspace_get_ids()):
+            store.workspace_add(uid)   # pin et (galeri toplu akışıyla uyumlu)
+        try:
+            store.workspace_album_add(uid, album_id)
+            added += 1
+        except ValueError as e:
+            err = str(e)
+            break
+    if err:
+        return jsonify({"ok": False, "error": err}), 400
+    return jsonify({"ok": True, "added": added, "album_id": album_id,
                     "albums": _workspace_albums_with_counts()})
 
 
