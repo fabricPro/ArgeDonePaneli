@@ -145,6 +145,7 @@
 <script>
 window.CW_ITEMS = {{ items|tojson }};
 window.CW_ALBUMS = {{ workspace_albums|tojson }};   // v4.0-part-2 Sprint 13
+window.CW_SCOPE_ORDERS = {{ workspace_scope_orders|tojson }};   // kapsam başına sıra (klasör albümleri)
 </script>
 <script src="{{ url_for('static', filename='js/calisma.js') }}"></script>
 {% endblock %}

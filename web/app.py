@@ -4292,7 +4292,8 @@ def calisma_page():
         it["album_id"] = aid
         it["workspace_album"] = _workspace_album_display(aid, albums_by_id)
     return render_template("calisma.html", items=items, total=len(items),
-                           workspace_albums=_workspace_albums_with_counts())
+                           workspace_albums=_workspace_albums_with_counts(),
+                           workspace_scope_orders=store.workspace_scope_orders())
 
 
 @app.route("/api/calisma/list")
@@ -4309,6 +4310,7 @@ def api_calisma_list():
     return jsonify({
         "ok": True, "items": items, "count": len(items),
         "albums": _workspace_albums_with_counts(),
+        "scope_orders": store.workspace_scope_orders(),
     })
 
 
@@ -4338,13 +4340,15 @@ def api_calisma_cikar():
 
 @app.route("/api/calisma/sirala", methods=["POST"])
 def api_calisma_sirala():
-    """Body: {urun_ids: [str]} — workspace sırasını güncelle."""
+    """Body: {urun_ids:[str], scope?: albüm id | "" (kök/Tümü)} — KAPSAM başına sıra.
+    scope boş/yok → kök (fabric_ids); değilse scope_orders[scope] (diğer kapsamlar dokunulmaz)."""
     data = request.get_json(silent=True) or {}
     ids = data.get("urun_ids") or []
+    scope = data.get("scope") or ""
     if not isinstance(ids, list) or not all(isinstance(x, str) for x in ids):
         return jsonify({"ok": False, "error": "urun_ids string listesi olmalı"}), 400
-    new_ids = store.workspace_reorder(ids)
-    return jsonify({"ok": True, "ids": new_ids, "count": len(new_ids)})
+    new_ids = store.workspace_reorder_scope(scope, ids)
+    return jsonify({"ok": True, "ids": new_ids, "count": len(new_ids), "scope": scope})
 
 
 # ============================================================

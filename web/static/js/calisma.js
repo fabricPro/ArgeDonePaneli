@@ -271,7 +271,8 @@
      v4.0-part-2 Sprint 13 — Çalışma Alanı Albümleri
      ============================================================ */
   let albums = (window.CW_ALBUMS || []).slice();
-  let activeAlbumId = '';            // '' = Tümü
+  let activeAlbumId = '';            // '' = Tümü (kök kapsam)
+  let scopeOrders = window.CW_SCOPE_ORDERS || {};   // kapsam(klasör id)→sıra; kök = items/fabric_ids
   const collapsed = new Set();       // daraltılmış düğüm id'leri (varsayılan: hepsi açık)
   const treeEl = $('#cw-tree');
 
@@ -317,7 +318,35 @@
     $$('.cw-card').forEach(card => setCardFolder(card.dataset.urunid, card.dataset.albumId || null));
   }
 
+  // ---- Kapsam başına sıra (per-scope order) ----
+  function rootOrder() { return items.map(i => i.urun_id); }
+  function scopeMemberSet(scope) {
+    // scope='' → kök (tüm pinler). Aksi: album_id ∈ {scope} ∪ descendants(scope)
+    const allowed = descendantsOf(scope); allowed.add(scope);
+    const set = new Set();
+    items.forEach(i => { if (allowed.has(i.album_id || '')) set.add(i.urun_id); });
+    return set;
+  }
+  function computeScopeOrder(scope) {
+    const root = rootOrder();
+    if (!scope) return root.slice();                       // kök = items/fabric_ids sırası
+    const members = scopeMemberSet(scope);
+    const saved = (scopeOrders[scope] || []).filter(id => members.has(id));
+    const savedSet = new Set(saved);
+    const rest = root.filter(id => members.has(id) && !savedSet.has(id));  // kaydedilmemiş üyeler → kök sırasında sona
+    return saved.concat(rest);
+  }
+  function applyScopeOrder(scope) {
+    // grid DOM'unu kapsam sırasına diz: önce üye kartlar (kapsam sırasında), sonra üye-olmayanlar (gizlenecek)
+    const order = computeScopeOrder(scope);
+    const byId = {}; $$('.cw-card').forEach(c => { byId[c.dataset.urunid] = c; });
+    const placed = new Set();
+    order.forEach(uid => { const c = byId[uid]; if (c) { grid.appendChild(c); placed.add(uid); } });
+    rootOrder().forEach(uid => { if (!placed.has(uid)) { const c = byId[uid]; if (c) grid.appendChild(c); } });
+  }
+
   function applyAlbumFilter() {
+    if (!designMode) applyScopeOrder(activeAlbumId);   // kapsam sırasına diz (tasarım modunda sürükleme korunur)
     const showAll = !activeAlbumId;
     let allowed = null;
     if (!showAll) { allowed = descendantsOf(activeAlbumId); allowed.add(activeAlbumId); }
@@ -571,17 +600,23 @@
     applyAlbumFilter();
   });
   designSave?.addEventListener('click', async () => {
-    const order = cardOrderFromDom();   // TÜM kartlar (gizli dahil) — global sıra
+    // Yalnız GÖRÜNÜR (aktif kapsam üyesi) kartların sırası — yalnız bu kapsam kaydedilir
+    const order = $$('.cw-card').filter(c => c.style.display !== 'none').map(c => c.dataset.urunid);
+    const scope = activeAlbumId || '';
     try {
       const res = await fetch('/api/calisma/sirala', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ urun_ids: order }),
+        body: JSON.stringify({ scope, urun_ids: order }),
       });
       const d = await res.json();
       if (!d.ok) { toast(d.error || 'Sıra kaydedilemedi', 'error'); return; }
-      // items'ı yeni sıraya diz (rail + sonraki render doğru olsun)
-      const byId = {}; items.forEach(i => { byId[i.urun_id] = i; });
-      items = order.map(uid => byId[uid]).filter(Boolean);
+      if (scope) {
+        scopeOrders[scope] = order.slice();   // klasör kapsamı — yalnız bunu güncelle
+      } else {
+        // kök: items'ı yeni sıraya diz (rail + kapsam türetmeleri için)
+        const byId = {}; items.forEach(i => { byId[i.urun_id] = i; });
+        items = order.map(uid => byId[uid]).filter(Boolean);
+      }
       setDesignMode(false);
       applyAlbumFilter();
       toast('Sıra kaydedildi', 'success');

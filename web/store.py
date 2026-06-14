@@ -791,35 +791,78 @@ def research_list_favorites(limit: int = 500) -> list[dict]:
 WORKSPACE_KEY = "workspace_fabric_ids"
 
 
-def workspace_get_ids() -> list[str]:
-    """Çalışma alanına pinlenmiş ürün id'leri (sıraya bağlı)."""
+def _workspace_doc() -> dict:
+    """workspace_fabric_ids app_state dokümanı: {fabric_ids, scope_orders, updated_at}.
+    Backfill (migration-siz): eski {fabric_ids:[...]} → scope_orders {} eklenir.
+    fabric_ids = pin SETİ + KÖK (Tümü) sırası; scope_orders[albumId] = klasör kapsamı sırası."""
     state = get_app_state(WORKSPACE_KEY) or {}
     if not isinstance(state, dict):
-        return []
-    return list(state.get("fabric_ids") or [])
+        state = {}
+    state.setdefault("fabric_ids", [])
+    state.setdefault("scope_orders", {})
+    return state
+
+
+def _workspace_doc_save(doc: dict) -> None:
+    doc["updated_at"] = _now_iso()
+    set_app_state(WORKSPACE_KEY, doc)
+
+
+def workspace_get_ids() -> list[str]:
+    """Çalışma alanına pinlenmiş ürün id'leri (KÖK/Tümü sırası)."""
+    return list(_workspace_doc().get("fabric_ids") or [])
+
+
+def workspace_scope_orders() -> dict:
+    """Kapsam (klasör albümü) → kaydedilmiş sıra map'i. Kök kapsam fabric_ids'tedir."""
+    return dict(_workspace_doc().get("scope_orders") or {})
 
 
 def workspace_add(urun_id: str) -> list[str]:
-    """Bir ürünü workspace'e ekle (yoksa). Mevcut sıra korunur."""
-    ids = workspace_get_ids()
+    """Bir ürünü workspace'e ekle (yoksa). KÖK sıranın SONUNA. scope_orders korunur."""
+    doc = _workspace_doc()
+    ids = list(doc.get("fabric_ids") or [])
     if urun_id and urun_id not in ids:
         ids.append(urun_id)
-        set_app_state(WORKSPACE_KEY, {"fabric_ids": ids, "updated_at": _now_iso()})
+        doc["fabric_ids"] = ids
+        _workspace_doc_save(doc)
     return ids
 
 
 def workspace_remove(urun_id: str) -> list[str]:
-    """Bir ürünü workspace'ten çıkar."""
-    ids = [i for i in workspace_get_ids() if i != urun_id]
-    set_app_state(WORKSPACE_KEY, {"fabric_ids": ids, "updated_at": _now_iso()})
-    return ids
+    """Unpin: kök sıradan + TÜM kapsam sıralarından çıkar."""
+    doc = _workspace_doc()
+    doc["fabric_ids"] = [i for i in (doc.get("fabric_ids") or []) if i != urun_id]
+    so = doc.get("scope_orders") or {}
+    for k in list(so.keys()):
+        so[k] = [i for i in so[k] if i != urun_id]
+    doc["scope_orders"] = so
+    _workspace_doc_save(doc)
+    return doc["fabric_ids"]
 
 
 def workspace_reorder(ids: list[str]) -> list[str]:
-    """Workspace sırasını değiştir. Sadece mevcut id'ler korunur, ek id'ler atlanır."""
-    current = set(workspace_get_ids())
+    """KÖK (Tümü) sırasını değiştir. Yalnız mevcut pinler korunur. scope_orders KORUNUR."""
+    doc = _workspace_doc()
+    current = set(doc.get("fabric_ids") or [])
+    doc["fabric_ids"] = [i for i in ids if i in current]
+    _workspace_doc_save(doc)
+    return doc["fabric_ids"]
+
+
+def workspace_reorder_scope(scope_id, ids: list[str]) -> list[str]:
+    """Bir KAPSAMIN sırasını kaydet. scope_id boş → kök (workspace_reorder).
+    Aksi halde scope_orders[scope_id] = [pinli id'ler]; fabric_ids + diğer kapsamlar DOKUNULMAZ."""
+    scope_id = (scope_id or "").strip()
+    if not scope_id:
+        return workspace_reorder(ids)
+    doc = _workspace_doc()
+    current = set(doc.get("fabric_ids") or [])
     cleaned = [i for i in ids if i in current]
-    set_app_state(WORKSPACE_KEY, {"fabric_ids": cleaned, "updated_at": _now_iso()})
+    so = doc.get("scope_orders") or {}
+    so[scope_id] = cleaned
+    doc["scope_orders"] = so
+    _workspace_doc_save(doc)
     return cleaned
 
 
@@ -895,6 +938,14 @@ def workspace_album_delete(album_id: str) -> bool:
     # Üye ürünleri ebeveyne taşı (None ise "Tümü")
     data["membership"] = {k: (parent_id if v == album_id else v) for k, v in (data["membership"] or {}).items()}
     _workspace_data_save(data)
+    # Silinen klasörün kapsam sırasını da temizle (workspace_fabric_ids.scope_orders)
+    try:
+        doc = _workspace_doc()
+        if album_id in (doc.get("scope_orders") or {}):
+            doc["scope_orders"].pop(album_id, None)
+            _workspace_doc_save(doc)
+    except Exception:
+        pass  # best-effort
     return True
 
 
