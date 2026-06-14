@@ -503,7 +503,8 @@
             for (let c = 0; c < totalCols; c++) {
                 const w = c % warpCount;
                 const isOn = !!(desen[w] && desen[w][origPick]);
-                const bg = isOn ? 'var(--text)' : (renkliMode ? iroColor : 'transparent');
+                // Dobby kareli kağıt: dolu=kırmızı, boş=beyaz; renkli mod KORUNUR (boş=atkı/iro rengi)
+                const bg = isOn ? 'var(--red)' : (renkliMode ? iroColor : '#fff');
                 cells.push(`<span class="dgrid-cell ${isOn ? 'is-on' : ''}" style="background:${bg}"></span>`);
             }
         }

@@ -22,10 +22,10 @@
   --text: var(--ink);              /* DOLU önizleme/cool hücre = --ink (spec) */
   --text-dim: var(--ink-2);
   --text-muted: var(--ink-3);
-  /* rol renkleri (spec: DOLU hücre = accent) */
-  --desen-warp-color: var(--accent);    /* tahar dolu hücre + tahar kartı */
-  --desen-armur-color: var(--accent);   /* armür dolu hücre + armür kartı */
-  --gold: var(--accent);                /* --desen-armur-color fallback'i */
+  /* rol renkleri — DOLU hücre = KIRMIZI (dobby kareli kağıt; kullanıcı isteği) */
+  --desen-warp-color: var(--red);       /* tahar DOLU hücre = kırmızı */
+  --desen-armur-color: var(--red);      /* armür DOLU hücre = kırmızı */
+  --gold: var(--red);                   /* --desen-armur-color fallback'i = kırmızı */
   --desen-marker-color: var(--red);     /* DO/NEXT marker ikon+etiket, loop kartı */
   --accent-cool: var(--ink-3);          /* önizleme kartı sol kenarı → nötr */
   /* radius → Stüdyo */
@@ -77,3 +77,20 @@
 .tek-module [data-numune-section="desen"] .desen-armur-wrap,
 .tek-module [data-numune-section="desen"] .desen-armur-rows-wrap,
 .tek-module [data-numune-section="desen"] .desen-preview-wrap { min-width: 0; }
+
+/* ============================================================
+   Dobby kareli kağıt (kullanıcı isteği): DOLU=kırmızı · BOŞ=beyaz · ÇİZGİ=siyah
+   Kapsam: tahar + armür + desen önizleme.  HARİÇ: iro/atkı (weft renk) hücreleri.
+   - DOLU: köprüde --desen-warp/armur-color = var(--red) (yukarıda).
+   - BOŞ : aşağıdaki kural → #fff + #111 kenar (grid çizgisi).
+   - İro/atkı: .dgrid-iro-cell → :not() ile dışlanır (inline weft renkleri korunur).
+   ============================================================ */
+.tek-module [data-numune-section="desen"] .dgrid-cell:not(.dgrid-iro-cell):not(.is-on):not(.is-warp) {
+  background: #fff;
+  border-color: #111;
+}
+/* Önizleme hücreleri border:0 idi → 1px siyah kenar (grid çizgisi).
+   Dolu = kırmızı (inline) + siyah kenar; boş = beyaz (inline) + siyah kenar. */
+.tek-module [data-numune-section="desen"] .desen-preview-grid .dgrid-cell {
+  border: 1px solid #111;
+}
