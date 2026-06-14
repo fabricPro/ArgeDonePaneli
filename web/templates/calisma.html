@@ -15,6 +15,15 @@
             <p class="page-subtitle">{{ total }} pinlenmiş kumaş — split ekranla hızlı çalışma</p>
         </div>
         <div class="calisma-head-actions">
+            {# Tasarım modu (sürükle-bırak sıralama) — Galeri muadili #}
+            {% if total > 0 %}
+            <span class="cw-design-hint" id="cw-design-hint" hidden>↔ Kartları sürükleyip bırakarak sırala</span>
+            <button type="button" class="btn btn-primary" id="cw-design-save" hidden>Kaydet</button>
+            <button type="button" class="btn btn-ghost" id="cw-design-cancel" hidden>İptal</button>
+            <button type="button" class="btn btn-ghost" id="cw-design-toggle">
+                <svg class="icon"><use href="#ic-pencil"/></svg> Tasarım Modu
+            </button>
+            {% endif %}
             {# Sprint 8.6 — Mobile portrait'ta manuel yatay aç butonu #}
             <button type="button" class="btn btn-secondary cw-rotate-btn" id="cw-rotate-btn" title="Yatay moda geç">
                 <svg class="icon"><use href="#ic-refresh"/></svg>

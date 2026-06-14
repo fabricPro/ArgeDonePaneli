@@ -120,6 +120,16 @@
 .studio .cw-unpin:hover { background: var(--red-bg); color: var(--red); border-color: var(--red-bg); }
 .studio .cw-card-album-btn:hover { color: var(--accent-strong); border-color: var(--accent-border); }
 
+/* ---- Tasarım modu (sürükle-bırak sıralama) — Galeri muadili ---- */
+.studio .cw-design-hint { font-size: 12px; color: var(--ink-3); }
+.studio .cw-design-on .cw-card { cursor: grab; outline: 1px dashed var(--accent-border); outline-offset: 2px; touch-action: none; }
+.studio .cw-design-on .cw-card:active { cursor: grabbing; }
+.studio .cw-design-on .cw-card-main { cursor: grab; }
+.studio .cw-card.dragging { opacity: .45; outline: 2px solid var(--accent); }
+/* sıralama sırasında yönetim butonları pasif (yanlışlıkla unpin/taşı önlenir) */
+.studio .cw-design-on .cw-unpin,
+.studio .cw-design-on .cw-card-album-btn { pointer-events: none; opacity: .35; }
+
 /* ---- Split görünüm chrome'u (grid sizing/--cw-l/--cw-r DOKUNULMAZ) ---- */
 .studio .cw-left-pane,
 .studio .cw-right-pane { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh); }

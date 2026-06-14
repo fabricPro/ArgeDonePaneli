@@ -15,6 +15,14 @@
   const rightIframe = $('#cw-right-iframe');
   const backBtn = $('#cw-back');
   const divider = $('#cw-divider');
+  // Tasarım modu (drag-drop sıralama) — Galeri muadili, pointer-events (mouse + dokunmatik)
+  const designToggle = $('#cw-design-toggle');
+  const designSave = $('#cw-design-save');
+  const designCancel = $('#cw-design-cancel');
+  const designHint = $('#cw-design-hint');
+  let designMode = false;
+  let dragEl = null;
+  let preDesignOrder = [];
 
   // ---- tasarim-v2 — Ayarlanabilir split oranı (sol pane payı 0.15–0.85) ----
   const SPLIT_KEY = 'cw_split_ratio';
@@ -213,11 +221,12 @@
 
   // ---- Event handlers ----
 
-  // Kart click → split
+  // Kart click → split (tasarım modunda bastırılır)
   $$('.cw-card-main').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
+      if (designMode) return;   // sıralama modunda tıklama split açmaz
       selectFabric(btn.dataset.urunid);
     });
   });
@@ -508,6 +517,76 @@
       tryLockLandscape();
     });
   }
+
+  // ===== Tasarım modu: sürükle-bırak sıralama (Galeri muadili; pointer-events → dokunmatik) =====
+  function cardOrderFromDom() {
+    return $$('.cw-card').map(c => c.dataset.urunid);
+  }
+  function reorderDomTo(order) {
+    const byId = {};
+    $$('.cw-card').forEach(c => { byId[c.dataset.urunid] = c; });
+    order.forEach(uid => { const c = byId[uid]; if (c) grid.appendChild(c); });
+  }
+  function setDesignMode(on) {
+    designMode = on;
+    page.classList.toggle('cw-design-on', on);
+    if (designToggle) designToggle.hidden = on;
+    if (designSave) designSave.hidden = !on;
+    if (designCancel) designCancel.hidden = !on;
+    if (designHint) designHint.hidden = !on;
+    if (on) preDesignOrder = cardOrderFromDom();
+  }
+  // Pointer sürükleme (delegation) — mouse + dokunmatik. dragEl yerinde reflow olur (Galeri deseni).
+  function endDrag() {
+    if (dragEl) dragEl.classList.remove('dragging');
+    dragEl = null;
+  }
+  grid?.addEventListener('pointerdown', (e) => {
+    if (!designMode) return;
+    if (e.target.closest('.cw-unpin, .cw-card-album-btn')) return;  // bu butonlar drag başlatmaz
+    const card = e.target.closest('.cw-card');
+    if (!card) return;
+    e.preventDefault();
+    dragEl = card;
+    card.classList.add('dragging');
+    try { card.setPointerCapture(e.pointerId); } catch (_) { /* yok say */ }
+  });
+  grid?.addEventListener('pointermove', (e) => {
+    if (!designMode || !dragEl) return;
+    e.preventDefault();
+    const under = document.elementFromPoint(e.clientX, e.clientY);
+    const t = under && under.closest ? under.closest('.cw-card') : null;
+    if (!t || t === dragEl || t.style.display === 'none') return;
+    const rect = t.getBoundingClientRect();
+    const after = (e.clientX - rect.left) > rect.width / 2;
+    grid.insertBefore(dragEl, after ? t.nextSibling : t);
+  });
+  grid?.addEventListener('pointerup', endDrag);
+  grid?.addEventListener('pointercancel', endDrag);
+
+  designToggle?.addEventListener('click', () => setDesignMode(true));
+  designCancel?.addEventListener('click', () => {
+    reorderDomTo(preDesignOrder);   // değişiklikleri geri al (sunucuya yazma yok)
+    setDesignMode(false);
+    applyAlbumFilter();
+  });
+  designSave?.addEventListener('click', async () => {
+    const order = cardOrderFromDom();   // TÜM kartlar (gizli dahil) — global sıra
+    try {
+      const res = await fetch('/api/calisma/sirala', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ urun_ids: order }),
+      });
+      const d = await res.json();
+      if (!d.ok) { toast(d.error || 'Sıra kaydedilemedi', 'error'); return; }
+      // items'ı yeni sıraya diz (rail + sonraki render doğru olsun)
+      const byId = {}; items.forEach(i => { byId[i.urun_id] = i; });
+      items = order.map(uid => byId[uid]).filter(Boolean);
+      setDesignMode(false);
+      applyAlbumFilter();
+      toast('Sıra kaydedildi', 'success');
+    } catch (err) { toast('Bağlantı hatası', 'error'); }
+  });
 
   // İlk yüklemede URL hash varsa o ürünü aç (örn. #urun-kvadrat_qs3847)
   const hash = location.hash.slice(1);
