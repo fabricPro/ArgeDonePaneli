@@ -7555,6 +7555,131 @@ body.embed-calisma-right .urun-main-tabs .utab-btn[data-tab="galeri"] {
 }
 
 /* ============================================================
+ * Çalışma split SOL PANE — künye / AI bilgileri barı + ayrı görünüm
+ * Yalnız body.embed-calisma-left'te görünür; tam ürün sayfasında künye
+ * zaten detail-header + meta-list'te. Salt-okuma; veri product.* (migration yok).
+ * Bara tıkla → görünüm değişir (açılır panel DEĞİL); "← Galeri" geri döner.
+ * ============================================================ */
+.cw-kunye-bar,
+.cw-kunye-view { display: none; }
+
+/* Bar: yalnız sol pane galeri modunda — kompakt tek satır, paleti aşağı itmez */
+body.embed-calisma-left:not(.kunye-view) .cw-kunye-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    margin: 0 0 10px;
+    padding: 7px 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    box-shadow: var(--sh);
+    color: var(--accent-strong);
+    font: 500 12.5px/1 var(--font);
+    cursor: pointer;
+    transition: background .12s, border-color .12s;
+}
+body.embed-calisma-left:not(.kunye-view) .cw-kunye-bar:hover {
+    background: var(--surface-2);
+    border-color: var(--accent-border);
+}
+.cw-kunye-bar .icon { width: 15px; height: 15px; flex: none; }
+.cw-kunye-bar-label { flex: 1 1 auto; text-align: left; }
+.cw-kunye-bar-chev { transform: rotate(-90deg); opacity: .65; } /* chevron-down → sağ ok */
+
+/* Künye modu: hero + diğer tüm galeri içeriği gizli, yalnız künye görünümü */
+body.embed-calisma-left.kunye-view .urun-sticky-hero,
+body.embed-calisma-left.kunye-view [data-tab="galeri"] > :not(.cw-kunye-view) {
+    display: none !important;
+}
+body.embed-calisma-left.kunye-view .cw-kunye-view { display: block; }
+
+.cw-kunye-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+}
+.cw-kunye-title { margin: 0; font: 600 14px/1.2 var(--font); color: var(--ink); }
+.cw-kunye-back { flex: none; }
+
+.cw-kunye-list { margin: 0 0 14px; }
+.cw-kunye-list > div {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--surface-2);
+}
+.cw-kunye-list dt {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+.cw-kunye-list dd {
+    margin: 0;
+    font-size: 13px;
+    color: var(--ink);
+    text-transform: capitalize;
+}
+.cw-kunye-tags { display: flex; flex-wrap: wrap; gap: 6px; text-transform: none; }
+.cw-kunye-tags .chip {
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    padding: 0 9px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 11.5px;
+    color: var(--ink-2);
+}
+
+.cw-kunye-note {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: var(--surface-2);
+    border-radius: var(--r-sm);
+    border-left: 3px solid var(--ink-3);
+}
+.cw-kunye-note p { margin: 4px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--ink); }
+.cw-kunye-note-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+}
+/* AI çıkarımı — doğrulanmış veriden GÖRSEL ayrım (Anayasa #2) */
+.cw-kunye-note-ai { border-left-color: var(--accent); background: var(--accent-bg); }
+.cw-kunye-note-ai .cw-kunye-note-label { color: var(--accent-strong); }
+.cw-ai-tag {
+    display: inline-flex;
+    align-items: center;
+    height: 16px;
+    padding: 0 6px;
+    margin-left: 6px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 4px;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    font-style: normal;
+}
+
+/* Dar split (tablet/portrait) — label kolonu daralt, taşma yok */
+@media (max-width: 520px) {
+    .cw-kunye-list > div { grid-template-columns: 92px 1fr; gap: 8px; }
+}
+
+/* ============================================================
  * Ön Çalışma mobile bug fix — küçük ekranda label kıs (PWA cache değil,
  * gerçek CSS-side overflow ihtimaline karşı)
  * ============================================================ */

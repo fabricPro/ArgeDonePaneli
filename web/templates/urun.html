@@ -112,6 +112,48 @@
 {# === GALERİ SEKMESİ — mevcut tüm yapı === #}
 <section data-tab="galeri" class="utab-section">
 
+{# Çalışma split SOL PANE — künye / AI bilgileri barı + ayrı görünüm.
+   Yalnız body.embed-calisma-left'te görünür (CSS); tam ürün sayfasında künye zaten
+   detail-header + meta-list'te. Salt-okuma; veri product.* (mevcut, migration yok). #}
+{% set _kunye_taxo = product.category or product.pattern or product.color_family or product.color_count or product.weave_tags or product.style_tags %}
+{% if _kunye_taxo or product.ai_notu or product.arge_notu %}
+<button type="button" class="cw-kunye-bar" id="cw-kunye-bar" aria-label="Künye ve AI bilgilerini göster">
+    <svg class="icon"><use href="#ic-clipboard"/></svg>
+    <span class="cw-kunye-bar-label">Künye / AI Bilgileri</span>
+    <svg class="icon cw-kunye-bar-chev"><use href="#ic-chevron-down"/></svg>
+</button>
+<div class="cw-kunye-view" id="cw-kunye-view" role="region" aria-label="Künye ve AI bilgileri">
+    <div class="cw-kunye-head">
+        <button type="button" class="btn btn-ghost cw-kunye-back" id="cw-kunye-back">
+            <svg class="icon"><use href="#ic-arrow-left"/></svg> Galeri
+        </button>
+        <h3 class="cw-kunye-title">Künye / AI Bilgileri</h3>
+    </div>
+    {% if _kunye_taxo %}
+    <dl class="cw-kunye-list">
+        {% if product.category %}<div><dt>Kategori</dt><dd>{{ product.category|replace('-',' ') }}</dd></div>{% endif %}
+        {% if product.pattern %}<div><dt>Desen</dt><dd>{{ product.pattern|replace('-',' ') }}</dd></div>{% endif %}
+        {% if product.color_family %}<div><dt>Renk ailesi</dt><dd>{{ product.color_family|replace('-',' ') }}</dd></div>{% endif %}
+        {% if product.color_count %}<div><dt>Renk sayısı</dt><dd>{{ product.color_count }}</dd></div>{% endif %}
+        {% if product.weave_tags %}<div><dt>Dokuma etiketleri</dt><dd class="cw-kunye-tags">{% for w in product.weave_tags %}<span class="chip">{{ w|replace('-',' ') }}</span>{% endfor %}</dd></div>{% endif %}
+        {% if product.style_tags %}<div><dt>Stil</dt><dd class="cw-kunye-tags">{% for s in product.style_tags %}<span class="chip">{{ s }}</span>{% endfor %}</dd></div>{% endif %}
+    </dl>
+    {% endif %}
+    {% if product.arge_notu %}
+    <div class="cw-kunye-note">
+        <span class="cw-kunye-note-label">ARGE Notu</span>
+        <p>{{ product.arge_notu }}</p>
+    </div>
+    {% endif %}
+    {% if product.ai_notu %}
+    <div class="cw-kunye-note cw-kunye-note-ai">
+        <span class="cw-kunye-note-label">ARGE Notu <em class="cw-ai-tag">AI</em></span>
+        <p>{{ product.ai_notu }}</p>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
 {% if product.images %}
 <nav class="album-tabs" id="album-tabs" aria-label="Albümler">
     <button type="button" class="album-tab is-active" data-album="">
@@ -3233,6 +3275,18 @@ grid.addEventListener('dragover', (e) => {
         initial = 'teknik';  // sağ pane: default teknik (galeri gizli)
     }
     setTab(VALID_TABS.includes(initial) ? initial : 'galeri');
+
+    // Çalışma split sol pane — künye/AI bilgi barı: görünüm değişimi (açılır panel değil)
+    const kunyeBar = document.getElementById('cw-kunye-bar');
+    const kunyeBack = document.getElementById('cw-kunye-back');
+    if (kunyeBar) {
+        const setKunye = (on) => {
+            body.classList.toggle('kunye-view', on);
+            try { window.scrollTo(0, 0); } catch (e) {}
+        };
+        kunyeBar.addEventListener('click', () => setKunye(true));
+        if (kunyeBack) kunyeBack.addEventListener('click', () => setKunye(false));
+    }
 })();
 </script>
 <script src="{{ url_for('static', filename='js/desen.js') }}"></script>

@@ -432,6 +432,8 @@ def product_summary(d: dict) -> dict:
         "color_count": d.get("color_count"),
         "weave_tags": d.get("weave_tags") or [],
         "style_tags": d.get("style_tags") or [],
+        # ARGE notu (AI çıkarımı) — kart/künye barı için salt-okuma ek alan
+        "ai_notu": d.get("ai_notu"),
         # Faz 2 — To-Do ilerleme rozeti (galeri/çalışma kartı)
         "todo_total": len(d.get("todo") or []),
         "todo_done": sum(1 for t in (d.get("todo") or []) if isinstance(t, dict) and t.get("done")),
