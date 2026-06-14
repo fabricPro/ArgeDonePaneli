@@ -64,6 +64,9 @@
             <a href="{{ url_for('iplik_katalog_list') }}" class="appbar-link {% if request.endpoint and request.endpoint.startswith('iplik_katalog') %}is-active{% endif %}">
                 <svg class="icon"><use href="{{ sprite }}#ic-spool"/></svg> İplik Kataloğu
             </a>
+            <a href="{{ url_for('senkron_page') }}" class="appbar-link {% if request.endpoint and request.endpoint.startswith('senkron') %}is-active{% endif %}">
+                <svg class="icon"><use href="{{ sprite }}#ic-factory"/></svg> Senkron
+            </a>
         </div>
         <div class="appbar-right">
             <span class="kur-pill" id="kur-pill" hidden aria-label="Güncel döviz kuru">
@@ -138,6 +141,10 @@
             <a href="{{ url_for('iplik_katalog_list') }}"
                class="mmd-item {% if request.endpoint and request.endpoint.startswith('iplik_katalog') %}is-active{% endif %}" role="menuitem">
                 <span class="mmd-emoji" aria-hidden="true">🧵</span> <span>İplik Kataloğu</span>
+            </a>
+            <a href="{{ url_for('senkron_page') }}"
+               class="mmd-item {% if request.endpoint and request.endpoint.startswith('senkron') %}is-active{% endif %}" role="menuitem">
+                <span class="mmd-emoji" aria-hidden="true"><svg class="icon"><use href="#ic-factory"/></svg></span> <span>Senkron</span>
             </a>
             <a href="{{ url_for('logout') }}" class="mmd-item mmd-logout" role="menuitem">
                 <span class="mmd-emoji" aria-hidden="true">🚪</span> <span>Çıkış</span>

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Senkron — {{ total }} tezgah{% endblock %}
+{% block body_class %}studio{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/screens/senkron.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="snk-page">
+    <header class="snk-head">
+        <div class="snk-head-text">
+            <h1>Senkron</h1>
+            <p class="page-subtitle">{{ total }} tezgah — eş zamanlı ürün planlama</p>
+        </div>
+        <a class="btn btn-primary" href="{{ url_for('senkron_yeni') }}">
+            <svg class="icon"><use href="#ic-plus"/></svg> Yeni Tezgah
+        </a>
+    </header>
+
+    {% if total == 0 %}
+    <div class="snk-empty">
+        <div class="empty-icon-wrap"><svg class="empty-icon"><use href="#ic-factory"/></svg></div>
+        <h2>Henüz Tezgah Yok</h2>
+        <p>İlk tezgahını oluştur; sonra Çalışma klasörlerinden toplu ya da tek tek ürün ata.</p>
+        <a class="btn btn-primary" href="{{ url_for('senkron_yeni') }}">Yeni Tezgah</a>
+    </div>
+    {% else %}
+    <div class="snk-grid">
+        {% for l in looms %}
+        <a class="snk-card" href="{{ url_for('senkron_detay', loom_id=l.loom_id) }}">
+            <div class="snk-card-head">
+                <span class="snk-loom-no">{{ l.loom_no }}</span>
+                <span class="snk-count">{{ l.urun_count }} ürün</span>
+            </div>
+            <dl class="snk-card-meta">
+                {% if l.max_width_cm %}<div><dt>En</dt><dd>{{ l.max_width_cm }} cm</dd></div>{% endif %}
+                {% if l.frame_count %}<div><dt>Çerçeve</dt><dd>{{ l.frame_count }}</dd></div>{% endif %}
+                {% if l.reed_no %}<div><dt>Tarak</dt><dd>{{ l.reed_no }}</dd></div>{% endif %}
+            </dl>
+            {% if l.setup_name %}<div class="snk-setup">{{ l.setup_name }}</div>{% endif %}
+            {% if l.status and l.status != 'aktif' %}<span class="chip snk-status-chip">{{ l.status }}</span>{% endif %}
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,179 @@
+/* ============================================================
+ * Senkron Sprint 1 — tezgah listesi / form / detay + ürün atama
+ * Stüdyo dili: yalnız token renkleri, hex icat yok.
+ * ============================================================ */
+.snk-page { max-width: 1180px; margin: 0 auto; padding: 20px 24px 48px; }
+
+.snk-head {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 16px; margin-bottom: 22px;
+}
+.snk-head h1 { margin: 0; font: 600 19px/1.2 var(--font); letter-spacing: -0.015em; color: var(--ink); }
+.snk-head .page-subtitle { margin: 4px 0 0; font-size: 13px; color: var(--ink-2); }
+.snk-head-actions { display: flex; gap: 8px; flex: none; }
+
+/* --- Boş durum --- */
+.snk-empty { text-align: center; padding: 64px 24px; color: var(--ink-2); }
+.snk-empty .empty-icon-wrap {
+    width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--accent-bg); color: var(--accent);
+}
+.snk-empty .empty-icon { width: 30px; height: 30px; }
+.snk-empty h2 { margin: 0 0 8px; font: 600 16px/1.3 var(--font); color: var(--ink); }
+.snk-empty p { margin: 0 0 18px; font-size: 13px; }
+
+/* --- Tezgah kartları --- */
+.snk-grid {
+    display: grid; gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
+}
+.snk-card {
+    display: block; text-decoration: none; color: inherit;
+    background: var(--surface); border: 1px solid var(--border);
+    border-left: 3px solid var(--accent); border-radius: var(--r);
+    box-shadow: var(--sh); padding: 14px 16px;
+    transition: box-shadow .12s, transform .12s;
+}
+.snk-card:hover { box-shadow: var(--sh-pop); transform: translateY(-1px); }
+.snk-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.snk-loom-no { font: 600 18px/1 var(--font); color: var(--ink); letter-spacing: -0.01em; }
+.snk-count {
+    font-size: 11.5px; font-weight: 500; color: var(--accent-strong);
+    background: var(--accent-bg); border: 1px solid var(--accent-border);
+    border-radius: 999px; padding: 2px 9px;
+}
+.snk-card-meta { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 12px 0 0; }
+.snk-card-meta > div { display: flex; flex-direction: column; gap: 1px; }
+.snk-card-meta dt { margin: 0; font-size: 10.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); }
+.snk-card-meta dd { margin: 0; font-size: 13px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.snk-setup { margin-top: 10px; font-size: 12px; color: var(--ink-2); }
+.snk-status-chip { margin-top: 10px; background: var(--amber-bg); color: var(--amber); border-color: transparent; }
+
+/* --- Form --- */
+.snk-form-page { max-width: 880px; }
+.snk-form { padding: 18px 20px; }
+.snk-form .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
+.snk-form .form-row { display: flex; flex-direction: column; gap: 5px; }
+.snk-form .form-row-wide { grid-column: 1 / -1; }
+.snk-form label { font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); }
+.snk-form input, .snk-form textarea {
+    width: 100%; min-height: 32px; padding: 6px 10px;
+    background: #fff; border: 1px solid var(--border); border-radius: var(--r-sm);
+    box-shadow: var(--sh); font: 400 13px/1.4 var(--font); color: var(--ink);
+}
+.snk-form textarea { resize: vertical; }
+.snk-form input:focus, .snk-form textarea:focus {
+    outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg);
+}
+.snk-form-actions { display: flex; gap: 8px; margin-top: 18px; }
+.snk-error {
+    margin-bottom: 14px; padding: 9px 12px; border-radius: var(--r-sm);
+    background: var(--red-bg); color: var(--red); font-size: 13px; font-weight: 500;
+}
+.snk-delete-form { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+/* --- Detay --- */
+.snk-frame-purpose {
+    margin: -6px 0 18px; padding: 10px 12px; background: var(--surface-2);
+    border-radius: var(--r-sm); font-size: 12.5px; color: var(--ink); line-height: 1.5;
+}
+.snk-fp-lbl { font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); margin-right: 6px; }
+.snk-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+.snk-detay .fcard {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r); box-shadow: var(--sh); padding: 0;
+}
+.snk-detay .fcard-h {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 16px; border-bottom: 1px solid var(--surface-2);
+    font: 600 11px/1 var(--font); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2);
+}
+.snk-badge {
+    font-size: 11px; font-weight: 600; color: var(--accent-strong);
+    background: var(--accent-bg); border-radius: 999px; padding: 2px 8px;
+}
+
+/* Atanan satırlar */
+.snk-assigned-list { display: flex; flex-direction: column; }
+.snk-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 14px; border-bottom: 1px solid var(--surface-2);
+}
+.snk-row:last-child { border-bottom: 0; }
+.snk-row-seq {
+    flex: none; width: 22px; text-align: center; font-variant-numeric: tabular-nums;
+    font-size: 12px; font-weight: 600; color: var(--ink-3);
+}
+.snk-row-thumb {
+    flex: none; width: 40px; height: 40px; border-radius: var(--r-sm); overflow: hidden;
+    background: var(--surface-2); display: flex; align-items: center; justify-content: center; color: var(--ink-3);
+}
+.snk-row-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.snk-row-thumb .icon { width: 18px; height: 18px; }
+.snk-row-body { flex: 1 1 auto; min-width: 0; }
+.snk-row-name { font-size: 13px; font-weight: 500; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.snk-row-meta { font-size: 11.5px; color: var(--ink-2); display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.snk-folder { display: inline-flex; align-items: center; gap: 3px; }
+.snk-folder .icon { width: 12px; height: 12px; }
+.snk-row-actions { flex: none; display: flex; gap: 2px; }
+.snk-iconbtn {
+    width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid transparent; border-radius: var(--r-sm); background: transparent;
+    color: var(--ink-2); cursor: pointer; transition: background .12s, color .12s;
+}
+.snk-iconbtn:hover { background: var(--surface-2); border-color: var(--border); }
+.snk-iconbtn .icon { width: 15px; height: 15px; }
+.snk-iconbtn.snk-up .icon { transform: rotate(180deg); }
+.snk-iconbtn.snk-del:hover { background: var(--red-bg); color: var(--red); border-color: transparent; }
+.snk-empty-inline { padding: 16px; font-size: 12.5px; color: var(--ink-3); text-align: center; }
+
+/* Atama paneli */
+.snk-assign-modes {
+    display: flex; gap: 4px; margin: 12px 14px 0; padding: 3px;
+    background: var(--surface-2); border-radius: var(--r-sm); width: fit-content;
+}
+.snk-mode-btn {
+    border: 0; background: transparent; border-radius: 5px; padding: 5px 12px;
+    font: 500 12px/1 var(--font); color: var(--ink-2); cursor: pointer;
+}
+.snk-mode-btn.is-active { background: var(--accent); color: #fff; }
+.snk-assign-pane { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.snk-field-label { font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); }
+.snk-select, .snk-search {
+    width: 100%; min-height: 32px; padding: 6px 10px;
+    background: #fff; border: 1px solid var(--border); border-radius: var(--r-sm);
+    box-shadow: var(--sh); font: 400 13px/1.4 var(--font); color: var(--ink);
+}
+.snk-select:focus, .snk-search:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+.snk-hint { margin: 0; font-size: 11.5px; color: var(--ink-3); line-height: 1.5; }
+
+/* Tekil ürün picker */
+.snk-product-list { max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+.snk-loading { padding: 14px; font-size: 12.5px; color: var(--ink-3); }
+.snk-pick { display: flex; align-items: center; gap: 10px; padding: 7px 4px; border-bottom: 1px solid var(--surface-2); }
+.snk-pick-thumb {
+    flex: none; width: 36px; height: 36px; border-radius: var(--r-sm); overflow: hidden;
+    background: var(--surface-2);
+}
+.snk-pick-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.snk-pick-body { flex: 1 1 auto; min-width: 0; }
+.snk-pick-name { font-size: 12.5px; font-weight: 500; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.snk-pick-brand { font-size: 11px; color: var(--ink-2); }
+.snk-pick .btn-sm { flex: none; height: 27px; padding: 0 10px; }
+
+.snk-assign-status {
+    margin: 0 14px 14px; padding: 8px 11px; border-radius: var(--r-sm);
+    font-size: 12.5px; font-weight: 500;
+    background: var(--surface-2); color: var(--ink-2);
+}
+.snk-assign-status[data-kind="ok"] { background: var(--green-bg); color: var(--green); }
+.snk-assign-status[data-kind="error"] { background: var(--red-bg); color: var(--red); }
+
+/* --- Dar ekran / tablet: tek kolon, form tek sütun --- */
+@media (max-width: 860px) {
+    .snk-cols { grid-template-columns: 1fr; }
+    .snk-form .form-grid { grid-template-columns: 1fr; }
+    .snk-page { padding: 16px 16px 40px; }
+    .snk-head { flex-direction: column; gap: 12px; }
+}

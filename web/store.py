@@ -22,6 +22,8 @@ BUCKET_KARTELALAR = "kartelalar"  # İplik Kataloğu Parça 1 (Parça 2'de kulla
 TABLE = "products"
 TABLE_RESEARCH = "research_pool"  # v4.0-part-2 Adim 8
 TABLE_KARTELA = "iplik_kartelalari"  # İplik Kataloğu Parça 1
+TABLE_LOOMS = "looms"  # Senkron Sprint 1
+TABLE_LOOM_PRODUCTS = "loom_products"  # Senkron Sprint 1
 
 PRODUCT_COLUMNS = [
     "urun_id", "brand", "brand_slug", "country", "collection", "product_name",
@@ -273,6 +275,113 @@ def upsert_kartela(data: dict) -> None:
 
 def delete_kartela(kartela_id: str) -> None:
     client().table(TABLE_KARTELA).delete().eq("kartela_id", kartela_id).execute()
+
+
+# ============================================================
+# Senkron Sprint 1 — looms + loom_products (thin DB katmanı)
+# Şema: scripts/supabase_schema_senkron_part1.sql (migration ile, runtime DDL yok).
+# Read'ler migration uygulanmadan önce boş döner (sayfa çökmesin); write'lar hata verir.
+# ============================================================
+LOOM_COLUMNS = [
+    "loom_id", "loom_no", "max_width_cm", "frame_count", "frame_purpose",
+    "setup_name", "reed_no", "reed_report", "working_warp_width_cm",
+    "status", "notes", "created_at", "updated_at",
+]
+LOOM_PRODUCT_COLUMNS = ["id", "loom_id", "urun_id", "sequence", "notes", "created_at"]
+
+
+def _missing_table(e) -> bool:
+    """Supabase 'tablo yok' hatası mı? (migration henüz uygulanmadıysa read boş dönsün)."""
+    m = str(e).lower()
+    return ("could not find the table" in m or "pgrst205" in m
+            or "does not exist" in m or "42p01" in m)
+
+
+def list_looms() -> list[dict]:
+    try:
+        res = client().table(TABLE_LOOMS).select("*").order("loom_no").execute()
+        return res.data or []
+    except Exception as e:  # noqa: BLE001
+        if _missing_table(e):
+            return []
+        raise
+
+
+def get_loom(loom_id: str) -> dict | None:
+    try:
+        res = (client().table(TABLE_LOOMS).select("*")
+               .eq("loom_id", loom_id).limit(1).execute())
+        return res.data[0] if res.data else None
+    except Exception as e:  # noqa: BLE001
+        if _missing_table(e):
+            return None
+        raise
+
+
+def upsert_loom(data: dict) -> None:
+    # Sadece bilinen kolonlar; updated_at her zaman tazelenir; created_at'e dokunma.
+    row = {k: data.get(k) for k in LOOM_COLUMNS if k in data}
+    row["updated_at"] = _now_iso()
+    row.pop("created_at", None)
+    client().table(TABLE_LOOMS).upsert(row, on_conflict="loom_id").execute()
+
+
+def delete_loom(loom_id: str) -> None:
+    # loom_products FK on delete cascade → bu tezgahın atamaları da silinir.
+    client().table(TABLE_LOOMS).delete().eq("loom_id", loom_id).execute()
+
+
+def loom_products_for(loom_id: str) -> list[dict]:
+    try:
+        res = (client().table(TABLE_LOOM_PRODUCTS).select("*")
+               .eq("loom_id", loom_id).order("sequence").execute())
+        return res.data or []
+    except Exception as e:  # noqa: BLE001
+        if _missing_table(e):
+            return []
+        raise
+
+
+def loom_product_counts() -> dict:
+    """{loom_id: atalı ürün sayısı} — liste ekranı rozet/özeti için."""
+    try:
+        res = client().table(TABLE_LOOM_PRODUCTS).select("loom_id").execute()
+    except Exception as e:  # noqa: BLE001
+        if _missing_table(e):
+            return {}
+        raise
+    counts: dict = {}
+    for r in (res.data or []):
+        counts[r.get("loom_id")] = counts.get(r.get("loom_id"), 0) + 1
+    return counts
+
+
+def loom_product_exists(loom_id: str, urun_id: str) -> bool:
+    res = (client().table(TABLE_LOOM_PRODUCTS).select("id")
+           .eq("loom_id", loom_id).eq("urun_id", urun_id).limit(1).execute())
+    return bool(res.data)
+
+
+def loom_product_add(loom_id: str, urun_id: str, sequence: int = 0, notes=None) -> dict | None:
+    """Atama ekle. unique(loom_id,urun_id): zaten varsa None döner (çift eklemez)."""
+    if loom_product_exists(loom_id, urun_id):
+        return None
+    row = {
+        "id": "lp_" + _uuid.uuid4().hex[:12],
+        "loom_id": loom_id, "urun_id": urun_id,
+        "sequence": int(sequence or 0), "notes": notes, "created_at": _now_iso(),
+    }
+    client().table(TABLE_LOOM_PRODUCTS).insert(row).execute()
+    return row
+
+
+def loom_product_remove(lp_id: str) -> None:
+    client().table(TABLE_LOOM_PRODUCTS).delete().eq("id", lp_id).execute()
+
+
+def loom_product_set_sequence(lp_id: str, sequence: int) -> None:
+    client().table(TABLE_LOOM_PRODUCTS).update(
+        {"sequence": int(sequence)}).eq("id", lp_id).execute()
 
 
 # ---- kartelalar Storage (Parça 2'de sayfa fotoğrafları için) ----

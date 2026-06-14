@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}{{ loom.loom_no }} — Senkron{% endblock %}
+{% block body_class %}studio{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/screens/senkron.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="snk-page snk-detay" id="snk-detay" data-loom-id="{{ loom.loom_id }}">
+    <header class="snk-head">
+        <div class="snk-head-text">
+            <h1>{{ loom.loom_no }}</h1>
+            <p class="page-subtitle">
+                {% if loom.max_width_cm %}{{ loom.max_width_cm }} cm en{% endif %}
+                {% if loom.frame_count %} · {{ loom.frame_count }} çerçeve{% endif %}
+                {% if loom.reed_no %} · tarak {{ loom.reed_no }}{% endif %}
+                {% if loom.working_warp_width_cm %} · çalışan çözgü {{ loom.working_warp_width_cm }} cm{% endif %}
+            </p>
+        </div>
+        <div class="snk-head-actions">
+            <a class="btn btn-secondary" href="{{ url_for('senkron_duzenle', loom_id=loom.loom_id) }}">
+                <svg class="icon"><use href="#ic-pencil"/></svg> Düzenle</a>
+            <a class="btn btn-ghost" href="{{ url_for('senkron_page') }}">Liste</a>
+        </div>
+    </header>
+
+    {% if loom.frame_purpose %}
+    <div class="snk-frame-purpose"><span class="snk-fp-lbl">Çerçeve amacı</span> {{ loom.frame_purpose }}</div>
+    {% endif %}
+
+    <div class="snk-cols">
+        <!-- Atanan ürünler -->
+        <section class="fcard snk-assigned">
+            <div class="fcard-h">Atanan Ürünler <span class="snk-badge" id="snk-count">{{ total }}</span></div>
+            <div class="snk-assigned-list" id="snk-assigned-list">
+                {% for it in items %}
+                <div class="snk-row" data-lp-id="{{ it.lp_id }}">
+                    <div class="snk-row-seq">{{ loop.index }}</div>
+                    <div class="snk-row-thumb">
+                        {% if it.cover_image %}<img src="{{ it.cover_image }}" loading="lazy" alt="">
+                        {% else %}<svg class="icon"><use href="#ic-image"/></svg>{% endif %}
+                    </div>
+                    <div class="snk-row-body">
+                        <div class="snk-row-name">{{ it.product_name }}</div>
+                        <div class="snk-row-meta">{{ it.brand }}{% if it.workspace_album %}
+                            · <span class="snk-folder" title="{{ it.workspace_album.path }}"><svg class="icon"><use href="#ic-folder"/></svg> {{ it.workspace_album.name }}</span>{% endif %}</div>
+                    </div>
+                    <div class="snk-row-actions">
+                        <button type="button" class="snk-iconbtn snk-up" data-act="up" title="Yukarı" aria-label="Yukarı taşı"><svg class="icon"><use href="#ic-chevron-down"/></svg></button>
+                        <button type="button" class="snk-iconbtn" data-act="down" title="Aşağı" aria-label="Aşağı taşı"><svg class="icon"><use href="#ic-chevron-down"/></svg></button>
+                        <button type="button" class="snk-iconbtn snk-del" data-act="remove" title="Çıkar" aria-label="Tezgahtan çıkar"><svg class="icon"><use href="#ic-x"/></svg></button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="snk-empty-inline" id="snk-assigned-empty" {% if total > 0 %}hidden{% endif %}>
+                Henüz ürün atanmadı. Sağdan klasör ya da tekil ürün ekle.
+            </div>
+        </section>
+
+        <!-- Ürün ata -->
+        <section class="fcard snk-assign">
+            <div class="fcard-h">Ürün Ata</div>
+            <div class="snk-assign-modes" role="tablist" aria-label="Atama yöntemi">
+                <button type="button" class="snk-mode-btn is-active" data-mode="folder" role="tab">Klasörden</button>
+                <button type="button" class="snk-mode-btn" data-mode="single" role="tab">Tekil</button>
+            </div>
+
+            <div class="snk-assign-pane" data-pane="folder">
+                <label class="snk-field-label" for="snk-folder-select">Çalışma klasörü (alt klasörler dahil)</label>
+                {% if albums %}
+                <select id="snk-folder-select" class="filter-select snk-select">
+                    <option value="">— Klasör seç —</option>
+                    {% for a in albums %}
+                    <option value="{{ a.id }}">{{ '— ' * a.depth }}{{ a.name }} ({{ a.count }})</option>
+                    {% endfor %}
+                </select>
+                <button type="button" class="btn btn-primary" id="snk-folder-add">Klasördeki ürünleri ekle</button>
+                <p class="snk-hint">Seçilen klasörün ve tüm alt klasörlerinin ürünleri eklenir; zaten atalı olanlar atlanır.</p>
+                {% else %}
+                <p class="snk-hint">Çalışma'da henüz klasör yok. Tekil moddan ürün ekleyebilirsin.</p>
+                {% endif %}
+            </div>
+
+            <div class="snk-assign-pane" data-pane="single" hidden>
+                <input type="search" id="snk-product-search" class="snk-search" placeholder="Ürün ara (ad / marka)…" autocomplete="off">
+                <div class="snk-product-list" id="snk-product-list"><div class="snk-loading">Yükleniyor…</div></div>
+            </div>
+
+            <div class="snk-assign-status" id="snk-assign-status" hidden></div>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.SNK = { loomId: {{ loom.loom_id|tojson }} };
+</script>
+<script src="{{ url_for('static', filename='js/senkron_detay.js') }}"></script>
+{% endblock %}

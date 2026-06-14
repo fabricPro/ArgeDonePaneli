@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}{% if loom and loom.loom_id %}{{ loom.loom_no }} — Düzenle{% else %}Yeni Tezgah{% endif %}{% endblock %}
+{% block body_class %}studio{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/screens/senkron.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="snk-page snk-form-page">
+    <header class="snk-head">
+        <div class="snk-head-text">
+            <h1>{% if loom and loom.loom_id %}Tezgah Düzenle{% else %}Yeni Tezgah{% endif %}</h1>
+            <p class="page-subtitle">Tezgah özelliklerini gir — Tezgah No zorunlu</p>
+        </div>
+        <a class="btn btn-secondary" href="{{ url_for('senkron_page') }}">
+            <svg class="icon"><use href="#ic-arrow-left"/></svg> Liste
+        </a>
+    </header>
+
+    {% if error %}<div class="snk-error">{{ error }}</div>{% endif %}
+
+    <form class="fcard snk-form" method="post" action="{{ url_for('senkron_kaydet') }}">
+        <input type="hidden" name="loom_id" value="{{ loom.loom_id if loom else '' }}">
+        <div class="form-grid">
+            <div class="form-row">
+                <label>Tezgah No *</label>
+                <input name="loom_no" required value="{{ loom.loom_no if loom else '' }}" placeholder="T01">
+            </div>
+            <div class="form-row">
+                <label>Maks. En (cm)</label>
+                <input name="max_width_cm" type="number" step="0.1" inputmode="decimal"
+                       value="{{ loom.max_width_cm if loom and loom.max_width_cm is not none else '' }}">
+            </div>
+            <div class="form-row">
+                <label>Çerçeve Sayısı</label>
+                <input name="frame_count" type="number" inputmode="numeric"
+                       value="{{ loom.frame_count if loom and loom.frame_count is not none else '' }}">
+            </div>
+            <div class="form-row">
+                <label>Çalışan Çözgü Eni (cm)</label>
+                <input name="working_warp_width_cm" type="number" step="0.1" inputmode="decimal"
+                       value="{{ loom.working_warp_width_cm if loom and loom.working_warp_width_cm is not none else '' }}">
+            </div>
+            <div class="form-row">
+                <label>Tarak No</label>
+                <input name="reed_no" value="{{ loom.reed_no if loom else '' }}">
+            </div>
+            <div class="form-row">
+                <label>Tarak Raporu</label>
+                <input name="reed_report" value="{{ loom.reed_report if loom else '' }}">
+            </div>
+            <div class="form-row">
+                <label>Düzen Adı</label>
+                <input name="setup_name" value="{{ loom.setup_name if loom else '' }}">
+            </div>
+            <div class="form-row">
+                <label>Durum</label>
+                <input name="status" value="{{ loom.status if loom else 'aktif' }}">
+            </div>
+            <div class="form-row form-row-wide">
+                <label>Çerçeve Amacı</label>
+                <textarea name="frame_purpose" rows="2"
+                          placeholder="örn. 1-6 alt çözgü, 8-9 kenar, 10-11 üst çözgü">{{ loom.frame_purpose if loom else '' }}</textarea>
+            </div>
+            <div class="form-row form-row-wide">
+                <label>Not</label>
+                <textarea name="notes" rows="2">{{ loom.notes if loom else '' }}</textarea>
+            </div>
+        </div>
+        <div class="snk-form-actions">
+            <button class="btn btn-primary" type="submit">Kaydet</button>
+            {% if loom and loom.loom_id %}
+            <a class="btn btn-secondary" href="{{ url_for('senkron_detay', loom_id=loom.loom_id) }}">İptal</a>
+            {% else %}
+            <a class="btn btn-secondary" href="{{ url_for('senkron_page') }}">İptal</a>
+            {% endif %}
+        </div>
+    </form>
+
+    {% if loom and loom.loom_id %}
+    <form class="snk-delete-form" method="post" action="{{ url_for('senkron_sil', loom_id=loom.loom_id) }}"
+          onsubmit="return confirm('Tezgah ve TÜM ürün atamaları silinsin mi? (ürünler/galeri etkilenmez)');">
+        <button class="btn btn-danger" type="submit"><svg class="icon"><use href="#ic-trash"/></svg> Tezgahı Sil</button>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

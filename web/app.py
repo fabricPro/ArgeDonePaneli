@@ -934,6 +934,221 @@ def iplik_katalog_sayfa_renkler(kartela_id: str, sayfa_id: str):
     return jsonify({"ok": True, "renkler": renkler})
 
 
+# ============================================================
+# Senkron Sprint 1 — Tezgah (looms) + ürün atama (loom_products)
+# Şema: scripts/supabase_schema_senkron_part1.sql (migration ile uygulanır).
+# products + workspace_data SALT OKUNUR; yazım yalnız looms/loom_products'a.
+# ============================================================
+
+def _loom_form_fields(form) -> dict:
+    """İstek formundan loom alanlarını derle (loom_id/created_at ayrı yönetilir)."""
+    def _num(v):
+        v = (v or "").strip().replace(",", ".")
+        if v == "":
+            return None
+        try:
+            return float(v)
+        except ValueError:
+            return None
+    def _int(v):
+        v = (v or "").strip()
+        if v == "":
+            return None
+        try:
+            return int(float(v.replace(",", ".")))
+        except ValueError:
+            return None
+    return {
+        "loom_no": (form.get("loom_no") or "").strip(),
+        "max_width_cm": _num(form.get("max_width_cm")),
+        "frame_count": _int(form.get("frame_count")),
+        "frame_purpose": clean(form.get("frame_purpose")),
+        "setup_name": clean(form.get("setup_name")),
+        "reed_no": clean(form.get("reed_no")),
+        "reed_report": clean(form.get("reed_report")),
+        "working_warp_width_cm": _num(form.get("working_warp_width_cm")),
+        "status": (form.get("status") or "aktif").strip() or "aktif",
+        "notes": clean(form.get("notes")),
+    }
+
+
+def _album_member_urun_ids(album_id: str) -> list:
+    """album_id + TÜM alt klasörleri (descendant) içindeki workspace ürün id'leri.
+    Çalışma'daki descendant semantiğiyle birebir; YENİ klasör kavramı icat edilmez."""
+    data = store.workspace_data_get()
+    membership = data.get("membership") or {}
+    albums = data.get("albums") or []
+    workspace_ids = set(store.workspace_get_ids())
+    children: dict = {}
+    for a in albums:
+        children.setdefault(a.get("parent_id") or None, []).append(a.get("id"))
+    scope, stack = set(), [album_id]
+    while stack:  # album_id + descendants (döngü korumalı)
+        cur = stack.pop()
+        if cur in scope:
+            continue
+        scope.add(cur)
+        stack.extend(children.get(cur, []))
+    return [uid for uid, alb in membership.items()
+            if alb in scope and uid in workspace_ids]
+
+
+def _loom_assigned_items(loom_id: str) -> list:
+    """loom_products satırları → ürün özetiyle (ad/kapak/marka/klasör) zenginleştir."""
+    rows = store.loom_products_for(loom_id)
+    data = store.workspace_data_get()
+    albums_by_id = {a.get("id"): a for a in (data.get("albums") or [])}
+    membership = data.get("membership") or {}
+    items = []
+    for lp in rows:
+        d = store.get(lp.get("urun_id"))
+        if d:
+            summ = product_summary(d)
+        else:  # ürün silinmişse (teorik — FK cascade var) zarif düş
+            summ = {"urun_id": lp.get("urun_id"), "product_name": lp.get("urun_id"),
+                    "brand": "?", "cover_image": None}
+        summ["lp_id"] = lp.get("id")
+        summ["sequence"] = lp.get("sequence")
+        summ["workspace_album"] = _workspace_album_display(
+            membership.get(lp.get("urun_id")), albums_by_id)
+        items.append(summ)
+    return items
+
+
+def _next_sequence(loom_id) -> int:
+    rows = store.loom_products_for(loom_id)
+    return (max((r.get("sequence") or 0) for r in rows) + 1) if rows else 1
+
+
+@app.route("/senkron")
+def senkron_page():
+    """Senkron — tezgah listesi."""
+    looms = store.list_looms()
+    counts = store.loom_product_counts()
+    for lm in looms:
+        lm["urun_count"] = counts.get(lm.get("loom_id"), 0)
+    return render_template("senkron.html", looms=looms, total=len(looms))
+
+
+@app.route("/senkron/yeni")
+def senkron_yeni():
+    return render_template("senkron_form.html", loom=None, error=None)
+
+
+@app.route("/senkron/<loom_id>/duzenle")
+def senkron_duzenle(loom_id: str):
+    loom = store.get_loom(loom_id)
+    if not loom:
+        abort(404)
+    return render_template("senkron_form.html", loom=loom, error=None)
+
+
+@app.route("/senkron/kaydet", methods=["POST"])
+def senkron_kaydet():
+    form = request.form
+    loom_id = (form.get("loom_id") or "").strip()
+    fields = _loom_form_fields(form)
+    if not fields["loom_no"]:
+        return render_template("senkron_form.html",
+                               loom={**fields, "loom_id": loom_id},
+                               error="Tezgah no (loom_no) zorunlu"), 400
+    if not loom_id:
+        loom_id = "t_" + uuid.uuid4().hex[:10]
+    fields["loom_id"] = loom_id
+    store.upsert_loom(fields)
+    return redirect(url_for("senkron_detay", loom_id=loom_id))
+
+
+@app.route("/senkron/<loom_id>/sil", methods=["POST"])
+def senkron_sil(loom_id: str):
+    store.delete_loom(loom_id)
+    return redirect(url_for("senkron_page"))
+
+
+@app.route("/senkron/<loom_id>")
+def senkron_detay(loom_id: str):
+    loom = store.get_loom(loom_id)
+    if not loom:
+        abort(404)
+    items = _loom_assigned_items(loom_id)
+    return render_template("senkron_detay.html", loom=loom, items=items,
+                           albums=_workspace_albums_with_counts(), total=len(items))
+
+
+@app.route("/api/senkron/urunler")
+def api_senkron_urunler():
+    """Tekil atama picker'ı — tüm ürünlerin sade listesi (ad/marka/kapak)."""
+    out = [{
+        "urun_id": d.get("urun_id"),
+        "product_name": d.get("product_name"),
+        "brand": d.get("brand"),
+        "cover_image": store.public_url(cover_path(d)),
+    } for d in store.get_all()]
+    out.sort(key=lambda x: ((x.get("brand") or ""), (x.get("product_name") or "")))
+    return jsonify({"ok": True, "urunler": out})
+
+
+@app.route("/api/senkron/<loom_id>/ata-urun", methods=["POST"])
+def api_senkron_ata_urun(loom_id: str):
+    if not store.get_loom(loom_id):
+        return jsonify({"ok": False, "error": "Tezgah yok"}), 404
+    body = request.get_json(force=True) or {}
+    urun_id = (body.get("urun_id") or "").strip()
+    if not urun_id or not store.get(urun_id):
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 400
+    row = store.loom_product_add(loom_id, urun_id, sequence=_next_sequence(loom_id))
+    return jsonify({"ok": True, "added": 1 if row else 0, "already": 0 if row else 1})
+
+
+@app.route("/api/senkron/<loom_id>/ata-klasor", methods=["POST"])
+def api_senkron_ata_klasor(loom_id: str):
+    if not store.get_loom(loom_id):
+        return jsonify({"ok": False, "error": "Tezgah yok"}), 404
+    body = request.get_json(force=True) or {}
+    album_id = (body.get("album_id") or "").strip()
+    if not album_id:
+        return jsonify({"ok": False, "error": "Klasör seçilmedi"}), 400
+    urun_ids = _album_member_urun_ids(album_id)
+    seq = _next_sequence(loom_id)
+    added = already = 0
+    for uid in urun_ids:
+        if store.loom_product_add(loom_id, uid, sequence=seq):
+            added += 1
+            seq += 1
+        else:
+            already += 1
+    return jsonify({"ok": True, "added": added, "already": already, "total": len(urun_ids)})
+
+
+@app.route("/api/senkron/<loom_id>/cikar", methods=["POST"])
+def api_senkron_cikar(loom_id: str):
+    body = request.get_json(force=True) or {}
+    lp_id = (body.get("lp_id") or "").strip()
+    if not lp_id:
+        return jsonify({"ok": False, "error": "lp_id yok"}), 400
+    store.loom_product_remove(lp_id)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/senkron/<loom_id>/sirala", methods=["POST"])
+def api_senkron_sirala(loom_id: str):
+    """Basit yukarı/aşağı: komşu iki kaydın sequence'ını swap eder."""
+    body = request.get_json(force=True) or {}
+    lp_id = (body.get("lp_id") or "").strip()
+    direction = body.get("direction")
+    rows = store.loom_products_for(loom_id)  # sequence sıralı
+    idx = next((i for i, r in enumerate(rows) if r.get("id") == lp_id), None)
+    if idx is None:
+        return jsonify({"ok": False, "error": "Kayıt yok"}), 404
+    swap = idx - 1 if direction == "up" else idx + 1
+    if swap < 0 or swap >= len(rows):
+        return jsonify({"ok": True, "moved": False})  # uçta — hareket yok
+    a, b = rows[idx], rows[swap]
+    store.loom_product_set_sequence(a["id"], b.get("sequence") or 0)
+    store.loom_product_set_sequence(b["id"], a.get("sequence") or 0)
+    return jsonify({"ok": True, "moved": True})
+
+
 @app.route("/api/brands", methods=["GET"])
 def api_brands_list():
     return jsonify({"ok": True, "brands": get_brands_registry()})
