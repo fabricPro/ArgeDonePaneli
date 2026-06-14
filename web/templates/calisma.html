@@ -77,6 +77,14 @@
                         {% if p.width_cm %} · {{ p.width_cm }}cm{% endif %}
                         {% if p.weave_type %} · {{ p.weave_type }}{% endif %}
                     </div>
+                    {# Ön çalışmadan taşınan sınıflandırma chip'leri (F5) #}
+                    {% if p.category or p.pattern or p.color_family %}
+                    <div class="cw-taxo">
+                        {% if p.category %}<span class="chip">{{ p.category|replace('-',' ') }}</span>{% endif %}
+                        {% if p.pattern %}<span class="chip">{{ p.pattern|replace('-',' ') }}</span>{% endif %}
+                        {% if p.color_family %}<span class="chip">{{ p.color_family|replace('-',' ') }}</span>{% endif %}
+                    </div>
+                    {% endif %}
                     {# Mevcut indikatörlerini de göster #}
                     <div class="card-indicators">
                         <span class="ind {% if p.has_teknik %}on{% else %}off{% endif %}" title="Teknik Çalışma">

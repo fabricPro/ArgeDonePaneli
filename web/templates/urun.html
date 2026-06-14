@@ -179,7 +179,7 @@
     </div>
 </div>
 
-{% set has_meta = product.product_code or product.width_cm or product.weight_gsm or product.weave_type or product.composition or (product.repeat_vertical_cm is not none) or (product.repeat_horizontal_cm is not none) %}
+{% set has_meta = product.product_code or product.width_cm or product.weight_gsm or product.weave_type or product.composition or (product.repeat_vertical_cm is not none) or (product.repeat_horizontal_cm is not none) or product.category or product.pattern or product.weave_tags or product.style_tags or product.color_family or product.color_count %}
 {% if has_meta %}
 <dl class="meta-list">
     {% if product.product_code %}<div><dt>Kod</dt><dd>{{ product.product_code }}</dd></div>{% endif %}
@@ -190,12 +190,24 @@
     {% if product.repeat_vertical_cm is not none or product.repeat_horizontal_cm is not none %}
     <div><dt>Rapor (boy × en)</dt><dd>{{ product.repeat_vertical_cm if product.repeat_vertical_cm is not none else '–' }} × {{ product.repeat_horizontal_cm if product.repeat_horizontal_cm is not none else '–' }} cm</dd></div>
     {% endif %}
+    {# Ön çalışmadan taşınan sınıflandırma (taksonomi) — boş alanlar render edilmez #}
+    {% if product.category %}<div><dt>Kategori</dt><dd>{{ product.category|replace('-',' ') }}</dd></div>{% endif %}
+    {% if product.pattern %}<div><dt>Desen</dt><dd>{{ product.pattern|replace('-',' ') }}</dd></div>{% endif %}
+    {% if product.color_family %}<div><dt>Renk ailesi</dt><dd>{{ product.color_family|replace('-',' ') }}</dd></div>{% endif %}
+    {% if product.color_count %}<div><dt>Renk sayısı</dt><dd>{{ product.color_count }}</dd></div>{% endif %}
+    {% if product.weave_tags %}<div><dt>Dokuma etiketleri</dt><dd class="meta-tags">{% for w in product.weave_tags %}<span class="chip">{{ w|replace('-',' ') }}</span>{% endfor %}</dd></div>{% endif %}
+    {% if product.style_tags %}<div><dt>Stil</dt><dd class="meta-tags">{% for s in product.style_tags %}<span class="chip">{{ s }}</span>{% endfor %}</dd></div>{% endif %}
 </dl>
 {% endif %}
 
 {% if product.arge_notu %}
 <div class="arge-note">
     <strong>ARGE Notu:</strong> {{ product.arge_notu }}
+</div>
+{% endif %}
+{% if product.ai_notu %}
+<div class="arge-note arge-note-ai">
+    <strong>AI Notu:</strong> {{ product.ai_notu }}
 </div>
 {% endif %}
 
@@ -571,7 +583,37 @@
             {% if from_research_row.status %}
             <div class="oc-row"><dt>Durum</dt><dd><span class="oc-status">{{ from_research_row.status }}</span></dd></div>
             {% endif %}
+            {# Ön çalışmada girilen sınıflandırma — boş alanlar render edilmez #}
+            {% if from_research_row.category %}<div class="oc-row"><dt>Kategori</dt><dd>{{ from_research_row.category|replace('-',' ') }}</dd></div>{% endif %}
+            {% if from_research_row.pattern %}<div class="oc-row"><dt>Desen</dt><dd>{{ from_research_row.pattern|replace('-',' ') }}</dd></div>{% endif %}
+            {% if from_research_row.color_family %}<div class="oc-row"><dt>Renk ailesi</dt><dd>{{ from_research_row.color_family|replace('-',' ') }}</dd></div>{% endif %}
+            {% if from_research_row.color_count %}<div class="oc-row"><dt>Renk sayısı</dt><dd>{{ from_research_row.color_count }}</dd></div>{% endif %}
+            {% if from_research_row.weave_tags %}<div class="oc-row"><dt>Dokuma etiketleri</dt><dd class="meta-tags">{% for w in from_research_row.weave_tags %}<span class="chip">{{ w|replace('-',' ') }}</span>{% endfor %}</dd></div>{% endif %}
+            {% if from_research_row.style_tags %}<div class="oc-row"><dt>Stil</dt><dd class="meta-tags">{% for s in from_research_row.style_tags %}<span class="chip">{{ s }}</span>{% endfor %}</dd></div>{% endif %}
         </dl>
+        {% if from_research_row.ai_notu %}
+        <div class="oc-notes oc-ai-note">
+            <h4>AI Notu</h4>
+            <p>{{ from_research_row.ai_notu }}</p>
+        </div>
+        {% endif %}
+        {# Onaylanan AI çıkarımları (extracted_facts[*].accepted) — salt-okuma, kanıtlı kaynak verisi #}
+        {% set _accepted_facts = [] %}
+        {% for _k, _f in (from_research_row.extracted_facts or {}).items() %}
+            {% if _f is mapping and _f.get('accepted') and _f.get('value') not in (none, '') %}{% set _ = _accepted_facts.append((_k, _f)) %}{% endif %}
+        {% endfor %}
+        {% if _accepted_facts %}
+        <div class="oc-facts">
+            <h4>Onaylanan AI çıkarımları <span class="oc-cnt">({{ _accepted_facts|length }})</span></h4>
+            <dl class="oc-facts-list">
+                {% for _k, _f in _accepted_facts %}
+                <div class="oc-fact"{% if _f.get('evidence') %} title="Kanıt: {{ _f.get('evidence') }}"{% endif %}>
+                    <dt>{{ _k|replace('_',' ') }}</dt><dd>{{ _f.get('value') }}</dd>
+                </div>
+                {% endfor %}
+            </dl>
+        </div>
+        {% endif %}
         {% if from_research_row.notes %}
         <div class="oc-notes">
             <h4>Notlar</h4>

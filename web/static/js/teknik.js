@@ -1507,40 +1507,64 @@
         return Math.round(n).toLocaleString('tr-TR');
     }
 
-    // DAĞILIM donut chart — 5 segment SVG arc
+    // DAĞILIM donut chart — 5 segment SVG arc + segment-içi % + dinamik efsane (tutar+%)
+    const DAGILIM_COLORS = { iplik: '#5253c8', iscilik: '#b98a3e', terbiye: '#0f857c', fire: '#c2657e', kursun: '#84868f' };
+    const DAGILIM_LABELS = { iplik: 'İplik', iscilik: 'İşçilik', terbiye: 'Terbiye', fire: 'Fire', kursun: 'Kurşum+Ek' };
+    const DAGILIM_ORDER = ['iplik', 'iscilik', 'terbiye', 'fire', 'kursun'];
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+
     function renderDagilim(parts, total) {
         const host = document.getElementById('dagilim-segments');
+        const legend = document.getElementById('dagilim-legend');
+        // --- Efsane: dot + ad + tutar ($) + % (toplam yoksa "—") ---
+        if (legend) {
+            legend.innerHTML = DAGILIM_ORDER.map(k => {
+                const v = parts[k] || 0;
+                const pct = total > 0 ? (v / total * 100) : 0;
+                const val = total > 0 ? `${fmtTr(v, 3)} $ · %${fmtTr(pct, 1)}` : '—';
+                return `<span class="dagilim-leg-row"><span class="dot" style="--c:${DAGILIM_COLORS[k]}"></span>`
+                     + `<span class="leg-name">${DAGILIM_LABELS[k]}</span>`
+                     + `<span class="leg-val">${val}</span></span>`;
+            }).join('');
+        }
         if (!host) return;
         host.innerHTML = '';
         if (total <= 0) return;
-        const colors = {
-            iplik: '#5253c8',
-            iscilik: '#b98a3e',
-            terbiye: '#0f857c',
-            fire: '#c2657e',
-            kursun: '#84868f'
-        };
-        const order = ['iplik', 'iscilik', 'terbiye', 'fire', 'kursun'];
         const cx = 100, cy = 100, r = 80;
         const c = 2 * Math.PI * r;   // 502.65
-        let offset = -25;             // başlangıçta üst-merkez (12 yönü)
-        order.forEach(k => {
+        let acc = 0;                  // kümülatif kesir (0..1) — 12 yönünden saat yönünde
+        DAGILIM_ORDER.forEach(k => {
             const v = parts[k] || 0;
             if (v <= 0) return;
             const pct = v / total;
             const dash = pct * c;
-            const seg = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            // Arc — dasharray; başlangıç path-pozisyonu acc*c (rotate -90 → 12 yönü, saat yönü)
+            const seg = document.createElementNS(SVG_NS, 'circle');
             seg.setAttribute('cx', cx);
             seg.setAttribute('cy', cy);
             seg.setAttribute('r', r);
             seg.setAttribute('fill', 'none');
-            seg.setAttribute('stroke', colors[k]);
+            seg.setAttribute('stroke', DAGILIM_COLORS[k]);
             seg.setAttribute('stroke-width', '32');
             seg.setAttribute('stroke-dasharray', `${dash} ${c - dash}`);
-            seg.setAttribute('stroke-dashoffset', String(-offset));
+            seg.setAttribute('stroke-dashoffset', String(-acc * c));
             seg.setAttribute('transform', `rotate(-90 ${cx} ${cy})`);
             host.appendChild(seg);
-            offset += dash;
+            // Segment-içi % etiketi (orta açı) — çok küçük dilimde (<%6) gizle (taşma önleme)
+            if (pct >= 0.06) {
+                const ang = (acc + pct / 2) * 2 * Math.PI;     // 12 yönünden saat yönü
+                const lx = cx + r * Math.sin(ang);
+                const ly = cy - r * Math.cos(ang);
+                const t = document.createElementNS(SVG_NS, 'text');
+                t.setAttribute('x', lx.toFixed(1));
+                t.setAttribute('y', ly.toFixed(1));
+                t.setAttribute('text-anchor', 'middle');
+                t.setAttribute('dominant-baseline', 'central');
+                t.setAttribute('class', 'dagilim-seg-label');
+                t.textContent = '%' + fmtTr(pct * 100, 0);
+                host.appendChild(t);
+            }
+            acc += pct;
         });
     }
 

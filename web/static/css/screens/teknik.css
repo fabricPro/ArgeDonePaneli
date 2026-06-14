@@ -276,6 +276,10 @@
 .tek-module .dagilim-donut { width: 130px; height: 130px; flex: 0 0 auto; }
 .tek-module .dagilim-legend { display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; color: var(--ink-2); }
 .tek-module .dagilim-legend > span { display: inline-flex; align-items: center; gap: 6px; }
+/* F4 — dinamik efsane satırı (dot + ad + tutar/%) + segment-içi % etiketi */
+.tek-module .dagilim-legend .leg-name { color: var(--ink-2); min-width: 56px; }
+.tek-module .dagilim-legend .leg-val { font-variant-numeric: tabular-nums; color: var(--ink-3); font-size: 11px; }
+.tek-module .dagilim-seg-label { fill: #fff; font-size: 10px; font-weight: 600; font-variant-numeric: tabular-nums; pointer-events: none; }
 
 .tek-module .icerik-empty { font-size: 12px; color: var(--ink-3); line-height: 1.5; }
 .tek-module .icerik-list { display: flex; flex-direction: column; gap: 6px; }

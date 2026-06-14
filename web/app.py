@@ -425,6 +425,13 @@ def product_summary(d: dict) -> dict:
         # tasarim-v2 Sprint 18 — tooltip için sayılar (v{N} sürüm, {N} PDF)
         "teknik_surum_count": len(((d.get("teknik") or {}).get("surumler")) or []),
         "pdf_count": len(d.get("pdfs") or []),
+        # Ön çalışmadan taşınan sınıflandırma (kart/rail chip'leri — F5)
+        "category": d.get("category"),
+        "pattern": d.get("pattern"),
+        "color_family": d.get("color_family"),
+        "color_count": d.get("color_count"),
+        "weave_tags": d.get("weave_tags") or [],
+        "style_tags": d.get("style_tags") or [],
     }
 
 

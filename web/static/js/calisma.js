@@ -185,11 +185,16 @@
       const img = item.cover_image
         ? `<img src="${item.cover_image}" loading="lazy" alt="">`
         : `<div class="cw-rail-noimg"><svg class="icon"><use href="#ic-image"/></svg></div>`;
+      // Ön çalışmadan taşınan sınıflandırma — dar rail için kompakt metin satırı (F5)
+      const taxo = [item.category, item.pattern, item.color_family]
+        .filter(Boolean).map(s => String(s).replace(/-/g, ' ')).join(' · ');
+      const taxoHtml = taxo ? `<div class="cw-rail-taxo">${escapeHtml(taxo)}</div>` : '';
       li.innerHTML = `
         ${img}
         <div class="cw-rail-text">
           <div class="cw-rail-brand">${escapeHtml(item.brand || '')}</div>
           <div class="cw-rail-name">${escapeHtml(item.product_name || item.urun_id)}</div>
+          ${taxoHtml}
         </div>
       `;
       li.addEventListener('click', () => selectFabric(item.urun_id));
