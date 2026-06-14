@@ -101,15 +101,14 @@
         </div>
     </section>
 
-    {# --- Filtre iskeleti (tüketim Sprint 3-4'te bağlanacak) --- #}
-    <div class="snk-filter">
+    {# --- Filtre (Sprint 3: atkı eşlemesi üzerinden CANLI) --- #}
+    <div class="snk-filter snk-filter-live">
         <span class="snk-filter-lbl">Tezgaha göre filtrele</span>
         <select id="snk-filter-loom" class="snk-select snk-filter-sel">
             <option value="">Tüm havuz</option>
             {% for l in looms %}<option value="{{ l.loom_id }}">{{ l.loom_no }}</option>{% endfor %}
         </select>
-        <span class="snk-soon-badge">Yakında</span>
-        <span class="snk-hint snk-filter-note">Tüketim bağı Sprint 3-4'te gelecek; tezgah filtresi o zaman aktiflenecek.</span>
+        <span class="snk-hint snk-filter-note">KALAN yalnız <strong>planlanan atkı tüketimi</strong> bazlıdır; çözgü tüketimi Sprint 4'te eklenecek.</span>
     </div>
 
     {% if total == 0 %}
@@ -126,13 +125,14 @@
                     <th>İplik</th><th>Renk</th>
                     <th class="snk-num">Planlanan (kg)</th>
                     <th class="snk-num">Gerçek (kg)</th>
+                    <th class="snk-num">Atkı tüketim (kg)</th>
                     <th class="snk-num">Kalan</th>
                     <th>Not</th><th></th>
                 </tr>
             </thead>
             <tbody>
                 {% for it in items %}
-                <tr class="snk-trow" data-ms-id="{{ it.id }}">
+                <tr class="snk-trow{% if it.warning %} snk-row-warning{% endif %}" data-ms-id="{{ it.id }}" data-loom-ids="{{ it.loom_ids|join(',') }}">
                     <td class="snk-cell-iplik">
                         <div class="snk-iplik-ad">{{ it.kartela_ad or '—' }}</div>
                         <div class="snk-iplik-meta">
@@ -155,7 +155,13 @@
                         value="{{ it.planned_purchase_kg if it.planned_purchase_kg is not none else '' }}"></td>
                     <td class="snk-num"><input class="snk-kg snk-kg-actual" type="number" step="0.1" inputmode="decimal"
                         value="{{ it.actual_purchase_kg if it.actual_purchase_kg is not none else '' }}"></td>
-                    <td class="snk-num"><span class="snk-soon" title="Tüketim Sprint 3-4'te hesaplanacak">—</span></td>
+                    <td class="snk-num">{% if it.atki_consumption_kg %}{{ it.atki_consumption_kg }}{% else %}<span class="snk-soon" title="Bu kaleme eşlenmiş atkı yok">0</span>{% endif %}</td>
+                    <td class="snk-num snk-kalan">
+                        {% if it.kalan_kg is not none %}
+                        <span class="snk-kalan-val{% if it.warning %} snk-kalan-warn{% endif %}">{{ it.kalan_kg }}</span>
+                        {% if it.warning %}<span class="snk-warn-badge" title="Tüketim alımı aştı — metreyi düşür veya alımı artır">yetersiz</span>{% endif %}
+                        {% else %}<span class="snk-soon" title="Planlanan alım girilmedi ve eşlenmiş tüketim yok">—</span>{% endif %}
+                    </td>
                     <td><input class="snk-note-inp" value="{{ it.notes or '' }}" placeholder="—"></td>
                     <td class="snk-row-actions">
                         <button type="button" class="snk-iconbtn snk-save-row" data-act="save" title="Kaydet" aria-label="Satırı kaydet"><svg class="icon"><use href="#ic-check"/></svg></button>

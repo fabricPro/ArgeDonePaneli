@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Atkı Eşleme — {{ product.product_name }}{% endblock %}
+{% block body_class %}studio{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/screens/senkron.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="snk-page snk-esle" id="snk-esle" data-lp-id="{{ lp.id }}">
+    <header class="snk-head">
+        <div class="snk-head-text">
+            <h1>Atkı Eşleme</h1>
+            <p class="page-subtitle">
+                {% if loom %}{{ loom.loom_no }} · {% endif %}{{ product.product_name }}
+                {% if surum %} · sürüm {{ surum.ad or surum.id }}{% endif %}
+            </p>
+        </div>
+        <a class="btn btn-secondary" href="{{ url_for('senkron_detay', loom_id=lp.loom_id) }}">
+            <svg class="icon"><use href="#ic-arrow-left"/></svg> Tezgah
+        </a>
+    </header>
+
+    <div class="snk-esle-note">
+        Atkı renkleri ürünün <strong>atkı varyant planından</strong> okunur (salt okuma — master'a yazılmaz).
+        Tüketim havuza canlı yansır. KALAN şimdilik yalnız <strong>planlanan atkı</strong> bazlıdır;
+        çözgü tüketimi Sprint 4'te eklenecek.
+    </div>
+
+    {% if not has_atki %}
+    <div class="snk-empty">
+        <div class="empty-icon-wrap"><svg class="empty-icon"><use href="#ic-grid"/></svg></div>
+        <h2>Atkı Planı Yok</h2>
+        <p>Bu ürünün aktif sürümünde atkı ipliği / varyant planı bulunmuyor. Teknik Analiz &gt; Plan'dan
+           atkı planı oluşturulunca burada eşlenebilir.</p>
+    </div>
+    {% elif not pairs %}
+    <div class="snk-empty"><h2>Atkı rengi bulunamadı</h2><p>Varyantlarda renk ataması yapılmamış.</p></div>
+    {% else %}
+    <div class="snk-table-wrap">
+        <table class="snk-table snk-esle-table">
+            <thead>
+                <tr>
+                    <th>Atkı ipliği</th><th>Renk</th>
+                    <th class="snk-num">Varyant</th>
+                    <th class="snk-num">Metre Σ</th>
+                    <th class="snk-num">Tüketim (kg)</th>
+                    <th>Havuz kalemi</th><th>Durum</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in pairs %}
+                <tr class="snk-trow" data-iplik-index="{{ p.iplik_index }}" data-cell-key="{{ p.cell_key }}">
+                    <td class="snk-iplik-ad">{{ p.yarn_ref }}</td>
+                    <td><span class="snk-renk"><span class="snk-renk-sw" style="background:{{ p.renk_hex or '#ccc' }}"></span>{{ p.renk_ad or '—' }}</span></td>
+                    <td class="snk-num">{{ p.varyant_count }}</td>
+                    <td class="snk-num">{{ p.metre_sum|round(0)|int }}</td>
+                    <td class="snk-num">{% if p.consumption_kg is not none %}{{ p.consumption_kg }}{% else %}<span class="snk-soon" title="iplik tipi/numara veya ham_en eksik">—</span>{% endif %}</td>
+                    <td>
+                        <select class="snk-select snk-map-sel">
+                            <option value="">— eşleme yok —</option>
+                            {% for s in stock %}
+                            <option value="{{ s.id }}" {% if s.id == p.material_stock_id %}selected{% endif %}>{{ s.kartela_ad or s.kartela_id }} · {{ s.renk_ad or s.renk_id }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td class="snk-esle-status">
+                        {% if p.material_stock_id %}<span class="chip snk-chip-ok">eşlendi</span>
+                        {% else %}<span class="chip snk-chip-excluded">tüketime dahil değil</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if not stock %}
+    <p class="snk-hint">Havuzda iplik kalemi yok — önce <a href="{{ url_for('senkron_havuz') }}">İplik Havuzu</a>'na ekle, sonra eşle.</p>
+    {% endif %}
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/senkron_esle.js') }}"></script>
+{% endblock %}

@@ -1182,22 +1182,32 @@ def _kartela_color_index(kartelalar=None):
 
 
 def _material_stock_items():
-    """material_stock satırları → katalog iplik/renk bilgisiyle (canlı) zenginleştir."""
+    """material_stock satırları → katalog iplik/renk bilgisi + CANLI atkı tüketimi/KALAN (Sprint 3)."""
     rows = store.list_material_stock()
     kmap, cmap = _kartela_color_index()
+    cons, loom_ids = _material_stock_consumption()   # Sprint 3 — reconcile-on-read
     items = []
     for ms in rows:
         kid, rid = ms.get("kartela_id"), ms.get("renk_id")
         k = kmap.get(kid) or {}
         col = cmap.get((kid, rid)) or {}
+        planned = ms.get("planned_purchase_kg")
+        c = round(cons.get(ms.get("id"), 0.0), 3)
+        base = planned if planned is not None else 0.0
+        # KALAN yalnız PLANLANAN ATKI bazlı (çözgü Sprint 4'te eklenecek)
+        kalan = round(base - c, 3) if (planned is not None or c) else None
         items.append({
             "id": ms.get("id"), "kartela_id": kid, "renk_id": rid,
             "kartela_ad": k.get("ad"), "iplik_tipi": k.get("iplik_tipi"),
             "iplik_numarasi": k.get("iplik_numarasi"), "tedarikci": k.get("tedarikci"),
             "renk_ad": col.get("ad"), "renk_hex": col.get("hex"),
             "renk_missing": (kid, rid) not in cmap,   # katalogda bulunamadı (teorik) → işaretle
-            "planned_purchase_kg": ms.get("planned_purchase_kg"),
+            "planned_purchase_kg": planned,
             "actual_purchase_kg": ms.get("actual_purchase_kg"),
+            "atki_consumption_kg": c,
+            "kalan_kg": kalan,
+            "warning": (c > base and c > 0),          # tüketim > alım → yetersiz
+            "loom_ids": sorted(loom_ids.get(ms.get("id"), [])),
             "notes": ms.get("notes"),
         })
     return items
@@ -1295,6 +1305,149 @@ def api_havuz_guncelle(ms_id: str):
 @app.route("/api/senkron/havuz/<ms_id>/sil", methods=["POST"])
 def api_havuz_sil(ms_id: str):
     store.material_stock_remove(ms_id)
+    return jsonify({"ok": True})
+
+
+# ============================================================
+# Senkron Sprint 3 — ATKI tüketimi + eşleme (weft_color_mappings)
+# Tüketim HİÇBİR YERE YAZILMAZ — atki_varyant_plani'ndan CANLI hesaplanır (reconcile-on-read).
+# Master (products/teknik/atki_varyant_plani) SALT OKUNUR. kg hesabı mevcut sunucu portu
+# (_g_per_mt_row, app.py) ile — yeni formül icat edilmez. Yalnız ATKI (çözgü Sprint 4).
+# ============================================================
+
+def _cell_key(hexc, ad):
+    """Bir atkı kolonundaki rengi eşsizleştiren kararlı anahtar (lower(hex)|lower(ad))."""
+    return f"{(hexc or '').strip().lower()}|{(ad or '').strip().lower()}"
+
+
+def _atki_yarn_ref(yarn, j):
+    tip = (yarn.get("tip") or "").strip()
+    iplik = (yarn.get("iplik") or "").strip()
+    label = (f"{iplik} {tip}").strip()
+    return label or f"Atkı {j + 1}"
+
+
+def _active_surum(d):
+    """teknik.active_surum_id → sürüm; yoksa surumler[0] (teknik.js findActiveSurum ile birebir)."""
+    teknik = d.get("teknik") or {}
+    surumler = teknik.get("surumler") or []
+    if not surumler:
+        return None
+    aid = teknik.get("active_surum_id")
+    return next((s for s in surumler if s.get("id") == aid), surumler[0])
+
+
+def _atki_pairs(d, surum):
+    """Sürümün atkı planından (iplik_index, renk-hücresi) çiftleri + CANLI tüketim kg.
+    Tüketim = atki_gmt_j × Σ(o rengi taşıyan varyantların metresi) / 1000.
+    atki_gmt = siklik(tel adedi) × ham_en/100 × g/m  (app.py _g_per_mt_row + teknik formülü)."""
+    if not surum:
+        return []
+    params = surum.get("parametreler") or {}
+    ham_en = _num_or_none(params.get("ham_en_cm"))
+    atki_yarns = ((surum.get("iplikler") or {}).get("atki")) or []
+    plan = (d.get("plan") or {}).get(surum.get("id")) or {}
+    varyantlar = (plan.get("atki_varyant_plani") or {}).get("varyantlar") or []
+    pairs = []
+    for j, yarn in enumerate(atki_yarns):
+        g, _ = _g_per_mt_row(yarn)
+        siklik = _num_or_none(yarn.get("siklik"))   # atkıda siklik = tel adedi
+        atki_gmt = (siklik * (ham_en / 100) * g) if (g and siklik and ham_en and ham_en > 0) else None
+        cells = {}   # cell_key -> {ad, hex, metre_sum, varyant_count}
+        for v in varyantlar:
+            ra = v.get("renk_atamalari") or []
+            cell = ra[j] if j < len(ra) else None
+            if not cell:
+                continue
+            ck = _cell_key(cell.get("hex"), cell.get("ad"))
+            c = cells.setdefault(ck, {"ad": cell.get("ad") or "", "hex": cell.get("hex") or "",
+                                      "metre_sum": 0.0, "varyant_count": 0})
+            c["metre_sum"] += (_num_or_none(v.get("metre")) or 0.0)
+            c["varyant_count"] += 1
+        for ck, c in cells.items():
+            cons = (atki_gmt * c["metre_sum"] / 1000.0) if (atki_gmt and c["metre_sum"] > 0) else None
+            pairs.append({
+                "iplik_index": j, "yarn_ref": _atki_yarn_ref(yarn, j),
+                "cell_key": ck, "renk_ad": c["ad"], "renk_hex": c["hex"],
+                "metre_sum": c["metre_sum"], "varyant_count": c["varyant_count"],
+                "atki_gmt": atki_gmt, "consumption_kg": (round(cons, 3) if cons is not None else None),
+            })
+    return pairs
+
+
+def _material_stock_consumption():
+    """({ms_id: Σ planlanan atkı tüketim kg}, {ms_id: set(loom_id)}) — TÜM eşlemelerden canlı.
+    Bir kalem birden çok ürün/tezgahtan tüketilebilir → hepsi toplanır (global havuz)."""
+    maps = store.list_weft_mappings()
+    cons, loom_ids = {}, {}
+    if not maps:
+        return cons, loom_ids
+    groups = {}
+    for m in maps:
+        groups.setdefault((m.get("loom_product_id"), m.get("surum_id")), []).append(m)
+    for (lp_id, surum_id), ms_list in groups.items():
+        lp = store.loom_product_get(lp_id)
+        if not lp:
+            continue
+        d = store.get(lp.get("urun_id"))
+        surum = _find_surum(d.get("teknik") or {}, surum_id) if d else None
+        pairs = {f"{p['iplik_index']}@{p['cell_key']}": p for p in _atki_pairs(d, surum)} if surum else {}
+        for m in ms_list:
+            ms_id = m.get("material_stock_id")
+            loom_ids.setdefault(ms_id, set()).add(lp.get("loom_id"))
+            p = pairs.get(f"{m.get('iplik_index')}@{m.get('cell_key')}")
+            if p and p.get("consumption_kg"):
+                cons[ms_id] = cons.get(ms_id, 0.0) + p["consumption_kg"]
+    return cons, loom_ids
+
+
+@app.route("/senkron/esle/<lp_id>")
+def senkron_esle(lp_id: str):
+    """Atkı Eşleme — atanan ürünün atkı (pozisyon, renk) çiftlerini havuz kalemlerine eşle."""
+    lp = store.loom_product_get(lp_id)
+    if not lp:
+        abort(404)
+    loom = store.get_loom(lp.get("loom_id"))
+    d = store.get(lp.get("urun_id"))
+    if not d:
+        abort(404)
+    surum = _active_surum(d)
+    pairs = _atki_pairs(d, surum)
+    existing = {f"{m['iplik_index']}@{m['cell_key']}": m
+                for m in store.weft_mappings_for(lp_id, surum.get("id") if surum else "")}
+    for p in pairs:
+        m = existing.get(f"{p['iplik_index']}@{p['cell_key']}")
+        p["material_stock_id"] = m.get("material_stock_id") if m else None
+    has_atki = bool(surum and ((surum.get("iplikler") or {}).get("atki")))
+    return render_template("senkron_esle.html", loom=loom, lp=lp,
+                           product=product_summary(d), surum=surum, pairs=pairs,
+                           stock=_material_stock_items(), has_atki=has_atki)
+
+
+@app.route("/api/senkron/esle/<lp_id>/set", methods=["POST"])
+def api_senkron_esle_set(lp_id: str):
+    lp = store.loom_product_get(lp_id)
+    if not lp:
+        return jsonify({"ok": False, "error": "Atama bulunamadı"}), 404
+    d = store.get(lp.get("urun_id"))
+    surum = _active_surum(d) if d else None
+    if not surum:
+        return jsonify({"ok": False, "error": "Aktif sürüm / atkı planı yok"}), 400
+    body = request.get_json(force=True) or {}
+    try:
+        iplik_index = int(body.get("iplik_index"))
+    except (TypeError, ValueError):
+        return jsonify({"ok": False, "error": "iplik_index geçersiz"}), 400
+    cell_key = (body.get("cell_key") or "").strip()
+    if not cell_key:
+        return jsonify({"ok": False, "error": "cell_key gerekli"}), 400
+    ms_id = (body.get("material_stock_id") or "").strip()
+    if ms_id:
+        if not store.get_material_stock(ms_id):
+            return jsonify({"ok": False, "error": "Havuz kalemi bulunamadı"}), 400
+        store.weft_mapping_set(lp_id, surum.get("id"), iplik_index, cell_key, ms_id)
+    else:
+        store.weft_mapping_clear(lp_id, surum.get("id"), iplik_index, cell_key)
     return jsonify({"ok": True})
 
 

@@ -25,6 +25,7 @@ TABLE_KARTELA = "iplik_kartelalari"  # İplik Kataloğu Parça 1
 TABLE_LOOMS = "looms"  # Senkron Sprint 1
 TABLE_LOOM_PRODUCTS = "loom_products"  # Senkron Sprint 1
 TABLE_MATERIAL_STOCK = "material_stock"  # Senkron Sprint 2 — iplik havuzu
+TABLE_WEFT_MAPPINGS = "weft_color_mappings"  # Senkron Sprint 3 — atkı renk eşleme
 
 PRODUCT_COLUMNS = [
     "urun_id", "brand", "brand_slug", "country", "collection", "product_name",
@@ -465,6 +466,74 @@ def material_stock_update(ms_id: str, patch: dict) -> None:
 
 def material_stock_remove(ms_id: str) -> None:
     client().table(TABLE_MATERIAL_STOCK).delete().eq("id", ms_id).execute()
+
+
+# ============================================================
+# Senkron Sprint 3 — weft_color_mappings (atkı renk eşleme)
+# Şema: scripts/supabase_schema_senkron_part3.sql. Read'ler migration öncesi boş döner.
+# Tüketim BU TABLODA TUTULMAZ — yalnız (atkı pozisyonu+renk → havuz kalemi) eşlemesi.
+# ============================================================
+
+def loom_product_get(lp_id: str) -> dict | None:
+    try:
+        res = (client().table(TABLE_LOOM_PRODUCTS).select("*")
+               .eq("id", lp_id).limit(1).execute())
+        return res.data[0] if res.data else None
+    except Exception as e:  # noqa: BLE001
+        if _missing_table(e):
+            return None
+        raise
+
+
+def list_weft_mappings() -> list[dict]:
+    try:
+        res = client().table(TABLE_WEFT_MAPPINGS).select("*").execute()
+        return res.data or []
+    except Exception as e:  # noqa: BLE001
+        if _missing_table(e):
+            return []
+        raise
+
+
+def weft_mappings_for(loom_product_id: str, surum_id: str | None = None) -> list[dict]:
+    try:
+        q = client().table(TABLE_WEFT_MAPPINGS).select("*").eq("loom_product_id", loom_product_id)
+        if surum_id is not None:
+            q = q.eq("surum_id", surum_id)
+        return q.execute().data or []
+    except Exception as e:  # noqa: BLE001
+        if _missing_table(e):
+            return []
+        raise
+
+
+def weft_mapping_set(loom_product_id: str, surum_id: str, iplik_index: int,
+                     cell_key: str, material_stock_id: str) -> dict:
+    """Doğal anahtara (loom_product, surum, iplik_index, cell_key) eşleme yaz — varsa güncelle,
+    yoksa ekle (upsert). material_stock_id'yi günceller."""
+    existing = (client().table(TABLE_WEFT_MAPPINGS).select("id")
+                .eq("loom_product_id", loom_product_id).eq("surum_id", surum_id)
+                .eq("iplik_index", int(iplik_index)).eq("cell_key", cell_key)
+                .limit(1).execute()).data
+    if existing:
+        wm_id = existing[0]["id"]
+        client().table(TABLE_WEFT_MAPPINGS).update(
+            {"material_stock_id": material_stock_id}).eq("id", wm_id).execute()
+        return {"id": wm_id, "updated": True}
+    row = {
+        "id": "wm_" + _uuid.uuid4().hex[:10],
+        "loom_product_id": loom_product_id, "surum_id": surum_id,
+        "iplik_index": int(iplik_index), "cell_key": cell_key,
+        "material_stock_id": material_stock_id, "created_at": _now_iso(),
+    }
+    client().table(TABLE_WEFT_MAPPINGS).insert(row).execute()
+    return row
+
+
+def weft_mapping_clear(loom_product_id: str, surum_id: str, iplik_index: int, cell_key: str) -> None:
+    (client().table(TABLE_WEFT_MAPPINGS).delete()
+     .eq("loom_product_id", loom_product_id).eq("surum_id", surum_id)
+     .eq("iplik_index", int(iplik_index)).eq("cell_key", cell_key).execute())
 
 
 # ---- kartelalar Storage (Parça 2'de sayfa fotoğrafları için) ----

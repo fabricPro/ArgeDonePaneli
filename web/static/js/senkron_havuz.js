@@ -100,6 +100,16 @@
         } else setStatus($('snk-quick-status'), d.error || 'Hata', 'error');
     });
 
+    // --- Tezgah filtresi (Sprint 3: atkı eşlemesi üzerinden CANLI) ---
+    const filterSel = $('snk-filter-loom');
+    if (filterSel) filterSel.addEventListener('change', () => {
+        const loom = filterSel.value;
+        document.querySelectorAll('.snk-trow').forEach(row => {
+            const ids = (row.dataset.loomIds || '').split(',').filter(Boolean);
+            row.style.display = (!loom || ids.includes(loom)) ? '' : 'none';
+        });
+    });
+
     // --- Tablo satırı: kaydet / sil ---
     const table = $('snk-table');
     if (table) table.addEventListener('click', async (e) => {

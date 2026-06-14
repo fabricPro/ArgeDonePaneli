@@ -46,6 +46,7 @@
                             · <span class="snk-folder" title="{{ it.workspace_album.path }}"><svg class="icon"><use href="#ic-folder"/></svg> {{ it.workspace_album.name }}</span>{% endif %}</div>
                     </div>
                     <div class="snk-row-actions">
+                        <a class="btn btn-sm btn-ghost snk-esle-link" href="{{ url_for('senkron_esle', lp_id=it.lp_id) }}" title="Atkı renklerini havuza eşle">Atkı Eşle</a>
                         <button type="button" class="snk-iconbtn snk-up" data-act="up" title="Yukarı" aria-label="Yukarı taşı"><svg class="icon"><use href="#ic-chevron-down"/></svg></button>
                         <button type="button" class="snk-iconbtn" data-act="down" title="Aşağı" aria-label="Aşağı taşı"><svg class="icon"><use href="#ic-chevron-down"/></svg></button>
                         <button type="button" class="snk-iconbtn snk-del" data-act="remove" title="Çıkar" aria-label="Tezgahtan çıkar"><svg class="icon"><use href="#ic-x"/></svg></button>
