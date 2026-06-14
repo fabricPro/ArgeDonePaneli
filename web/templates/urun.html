@@ -112,9 +112,34 @@
 {# === GALERİ SEKMESİ — mevcut tüm yapı === #}
 <section data-tab="galeri" class="utab-section">
 
+{% if product.images %}
+<nav class="album-tabs" id="album-tabs" aria-label="Albümler">
+    <button type="button" class="album-tab is-active" data-album="">
+        Tümü <span class="cnt">{{ product.images|length }}</span>
+    </button>
+    {# v4.0-part-2 Sprint 14 — Otomatik Favoriler sekmesi (en az 1 favori varsa) #}
+    {% if has_favorites %}
+    <button type="button" class="album-tab album-favorites" data-album="__favoriler__" data-name="Favoriler" title="Favori görseller">
+        <svg class="icon"><use href="#ic-heart"/></svg> Favoriler <span class="cnt">{{ favorite_count }}</span>
+    </button>
+    {% endif %}
+    {% for a in albums %}
+    <button type="button" class="album-tab" data-album="{{ a.slug }}" data-name="{{ a.name }}">
+        {{ a.name }} <span class="cnt">{{ album_counts.get(a.slug, 0) }}</span>
+        <span class="album-edit" data-action="rename" title="Yeniden adlandır"><svg class="icon"><use href="#ic-pencil"/></svg></span>
+        <span class="album-edit" data-action="delete" title="Albümü sil"><svg class="icon"><use href="#ic-x"/></svg></span>
+    </button>
+    {% endfor %}
+    <button type="button" class="album-tab album-new" id="album-new-btn" title="Yeni albüm">
+        <svg class="icon"><use href="#ic-plus"/></svg> Yeni Albüm
+    </button>
+</nav>
+{% endif %}
+
 {# Çalışma split SOL PANE — künye / AI bilgileri barı + ayrı görünüm.
-   Yalnız body.embed-calisma-left'te görünür (CSS); tam ürün sayfasında künye zaten
-   detail-header + meta-list'te. Salt-okuma; veri product.* (mevcut, migration yok). #}
+   Konum: albüm sekmeleri ALTINDA, renk paleti ÜSTÜNDE. Yalnız body.embed-calisma-left'te
+   görünür (CSS); tam ürün sayfasında künye zaten detail-header + meta-list'te.
+   Salt-okuma; veri product.* (mevcut, migration yok). #}
 {% set _kunye_taxo = product.category or product.pattern or product.color_family or product.color_count or product.weave_tags or product.style_tags %}
 {% if _kunye_taxo or product.ai_notu or product.arge_notu %}
 <button type="button" class="cw-kunye-bar" id="cw-kunye-bar" aria-label="Künye ve AI bilgilerini göster">
@@ -154,29 +179,6 @@
 </div>
 {% endif %}
 
-{% if product.images %}
-<nav class="album-tabs" id="album-tabs" aria-label="Albümler">
-    <button type="button" class="album-tab is-active" data-album="">
-        Tümü <span class="cnt">{{ product.images|length }}</span>
-    </button>
-    {# v4.0-part-2 Sprint 14 — Otomatik Favoriler sekmesi (en az 1 favori varsa) #}
-    {% if has_favorites %}
-    <button type="button" class="album-tab album-favorites" data-album="__favoriler__" data-name="Favoriler" title="Favori görseller">
-        <svg class="icon"><use href="#ic-heart"/></svg> Favoriler <span class="cnt">{{ favorite_count }}</span>
-    </button>
-    {% endif %}
-    {% for a in albums %}
-    <button type="button" class="album-tab" data-album="{{ a.slug }}" data-name="{{ a.name }}">
-        {{ a.name }} <span class="cnt">{{ album_counts.get(a.slug, 0) }}</span>
-        <span class="album-edit" data-action="rename" title="Yeniden adlandır"><svg class="icon"><use href="#ic-pencil"/></svg></span>
-        <span class="album-edit" data-action="delete" title="Albümü sil"><svg class="icon"><use href="#ic-x"/></svg></span>
-    </button>
-    {% endfor %}
-    <button type="button" class="album-tab album-new" id="album-new-btn" title="Yeni albüm">
-        <svg class="icon"><use href="#ic-plus"/></svg> Yeni Albüm
-    </button>
-</nav>
-{% endif %}
 <div class="detail-header">
     <div class="detail-header-text">
         {# v4.0-part-2 Sprint 11.5: 'country' alanı brand_country alias'i; geriye uyum icin fallback #}
