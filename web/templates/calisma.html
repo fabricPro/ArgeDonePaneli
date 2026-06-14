@@ -74,6 +74,12 @@
                         {% if p.color_family %}<span class="chip">{{ p.color_family|replace('-',' ') }}</span>{% endif %}
                     </div>
                     {% endif %}
+                    {# Faz 3.1 — Çalışma klasör etiketi (her zaman render; klasörsüzse hidden — taşımada canlı güncellenir) #}
+                    <div class="cw-card-folder" data-urunid="{{ p.urun_id }}" {% if not p.workspace_album %}hidden{% endif %}
+                         title="Klasör: {{ p.workspace_album.path if p.workspace_album else '' }}">
+                        <svg class="icon"{% if p.workspace_album and p.workspace_album.color %} style="color:{{ p.workspace_album.color }}"{% endif %}><use href="#ic-folder"/></svg>
+                        <span class="cwf-name">{{ p.workspace_album.name if p.workspace_album else '' }}</span>
+                    </div>
                     {# Mevcut indikatörlerini de göster #}
                     <div class="card-indicators">
                         <span class="ind {% if p.has_teknik %}on{% else %}off{% endif %}" title="Teknik Çalışma">

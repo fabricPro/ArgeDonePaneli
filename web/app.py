@@ -484,10 +484,16 @@ def index():
     # dashboard_order'i ozetlere ekle (siralama icin)
     order_map = {p.get("urun_id"): p.get("dashboard_order") for p in raw}
     # v4.0-part-2 Sprint 8 — workspace pin durumu (galeri kartlarında ikon için)
+    # Faz 3.1 — klasöre atanmışsa klasör adı/yolu (kart etiketi)
     workspace_ids = set(store.workspace_get_ids())
+    wdata = store.workspace_data_get()
+    membership = wdata.get("membership") or {}
+    albums_by_id = {a.get("id"): a for a in (wdata.get("albums") or [])}
     for s in products:
         s["dashboard_order"] = order_map.get(s["urun_id"])
-        s["in_workspace"] = s.get("urun_id") in workspace_ids
+        in_ws = s.get("urun_id") in workspace_ids
+        s["in_workspace"] = in_ws
+        s["workspace_album"] = _workspace_album_display(membership.get(s["urun_id"]), albums_by_id) if in_ws else None
     # Ulkelere grupla
     groups: dict[str, list] = {}
     for p in products:
@@ -4204,6 +4210,21 @@ def _workspace_summary_list() -> list[dict]:
     return items
 
 
+def _workspace_album_display(album_id, albums_by_id) -> dict | None:
+    """album_id → {name, color, path} | None. path = parent_id zincirinden tam yol
+    ("Leno / Çizgili Leno"), döngü korumalı. Galeri/Çalışma kartı klasör etiketi için."""
+    a = albums_by_id.get(album_id)
+    if not a:
+        return None
+    names, cur, guard = [], a, set()
+    while cur and cur.get("id") not in guard:
+        guard.add(cur.get("id"))
+        names.append(cur.get("name") or "")
+        cur = albums_by_id.get(cur.get("parent_id"))
+    names.reverse()
+    return {"name": a.get("name"), "color": a.get("color"), "path": " / ".join(n for n in names if n)}
+
+
 def _workspace_albums_with_counts() -> list[dict]:
     """v4.0-part-2 Sprint 13 + Faz 3: albüm/klasör listesi.
     Her düğüm için parent_id + depth + roll-up sayım (doğrudan üyeler + tüm alt klasör üyeleri)."""
@@ -4262,11 +4283,14 @@ def _workspace_albums_with_counts() -> list[dict]:
 def calisma_page():
     """Çalışma Alanı ana sayfa. Pinli kumaşlar grid'i + split-screen + albüm tabları."""
     items = _workspace_summary_list()
-    # Sprint 13: her item'a album_id ekle
+    # Sprint 13: her item'a album_id ekle + Faz 3.1: klasör adı/yolu (kart etiketi)
     data = store.workspace_data_get()
     membership = data.get("membership") or {}
+    albums_by_id = {a.get("id"): a for a in (data.get("albums") or [])}
     for it in items:
-        it["album_id"] = membership.get(it.get("urun_id")) or None
+        aid = membership.get(it.get("urun_id")) or None
+        it["album_id"] = aid
+        it["workspace_album"] = _workspace_album_display(aid, albums_by_id)
     return render_template("calisma.html", items=items, total=len(items),
                            workspace_albums=_workspace_albums_with_counts())
 
@@ -4277,8 +4301,11 @@ def api_calisma_list():
     items = _workspace_summary_list()
     data = store.workspace_data_get()
     membership = data.get("membership") or {}
+    albums_by_id = {a.get("id"): a for a in (data.get("albums") or [])}
     for it in items:
-        it["album_id"] = membership.get(it.get("urun_id")) or None
+        aid = membership.get(it.get("urun_id")) or None
+        it["album_id"] = aid
+        it["workspace_album"] = _workspace_album_display(aid, albums_by_id)
     return jsonify({
         "ok": True, "items": items, "count": len(items),
         "albums": _workspace_albums_with_counts(),

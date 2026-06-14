@@ -284,6 +284,30 @@
     return out;
   }
 
+  // Faz 3.1 — kart klasör etiketi (canlı). albumPath = ad zinciri.
+  function albumPath(id) {
+    const byId = {}; albums.forEach(a => { byId[a.id] = a; });
+    const names = []; let cur = byId[id]; const guard = new Set();
+    while (cur && !guard.has(cur.id)) { guard.add(cur.id); names.push(cur.name || ''); cur = byId[cur.parent_id]; }
+    return names.reverse().filter(Boolean).join(' / ');
+  }
+  function setCardFolder(uid, albumId) {
+    const card = $(`.cw-card[data-urunid="${uid}"]`);
+    const tag = card ? card.querySelector('.cw-card-folder') : null;
+    if (!tag) return;
+    const album = albums.find(a => a.id === albumId);
+    if (!albumId || !album) { tag.hidden = true; return; }
+    const nameEl = tag.querySelector('.cwf-name');
+    const iconEl = tag.querySelector('.icon');
+    if (nameEl) nameEl.textContent = album.name || '';
+    if (iconEl) iconEl.style.color = album.color || '';
+    tag.title = 'Klasör: ' + albumPath(albumId);
+    tag.hidden = false;
+  }
+  function refreshAllCardFolders() {
+    $$('.cw-card').forEach(card => setCardFolder(card.dataset.urunid, card.dataset.albumId || null));
+  }
+
   function applyAlbumFilter() {
     const showAll = !activeAlbumId;
     let allowed = null;
@@ -400,6 +424,7 @@
       if (activeAlbumId === albId) activeAlbumId = parent || '';
       collapsed.delete(albId);
       renderTree();
+      refreshAllCardFolders();
       toast('Klasör silindi', 'success');
     } catch (err) { toast('Bağlantı hatası', 'error'); }
   }
@@ -414,6 +439,7 @@
       if (!d.ok) { toast(d.error || 'Hata', 'error'); return; }
       albums = d.albums || [];
       renderTree();
+      refreshAllCardFolders();
       toast('Yeniden adlandırıldı', 'success');
     } catch (err) { toast('Bağlantı hatası', 'error'); }
   }
@@ -446,6 +472,7 @@
       const it = items.find(i => i.urun_id === uid);
       if (it) it.album_id = albumId || null;
       renderTree();
+      refreshAllCardFolders();
       toast(albumId ? 'Klasöre taşındı' : 'Tümü\'ye alındı', 'success');
     } catch (err) { toast('Bağlantı hatası', 'error'); }
   }
