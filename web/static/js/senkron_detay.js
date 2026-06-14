@@ -61,8 +61,11 @@
         if (box.dataset.loaded) { box.hidden = !box.hidden; return; }
         box.innerHTML = '<div class="snk-loading">Sürümler yükleniyor…</div>';
         box.hidden = false;
-        const d = await fetch(`/api/senkron/urun/${encodeURIComponent(urun_id)}/surumler`)
-            .then(r => r.json()).catch(() => ({ ok: false }));
+        let d;
+        try {
+            const resp = await fetch(`/api/senkron/urun/${encodeURIComponent(urun_id)}/surumler`);
+            d = await resp.json().catch(() => ({ ok: false, error: `Sunucu ${resp.status} (sunucuyu yeniden başlat?)` }));
+        } catch (_) { d = { ok: false, error: 'Ağ hatası' }; }
         if (!d.ok) { box.innerHTML = `<div class="snk-empty-inline">${esc(d.error || 'Hata')}</div>`; return; }
         box.dataset.loaded = '1';
         box.innerHTML = (d.surumler && d.surumler.length)
