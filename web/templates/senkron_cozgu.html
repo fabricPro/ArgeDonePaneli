@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}{{ warp.name or 'Çözgü' }} — Senkron{% endblock %}
+{% block body_class %}studio{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/screens/senkron.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="snk-page snk-cozgu" id="snk-cozgu" data-warp-id="{{ warp.id }}" data-loom-id="{{ warp.loom_id }}">
+    <header class="snk-head">
+        <div class="snk-head-text">
+            <h1>{{ warp.name or 'Çözgü' }}</h1>
+            <p class="page-subtitle">
+                {% if loom %}{{ loom.loom_no }} · {% endif %}{{ 'Alt' if warp.layer == 'alt' else 'Üst' }} çözgü · {{ 'Blanket' if warp.kind == 'blanket' else 'Düz' }}
+            </p>
+        </div>
+        <a class="btn btn-secondary" href="{{ url_for('senkron_detay', loom_id=warp.loom_id) }}">
+            <svg class="icon"><use href="#ic-arrow-left"/></svg> Tezgah
+        </a>
+    </header>
+
+    <div class="snk-cozgu-cols">
+        <section class="fcard snk-cozgu-form">
+            <div class="fcard-h">Çözgü Bilgileri</div>
+            <div class="snk-addpanel-body">
+                <div class="form-grid">
+                    <div class="form-row"><label>Ad</label><input data-wk="name" value="{{ warp.name or '' }}"></div>
+                    <div class="form-row"><label>Katman</label>
+                        <select data-wk="layer" class="snk-select">
+                            <option value="alt" {% if warp.layer == 'alt' %}selected{% endif %}>Alt</option>
+                            <option value="ust" {% if warp.layer == 'ust' %}selected{% endif %}>Üst</option>
+                        </select></div>
+                    <div class="form-row"><label>Tip</label>
+                        <select data-wk="kind" class="snk-select">
+                            <option value="duz" {% if warp.kind != 'blanket' %}selected{% endif %}>Düz</option>
+                            <option value="blanket" {% if warp.kind == 'blanket' %}selected{% endif %}>Blanket</option>
+                        </select></div>
+                    <div class="form-row"><label>Tel adedi</label><input data-wk="thread_count" type="number" value="{{ warp.thread_count if warp.thread_count is not none else '' }}"></div>
+                    <div class="form-row"><label>En (cm)</label><input data-wk="width_cm" type="number" step="0.1" value="{{ warp.width_cm if warp.width_cm is not none else '' }}"></div>
+                    <div class="form-row"><label>Uzunluk (m)</label><input data-wk="length_m" type="number" step="0.1" value="{{ warp.length_m if warp.length_m is not none else '' }}"></div>
+                    <div class="form-row"><label>kg override <span class="snk-soft">(boş=otomatik)</span></label><input data-wk="consumed_kg_override" type="number" step="0.01" value="{{ warp.consumed_kg_override if warp.consumed_kg_override is not none else '' }}"></div>
+                    <div class="form-row"><label>İşbağ override</label><input data-wk="tie_group_override" value="{{ warp.tie_group_override or '' }}" placeholder="boş=otomatik tespit"></div>
+                    <div class="form-row form-row-wide"><label>Not</label><input data-wk="notes" value="{{ warp.notes or '' }}"></div>
+                </div>
+                <div class="snk-addpanel-actions">
+                    <button type="button" class="btn btn-primary" id="snk-cozgu-save">Kaydet</button>
+                    <button type="button" class="btn btn-danger" id="snk-cozgu-del"><svg class="icon"><use href="#ic-trash"/></svg> Çözgüyü Sil</button>
+                    <span class="snk-inline-status" id="snk-cozgu-status"></span>
+                </div>
+            </div>
+        </section>
+
+        <div class="snk-cozgu-right">
+            <section class="fcard">
+                <div class="fcard-h">Çözgü İplikleri / Renkleri <span class="snk-soft">— havuza eşle (kg buradan düşer)</span></div>
+                <div class="snk-table-wrap">
+                    <table class="snk-table">
+                        <thead><tr><th>Renk</th><th>İplik</th><th class="snk-num">Tel</th><th class="snk-num">Auto kg</th><th>Havuz kalemi</th></tr></thead>
+                        <tbody>
+                            {% for y in yarns %}
+                            <tr class="snk-wyrow" data-wy-id="{{ y.id }}">
+                                <td><span class="snk-renk"><span class="snk-renk-sw" style="background:{{ y.seed_renk_hex or '#ccc' }}"></span>{{ y.seed_renk_ad or '—' }}</span></td>
+                                <td class="snk-iplik-meta">{{ y.yarn_iplik or '' }} {{ y.yarn_tip or '' }}</td>
+                                <td class="snk-num">{{ y.thread_count|round(0)|int if y.thread_count is not none else '—' }}</td>
+                                <td class="snk-num">{{ y.auto_kg }}</td>
+                                <td>
+                                    <select class="snk-select snk-wy-sel">
+                                        <option value="">— eşleme yok —</option>
+                                        {% for s in stock %}<option value="{{ s.id }}" {% if s.id == y.material_stock_id %}selected{% endif %}>{{ s.kartela_ad or s.kartela_id }} · {{ s.renk_ad or s.renk_id }}</option>{% endfor %}
+                                    </select>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if not yarns %}<div class="snk-empty-inline">Bu çözgüde iplik yok (boş çözgü). Seed'den oluşturursan iplik/renkler otomatik dolar.</div>{% endif %}
+            </section>
+
+            <section class="fcard snk-alloc">
+                <div class="fcard-h">Metre Dağıtım
+                    {% if warp.length_m %}<span class="snk-badge{% if alloc_over %} snk-alloc-over{% endif %}">{{ alloc_sum_m }} / {{ warp.length_m }} m{% if alloc_remaining_m is not none %} · kalan {{ alloc_remaining_m }}{% endif %}</span>{% endif %}
+                </div>
+                {% if alloc_over %}<div class="snk-error">Çözgü metresi yetersiz — metreyi düşür veya çözgü uzunluğunu artır.</div>{% endif %}
+                <div class="snk-alloc-list" id="snk-alloc-list">
+                    {% for a in allocs %}
+                    <div class="snk-alloc-row" data-alloc-id="{{ a.id }}">
+                        <span class="snk-alloc-name">{{ a.product_name }}</span>
+                        <span class="snk-alloc-m">{{ a.allocated_m }} m</span>
+                        <button type="button" class="snk-iconbtn snk-del snk-alloc-del" title="Kaldır" aria-label="Dağıtımı kaldır"><svg class="icon"><use href="#ic-x"/></svg></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="snk-alloc-add">
+                    <select class="snk-select" id="snk-alloc-lp">
+                        <option value="">— ürün seç —</option>
+                        {% for lp in lp_items %}<option value="{{ lp.id }}">{{ lp.name }}</option>{% endfor %}
+                    </select>
+                    <input type="number" step="0.1" inputmode="decimal" class="snk-kg" id="snk-alloc-m" placeholder="metre">
+                    <button type="button" class="btn btn-sm btn-primary" id="snk-alloc-add-btn">Dağıt</button>
+                </div>
+                <p class="snk-hint">Çözgü metresi ürünlere bu satırlarla dağıtılır; Σ &gt; uzunluk → yetersiz uyarısı.</p>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/senkron_cozgu.js') }}"></script>
+{% endblock %}

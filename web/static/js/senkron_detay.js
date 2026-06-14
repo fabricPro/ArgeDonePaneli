@@ -102,4 +102,22 @@
             if (d.ok && d.moved) location.reload();
         }
     });
+
+    // --- Çözgü ekle (Sprint 4): cozgu_plani'ndan seed veya boş ---
+    const warpStatus = document.getElementById('snk-warp-status');
+    async function addWarp(body) {
+        const d = await post('/api/senkron/cozgu/seed-sec', body);
+        if (d.ok && d.redirect) { location.href = d.redirect; }
+        else if (warpStatus) { warpStatus.textContent = d.error || 'Hata'; warpStatus.dataset.kind = 'error'; }
+    }
+    const seedAdd = document.getElementById('snk-warp-seed-add');
+    if (seedAdd) seedAdd.addEventListener('click', () => {
+        const sel = document.getElementById('snk-warp-seed');
+        const val = sel ? sel.value : '';
+        if (!val) { if (warpStatus) { warpStatus.textContent = 'Önce seed seç'; warpStatus.dataset.kind = 'error'; } return; }
+        const [lpId, durum, ci] = val.split('|');
+        addWarp({ loom_id: loomId, loom_product_id: lpId, durum, cozgu_idx: parseInt(ci, 10) });
+    });
+    const blankAdd = document.getElementById('snk-warp-blank-add');
+    if (blankAdd) blankAdd.addEventListener('click', () => addWarp({ loom_id: loomId }));
 })();

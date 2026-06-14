@@ -43,7 +43,8 @@
                     <div class="snk-row-body">
                         <div class="snk-row-name">{{ it.product_name }}</div>
                         <div class="snk-row-meta">{{ it.brand }}{% if it.workspace_album %}
-                            · <span class="snk-folder" title="{{ it.workspace_album.path }}"><svg class="icon"><use href="#ic-folder"/></svg> {{ it.workspace_album.name }}</span>{% endif %}</div>
+                            · <span class="snk-folder" title="{{ it.workspace_album.path }}"><svg class="icon"><use href="#ic-folder"/></svg> {{ it.workspace_album.name }}</span>{% endif %}{% if it.ust_tahar %}
+                            · <span class="snk-ust-tahar" title="Bu ürün üst çözgüye de dağıtılmış">üst çözgü taharı</span>{% endif %}</div>
                     </div>
                     <div class="snk-row-actions">
                         <a class="btn btn-sm btn-ghost snk-esle-link" href="{{ url_for('senkron_esle', lp_id=it.lp_id) }}" title="Atkı renklerini havuza eşle">Atkı Eşle</a>
@@ -91,6 +92,51 @@
             <div class="snk-assign-status" id="snk-assign-status" hidden></div>
         </section>
     </div>
+
+    <!-- Çözgüler (Sprint 4) -->
+    <section class="fcard snk-warps" id="snk-warps" data-loom-id="{{ loom.loom_id }}">
+        <div class="fcard-h">Çözgüler <span class="snk-badge">{{ warps|length }}</span>
+            <div class="snk-warp-add">
+                {% if seed_options %}
+                <select class="snk-select" id="snk-warp-seed">
+                    <option value="">— cozgu_plani'ndan seed —</option>
+                    {% for o in seed_options %}
+                    <option value="{{ o.loom_product_id }}|{{ o.durum }}|{{ o.cozgu_idx }}">{{ o.label }}</option>
+                    {% endfor %}
+                </select>
+                <button type="button" class="btn btn-sm btn-secondary" id="snk-warp-seed-add">+ Seed'den</button>
+                {% endif %}
+                <button type="button" class="btn btn-sm btn-ghost" id="snk-warp-blank-add">+ Boş Çözgü</button>
+            </div>
+        </div>
+        {% if warps %}
+        <div class="snk-warp-list">
+            {% for w in warps %}
+            <a class="snk-warp-card" href="{{ url_for('senkron_cozgu', warp_id=w.id) }}">
+                <div class="snk-warp-card-head">
+                    <span class="snk-warp-name">{{ w.name or 'Çözgü' }}</span>
+                    <span class="snk-warp-layer snk-layer-{{ w.layer }}">{{ 'Alt' if w.layer == 'alt' else 'Üst' }}</span>
+                    {% if w.tie_shared %}<span class="snk-tie-badge" title="Aynı tel adedi + en + iplik → işbağ">⛓ {{ w.tie_label }}</span>{% endif %}
+                </div>
+                <dl class="snk-warp-meta">
+                    {% if w.thread_count %}<div><dt>Tel</dt><dd>{{ w.thread_count }}</dd></div>{% endif %}
+                    {% if w.width_cm %}<div><dt>En</dt><dd>{{ w.width_cm }} cm</dd></div>{% endif %}
+                    {% if w.length_m %}<div><dt>Uzunluk</dt><dd>{{ w.length_m }} m</dd></div>{% endif %}
+                    <div><dt>Tip</dt><dd>{{ 'Blanket' if w.kind == 'blanket' else 'Düz' }}</dd></div>
+                    {% if w.effective_kg %}<div><dt>Kg</dt><dd>{{ w.effective_kg }}</dd></div>{% endif %}
+                </dl>
+                <div class="snk-warp-foot">
+                    {% if w.length_m %}<span class="snk-warp-alloc{% if w.alloc_over %} snk-kalan-warn{% endif %}">Dağıtılan {{ w.alloc_sum_m }} / {{ w.length_m }} m{% if w.alloc_over %} · YETERSİZ{% endif %}</span>{% endif %}
+                    {% if w.width_mismatch %}<span class="snk-warn-badge" title="Alt çözgü eni tezgahın çalışan çözgü eninden farklı">en ≠ tezgah</span>{% endif %}
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="snk-empty-inline">Henüz çözgü yok. Yukarıdan cozgu_plani'ndan seed alarak ya da boş çözgü ekle.</div>
+        {% endif %}
+        <span class="snk-inline-status" id="snk-warp-status"></span>
+    </section>
 </div>
 {% endblock %}
 

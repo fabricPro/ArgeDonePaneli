@@ -286,6 +286,68 @@
 .snk-row-warning .snk-iplik-ad { color: var(--ink); }
 .snk-filter-live { border-style: solid; border-color: var(--border); background: var(--surface); }
 
+/* ============================================================
+ * Sprint 4 — Çözgü (warp kartları, işbağ/layer, çözgü düzenle, metre dağıtım)
+ * ============================================================ */
+.snk-warps { margin-top: 18px; }
+.snk-warps .fcard-h { justify-content: space-between; }
+.snk-warp-add { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.snk-warp-add .snk-select { width: auto; min-width: 220px; }
+.snk-warp-list { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); padding: 14px; }
+.snk-warp-card {
+    display: block; text-decoration: none; color: inherit;
+    background: var(--surface); border: 1px solid var(--border);
+    border-left: 3px solid var(--warp); border-radius: var(--r); box-shadow: var(--sh);
+    padding: 12px 14px; transition: box-shadow .12s, transform .12s;
+}
+.snk-warp-card:hover { box-shadow: var(--sh-pop); transform: translateY(-1px); }
+.snk-warp-card-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.snk-warp-name { font: 600 13.5px/1.2 var(--font); color: var(--ink); flex: 1 1 auto; min-width: 0; }
+.snk-warp-layer { font-size: 10.5px; font-weight: 600; border-radius: 999px; padding: 1px 8px; }
+.snk-layer-alt { background: var(--warp-bg); color: var(--warp); }
+.snk-layer-ust { background: var(--accent-bg); color: var(--accent-strong); }
+.snk-tie-badge { font-size: 10.5px; font-weight: 600; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; padding: 1px 7px; }
+.snk-warp-meta { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 10px 0 0; }
+.snk-warp-meta > div { display: flex; flex-direction: column; gap: 1px; }
+.snk-warp-meta dt { margin: 0; font-size: 10px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); }
+.snk-warp-meta dd { margin: 0; font-size: 12.5px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.snk-warp-foot { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px 10px; font-size: 11.5px; color: var(--ink-2); }
+.snk-warp-alloc { font-variant-numeric: tabular-nums; }
+.snk-ust-tahar { color: var(--accent-strong); font-weight: 500; }
+
+/* Çözgü düzenle ekranı */
+.snk-cozgu-cols { display: grid; grid-template-columns: minmax(0, 420px) 1fr; gap: 18px; align-items: start; }
+.snk-cozgu-cols > * { min-width: 0; }       /* geniş tablo kolonu grid hücresini genişletmesin */
+.snk-cozgu-right > * { min-width: 0; }
+.snk-cozgu-form .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; }
+.snk-cozgu-form .form-row { display: flex; flex-direction: column; gap: 5px; }
+.snk-cozgu-form .form-row-wide { grid-column: 1 / -1; }
+.snk-cozgu-form label { font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); }
+.snk-cozgu-form input, .snk-cozgu-form select {
+    width: 100%; min-height: 32px; padding: 6px 10px; background: #fff;
+    border: 1px solid var(--border); border-radius: var(--r-sm); box-shadow: var(--sh);
+    font: 400 13px/1.4 var(--font); color: var(--ink);
+}
+.snk-cozgu-form input:focus, .snk-cozgu-form select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+.snk-cozgu-right { display: flex; flex-direction: column; gap: 18px; }
+.snk-cozgu-right .fcard, .snk-cozgu-form { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh); }
+.snk-cozgu-right .fcard-h, .snk-cozgu-form .fcard-h {
+    display: flex; align-items: center; gap: 8px; padding: 12px 16px;
+    border-bottom: 1px solid var(--surface-2); font: 600 11px/1 var(--font);
+    letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2);
+}
+.snk-wy-sel { min-width: 160px; width: auto; }
+
+/* Metre dağıtım */
+.snk-alloc-over { background: var(--red-bg); color: var(--red); }
+.snk-alloc-list { display: flex; flex-direction: column; }
+.snk-alloc-row { display: flex; align-items: center; gap: 10px; padding: 8px 16px; border-bottom: 1px solid var(--surface-2); }
+.snk-alloc-name { flex: 1 1 auto; font-size: 13px; color: var(--ink); }
+.snk-alloc-m { font-variant-numeric: tabular-nums; font-size: 12.5px; font-weight: 500; color: var(--ink-2); }
+.snk-alloc-add { display: flex; gap: 8px; align-items: center; padding: 12px 16px; flex-wrap: wrap; }
+.snk-alloc-add .snk-select { width: auto; min-width: 160px; flex: 1 1 160px; }
+.snk-alloc-add .snk-kg { width: 90px; }
+
 @media (max-width: 860px) {
     .snk-cols { grid-template-columns: 1fr; }
     .snk-form .form-grid { grid-template-columns: 1fr; }
@@ -293,4 +355,6 @@
     .snk-head { flex-direction: column; gap: 12px; }
     .snk-addrow { flex-direction: column; align-items: stretch; }
     .snk-swatch-prev { align-self: flex-start; }
+    .snk-cozgu-cols { grid-template-columns: 1fr; }
+    .snk-cozgu-form .form-grid { grid-template-columns: 1fr; }
 }

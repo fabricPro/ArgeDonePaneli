@@ -26,6 +26,9 @@ TABLE_LOOMS = "looms"  # Senkron Sprint 1
 TABLE_LOOM_PRODUCTS = "loom_products"  # Senkron Sprint 1
 TABLE_MATERIAL_STOCK = "material_stock"  # Senkron Sprint 2 — iplik havuzu
 TABLE_WEFT_MAPPINGS = "weft_color_mappings"  # Senkron Sprint 3 — atkı renk eşleme
+TABLE_WARPS = "warps"  # Senkron Sprint 4 — çözgü
+TABLE_WARP_YARNS = "warp_yarns"  # Senkron Sprint 4 — çözgü iplikleri
+TABLE_WARP_ALLOCATIONS = "warp_product_allocations"  # Senkron Sprint 4 — metre bütçesi
 
 PRODUCT_COLUMNS = [
     "urun_id", "brand", "brand_slug", "country", "collection", "product_name",
@@ -534,6 +537,142 @@ def weft_mapping_clear(loom_product_id: str, surum_id: str, iplik_index: int, ce
     (client().table(TABLE_WEFT_MAPPINGS).delete()
      .eq("loom_product_id", loom_product_id).eq("surum_id", surum_id)
      .eq("iplik_index", int(iplik_index)).eq("cell_key", cell_key).execute())
+
+
+# ============================================================
+# Senkron Sprint 4 — warps + warp_yarns + warp_product_allocations (çözgü)
+# Şema: scripts/supabase_schema_senkron_part4.sql. Read'ler migration öncesi boş döner.
+# Tüketim/işbağ/metre bütçesi BU TABLOLARDA TUTULMAZ — canlı hesaplanır (app.py).
+# ============================================================
+WARP_COLUMNS = [
+    "id", "loom_id", "name", "layer", "kind", "thread_count", "width_cm", "length_m",
+    "consumed_kg_override", "tie_group_override", "source_product_id", "source_surum_id",
+    "source_durum", "sequence", "notes", "created_at", "updated_at",
+]
+WARP_YARN_COLUMNS = [
+    "id", "warp_id", "material_stock_id", "thread_count", "yarn_tip", "yarn_iplik",
+    "seed_renk_ad", "seed_renk_hex", "notes", "created_at",
+]
+WARP_ALLOC_COLUMNS = ["id", "warp_id", "loom_product_id", "allocated_m", "notes", "created_at"]
+
+
+def list_warps_for_loom(loom_id: str) -> list[dict]:
+    try:
+        return (client().table(TABLE_WARPS).select("*")
+                .eq("loom_id", loom_id).order("sequence").execute()).data or []
+    except Exception as e:  # noqa: BLE001
+        if _missing_table(e):
+            return []
+        raise
+
+
+def list_all_warps() -> list[dict]:
+    try:
+        return client().table(TABLE_WARPS).select("*").execute().data or []
+    except Exception as e:  # noqa: BLE001
+        if _missing_table(e):
+            return []
+        raise
+
+
+def get_warp(warp_id: str) -> dict | None:
+    try:
+        res = client().table(TABLE_WARPS).select("*").eq("id", warp_id).limit(1).execute()
+        return res.data[0] if res.data else None
+    except Exception as e:  # noqa: BLE001
+        if _missing_table(e):
+            return None
+        raise
+
+
+def upsert_warp(data: dict) -> None:
+    row = {k: data.get(k) for k in WARP_COLUMNS if k in data}
+    row["updated_at"] = _now_iso()
+    row.pop("created_at", None)
+    client().table(TABLE_WARPS).upsert(row, on_conflict="id").execute()
+
+
+def delete_warp(warp_id: str) -> None:
+    # warp_yarns + warp_product_allocations FK on delete cascade → birlikte gider.
+    client().table(TABLE_WARPS).delete().eq("id", warp_id).execute()
+
+
+def warp_yarns_for(warp_id: str) -> list[dict]:
+    try:
+        return (client().table(TABLE_WARP_YARNS).select("*")
+                .eq("warp_id", warp_id).order("created_at").execute()).data or []
+    except Exception as e:  # noqa: BLE001
+        if _missing_table(e):
+            return []
+        raise
+
+
+def list_all_warp_yarns() -> list[dict]:
+    try:
+        return client().table(TABLE_WARP_YARNS).select("*").execute().data or []
+    except Exception as e:  # noqa: BLE001
+        if _missing_table(e):
+            return []
+        raise
+
+
+def warp_yarn_add(data: dict) -> dict:
+    row = {k: data.get(k) for k in WARP_YARN_COLUMNS if k in data}
+    row["id"] = "wy_" + _uuid.uuid4().hex[:10]
+    row["created_at"] = _now_iso()
+    client().table(TABLE_WARP_YARNS).insert(row).execute()
+    return row
+
+
+def warp_yarn_update(wy_id: str, patch: dict) -> None:
+    allowed = {"material_stock_id", "thread_count", "yarn_tip", "yarn_iplik",
+               "seed_renk_ad", "seed_renk_hex", "notes"}
+    upd = {k: v for k, v in patch.items() if k in allowed}
+    if upd:
+        client().table(TABLE_WARP_YARNS).update(upd).eq("id", wy_id).execute()
+
+
+def warp_yarns_delete_for(warp_id: str) -> None:
+    client().table(TABLE_WARP_YARNS).delete().eq("warp_id", warp_id).execute()
+
+
+def allocations_for_warp(warp_id: str) -> list[dict]:
+    try:
+        return (client().table(TABLE_WARP_ALLOCATIONS).select("*")
+                .eq("warp_id", warp_id).execute()).data or []
+    except Exception as e:  # noqa: BLE001
+        if _missing_table(e):
+            return []
+        raise
+
+
+def list_all_allocations() -> list[dict]:
+    try:
+        return client().table(TABLE_WARP_ALLOCATIONS).select("*").execute().data or []
+    except Exception as e:  # noqa: BLE001
+        if _missing_table(e):
+            return []
+        raise
+
+
+def allocation_set(warp_id: str, loom_product_id: str, allocated_m, notes=None) -> dict:
+    """Doğal anahtara (warp, loom_product) dağıtım yaz — varsa güncelle, yoksa ekle."""
+    existing = (client().table(TABLE_WARP_ALLOCATIONS).select("id")
+                .eq("warp_id", warp_id).eq("loom_product_id", loom_product_id).limit(1).execute()).data
+    if existing:
+        aid = existing[0]["id"]
+        client().table(TABLE_WARP_ALLOCATIONS).update(
+            {"allocated_m": allocated_m, "notes": notes}).eq("id", aid).execute()
+        return {"id": aid, "updated": True}
+    row = {"id": "wa_" + _uuid.uuid4().hex[:10], "warp_id": warp_id,
+           "loom_product_id": loom_product_id, "allocated_m": allocated_m,
+           "notes": notes, "created_at": _now_iso()}
+    client().table(TABLE_WARP_ALLOCATIONS).insert(row).execute()
+    return row
+
+
+def allocation_remove(alloc_id: str) -> None:
+    client().table(TABLE_WARP_ALLOCATIONS).delete().eq("id", alloc_id).execute()
 
 
 # ---- kartelalar Storage (Parça 2'de sayfa fotoğrafları için) ----

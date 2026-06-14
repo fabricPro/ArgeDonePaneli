@@ -10,7 +10,7 @@
     <header class="snk-head">
         <div class="snk-head-text">
             <h1>İplik Havuzu</h1>
-            <p class="page-subtitle">{{ total }} iplik+renk — alım planı (tüketim Sprint 3-4'te)</p>
+            <p class="page-subtitle">{{ total }} iplik+renk — alım planı + canlı KALAN (atkı + çözgü tüketimi)</p>
         </div>
         <div class="snk-head-actions">
             <button type="button" class="btn btn-primary" id="snk-add-toggle">
@@ -108,7 +108,7 @@
             <option value="">Tüm havuz</option>
             {% for l in looms %}<option value="{{ l.loom_id }}">{{ l.loom_no }}</option>{% endfor %}
         </select>
-        <span class="snk-hint snk-filter-note">KALAN yalnız <strong>planlanan atkı tüketimi</strong> bazlıdır; çözgü tüketimi Sprint 4'te eklenecek.</span>
+        <span class="snk-hint snk-filter-note">KALAN = alım − (<strong>atkı + çözgü</strong> planlanan tüketimi). Aynı ip hem çözgü hem atkı ise tek kalemde toplanır.</span>
     </div>
 
     {% if total == 0 %}
@@ -125,7 +125,8 @@
                     <th>İplik</th><th>Renk</th>
                     <th class="snk-num">Planlanan (kg)</th>
                     <th class="snk-num">Gerçek (kg)</th>
-                    <th class="snk-num">Atkı tüketim (kg)</th>
+                    <th class="snk-num">Atkı tük. (kg)</th>
+                    <th class="snk-num">Çözgü tük. (kg)</th>
                     <th class="snk-num">Kalan</th>
                     <th>Not</th><th></th>
                 </tr>
@@ -156,6 +157,7 @@
                     <td class="snk-num"><input class="snk-kg snk-kg-actual" type="number" step="0.1" inputmode="decimal"
                         value="{{ it.actual_purchase_kg if it.actual_purchase_kg is not none else '' }}"></td>
                     <td class="snk-num">{% if it.atki_consumption_kg %}{{ it.atki_consumption_kg }}{% else %}<span class="snk-soon" title="Bu kaleme eşlenmiş atkı yok">0</span>{% endif %}</td>
+                    <td class="snk-num">{% if it.cozgu_consumption_kg %}{{ it.cozgu_consumption_kg }}{% else %}<span class="snk-soon" title="Bu kaleme eşlenmiş çözgü yok">0</span>{% endif %}</td>
                     <td class="snk-num snk-kalan">
                         {% if it.kalan_kg is not none %}
                         <span class="snk-kalan-val{% if it.warning %} snk-kalan-warn{% endif %}">{{ it.kalan_kg }}</span>

@@ -1071,8 +1071,12 @@ def senkron_detay(loom_id: str):
     if not loom:
         abort(404)
     items = _loom_assigned_items(loom_id)
+    ust_set = _ust_tahar_lp_ids(loom_id)   # Sprint 4 — üst çözgü taharı işareti
+    for it in items:
+        it["ust_tahar"] = it.get("lp_id") in ust_set
     return render_template("senkron_detay.html", loom=loom, items=items,
-                           albums=_workspace_albums_with_counts(), total=len(items))
+                           albums=_workspace_albums_with_counts(), total=len(items),
+                           warps=_loom_warps(loom_id), seed_options=_cozgu_seed_options(loom_id))
 
 
 @app.route("/api/senkron/urunler")
@@ -1185,29 +1189,36 @@ def _material_stock_items():
     """material_stock satırları → katalog iplik/renk bilgisi + CANLI atkı tüketimi/KALAN (Sprint 3)."""
     rows = store.list_material_stock()
     kmap, cmap = _kartela_color_index()
-    cons, loom_ids = _material_stock_consumption()   # Sprint 3 — reconcile-on-read
+    atki_cons, atki_loom = _material_stock_consumption()   # Sprint 3 — atkı
+    cozgu_cons, cozgu_loom = _warp_consumption()           # Sprint 4 — çözgü
     items = []
     for ms in rows:
         kid, rid = ms.get("kartela_id"), ms.get("renk_id")
         k = kmap.get(kid) or {}
         col = cmap.get((kid, rid)) or {}
         planned = ms.get("planned_purchase_kg")
-        c = round(cons.get(ms.get("id"), 0.0), 3)
+        msid = ms.get("id")
+        a = round(atki_cons.get(msid, 0.0), 3)
+        cz = round(cozgu_cons.get(msid, 0.0), 3)
+        tot = round(a + cz, 3)
         base = planned if planned is not None else 0.0
-        # KALAN yalnız PLANLANAN ATKI bazlı (çözgü Sprint 4'te eklenecek)
-        kalan = round(base - c, 3) if (planned is not None or c) else None
+        # KALAN = alım − (atkı + çözgü tüketimi)  [aynı ip hem çözgü hem atkı → tek kalemde toplanır]
+        kalan = round(base - tot, 3) if (planned is not None or tot) else None
+        loom_ids = sorted(atki_loom.get(msid, set()) | cozgu_loom.get(msid, set()))
         items.append({
-            "id": ms.get("id"), "kartela_id": kid, "renk_id": rid,
+            "id": msid, "kartela_id": kid, "renk_id": rid,
             "kartela_ad": k.get("ad"), "iplik_tipi": k.get("iplik_tipi"),
             "iplik_numarasi": k.get("iplik_numarasi"), "tedarikci": k.get("tedarikci"),
             "renk_ad": col.get("ad"), "renk_hex": col.get("hex"),
-            "renk_missing": (kid, rid) not in cmap,   # katalogda bulunamadı (teorik) → işaretle
+            "renk_missing": (kid, rid) not in cmap,
             "planned_purchase_kg": planned,
             "actual_purchase_kg": ms.get("actual_purchase_kg"),
-            "atki_consumption_kg": c,
+            "atki_consumption_kg": a,
+            "cozgu_consumption_kg": cz,
+            "total_consumption_kg": tot,
             "kalan_kg": kalan,
-            "warning": (c > base and c > 0),          # tüketim > alım → yetersiz
-            "loom_ids": sorted(loom_ids.get(ms.get("id"), [])),
+            "warning": (tot > base and tot > 0),      # tüketim > alım → yetersiz
+            "loom_ids": loom_ids,
             "notes": ms.get("notes"),
         })
     return items
@@ -1448,6 +1459,301 @@ def api_senkron_esle_set(lp_id: str):
         store.weft_mapping_set(lp_id, surum.get("id"), iplik_index, cell_key, ms_id)
     else:
         store.weft_mapping_clear(lp_id, surum.get("id"), iplik_index, cell_key)
+    return jsonify({"ok": True})
+
+
+# ============================================================
+# Senkron Sprint 4 — ÇÖZGÜ (warps + warp_yarns + warp_product_allocations)
+# Çözgü AYRI fiziksel kayıt (paylaşılır); cozgu_plani'dan SEED alır, sonra bağımsız yaşar.
+# Master (cozgu_plani/products/teknik) SALT OKUNUR. kg: mevcut _g_per_mt_row portu (yeni formül yok).
+# Tüketim/işbağ/metre canlı (reconcile-on-read). Atkı tarafı (Sprint 3) AYNEN korunur.
+# ============================================================
+
+def _warp_yarn_auto_kg(yarn, length_m):
+    """Bir çözgü ipliği için OTOMATİK kg: thread_count × length_m × gPerMt / 1000 (plan.js computeOneCozgu)."""
+    g, _ = _g_per_mt_row({"tip": yarn.get("yarn_tip") or "DENYE", "iplik": yarn.get("yarn_iplik")})
+    tc = _num_or_none(yarn.get("thread_count"))
+    L = _num_or_none(length_m)
+    if g and tc and L and tc > 0 and L > 0:
+        return tc * L * g / 1000.0
+    return None
+
+
+def _warp_effective_yarn_kgs(warp, yarns):
+    """{wy_id: kg}. consumed_kg_override doluysa warp-toplamı=override; yarn'lara auto-orana göre dağıt."""
+    L = warp.get("length_m")
+    auto = {y["id"]: (_warp_yarn_auto_kg(y, L) or 0.0) for y in yarns}
+    override = _num_or_none(warp.get("consumed_kg_override"))
+    if override is None:
+        return auto
+    total = sum(auto.values())
+    if total > 0:
+        return {wy: override * (kg / total) for wy, kg in auto.items()}
+    n = len(yarns) or 1
+    return {y["id"]: override / n for y in yarns}
+
+
+def _warp_consumption():
+    """({ms_id: Σ çözgü tüketim kg}, {ms_id: set(loom_id)}) — tüm warp_yarns'tan canlı.
+    Eşlenmemiş (material_stock_id boş) yarn tüketime GİRMEZ."""
+    yarns = store.list_all_warp_yarns()
+    cons, loom_ids = {}, {}
+    if not yarns:
+        return cons, loom_ids
+    warps = {w["id"]: w for w in store.list_all_warps()}
+    by_warp = {}
+    for y in yarns:
+        by_warp.setdefault(y.get("warp_id"), []).append(y)
+    for wid, ylist in by_warp.items():
+        w = warps.get(wid)
+        if not w:
+            continue
+        eff = _warp_effective_yarn_kgs(w, ylist)
+        for y in ylist:
+            ms_id = y.get("material_stock_id")
+            if not ms_id:
+                continue
+            loom_ids.setdefault(ms_id, set()).add(w.get("loom_id"))
+            kg = eff.get(y["id"])
+            if kg:
+                cons[ms_id] = cons.get(ms_id, 0.0) + kg
+    return cons, loom_ids
+
+
+def _warp_signature(warp, yarns):
+    """İşbağ imzası: (tel adedi, en, sıralı iplik kimlikleri). Sayısallar _num_or_none ile
+    normalize edilir → int/float karışımı (seed 1000 vs kaydet 1000.0) aynı imzayı verir."""
+    ysig = tuple(sorted(f"{(y.get('yarn_tip') or '')}|{(y.get('yarn_iplik') or '')}" for y in yarns))
+    return (_num_or_none(warp.get("thread_count")), _num_or_none(warp.get("width_cm")), ysig)
+
+
+def _cozgu_seed(d, surum, durum, cozgu_idx):
+    """cozgu_plani'ndan warp + warp_yarns SEED alanları (computeOneCozgu portu — _g_per_mt_row reuse).
+    Master'a yazmaz; sadece okur. None döner kaynak yoksa."""
+    if not surum:
+        return None
+    params = surum.get("parametreler") or {}
+    ham_en = _num_or_none(params.get("ham_en_cm"))
+    all_cozgu = ((surum.get("iplikler") or {}).get("cozgu")) or []
+    yarns = [y for y in all_cozgu if (y.get("cozgu_durum") or "alt") == durum]
+    plan = (d.get("plan") or {}).get(surum.get("id")) or {}
+    cplan = plan.get("cozgu_plani") or {}
+    grup = (cplan.get("gruplar") or {}).get(durum) or {}
+    cozguler = grup.get("cozguler") or []
+    if cozgu_idx < 0 or cozgu_idx >= len(cozguler):
+        return None
+    cozgu = cozguler[cozgu_idx]
+    tip = "blanket" if cozgu.get("tip") == "blanket" else "duz"
+    n = max(1, min(4, int(cozgu.get("renk_sayisi") or 2))) if tip == "blanket" else 1
+    metraj = _num_or_none(cozgu.get("metraj")) or _num_or_none(cplan.get("metraj_m"))
+    sik_top = sum(_num_or_none(y.get("siklik")) or 0 for y in yarns)
+    teladedi = round(sik_top * ham_en) if (ham_en and sik_top > 0) else None
+    atama = cozgu.get("renk_atamalari") or []
+    seed_yarns = []
+    for y in yarns:
+        sik_y = _num_or_none(y.get("siklik")) or 0
+        yarn_tc_full = round(sik_y * ham_en) if (ham_en and sik_y > 0) else None
+        for i in range(n):
+            a = atama[i] if i < len(atama) else None
+            tc = (yarn_tc_full / n) if (yarn_tc_full and tip == "blanket") else yarn_tc_full
+            seed_yarns.append({
+                "yarn_tip": y.get("tip"), "yarn_iplik": y.get("iplik"),
+                "thread_count": tc,
+                "seed_renk_ad": (a.get("ad") if a else (None if tip == "duz" else f"Renk {i + 1}")),
+                "seed_renk_hex": (a.get("hex") if a else None),
+            })
+    return {
+        "warp": {"layer": ("alt" if durum == "alt" else "ust"), "kind": tip,
+                 "thread_count": teladedi, "width_cm": ham_en, "length_m": metraj,
+                 "source_durum": durum},
+        "yarns": seed_yarns,
+    }
+
+
+def _cozgu_seed_options(loom_id):
+    """Tezgaha atanan ürünlerin cozgu_plani'ndan SEED seçenekleri (durum + çözgü idx + etiket)."""
+    opts = []
+    for lp in store.loom_products_for(loom_id):
+        d = store.get(lp.get("urun_id"))
+        if not d:
+            continue
+        surum = _active_surum(d)
+        if not surum:
+            continue
+        cplan = ((d.get("plan") or {}).get(surum.get("id")) or {}).get("cozgu_plani") or {}
+        for durum, grup in (cplan.get("gruplar") or {}).items():
+            for ci, cz in enumerate(grup.get("cozguler") or []):
+                tip = "Blanket" if cz.get("tip") == "blanket" else "Düz"
+                opts.append({
+                    "loom_product_id": lp.get("id"), "urun_id": lp.get("urun_id"),
+                    "product_name": product_summary(d).get("product_name"),
+                    "surum_id": surum.get("id"), "durum": durum, "cozgu_idx": ci,
+                    "label": f"{product_summary(d).get('product_name')} · {durum} · Çözgü {ci + 1} ({tip})",
+                })
+    return opts
+
+
+def _loom_warps(loom_id):
+    """Tezgahın çözgüleri — yarns + auto kg + işbağ grubu + metre bütçesi + en validasyonu (canlı)."""
+    warps = store.list_warps_for_loom(loom_id)
+    loom = store.get_loom(loom_id)
+    work_w = _num_or_none((loom or {}).get("working_warp_width_cm"))
+    # işbağ: imza → grup; override öncelikli
+    sig_key = {}
+    for w in warps:
+        ys = store.warp_yarns_for(w["id"])
+        w["_yarns"] = ys
+        w["_sig"] = w.get("tie_group_override") or str(_warp_signature(w, ys))
+        sig_key.setdefault(w["_sig"], []).append(w["id"])
+    items = []
+    for w in warps:
+        ys = w["_yarns"]
+        eff = _warp_effective_yarn_kgs(w, ys)
+        auto_total = sum((_warp_yarn_auto_kg(y, w.get("length_m")) or 0.0) for y in ys)
+        allocs = store.allocations_for_warp(w["id"])
+        alloc_sum = sum(_num_or_none(a.get("allocated_m")) or 0.0 for a in allocs)
+        length = _num_or_none(w.get("length_m"))
+        tie_members = sig_key.get(w["_sig"], [])
+        items.append({
+            **{k: w.get(k) for k in store.WARP_COLUMNS},
+            "yarns": ys,
+            "auto_kg": round(auto_total, 3) if auto_total else 0.0,
+            "effective_kg": round(sum(eff.values()), 3) if eff else 0.0,
+            "alloc_sum_m": round(alloc_sum, 1),
+            "alloc_remaining_m": (round(length - alloc_sum, 1) if length is not None else None),
+            "alloc_over": (length is not None and alloc_sum > length),
+            "tie_group": w["_sig"],
+            "tie_shared": len(tie_members) > 1,
+            "tie_label": (w.get("tie_group_override") or (f"İşbağ {sorted(sig_key).index(w['_sig']) + 1}" if len(tie_members) > 1 else None)),
+            "width_mismatch": (w.get("layer") == "alt" and work_w is not None
+                               and _num_or_none(w.get("width_cm")) is not None
+                               and abs((_num_or_none(w.get("width_cm")) or 0) - work_w) > 0.01),
+        })
+    return items
+
+
+def _ust_tahar_lp_ids(loom_id):
+    """Bir loom_product hem alt hem üst warp allocation'ına sahipse → 'üst çözgü taharı'."""
+    warps = {w["id"]: w for w in store.list_warps_for_loom(loom_id)}
+    by_lp = {}
+    for w in warps.values():
+        for a in store.allocations_for_warp(w["id"]):
+            by_lp.setdefault(a.get("loom_product_id"), set()).add(w.get("layer"))
+    return {lp for lp, layers in by_lp.items() if "ust" in layers}
+
+
+@app.route("/senkron/cozgu/<warp_id>")
+def senkron_cozgu(warp_id: str):
+    warp = store.get_warp(warp_id)
+    if not warp:
+        abort(404)
+    loom = store.get_loom(warp.get("loom_id"))
+    yarns = store.warp_yarns_for(warp_id)
+    allocs = store.allocations_for_warp(warp_id)
+    # allocation ürün adları + havuz kalemleri (yarn eşleme select'i)
+    lp_map = {lp["id"]: lp for lp in store.loom_products_for(warp.get("loom_id"))}
+    lp_items = []
+    for lp in lp_map.values():
+        d = store.get(lp.get("urun_id"))
+        lp_items.append({"id": lp["id"], "name": (product_summary(d).get("product_name") if d else lp.get("urun_id"))})
+    for a in allocs:
+        lp = lp_map.get(a.get("loom_product_id"))
+        d = store.get(lp.get("urun_id")) if lp else None
+        a["product_name"] = product_summary(d).get("product_name") if d else a.get("loom_product_id")
+    length = _num_or_none(warp.get("length_m"))
+    alloc_sum = sum(_num_or_none(a.get("allocated_m")) or 0.0 for a in allocs)
+    for y in yarns:
+        y["auto_kg"] = round(_warp_yarn_auto_kg(y, warp.get("length_m")) or 0.0, 3)
+    return render_template("senkron_cozgu.html", warp=warp, loom=loom, yarns=yarns,
+                           allocs=allocs, stock=_material_stock_items(), lp_items=lp_items,
+                           alloc_sum_m=round(alloc_sum, 1),
+                           alloc_remaining_m=(round(length - alloc_sum, 1) if length is not None else None),
+                           alloc_over=(length is not None and alloc_sum > length))
+
+
+@app.route("/api/senkron/cozgu/seed-sec", methods=["POST"])
+def api_cozgu_seed_sec():
+    body = request.get_json(force=True) or {}
+    loom_id = (body.get("loom_id") or "").strip()
+    if not loom_id or not store.get_loom(loom_id):
+        return jsonify({"ok": False, "error": "Tezgah yok"}), 400
+    warp_id = "w_" + uuid.uuid4().hex[:10]
+    seq = (max((w.get("sequence") or 0) for w in store.list_warps_for_loom(loom_id)) + 1) if store.list_warps_for_loom(loom_id) else 1
+    lp_id = (body.get("loom_product_id") or "").strip()
+    if lp_id:  # cozgu_plani'ndan seed
+        lp = store.loom_product_get(lp_id)
+        d = store.get(lp.get("urun_id")) if lp else None
+        surum = _active_surum(d) if d else None
+        seed = _cozgu_seed(d, surum, (body.get("durum") or "alt"), int(body.get("cozgu_idx") or 0))
+        if not seed:
+            return jsonify({"ok": False, "error": "Seed kaynağı bulunamadı"}), 400
+        wfields = seed["warp"]
+        store.upsert_warp({"id": warp_id, "loom_id": loom_id, "sequence": seq,
+                           "name": f"{product_summary(d).get('product_name')} · {wfields['source_durum']}",
+                           "source_product_id": lp.get("urun_id"), "source_surum_id": surum.get("id"),
+                           **wfields})
+        for sy in seed["yarns"]:
+            store.warp_yarn_add({"warp_id": warp_id, **sy})
+    else:  # boş başla
+        store.upsert_warp({"id": warp_id, "loom_id": loom_id, "sequence": seq,
+                           "name": "Yeni Çözgü", "layer": "alt", "kind": "duz"})
+    return jsonify({"ok": True, "warp_id": warp_id, "redirect": url_for("senkron_cozgu", warp_id=warp_id)})
+
+
+@app.route("/api/senkron/cozgu/<warp_id>/kaydet", methods=["POST"])
+def api_cozgu_kaydet(warp_id: str):
+    if not store.get_warp(warp_id):
+        return jsonify({"ok": False, "error": "Çözgü yok"}), 404
+    b = request.get_json(force=True) or {}
+    store.upsert_warp({
+        "id": warp_id,
+        "name": clean(b.get("name")), "layer": (b.get("layer") or "alt"),
+        "kind": (b.get("kind") or "duz"),
+        "thread_count": _num_or_none(b.get("thread_count")),
+        "width_cm": _num_or_none(b.get("width_cm")),
+        "length_m": _num_or_none(b.get("length_m")),
+        "consumed_kg_override": _num_or_none(b.get("consumed_kg_override")),
+        "tie_group_override": clean(b.get("tie_group_override")),
+        "notes": clean(b.get("notes")),
+    })
+    return jsonify({"ok": True})
+
+
+@app.route("/api/senkron/cozgu/<warp_id>/sil", methods=["POST"])
+def api_cozgu_sil(warp_id: str):
+    loom_id = (store.get_warp(warp_id) or {}).get("loom_id")
+    store.delete_warp(warp_id)   # warp_yarns + allocations cascade
+    return jsonify({"ok": True, "redirect": url_for("senkron_detay", loom_id=loom_id) if loom_id else None})
+
+
+@app.route("/api/senkron/cozgu/<warp_id>/yarn/<wy_id>/eslem", methods=["POST"])
+def api_cozgu_yarn_eslem(warp_id: str, wy_id: str):
+    b = request.get_json(force=True) or {}
+    ms_id = (b.get("material_stock_id") or "").strip() or None
+    if ms_id and not store.get_material_stock(ms_id):
+        return jsonify({"ok": False, "error": "Havuz kalemi yok"}), 400
+    store.warp_yarn_update(wy_id, {"material_stock_id": ms_id})
+    return jsonify({"ok": True})
+
+
+@app.route("/api/senkron/cozgu/<warp_id>/allocate", methods=["POST"])
+def api_cozgu_allocate(warp_id: str):
+    if not store.get_warp(warp_id):
+        return jsonify({"ok": False, "error": "Çözgü yok"}), 404
+    b = request.get_json(force=True) or {}
+    lp_id = (b.get("loom_product_id") or "").strip()
+    if not lp_id:
+        return jsonify({"ok": False, "error": "Ürün seç"}), 400
+    store.allocation_set(warp_id, lp_id, _num_or_none(b.get("allocated_m")), clean(b.get("notes")))
+    return jsonify({"ok": True})
+
+
+@app.route("/api/senkron/cozgu/<warp_id>/allocate-sil", methods=["POST"])
+def api_cozgu_allocate_sil(warp_id: str):
+    b = request.get_json(force=True) or {}
+    aid = (b.get("alloc_id") or "").strip()
+    if aid:
+        store.allocation_remove(aid)
     return jsonify({"ok": True})
 
 
