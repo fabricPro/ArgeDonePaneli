@@ -11,7 +11,8 @@
         <div class="snk-head-text">
             <h1>Atkı Eşleme</h1>
             <p class="page-subtitle">
-                {% if loom %}{{ loom.loom_no }} · {% endif %}{{ product.product_name }} · {{ sections|length }} sürüm
+                {% if loom %}{{ loom.loom_no }} · {% endif %}{{ product.product_name }}
+                <span class="snk-surum-chip">{{ surum_ad }}</span>
             </p>
         </div>
         <a class="btn btn-secondary" href="{{ url_for('senkron_detay', loom_id=lp.loom_id) }}">
@@ -20,85 +21,70 @@
     </header>
 
     <div class="snk-esle-note">
-        Her ürün <strong>sürümü ayrı bir dokuma planıdır</strong> (kendi sıklığı/ipliği/varyantları). Bu tezgahta
-        <strong>dokunacak sürümleri seç</strong>; yalnız seçili sürümler havuzdan tüketir, tüketimleri toplanır.
-        Renkler master'dan okunur (salt okuma); Dokuma Sonrası gerçekleşeni girince Gerçekleşen KALAN ayrışır.
+        Tezgaha atanan bu <strong>sürüm</strong> bağımsız bir dokuma planıdır (kendi sıklığı/ipliği/varyantları).
+        Renkler master'dan okunur (salt okuma); her renk hücresini havuz kalemine eşle — eşlenenler havuzdan tüketir.
+        Dokuma Sonrası gerçekleşeni girince Gerçekleşen KALAN ayrışır.
     </div>
 
     {% if not has_any %}
     <div class="snk-empty">
         <div class="empty-icon-wrap"><svg class="empty-icon"><use href="#ic-grid"/></svg></div>
-        <h2>Sürüm Yok</h2>
-        <p>Bu ürünün Teknik Analiz'de henüz sürümü yok. Sürüm oluşturulunca burada eşlenebilir.</p>
+        <h2>Sürüm Bulunamadı</h2>
+        <p>Bu atamanın sürümü Teknik Analiz'de yok (silinmiş olabilir). Tezgahtan çıkarıp güncel bir sürüm atayın.</p>
     </div>
+    {% elif not has_atki %}
+    <div class="snk-empty-inline">Bu sürümde atkı ipliği / varyant planı yok.</div>
+    {% elif not pairs %}
+    <div class="snk-empty-inline">Bu sürümün varyantlarında renk ataması yok.</div>
     {% else %}
-
-    {% for sec in sections %}
-    <section class="fcard snk-vsection{% if not sec.selected %} snk-vsection-off{% endif %}" data-surum-id="{{ sec.surum_id }}">
-        <div class="fcard-h snk-vsection-head">
-            <span class="snk-vsection-title">Sürüm {{ sec.ad }}</span>
-            {% if not sec.selected %}<span class="chip snk-chip-excluded">tüketime girmiyor</span>{% endif %}
-            <label class="snk-toggle snk-vselect">
-                <input type="checkbox" class="snk-vselect-cb" {% if sec.selected %}checked{% endif %}>
-                <span>bu tezgahta dokunacak</span>
-            </label>
+    <section class="fcard">
+        <div class="snk-table-wrap">
+            <table class="snk-table snk-esle-table">
+                <thead><tr><th>Atkı ipliği</th><th>Renk</th><th class="snk-num">Varyant</th><th class="snk-num">Metre Σ</th><th class="snk-num">Tüketim (kg)</th><th>Havuz kalemi</th><th>Durum</th></tr></thead>
+                <tbody>
+                    {% for p in pairs %}
+                    <tr class="snk-trow" data-iplik-index="{{ p.iplik_index }}" data-cell-key="{{ p.cell_key }}">
+                        <td class="snk-iplik-ad">{{ p.yarn_ref }}</td>
+                        <td><span class="snk-renk"><span class="snk-renk-sw" style="background:{{ p.renk_hex or '#ccc' }}"></span>{{ p.renk_ad or '—' }}</span></td>
+                        <td class="snk-num">{{ p.varyant_count }}</td>
+                        <td class="snk-num">{{ p.metre_sum|round(0)|int }}</td>
+                        <td class="snk-num">{% if p.consumption_kg is not none %}{{ p.consumption_kg }}{% else %}<span class="snk-soon" title="iplik tipi/numara veya ham_en eksik">—</span>{% endif %}</td>
+                        <td>
+                            <select class="snk-select snk-map-sel">
+                                <option value="">— eşleme yok —</option>
+                                {% for s in stock %}<option value="{{ s.id }}" {% if s.id == p.material_stock_id %}selected{% endif %}>{{ s.kartela_ad or s.kartela_id }} · {{ s.renk_ad or s.renk_id }}</option>{% endfor %}
+                            </select>
+                        </td>
+                        <td class="snk-esle-status">
+                            {% if p.material_stock_id %}<span class="chip snk-chip-ok">eşlendi</span>
+                            {% else %}<span class="chip snk-chip-excluded">tüketime dahil değil</span>{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        <div class="snk-vsection-body">
-            {% if not sec.has_atki %}
-            <div class="snk-empty-inline">Bu sürümde atkı ipliği / varyant planı yok.</div>
-            {% elif not sec.pairs %}
-            <div class="snk-empty-inline">Bu sürümün varyantlarında renk ataması yok.</div>
-            {% else %}
+        {% if variants %}
+        <div class="snk-dokuma-block">
+            <div class="snk-dokuma-h">Dokuma Sonrası <span class="snk-soft">— gerçekleşen (boş = plan)</span></div>
             <div class="snk-table-wrap">
-                <table class="snk-table snk-esle-table">
-                    <thead><tr><th>Atkı ipliği</th><th>Renk</th><th class="snk-num">Varyant</th><th class="snk-num">Metre Σ</th><th class="snk-num">Tüketim (kg)</th><th>Havuz kalemi</th><th>Durum</th></tr></thead>
+                <table class="snk-table">
+                    <thead><tr><th>Varyant</th><th class="snk-num">Plan metre</th><th>Dokundu mu</th><th class="snk-num">Gerçek metre</th></tr></thead>
                     <tbody>
-                        {% for p in sec.pairs %}
-                        <tr class="snk-trow" data-iplik-index="{{ p.iplik_index }}" data-cell-key="{{ p.cell_key }}">
-                            <td class="snk-iplik-ad">{{ p.yarn_ref }}</td>
-                            <td><span class="snk-renk"><span class="snk-renk-sw" style="background:{{ p.renk_hex or '#ccc' }}"></span>{{ p.renk_ad or '—' }}</span></td>
-                            <td class="snk-num">{{ p.varyant_count }}</td>
-                            <td class="snk-num">{{ p.metre_sum|round(0)|int }}</td>
-                            <td class="snk-num">{% if p.consumption_kg is not none %}{{ p.consumption_kg }}{% else %}<span class="snk-soon" title="iplik tipi/numara veya ham_en eksik">—</span>{% endif %}</td>
-                            <td>
-                                <select class="snk-select snk-map-sel">
-                                    <option value="">— eşleme yok —</option>
-                                    {% for s in stock %}<option value="{{ s.id }}" {% if s.id == p.material_stock_id %}selected{% endif %}>{{ s.kartela_ad or s.kartela_id }} · {{ s.renk_ad or s.renk_id }}</option>{% endfor %}
-                                </select>
-                            </td>
-                            <td class="snk-esle-status">
-                                {% if p.material_stock_id %}<span class="chip snk-chip-ok">eşlendi</span>
-                                {% else %}<span class="chip snk-chip-excluded">tüketime dahil değil</span>{% endif %}
-                            </td>
+                        {% for v in variants %}
+                        <tr class="snk-dvrow" data-variant-index="{{ v.index }}">
+                            <td>{{ v.ad }}</td>
+                            <td class="snk-num">{{ v.plan_metre|round(0)|int if v.plan_metre is not none else '—' }}</td>
+                            <td><label class="snk-toggle"><input type="checkbox" class="snk-woven" {% if v.woven %}checked{% endif %}> <span>dokundu</span></label></td>
+                            <td class="snk-num"><input class="snk-kg snk-actual-m" type="number" step="0.1" inputmode="decimal" value="{{ v.actual_m if v.actual_m is not none else '' }}" placeholder="{{ v.plan_metre|round(0)|int if v.plan_metre is not none else '' }}"></td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-            {% if sec.variants %}
-            <div class="snk-dokuma-block">
-                <div class="snk-dokuma-h">Dokuma Sonrası <span class="snk-soft">— gerçekleşen (boş = plan)</span></div>
-                <div class="snk-table-wrap">
-                    <table class="snk-table">
-                        <thead><tr><th>Varyant</th><th class="snk-num">Plan metre</th><th>Dokundu mu</th><th class="snk-num">Gerçek metre</th></tr></thead>
-                        <tbody>
-                            {% for v in sec.variants %}
-                            <tr class="snk-dvrow" data-variant-index="{{ v.index }}">
-                                <td>{{ v.ad }}</td>
-                                <td class="snk-num">{{ v.plan_metre|round(0)|int if v.plan_metre is not none else '—' }}</td>
-                                <td><label class="snk-toggle"><input type="checkbox" class="snk-woven" {% if v.woven %}checked{% endif %}> <span>dokundu</span></label></td>
-                                <td class="snk-num"><input class="snk-kg snk-actual-m" type="number" step="0.1" inputmode="decimal" value="{{ v.actual_m if v.actual_m is not none else '' }}" placeholder="{{ v.plan_metre|round(0)|int if v.plan_metre is not none else '' }}"></td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            {% endif %}
-            {% endif %}
         </div>
+        {% endif %}
     </section>
-    {% endfor %}
 
     {% if not stock %}
     <p class="snk-hint">Havuzda iplik kalemi yok — önce <a href="{{ url_for('senkron_havuz') }}">İplik Havuzu</a>'na ekle, sonra eşle.</p>

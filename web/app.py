@@ -972,29 +972,8 @@ def _loom_form_fields(form) -> dict:
     }
 
 
-def _album_member_urun_ids(album_id: str) -> list:
-    """album_id + TÜM alt klasörleri (descendant) içindeki workspace ürün id'leri.
-    Çalışma'daki descendant semantiğiyle birebir; YENİ klasör kavramı icat edilmez."""
-    data = store.workspace_data_get()
-    membership = data.get("membership") or {}
-    albums = data.get("albums") or []
-    workspace_ids = set(store.workspace_get_ids())
-    children: dict = {}
-    for a in albums:
-        children.setdefault(a.get("parent_id") or None, []).append(a.get("id"))
-    scope, stack = set(), [album_id]
-    while stack:  # album_id + descendants (döngü korumalı)
-        cur = stack.pop()
-        if cur in scope:
-            continue
-        scope.add(cur)
-        stack.extend(children.get(cur, []))
-    return [uid for uid, alb in membership.items()
-            if alb in scope and uid in workspace_ids]
-
-
 def _loom_assigned_items(loom_id: str) -> list:
-    """loom_products satırları → ürün özetiyle (ad/kapak/marka/klasör) zenginleştir."""
+    """loom_products satırları → ürün+SÜRÜM özetiyle (ad/kapak/marka/klasör/sürüm) zenginleştir."""
     rows = store.loom_products_for(loom_id)
     data = store.workspace_data_get()
     albums_by_id = {a.get("id"): a for a in (data.get("albums") or [])}
@@ -1007,8 +986,13 @@ def _loom_assigned_items(loom_id: str) -> list:
         else:  # ürün silinmişse (teorik — FK cascade var) zarif düş
             summ = {"urun_id": lp.get("urun_id"), "product_name": lp.get("urun_id"),
                     "brand": "?", "cover_image": None}
+        sid = lp.get("surum_id")
+        s = _find_surum(d.get("teknik") or {}, sid) if d else None
         summ["lp_id"] = lp.get("id")
         summ["sequence"] = lp.get("sequence")
+        summ["surum_id"] = sid
+        summ["surum_ad"] = (s.get("ad") if s else None) or sid
+        summ["surum_missing"] = (d is not None and s is None)   # sürüm sonradan silinmişse uyar
         summ["workspace_album"] = _workspace_album_display(
             membership.get(lp.get("urun_id")), albums_by_id)
         items.append(summ)
@@ -1074,8 +1058,7 @@ def senkron_detay(loom_id: str):
     ust_set = _ust_tahar_lp_ids(loom_id)   # Sprint 4 — üst çözgü taharı işareti
     for it in items:
         it["ust_tahar"] = it.get("lp_id") in ust_set
-    return render_template("senkron_detay.html", loom=loom, items=items,
-                           albums=_workspace_albums_with_counts(), total=len(items),
+    return render_template("senkron_detay.html", loom=loom, items=items, total=len(items),
                            warps=_loom_warps(loom_id), seed_options=_cozgu_seed_options(loom_id))
 
 
@@ -1092,36 +1075,52 @@ def api_senkron_urunler():
     return jsonify({"ok": True, "urunler": out})
 
 
+@app.route("/api/senkron/urun/<urun_id>/surumler")
+def api_senkron_urun_surumler(urun_id: str):
+    """Tekil atama: bir ürünün sürümleri + 'dokunmaya hazır mı' (tamlık) + zaten atalı mı bilgisi."""
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    out = []
+    for s in (d.get("teknik") or {}).get("surumler") or []:
+        sid = s.get("id")
+        complete, eksik = _surum_completeness(d, s)
+        existing = store.loom_product_find(urun_id, sid)
+        loom_no = None
+        if existing:
+            lm = store.get_loom(existing.get("loom_id"))
+            loom_no = lm.get("loom_no") if lm else existing.get("loom_id")
+        out.append({"surum_id": sid, "ad": s.get("ad") or sid,
+                    "complete": complete, "eksik": eksik, "assigned_loom_no": loom_no})
+    return jsonify({"ok": True, "surumler": out})
+
+
 @app.route("/api/senkron/<loom_id>/ata-urun", methods=["POST"])
 def api_senkron_ata_urun(loom_id: str):
+    """Tezgaha bir ürün SÜRÜMÜ ata. Eksik sürüm engellenir; aynı sürüm tek tezgahta olabilir."""
     if not store.get_loom(loom_id):
         return jsonify({"ok": False, "error": "Tezgah yok"}), 404
     body = request.get_json(force=True) or {}
     urun_id = (body.get("urun_id") or "").strip()
-    if not urun_id or not store.get(urun_id):
+    surum_id = (body.get("surum_id") or "").strip()
+    d = store.get(urun_id) if urun_id else None
+    if not d:
         return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 400
-    row = store.loom_product_add(loom_id, urun_id, sequence=_next_sequence(loom_id))
+    surum = _find_surum(d.get("teknik") or {}, surum_id)
+    if not surum:
+        return jsonify({"ok": False, "error": "Sürüm bulunamadı"}), 400
+    complete, eksik = _surum_completeness(d, surum)
+    if not complete:
+        return jsonify({"ok": False,
+                        "error": "Eksik sürüm — şu alanlar dolu değil: " + ", ".join(eksik)}), 400
+    existing = store.loom_product_find(urun_id, surum_id)
+    if existing:
+        lm = store.get_loom(existing.get("loom_id"))
+        where = (lm.get("loom_no") if lm else existing.get("loom_id"))
+        return jsonify({"ok": True, "added": 0, "already": 1,
+                        "msg": f"Bu sürüm zaten {where} tezgahında"})
+    row = store.loom_product_add(loom_id, urun_id, surum_id, sequence=_next_sequence(loom_id))
     return jsonify({"ok": True, "added": 1 if row else 0, "already": 0 if row else 1})
-
-
-@app.route("/api/senkron/<loom_id>/ata-klasor", methods=["POST"])
-def api_senkron_ata_klasor(loom_id: str):
-    if not store.get_loom(loom_id):
-        return jsonify({"ok": False, "error": "Tezgah yok"}), 404
-    body = request.get_json(force=True) or {}
-    album_id = (body.get("album_id") or "").strip()
-    if not album_id:
-        return jsonify({"ok": False, "error": "Klasör seçilmedi"}), 400
-    urun_ids = _album_member_urun_ids(album_id)
-    seq = _next_sequence(loom_id)
-    added = already = 0
-    for uid in urun_ids:
-        if store.loom_product_add(loom_id, uid, sequence=seq):
-            added += 1
-            seq += 1
-        else:
-            already += 1
-    return jsonify({"ok": True, "added": added, "already": already, "total": len(urun_ids)})
 
 
 @app.route("/api/senkron/<loom_id>/cikar", methods=["POST"])
@@ -1353,6 +1352,25 @@ def _active_surum(d):
     return next((s for s in surumler if s.get("id") == aid), surumler[0])
 
 
+def _surum_completeness(d, surum):
+    """(complete: bool, eksik: list[str]) — sürüm tezgaha atanmaya / dokunmaya hazır mı.
+    Atkı tüketim motorunun gerektirdiği minimum set: ham en + atkı ipliği + atkı varyant planı.
+    Eksik sürüm atanırsa tüketim '—' kalır → atamayı baştan engelle (Anayasa: muğlak veri yok)."""
+    if not surum:
+        return False, ["sürüm yok"]
+    eksik = []
+    params = surum.get("parametreler") or {}
+    if _num_or_none(params.get("ham_en_cm")) is None:
+        eksik.append("ham en (cm)")
+    if not ((surum.get("iplikler") or {}).get("atki")):
+        eksik.append("atkı ipliği")
+    sid = surum.get("id")
+    varyantlar = (((d.get("plan") or {}).get(sid) or {}).get("atki_varyant_plani") or {}).get("varyantlar") or []
+    if not varyantlar:
+        eksik.append("atkı varyant planı")
+    return (not eksik), eksik
+
+
 def _variant_actual_metre(plan_m, a):
     """Sprint 5 — bir varyantın GERÇEKLEŞEN metresi: woven=false→0, actual_m doluysa o, yoksa plan."""
     if not a:
@@ -1407,15 +1425,10 @@ def _atki_pairs(d, surum, actuals=None):
     return pairs
 
 
-def _is_surum_selected(lp_id, surum_id, versions=None):
-    """Sürüm bu loom_product için tüketime girsin mi? Row yoksa default TRUE (çok-sürüm fix; regresyon korunur)."""
-    v = versions if versions is not None else store.loom_product_versions_for(lp_id)
-    return v.get(surum_id, True)
-
-
 def _material_stock_consumption():
     """({ms_id: planlanan atkı kg}, {ms_id: gerçekleşen atkı kg}, {ms_id: set(loom_id)}) — TÜM eşlemelerden canlı.
-    Çok-sürüm: her (lp,surum) grubu o sürümün parametreleriyle; SEÇİLİ sürümler toplanır. Plan tarafı AYNEN."""
+    Tezgaha atanan birim artık bir SÜRÜM (loom_products.surum_id); her (lp,surum) grubu o sürümün
+    parametreleriyle hesaplanır, ms_id bazında toplanır. (Ayrı sürüm-seçim kapısı yok — atama = seçim.)"""
     maps = store.list_weft_mappings()
     cons, cons_act, loom_ids = {}, {}, {}
     if not maps:
@@ -1423,15 +1436,10 @@ def _material_stock_consumption():
     groups = {}
     for m in maps:
         groups.setdefault((m.get("loom_product_id"), m.get("surum_id")), []).append(m)
-    versions_cache = {}
     for (lp_id, surum_id), ms_list in groups.items():
         lp = store.loom_product_get(lp_id)
         if not lp:
             continue
-        if lp_id not in versions_cache:
-            versions_cache[lp_id] = store.loom_product_versions_for(lp_id)
-        if not _is_surum_selected(lp_id, surum_id, versions_cache[lp_id]):
-            continue   # sürüm seçili değil → tüketime GİRMEZ (eşleme korunur, gizli)
         d = store.get(lp.get("urun_id"))
         surum = _find_surum(d.get("teknik") or {}, surum_id) if d else None
         actuals = store.weft_variant_actuals_for(lp_id, surum_id) if surum else {}
@@ -1450,9 +1458,17 @@ def _material_stock_consumption():
     return cons, cons_act, loom_ids
 
 
+def _esle_surum_of_lp(lp):
+    """Eşleme/dokuma route'ları: surum atamanın KENDİSİNDEN gelir (lp.surum_id), body'den değil."""
+    d = store.get(lp.get("urun_id")) if lp else None
+    if not d:
+        return None, None
+    return d, _find_surum(d.get("teknik") or {}, lp.get("surum_id"))
+
+
 @app.route("/senkron/esle/<lp_id>")
 def senkron_esle(lp_id: str):
-    """Atkı Eşleme — atanan ürünün atkı (pozisyon, renk) çiftlerini havuz kalemlerine eşle."""
+    """Atkı Eşleme — atanan SÜRÜMÜN atkı (pozisyon, renk) çiftlerini havuz kalemlerine eşle (tek sürüm)."""
     lp = store.loom_product_get(lp_id)
     if not lp:
         abort(404)
@@ -1460,40 +1476,31 @@ def senkron_esle(lp_id: str):
     d = store.get(lp.get("urun_id"))
     if not d:
         abort(404)
-    # Çok-sürüm: ürünün TÜM sürümleri için ayrı bölüm (her sürüm bağımsız atkı planı)
-    surumler = (d.get("teknik") or {}).get("surumler") or []
-    versions = store.loom_product_versions_for(lp_id)
-    sections = []
-    for s in surumler:
-        sid = s.get("id")
-        s_pairs = _atki_pairs(d, s)
-        mp = {f"{m['iplik_index']}@{m['cell_key']}": m for m in store.weft_mappings_for(lp_id, sid)}
-        for p in s_pairs:
-            m = mp.get(f"{p['iplik_index']}@{p['cell_key']}")
-            p["material_stock_id"] = m.get("material_stock_id") if m else None
-        avp = ((d.get("plan") or {}).get(sid) or {}).get("atki_varyant_plani") or {}
-        wva = store.weft_variant_actuals_for(lp_id, sid)
-        variants = []
-        for vi, v in enumerate(avp.get("varyantlar") or []):
-            a = wva.get(vi) or {}
-            variants.append({"index": vi, "ad": v.get("ad") or f"Varyant {vi + 1}",
-                             "plan_metre": _num_or_none(v.get("metre")),
-                             "woven": (a.get("woven") if "woven" in a else True),
-                             "actual_m": a.get("actual_m")})
-        sections.append({"surum_id": sid, "ad": s.get("ad") or sid,
-                         "selected": versions.get(sid, True), "pairs": s_pairs, "variants": variants,
-                         "has_atki": bool((s.get("iplikler") or {}).get("atki"))})
+    sid = lp.get("surum_id")
+    surum = _find_surum(d.get("teknik") or {}, sid)
+    if not surum:   # sürüm sonradan silinmiş — boş durum
+        return render_template("senkron_esle.html", loom=loom, lp=lp,
+                               product=product_summary(d), surum_ad=sid, pairs=[], variants=[],
+                               has_atki=False, stock=_material_stock_items(), has_any=False)
+    pairs = _atki_pairs(d, surum)
+    mp = {f"{m['iplik_index']}@{m['cell_key']}": m for m in store.weft_mappings_for(lp_id, sid)}
+    for p in pairs:
+        m = mp.get(f"{p['iplik_index']}@{p['cell_key']}")
+        p["material_stock_id"] = m.get("material_stock_id") if m else None
+    avp = ((d.get("plan") or {}).get(sid) or {}).get("atki_varyant_plani") or {}
+    wva = store.weft_variant_actuals_for(lp_id, sid)
+    variants = []
+    for vi, v in enumerate(avp.get("varyantlar") or []):
+        a = wva.get(vi) or {}
+        variants.append({"index": vi, "ad": v.get("ad") or f"Varyant {vi + 1}",
+                         "plan_metre": _num_or_none(v.get("metre")),
+                         "woven": (a.get("woven") if "woven" in a else True),
+                         "actual_m": a.get("actual_m")})
     return render_template("senkron_esle.html", loom=loom, lp=lp,
-                           product=product_summary(d), sections=sections,
-                           stock=_material_stock_items(), has_any=bool(surumler))
-
-
-def _esle_surum(d, body):
-    """Çok-sürüm: body'de surum_id varsa onu doğrula, yoksa aktif sürüm (geriye uyum savunması)."""
-    sid = (body.get("surum_id") or "").strip()
-    if sid:
-        return _find_surum(d.get("teknik") or {}, sid)
-    return _active_surum(d)
+                           product=product_summary(d), surum_ad=(surum.get("ad") or sid),
+                           pairs=pairs, variants=variants,
+                           has_atki=bool((surum.get("iplikler") or {}).get("atki")),
+                           stock=_material_stock_items(), has_any=True)
 
 
 @app.route("/api/senkron/esle/<lp_id>/set", methods=["POST"])
@@ -1501,11 +1508,10 @@ def api_senkron_esle_set(lp_id: str):
     lp = store.loom_product_get(lp_id)
     if not lp:
         return jsonify({"ok": False, "error": "Atama bulunamadı"}), 404
-    d = store.get(lp.get("urun_id"))
-    body = request.get_json(force=True) or {}
-    surum = _esle_surum(d, body) if d else None
+    d, surum = _esle_surum_of_lp(lp)
     if not surum:
         return jsonify({"ok": False, "error": "Sürüm bulunamadı"}), 400
+    body = request.get_json(force=True) or {}
     try:
         iplik_index = int(body.get("iplik_index"))
     except (TypeError, ValueError):
@@ -1529,11 +1535,10 @@ def api_senkron_esle_actual(lp_id: str):
     lp = store.loom_product_get(lp_id)
     if not lp:
         return jsonify({"ok": False, "error": "Atama bulunamadı"}), 404
-    d = store.get(lp.get("urun_id"))
-    body = request.get_json(force=True) or {}
-    surum = _esle_surum(d, body) if d else None
+    d, surum = _esle_surum_of_lp(lp)
     if not surum:
         return jsonify({"ok": False, "error": "Sürüm bulunamadı"}), 400
+    body = request.get_json(force=True) or {}
     try:
         vi = int(body.get("variant_index"))
     except (TypeError, ValueError):
@@ -1542,22 +1547,6 @@ def api_senkron_esle_actual(lp_id: str):
     woven = True if woven is None else bool(woven)
     store.weft_variant_actual_set(lp_id, surum.get("id"), vi, woven,
                                   _num_or_none(body.get("actual_m")))
-    return jsonify({"ok": True})
-
-
-@app.route("/api/senkron/esle/<lp_id>/version", methods=["POST"])
-def api_senkron_esle_version(lp_id: str):
-    """Çok-sürüm: bir sürümü bu tezgahta dokumaya aç/kapa (selected). Kapalı sürüm tüketime girmez."""
-    lp = store.loom_product_get(lp_id)
-    if not lp:
-        return jsonify({"ok": False, "error": "Atama bulunamadı"}), 404
-    d = store.get(lp.get("urun_id"))
-    body = request.get_json(force=True) or {}
-    sid = (body.get("surum_id") or "").strip()
-    if not d or not _find_surum(d.get("teknik") or {}, sid):
-        return jsonify({"ok": False, "error": "Sürüm bulunamadı"}), 400
-    selected = body.get("selected")
-    store.loom_product_version_set(lp_id, sid, True if selected is None else bool(selected))
     return jsonify({"ok": True})
 
 
@@ -1680,18 +1669,20 @@ def _cozgu_seed_options(loom_id):
         d = store.get(lp.get("urun_id"))
         if not d:
             continue
-        surum = _active_surum(d)
+        surum = _find_surum(d.get("teknik") or {}, lp.get("surum_id"))   # atanan SÜRÜM (aktif değil)
         if not surum:
             continue
+        pname = product_summary(d).get("product_name")
+        sad = surum.get("ad") or surum.get("id")
         cplan = ((d.get("plan") or {}).get(surum.get("id")) or {}).get("cozgu_plani") or {}
         for durum, grup in (cplan.get("gruplar") or {}).items():
             for ci, cz in enumerate(grup.get("cozguler") or []):
                 tip = "Blanket" if cz.get("tip") == "blanket" else "Düz"
                 opts.append({
                     "loom_product_id": lp.get("id"), "urun_id": lp.get("urun_id"),
-                    "product_name": product_summary(d).get("product_name"),
+                    "product_name": pname,
                     "surum_id": surum.get("id"), "durum": durum, "cozgu_idx": ci,
-                    "label": f"{product_summary(d).get('product_name')} · {durum} · Çözgü {ci + 1} ({tip})",
+                    "label": f"{pname} · {sad} · {durum} · Çözgü {ci + 1} ({tip})",
                 })
     return opts
 
@@ -1755,14 +1746,19 @@ def senkron_cozgu(warp_id: str):
     allocs = store.allocations_for_warp(warp_id)
     # allocation ürün adları + havuz kalemleri (yarn eşleme select'i)
     lp_map = {lp["id"]: lp for lp in store.loom_products_for(warp.get("loom_id"))}
-    lp_items = []
-    for lp in lp_map.values():
-        d = store.get(lp.get("urun_id"))
-        lp_items.append({"id": lp["id"], "name": (product_summary(d).get("product_name") if d else lp.get("urun_id"))})
+
+    def _lp_label(lp):
+        """Ürün + atanan sürüm (aynı ürünün iki sürümü ayırt edilsin)."""
+        d = store.get(lp.get("urun_id")) if lp else None
+        pname = product_summary(d).get("product_name") if d else lp.get("urun_id")
+        s = _find_surum(d.get("teknik") or {}, lp.get("surum_id")) if d else None
+        sad = (s.get("ad") if s else None) or lp.get("surum_id")
+        return f"{pname} · {sad}" if sad else pname
+
+    lp_items = [{"id": lp["id"], "name": _lp_label(lp)} for lp in lp_map.values()]
     for a in allocs:
         lp = lp_map.get(a.get("loom_product_id"))
-        d = store.get(lp.get("urun_id")) if lp else None
-        a["product_name"] = product_summary(d).get("product_name") if d else a.get("loom_product_id")
+        a["product_name"] = _lp_label(lp) if lp else a.get("loom_product_id")
     length = _num_or_none(warp.get("length_m"))
     alloc_sum = sum(_num_or_none(a.get("allocated_m")) or 0.0 for a in allocs)
     for y in yarns:
@@ -1786,13 +1782,14 @@ def api_cozgu_seed_sec():
     if lp_id:  # cozgu_plani'ndan seed
         lp = store.loom_product_get(lp_id)
         d = store.get(lp.get("urun_id")) if lp else None
-        surum = _active_surum(d) if d else None
+        surum = _find_surum(d.get("teknik") or {}, lp.get("surum_id")) if (d and lp) else None
         seed = _cozgu_seed(d, surum, (body.get("durum") or "alt"), int(body.get("cozgu_idx") or 0))
         if not seed:
             return jsonify({"ok": False, "error": "Seed kaynağı bulunamadı"}), 400
         wfields = seed["warp"]
+        sad = surum.get("ad") or surum.get("id")
         store.upsert_warp({"id": warp_id, "loom_id": loom_id, "sequence": seq,
-                           "name": f"{product_summary(d).get('product_name')} · {wfields['source_durum']}",
+                           "name": f"{product_summary(d).get('product_name')} · {sad} · {wfields['source_durum']}",
                            "source_product_id": lp.get("urun_id"), "source_surum_id": surum.get("id"),
                            **wfields})
         for sy in seed["yarns"]:

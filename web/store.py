@@ -30,7 +30,6 @@ TABLE_WARPS = "warps"  # Senkron Sprint 4 — çözgü
 TABLE_WARP_YARNS = "warp_yarns"  # Senkron Sprint 4 — çözgü iplikleri
 TABLE_WARP_ALLOCATIONS = "warp_product_allocations"  # Senkron Sprint 4 — metre bütçesi
 TABLE_WEFT_VARIANT_ACTUALS = "weft_variant_actuals"  # Senkron Sprint 5 — dokuma sonrası gerçekleşen
-TABLE_LOOM_PRODUCT_VERSIONS = "loom_product_versions"  # Senkron — çok-sürümlü atkı (sürüm seçimi)
 
 PRODUCT_COLUMNS = [
     "urun_id", "brand", "brand_slug", "country", "collection", "product_name",
@@ -294,7 +293,7 @@ LOOM_COLUMNS = [
     "setup_name", "reed_no", "reed_report", "working_warp_width_cm",
     "status", "notes", "created_at", "updated_at",
 ]
-LOOM_PRODUCT_COLUMNS = ["id", "loom_id", "urun_id", "sequence", "notes", "created_at"]
+LOOM_PRODUCT_COLUMNS = ["id", "loom_id", "urun_id", "surum_id", "sequence", "notes", "created_at"]
 
 
 def _missing_table(e) -> bool:
@@ -363,19 +362,26 @@ def loom_product_counts() -> dict:
     return counts
 
 
-def loom_product_exists(loom_id: str, urun_id: str) -> bool:
-    res = (client().table(TABLE_LOOM_PRODUCTS).select("id")
-           .eq("loom_id", loom_id).eq("urun_id", urun_id).limit(1).execute())
-    return bool(res.data)
+def loom_product_find(urun_id: str, surum_id: str) -> dict | None:
+    """Bir (urun, surum) atamasını GLOBAL bul (hangi tezgahta olursa). unique(urun_id,surum_id)
+    gereği bir sürüm en fazla tek tezgahta olabilir → çift atama / 'zaten X tezgahında' mesajı için."""
+    try:
+        res = (client().table(TABLE_LOOM_PRODUCTS).select("*")
+               .eq("urun_id", urun_id).eq("surum_id", surum_id).limit(1).execute())
+        return res.data[0] if res.data else None
+    except Exception as e:  # noqa: BLE001
+        if _missing_table(e):
+            return None
+        raise
 
 
-def loom_product_add(loom_id: str, urun_id: str, sequence: int = 0, notes=None) -> dict | None:
-    """Atama ekle. unique(loom_id,urun_id): zaten varsa None döner (çift eklemez)."""
-    if loom_product_exists(loom_id, urun_id):
+def loom_product_add(loom_id: str, urun_id: str, surum_id: str, sequence: int = 0, notes=None) -> dict | None:
+    """Sürüm atama ekle. unique(urun_id,surum_id): bu sürüm zaten (herhangi) bir tezgahta ise None döner."""
+    if loom_product_find(urun_id, surum_id):
         return None
     row = {
         "id": "lp_" + _uuid.uuid4().hex[:12],
-        "loom_id": loom_id, "urun_id": urun_id,
+        "loom_id": loom_id, "urun_id": urun_id, "surum_id": surum_id,
         "sequence": int(sequence or 0), "notes": notes, "created_at": _now_iso(),
     }
     client().table(TABLE_LOOM_PRODUCTS).insert(row).execute()
@@ -714,37 +720,8 @@ def weft_variant_actual_set(loom_product_id: str, surum_id: str, variant_index: 
     return row
 
 
-# ============================================================
-# Senkron — çok-sürümlü atkı: loom_product_versions (hangi sürümler seçili)
-# Şema: scripts/supabase_schema_senkron_part6.sql. Read'ler migration öncesi boş döner.
-# selected default TRUE → row yoksa sürüm seçili sayılır (regresyon: tek sürüm = eski davranış).
-# ============================================================
-
-def loom_product_versions_for(loom_product_id: str) -> dict:
-    """{surum_id: selected(bool)} — bir loom_product'ın sürüm seçim durumu."""
-    try:
-        rows = (client().table(TABLE_LOOM_PRODUCT_VERSIONS).select("*")
-                .eq("loom_product_id", loom_product_id).execute()).data or []
-    except Exception as e:  # noqa: BLE001
-        if _missing_table(e):
-            return {}
-        raise
-    return {r.get("surum_id"): bool(r.get("selected")) for r in rows}
-
-
-def loom_product_version_set(loom_product_id: str, surum_id: str, selected: bool) -> dict:
-    """Doğal anahtara (lp, surum_id) seçim yaz — varsa güncelle, yoksa ekle."""
-    existing = (client().table(TABLE_LOOM_PRODUCT_VERSIONS).select("id")
-                .eq("loom_product_id", loom_product_id).eq("surum_id", surum_id).limit(1).execute()).data
-    if existing:
-        vid = existing[0]["id"]
-        client().table(TABLE_LOOM_PRODUCT_VERSIONS).update(
-            {"selected": bool(selected)}).eq("id", vid).execute()
-        return {"id": vid, "updated": True}
-    row = {"id": "lpv_" + _uuid.uuid4().hex[:10], "loom_product_id": loom_product_id,
-           "surum_id": surum_id, "selected": bool(selected), "created_at": _now_iso()}
-    client().table(TABLE_LOOM_PRODUCT_VERSIONS).insert(row).execute()
-    return row
+# Senkron — sürüm seçimi: ARTIK loom_product_versions YOK. Tezgaha atanan birim doğrudan bir
+# SÜRÜM (loom_products.surum_id). Atama = seçim. (Refactor: scripts/supabase_schema_senkron_part7.sql)
 
 
 # ---- kartelalar Storage (Parça 2'de sayfa fotoğrafları için) ----

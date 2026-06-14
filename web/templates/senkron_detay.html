@@ -41,10 +41,12 @@
                         {% else %}<svg class="icon"><use href="#ic-image"/></svg>{% endif %}
                     </div>
                     <div class="snk-row-body">
-                        <div class="snk-row-name">{{ it.product_name }}</div>
+                        <div class="snk-row-name">{{ it.product_name }}
+                            <span class="snk-surum-chip{% if it.surum_missing %} snk-surum-chip-warn{% endif %}" title="Tezgaha atanan sürüm">{{ it.surum_ad }}{% if it.surum_missing %} · sürüm yok{% endif %}</span>
+                        </div>
                         <div class="snk-row-meta">{{ it.brand }}{% if it.workspace_album %}
                             · <span class="snk-folder" title="{{ it.workspace_album.path }}"><svg class="icon"><use href="#ic-folder"/></svg> {{ it.workspace_album.name }}</span>{% endif %}{% if it.ust_tahar %}
-                            · <span class="snk-ust-tahar" title="Bu ürün üst çözgüye de dağıtılmış">üst çözgü taharı</span>{% endif %}</div>
+                            · <span class="snk-ust-tahar" title="Bu sürüm üst çözgüye de dağıtılmış">üst çözgü taharı</span>{% endif %}</div>
                     </div>
                     <div class="snk-row-actions">
                         <a class="btn btn-sm btn-ghost snk-esle-link" href="{{ url_for('senkron_esle', lp_id=it.lp_id) }}" title="Atkı renklerini havuza eşle">Atkı Eşle</a>
@@ -56,40 +58,19 @@
                 {% endfor %}
             </div>
             <div class="snk-empty-inline" id="snk-assigned-empty" {% if total > 0 %}hidden{% endif %}>
-                Henüz ürün atanmadı. Sağdan klasör ya da tekil ürün ekle.
+                Henüz sürüm atanmadı. Sağdan bir ürün seçip sürümünü ekle.
             </div>
         </section>
 
-        <!-- Ürün ata -->
+        <!-- Sürüm ata -->
         <section class="fcard snk-assign">
-            <div class="fcard-h">Ürün Ata</div>
-            <div class="snk-assign-modes" role="tablist" aria-label="Atama yöntemi">
-                <button type="button" class="snk-mode-btn is-active" data-mode="folder" role="tab">Klasörden</button>
-                <button type="button" class="snk-mode-btn" data-mode="single" role="tab">Tekil</button>
-            </div>
-
-            <div class="snk-assign-pane" data-pane="folder">
-                <label class="snk-field-label" for="snk-folder-select">Çalışma klasörü (alt klasörler dahil)</label>
-                {% if albums %}
-                <select id="snk-folder-select" class="filter-select snk-select">
-                    <option value="">— Klasör seç —</option>
-                    {% for a in albums %}
-                    <option value="{{ a.id }}">{{ '— ' * a.depth }}{{ a.name }} ({{ a.count }})</option>
-                    {% endfor %}
-                </select>
-                <button type="button" class="btn btn-primary" id="snk-folder-add">Klasördeki ürünleri ekle</button>
-                <p class="snk-hint">Seçilen klasörün ve tüm alt klasörlerinin ürünleri eklenir; zaten atalı olanlar atlanır.</p>
-                {% else %}
-                <p class="snk-hint">Çalışma'da henüz klasör yok. Tekil moddan ürün ekleyebilirsin.</p>
-                {% endif %}
-            </div>
-
-            <div class="snk-assign-pane" data-pane="single" hidden>
+            <div class="fcard-h">Sürüm Ata</div>
+            <div class="snk-assign-body">
+                <p class="snk-hint">Tezgaha atanan birim bir <strong>ürün sürümüdür</strong>. Ürünü seç, sonra dokunacak sürümü ekle. Eksik (atkı planı/parametre boş) sürümler atanamaz; bir sürüm aynı anda tek tezgahta olabilir.</p>
                 <input type="search" id="snk-product-search" class="snk-search" placeholder="Ürün ara (ad / marka)…" autocomplete="off">
                 <div class="snk-product-list" id="snk-product-list"><div class="snk-loading">Yükleniyor…</div></div>
+                <div class="snk-assign-status" id="snk-assign-status" hidden></div>
             </div>
-
-            <div class="snk-assign-status" id="snk-assign-status" hidden></div>
         </section>
     </div>
 

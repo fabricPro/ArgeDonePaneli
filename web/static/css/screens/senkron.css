@@ -148,10 +148,12 @@
 .snk-select:focus, .snk-search:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
 .snk-hint { margin: 0; font-size: 11.5px; color: var(--ink-3); line-height: 1.5; }
 
-/* Tekil ürün picker */
-.snk-product-list { max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+/* Ürün → sürüm picker */
+.snk-assign-body { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.snk-product-list { max-height: 460px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
 .snk-loading { padding: 14px; font-size: 12.5px; color: var(--ink-3); }
-.snk-pick { display: flex; align-items: center; gap: 10px; padding: 7px 4px; border-bottom: 1px solid var(--surface-2); }
+.snk-pick { display: flex; flex-direction: column; padding: 4px 0; border-bottom: 1px solid var(--surface-2); }
+.snk-pick-row { display: flex; align-items: center; gap: 10px; padding: 3px 4px; }
 .snk-pick-thumb {
     flex: none; width: 36px; height: 36px; border-radius: var(--r-sm); overflow: hidden;
     background: var(--surface-2);
@@ -162,8 +164,26 @@
 .snk-pick-brand { font-size: 11px; color: var(--ink-2); }
 .snk-pick .btn-sm { flex: none; height: 27px; padding: 0 10px; }
 
+/* Sürüm seçim kutusu (ürün satırı altında açılır) */
+.snk-surum-pick { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 4px 8px 50px; }
+.snk-surum-opt {
+    border: 1px solid var(--border); background: var(--surface); border-radius: 999px;
+    padding: 4px 11px; font: 500 11.5px/1 var(--font); color: var(--ink); cursor: pointer;
+}
+.snk-surum-opt-ok:hover { border-color: var(--accent); background: var(--accent-bg); color: var(--accent-strong); }
+.snk-surum-opt-eksik { background: var(--amber-bg); border-color: transparent; color: var(--amber); cursor: not-allowed; }
+.snk-surum-opt-assigned { background: var(--surface-2); border-color: transparent; color: var(--ink-3); cursor: not-allowed; }
+
+/* Atanan satırda tezgaha atanmış sürüm rozeti */
+.snk-surum-chip {
+    display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px;
+    background: var(--accent-bg); border: 1px solid var(--accent-border); color: var(--accent-strong);
+    font: 600 10.5px/1.5 var(--font); vertical-align: middle;
+}
+.snk-surum-chip-warn { background: var(--amber-bg); border-color: transparent; color: var(--amber); }
+
 .snk-assign-status {
-    margin: 0 14px 14px; padding: 8px 11px; border-radius: var(--r-sm);
+    margin: 0; padding: 8px 11px; border-radius: var(--r-sm);
     font-size: 12.5px; font-weight: 500;
     background: var(--surface-2); color: var(--ink-2);
 }
