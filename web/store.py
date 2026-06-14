@@ -24,6 +24,7 @@ TABLE_RESEARCH = "research_pool"  # v4.0-part-2 Adim 8
 TABLE_KARTELA = "iplik_kartelalari"  # İplik Kataloğu Parça 1
 TABLE_LOOMS = "looms"  # Senkron Sprint 1
 TABLE_LOOM_PRODUCTS = "loom_products"  # Senkron Sprint 1
+TABLE_MATERIAL_STOCK = "material_stock"  # Senkron Sprint 2 — iplik havuzu
 
 PRODUCT_COLUMNS = [
     "urun_id", "brand", "brand_slug", "country", "collection", "product_name",
@@ -382,6 +383,88 @@ def loom_product_remove(lp_id: str) -> None:
 def loom_product_set_sequence(lp_id: str, sequence: int) -> None:
     client().table(TABLE_LOOM_PRODUCTS).update(
         {"sequence": int(sequence)}).eq("id", lp_id).execute()
+
+
+# ============================================================
+# Senkron Sprint 2 — material_stock (iplik havuzu / alım planı)
+# Şema: scripts/supabase_schema_senkron_part2.sql. Read'ler migration öncesi boş döner.
+# Havuz ASLA serbest-metin renk tutmaz; her zaman kanonik renk_id (kartela_has_renk doğrular).
+# TÜKETİM/KALAN bu sprintte YOK.
+# ============================================================
+MATERIAL_STOCK_COLUMNS = [
+    "id", "kartela_id", "renk_id", "planned_purchase_kg", "actual_purchase_kg",
+    "notes", "created_at", "updated_at",
+]
+
+
+def kartela_has_renk(kartela_id: str, renk_id: str) -> bool:
+    """renk_id verilen kartelanın sayfalar[].renkler[] içinde GERÇEKTEN var mı?
+    Havuz kaydı öncesi uygulama-düzeyi tutarlılık doğrulaması (renk jsonb-nested, DB-FK yok)."""
+    k = get_kartela(kartela_id)
+    if not k:
+        return False
+    rid = str(renk_id or "").strip()
+    if not rid:
+        return False
+    for s in (k.get("sayfalar") or []):
+        for r in (s.get("renkler") or []):
+            if isinstance(r, dict) and str(r.get("renk_id") or "") == rid:
+                return True
+    return False
+
+
+def list_material_stock() -> list[dict]:
+    try:
+        res = client().table(TABLE_MATERIAL_STOCK).select("*").order("created_at").execute()
+        return res.data or []
+    except Exception as e:  # noqa: BLE001
+        if _missing_table(e):
+            return []
+        raise
+
+
+def get_material_stock(ms_id: str) -> dict | None:
+    try:
+        res = (client().table(TABLE_MATERIAL_STOCK).select("*")
+               .eq("id", ms_id).limit(1).execute())
+        return res.data[0] if res.data else None
+    except Exception as e:  # noqa: BLE001
+        if _missing_table(e):
+            return None
+        raise
+
+
+def material_stock_exists(kartela_id: str, renk_id: str) -> bool:
+    res = (client().table(TABLE_MATERIAL_STOCK).select("id")
+           .eq("kartela_id", kartela_id).eq("renk_id", renk_id).limit(1).execute())
+    return bool(res.data)
+
+
+def material_stock_add(kartela_id: str, renk_id: str, planned_purchase_kg=None,
+                       actual_purchase_kg=None, notes=None) -> dict | None:
+    """Havuza (iplik+renk) satırı ekle. unique(kartela_id,renk_id): zaten varsa None döner."""
+    if material_stock_exists(kartela_id, renk_id):
+        return None
+    now = _now_iso()
+    row = {
+        "id": "ms_" + _uuid.uuid4().hex[:10],
+        "kartela_id": kartela_id, "renk_id": renk_id,
+        "planned_purchase_kg": planned_purchase_kg, "actual_purchase_kg": actual_purchase_kg,
+        "notes": notes, "created_at": now, "updated_at": now,
+    }
+    client().table(TABLE_MATERIAL_STOCK).insert(row).execute()
+    return row
+
+
+def material_stock_update(ms_id: str, patch: dict) -> None:
+    allowed = {"planned_purchase_kg", "actual_purchase_kg", "notes"}
+    upd = {k: v for k, v in patch.items() if k in allowed}
+    upd["updated_at"] = _now_iso()
+    client().table(TABLE_MATERIAL_STOCK).update(upd).eq("id", ms_id).execute()
+
+
+def material_stock_remove(ms_id: str) -> None:
+    client().table(TABLE_MATERIAL_STOCK).delete().eq("id", ms_id).execute()
 
 
 # ---- kartelalar Storage (Parça 2'de sayfa fotoğrafları için) ----

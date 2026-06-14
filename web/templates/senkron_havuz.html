@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block title %}İplik Havuzu — {{ total }} satır{% endblock %}
+{% block body_class %}studio{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/screens/senkron.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="snk-page snk-havuz" id="snk-havuz">
+    <header class="snk-head">
+        <div class="snk-head-text">
+            <h1>İplik Havuzu</h1>
+            <p class="page-subtitle">{{ total }} iplik+renk — alım planı (tüketim Sprint 3-4'te)</p>
+        </div>
+        <div class="snk-head-actions">
+            <button type="button" class="btn btn-primary" id="snk-add-toggle">
+                <svg class="icon"><use href="#ic-plus"/></svg> İplik Ekle
+            </button>
+            <button type="button" class="btn btn-secondary" id="snk-quick-toggle">
+                <svg class="icon"><use href="#ic-zap"/></svg> Hızlı Ekle
+            </button>
+        </div>
+    </header>
+
+    <nav class="snk-subnav" aria-label="Senkron bölümleri">
+        <a href="{{ url_for('senkron_page') }}" class="snk-subnav-link">Tezgahlar</a>
+        <a href="{{ url_for('senkron_havuz') }}" class="snk-subnav-link is-active">İplik Havuzu</a>
+    </nav>
+
+    {# --- Katalogdan ekle paneli --- #}
+    <section class="fcard snk-addpanel" id="snk-add-panel" hidden>
+        <div class="fcard-h">Katalogdan İplik Ekle</div>
+        <div class="snk-addpanel-body">
+            <div class="snk-addrow">
+                <div class="snk-field">
+                    <label class="snk-field-label" for="snk-kartela-sel">Kartela (iplik)</label>
+                    <select id="snk-kartela-sel" class="snk-select">
+                        <option value="">— Kartela seç —</option>
+                    </select>
+                </div>
+                <div class="snk-field">
+                    <label class="snk-field-label" for="snk-renk-sel">Renk</label>
+                    <select id="snk-renk-sel" class="snk-select" disabled>
+                        <option value="">— Önce kartela seç —</option>
+                    </select>
+                </div>
+                <div class="snk-swatch-prev" id="snk-add-swatch" aria-hidden="true"></div>
+            </div>
+            <div class="snk-addrow">
+                <div class="snk-field"><label class="snk-field-label">Planlanan alım (kg)</label>
+                    <input id="snk-add-planned" type="number" step="0.1" inputmode="decimal" class="snk-select"></div>
+                <div class="snk-field"><label class="snk-field-label">Gerçek alım (kg) — ops.</label>
+                    <input id="snk-add-actual" type="number" step="0.1" inputmode="decimal" class="snk-select"></div>
+                <div class="snk-field snk-field-wide"><label class="snk-field-label">Not</label>
+                    <input id="snk-add-notes" class="snk-select"></div>
+            </div>
+            <div class="snk-addpanel-actions">
+                <button type="button" class="btn btn-primary" id="snk-add-save">Havuza Ekle</button>
+                <button type="button" class="btn btn-ghost" data-close-panel="snk-add-panel">İptal</button>
+                <span class="snk-inline-status" id="snk-add-status"></span>
+            </div>
+        </div>
+    </section>
+
+    {# --- Hızlı ekle paneli (katalogda yoksa) --- #}
+    <section class="fcard snk-addpanel" id="snk-quick-panel" hidden>
+        <div class="fcard-h">Hızlı Ekle <span class="snk-soft">— katalogda olmayan iplik/renk</span></div>
+        <div class="snk-addpanel-body">
+            <div class="snk-quick-modes" role="tablist">
+                <button type="button" class="snk-mode-btn is-active" data-qmode="existing" role="tab">Mevcut kartelaya renk</button>
+                <button type="button" class="snk-mode-btn" data-qmode="new" role="tab">Yeni kartela</button>
+            </div>
+            <div class="snk-quick-pane" data-qpane="existing">
+                <div class="snk-field"><label class="snk-field-label">Kartela</label>
+                    <select id="snk-quick-kartela" class="snk-select"><option value="">— Kartela seç —</option></select></div>
+            </div>
+            <div class="snk-quick-pane" data-qpane="new" hidden>
+                <div class="snk-addrow">
+                    <div class="snk-field"><label class="snk-field-label">Kartela adı *</label>
+                        <input id="snk-q-kartela-ad" class="snk-select" placeholder="örn. Premium PES 300"></div>
+                    <div class="snk-field"><label class="snk-field-label">İplik tipi</label>
+                        <input id="snk-q-iplik-tipi" class="snk-select" placeholder="PES / CO / VIS…"></div>
+                    <div class="snk-field"><label class="snk-field-label">İplik numarası</label>
+                        <input id="snk-q-iplik-no" class="snk-select" placeholder="300d / Ne 30/1"></div>
+                </div>
+            </div>
+            <div class="snk-addrow">
+                <div class="snk-field"><label class="snk-field-label">Renk adı *</label>
+                    <input id="snk-q-renk-ad" class="snk-select" placeholder="örn. Antrasit"></div>
+                <div class="snk-field snk-field-color"><label class="snk-field-label">Renk (hex)</label>
+                    <input id="snk-q-renk-hex" type="color" value="#888888" class="snk-color"></div>
+                <div class="snk-field"><label class="snk-field-label">Planlanan alım (kg)</label>
+                    <input id="snk-q-planned" type="number" step="0.1" inputmode="decimal" class="snk-select"></div>
+            </div>
+            <div class="snk-addpanel-actions">
+                <button type="button" class="btn btn-primary" id="snk-quick-save">Kataloğa + Havuza Ekle</button>
+                <button type="button" class="btn btn-ghost" data-close-panel="snk-quick-panel">İptal</button>
+                <span class="snk-inline-status" id="snk-quick-status"></span>
+            </div>
+            <p class="snk-hint">Yeni renk/iplik gerçek İplik Kataloğu'na kalıcı renk_id ile yazılır — ayrı kaynak oluşmaz.</p>
+        </div>
+    </section>
+
+    {# --- Filtre iskeleti (tüketim Sprint 3-4'te bağlanacak) --- #}
+    <div class="snk-filter">
+        <span class="snk-filter-lbl">Tezgaha göre filtrele</span>
+        <select id="snk-filter-loom" class="snk-select snk-filter-sel">
+            <option value="">Tüm havuz</option>
+            {% for l in looms %}<option value="{{ l.loom_id }}">{{ l.loom_no }}</option>{% endfor %}
+        </select>
+        <span class="snk-soon-badge">Yakında</span>
+        <span class="snk-hint snk-filter-note">Tüketim bağı Sprint 3-4'te gelecek; tezgah filtresi o zaman aktiflenecek.</span>
+    </div>
+
+    {% if total == 0 %}
+    <div class="snk-empty">
+        <div class="empty-icon-wrap"><svg class="empty-icon"><use href="#ic-spool"/></svg></div>
+        <h2>Havuz Boş</h2>
+        <p>Katalogdan iplik+renk seçip planlanan alım kg'sini gir; ya da "Hızlı Ekle" ile katalogda olmayan ipliği aç.</p>
+    </div>
+    {% else %}
+    <div class="snk-table-wrap">
+        <table class="snk-table" id="snk-table">
+            <thead>
+                <tr>
+                    <th>İplik</th><th>Renk</th>
+                    <th class="snk-num">Planlanan (kg)</th>
+                    <th class="snk-num">Gerçek (kg)</th>
+                    <th class="snk-num">Kalan</th>
+                    <th>Not</th><th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for it in items %}
+                <tr class="snk-trow" data-ms-id="{{ it.id }}">
+                    <td class="snk-cell-iplik">
+                        <div class="snk-iplik-ad">{{ it.kartela_ad or '—' }}</div>
+                        <div class="snk-iplik-meta">
+                            {% if it.iplik_tipi %}{{ it.iplik_tipi }}{% endif %}
+                            {% if it.iplik_numarasi %} · {{ it.iplik_numarasi }}{% endif %}
+                            {% if it.tedarikci %} · {{ it.tedarikci }}{% endif %}
+                        </div>
+                    </td>
+                    <td class="snk-cell-renk">
+                        {% if it.renk_missing %}
+                        <span class="snk-renk-missing" title="Renk katalogda bulunamadı (renk_id: {{ it.renk_id }})">⚠ bulunamadı</span>
+                        {% else %}
+                        <span class="snk-renk">
+                            <span class="snk-renk-sw" style="background:{{ it.renk_hex or '#ccc' }}"></span>
+                            {{ it.renk_ad or '—' }}
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="snk-num"><input class="snk-kg snk-kg-planned" type="number" step="0.1" inputmode="decimal"
+                        value="{{ it.planned_purchase_kg if it.planned_purchase_kg is not none else '' }}"></td>
+                    <td class="snk-num"><input class="snk-kg snk-kg-actual" type="number" step="0.1" inputmode="decimal"
+                        value="{{ it.actual_purchase_kg if it.actual_purchase_kg is not none else '' }}"></td>
+                    <td class="snk-num"><span class="snk-soon" title="Tüketim Sprint 3-4'te hesaplanacak">—</span></td>
+                    <td><input class="snk-note-inp" value="{{ it.notes or '' }}" placeholder="—"></td>
+                    <td class="snk-row-actions">
+                        <button type="button" class="snk-iconbtn snk-save-row" data-act="save" title="Kaydet" aria-label="Satırı kaydet"><svg class="icon"><use href="#ic-check"/></svg></button>
+                        <button type="button" class="snk-iconbtn snk-del" data-act="remove" title="Sil" aria-label="Havuzdan sil"><svg class="icon"><use href="#ic-trash"/></svg></button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.SNK_KATALOG = {{ katalog|tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/senkron_havuz.js') }}"></script>
+{% endblock %}

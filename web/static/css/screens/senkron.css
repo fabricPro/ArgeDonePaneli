@@ -170,10 +170,95 @@
 .snk-assign-status[data-kind="ok"] { background: var(--green-bg); color: var(--green); }
 .snk-assign-status[data-kind="error"] { background: var(--red-bg); color: var(--red); }
 
-/* --- Dar ekran / tablet: tek kolon, form tek sütun --- */
+/* ============================================================
+ * Sprint 2 — İplik Havuzu (sub-nav, ekle panelleri, tablo, filtre)
+ * ============================================================ */
+.snk-subnav {
+    display: flex; gap: 4px; margin: 0 0 20px; padding: 3px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: var(--r-sm); width: fit-content;
+}
+.snk-subnav-link {
+    text-decoration: none; padding: 6px 14px; border-radius: 5px;
+    font: 500 12.5px/1 var(--font); color: var(--ink-2);
+}
+.snk-subnav-link.is-active { background: var(--surface); color: var(--ink); box-shadow: var(--sh); }
+
+/* Ekle panelleri */
+.snk-addpanel { margin-bottom: 18px; }
+.snk-addpanel-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+.snk-addrow { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+.snk-field { display: flex; flex-direction: column; gap: 5px; flex: 1 1 180px; min-width: 0; }
+.snk-field-wide { flex: 2 1 280px; }
+.snk-field-color { flex: 0 0 auto; }
+.snk-field-label { font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); }
+.snk-select {
+    width: 100%; min-height: 32px; padding: 6px 10px;
+    background: #fff; border: 1px solid var(--border); border-radius: var(--r-sm);
+    box-shadow: var(--sh); font: 400 13px/1.4 var(--font); color: var(--ink);
+}
+.snk-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+.snk-select:disabled { background: var(--surface-2); color: var(--ink-3); }
+.snk-color { width: 48px; height: 32px; padding: 2px; border: 1px solid var(--border); border-radius: var(--r-sm); background: #fff; cursor: pointer; }
+.snk-swatch-prev { width: 32px; height: 32px; border-radius: var(--r-sm); border: 1px solid var(--border); flex: none; align-self: flex-end; }
+.snk-addpanel-actions { display: flex; align-items: center; gap: 10px; }
+.snk-inline-status { font-size: 12.5px; font-weight: 500; color: var(--ink-2); }
+.snk-inline-status[data-kind="ok"] { color: var(--green); }
+.snk-inline-status[data-kind="error"] { color: var(--red); }
+.snk-soft { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--ink-3); }
+.snk-quick-modes { display: flex; gap: 4px; padding: 3px; background: var(--surface-2); border-radius: var(--r-sm); width: fit-content; }
+
+/* Filtre iskeleti (yakında) */
+.snk-filter {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 14px; padding: 10px 12px;
+    background: var(--surface-2); border: 1px dashed var(--border-strong); border-radius: var(--r-sm);
+}
+.snk-filter-lbl { font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.snk-filter-sel { width: auto; min-width: 150px; }
+.snk-soon-badge {
+    font-size: 10.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--amber); background: var(--amber-bg); border-radius: 999px; padding: 2px 9px;
+}
+.snk-filter-note { margin: 0; flex: 1 1 200px; }
+
+/* Havuz tablosu */
+.snk-table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh); }
+.snk-table { width: 100%; border-collapse: collapse; }
+.snk-table th {
+    text-align: left; padding: 10px 12px; font: 600 10.5px/1 var(--font);
+    letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3);
+    border-bottom: 1px solid var(--border); white-space: nowrap;
+}
+.snk-table td { padding: 9px 12px; border-bottom: 1px solid var(--surface-2); vertical-align: middle; }
+.snk-table tr:last-child td { border-bottom: 0; }
+.snk-table .snk-num { text-align: right; }
+.snk-table th.snk-num { text-align: right; }
+.snk-iplik-ad { font-size: 13px; font-weight: 500; color: var(--ink); }
+.snk-iplik-meta { font-size: 11px; color: var(--ink-2); margin-top: 1px; }
+.snk-renk { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink); }
+.snk-renk-sw { width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--border); flex: none; }
+.snk-renk-missing { font-size: 11.5px; color: var(--amber); }
+.snk-kg {
+    width: 86px; text-align: right; min-height: 28px; padding: 4px 8px;
+    background: #fff; border: 1px solid var(--border); border-radius: var(--r-sm);
+    font: 400 12.5px/1.2 var(--font); font-variant-numeric: tabular-nums; color: var(--ink);
+}
+.snk-kg:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+.snk-note-inp {
+    width: 100%; min-width: 120px; min-height: 28px; padding: 4px 8px;
+    background: #fff; border: 1px solid var(--border); border-radius: var(--r-sm);
+    font: 400 12.5px/1.2 var(--font); color: var(--ink);
+}
+.snk-note-inp:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+.snk-soon { color: var(--ink-3); font-variant-numeric: tabular-nums; cursor: help; }
+.snk-save-row.snk-saved-ok { background: var(--green-bg); color: var(--green); border-color: transparent; }
+
 @media (max-width: 860px) {
     .snk-cols { grid-template-columns: 1fr; }
     .snk-form .form-grid { grid-template-columns: 1fr; }
     .snk-page { padding: 16px 16px 40px; }
     .snk-head { flex-direction: column; gap: 12px; }
+    .snk-addrow { flex-direction: column; align-items: stretch; }
+    .snk-swatch-prev { align-self: flex-start; }
 }

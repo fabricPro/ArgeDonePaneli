@@ -1149,6 +1149,155 @@ def api_senkron_sirala(loom_id: str):
     return jsonify({"ok": True, "moved": True})
 
 
+# ============================================================
+# Senkron Sprint 2 — İplik Havuzu (material_stock / alım planı)
+# Katalog SALT OKUNUR (hızlı-ekle hariç → o da mevcut store.upsert_kartela + ensure_renk_ids
+# yolundan geçer; yeni yazma yolu icat edilmez). Havuz hep kanonik renk_id tutar. TÜKETİM YOK.
+# (kg parse için mevcut modül-düzeyi _num_or_none kullanılır.)
+# ============================================================
+
+def _kartela_color_index(kartelalar=None):
+    """(kmap, cmap): kmap[kartela_id] = {ad,iplik_tipi,iplik_numarasi,tedarikci,colors:[{renk_id,ad,hex}]};
+    cmap[(kartela_id,renk_id)] = {ad,hex}. Havuz satırlarını katalogdan CANLI zenginleştirmek için."""
+    if kartelalar is None:
+        kartelalar = store.list_kartelalar()
+    kmap, cmap = {}, {}
+    for k in kartelalar:
+        kid = k.get("kartela_id")
+        colors = []
+        for s in (k.get("sayfalar") or []):
+            for r in (s.get("renkler") or []):
+                rid = r.get("renk_id")
+                if not rid:
+                    continue
+                col = {"renk_id": rid, "ad": r.get("ad") or "", "hex": r.get("hex") or ""}
+                colors.append(col)
+                cmap[(kid, rid)] = col
+        kmap[kid] = {
+            "kartela_id": kid, "ad": k.get("ad"),
+            "iplik_tipi": k.get("iplik_tipi"), "iplik_numarasi": k.get("iplik_numarasi"),
+            "tedarikci": k.get("tedarikci"), "colors": colors,
+        }
+    return kmap, cmap
+
+
+def _material_stock_items():
+    """material_stock satırları → katalog iplik/renk bilgisiyle (canlı) zenginleştir."""
+    rows = store.list_material_stock()
+    kmap, cmap = _kartela_color_index()
+    items = []
+    for ms in rows:
+        kid, rid = ms.get("kartela_id"), ms.get("renk_id")
+        k = kmap.get(kid) or {}
+        col = cmap.get((kid, rid)) or {}
+        items.append({
+            "id": ms.get("id"), "kartela_id": kid, "renk_id": rid,
+            "kartela_ad": k.get("ad"), "iplik_tipi": k.get("iplik_tipi"),
+            "iplik_numarasi": k.get("iplik_numarasi"), "tedarikci": k.get("tedarikci"),
+            "renk_ad": col.get("ad"), "renk_hex": col.get("hex"),
+            "renk_missing": (kid, rid) not in cmap,   # katalogda bulunamadı (teorik) → işaretle
+            "planned_purchase_kg": ms.get("planned_purchase_kg"),
+            "actual_purchase_kg": ms.get("actual_purchase_kg"),
+            "notes": ms.get("notes"),
+        })
+    return items
+
+
+@app.route("/senkron/havuz")
+def senkron_havuz():
+    """İplik Havuzu — alım planı tablosu (tüketim/kalan YOK; Sprint 3-4'te gelecek)."""
+    kmap, _ = _kartela_color_index()
+    katalog = sorted(kmap.values(), key=lambda x: (x.get("ad") or ""))
+    return render_template("senkron_havuz.html", items=_material_stock_items(),
+                           total=len(store.list_material_stock()),
+                           katalog=katalog, looms=store.list_looms())
+
+
+@app.route("/api/senkron/havuz/ekle", methods=["POST"])
+def api_havuz_ekle():
+    body = request.get_json(force=True) or {}
+    kartela_id = (body.get("kartela_id") or "").strip()
+    renk_id = (body.get("renk_id") or "").strip()
+    if not kartela_id or not renk_id:
+        return jsonify({"ok": False, "error": "Kartela ve renk seç"}), 400
+    if not store.kartela_has_renk(kartela_id, renk_id):   # renk_id DOĞRULAMA
+        return jsonify({"ok": False, "error": "Renk bu kartelada bulunamadı"}), 400
+    row = store.material_stock_add(
+        kartela_id, renk_id,
+        planned_purchase_kg=_num_or_none(body.get("planned_purchase_kg")),
+        actual_purchase_kg=_num_or_none(body.get("actual_purchase_kg")),
+        notes=clean(body.get("notes")),
+    )
+    if not row:
+        return jsonify({"ok": False, "error": "Bu iplik+renk zaten havuzda"}), 409
+    return jsonify({"ok": True, "id": row["id"]})
+
+
+@app.route("/api/senkron/havuz/hizli-ekle", methods=["POST"])
+def api_havuz_hizli_ekle():
+    """Katalogda olmayan renk/iplik: ÖNCE mevcut katalog yazma yoluyla (upsert_kartela +
+    ensure_renk_ids) renk_id ile aç, SONRA havuza ekle. Serbest-metin renk TUTULMAZ."""
+    body = request.get_json(force=True) or {}
+    kartela_id = (body.get("kartela_id") or "").strip()   # boşsa yeni kartela
+    renk_ad = clean(body.get("renk_ad"))
+    renk_hex = clean(body.get("renk_hex"))
+    if not renk_ad:
+        return jsonify({"ok": False, "error": "Renk adı zorunlu"}), 400
+    if kartela_id:
+        k = store.get_kartela(kartela_id)
+        if not k:
+            return jsonify({"ok": False, "error": "Kartela bulunamadı"}), 404
+    else:
+        kartela_ad = clean(body.get("kartela_ad"))
+        if not kartela_ad:
+            return jsonify({"ok": False, "error": "Yeni kartela için ad zorunlu"}), 400
+        kartela_id = uuid.uuid4().hex
+        k = {"kartela_id": kartela_id, "ad": kartela_ad,
+             "iplik_tipi": clean(body.get("iplik_tipi")),
+             "iplik_numarasi": clean(body.get("iplik_numarasi")), "sayfalar": []}
+    # Renk'i kataloğa ekle (renkler endpoint mantığı: ilk sayfaya, numara yeniden ata)
+    sayfalar = k.get("sayfalar") or []
+    if not sayfalar:
+        sayfalar.append({"sayfa_id": uuid.uuid4().hex[:12], "sira": 1,
+                         "foto_path": None, "renkler": []})
+    sayfa = sayfalar[0]
+    renk = {"ad": renk_ad, "hex": renk_hex}   # renk_id YOK → ensure_renk_ids basacak (Sprint 0)
+    sayfa.setdefault("renkler", []).append(renk)
+    for i, r in enumerate(sayfa["renkler"]):
+        if isinstance(r, dict):
+            r["numara"] = i + 1
+    k["sayfalar"] = sayfalar
+    store.upsert_kartela(k)   # MEVCUT katalog yazma yolu (in-place renk_id damgalar)
+    renk_id = renk.get("renk_id")
+    if not renk_id:
+        return jsonify({"ok": False, "error": "renk_id üretilemedi"}), 500
+    row = store.material_stock_add(
+        kartela_id, renk_id,
+        planned_purchase_kg=_num_or_none(body.get("planned_purchase_kg")),
+        actual_purchase_kg=_num_or_none(body.get("actual_purchase_kg")),
+        notes=clean(body.get("notes")),
+    )
+    return jsonify({"ok": True, "id": (row or {}).get("id"), "already": row is None,
+                    "kartela_id": kartela_id, "renk_id": renk_id})
+
+
+@app.route("/api/senkron/havuz/<ms_id>/guncelle", methods=["POST"])
+def api_havuz_guncelle(ms_id: str):
+    body = request.get_json(force=True) or {}
+    store.material_stock_update(ms_id, {
+        "planned_purchase_kg": _num_or_none(body.get("planned_purchase_kg")),
+        "actual_purchase_kg": _num_or_none(body.get("actual_purchase_kg")),
+        "notes": clean(body.get("notes")),
+    })
+    return jsonify({"ok": True})
+
+
+@app.route("/api/senkron/havuz/<ms_id>/sil", methods=["POST"])
+def api_havuz_sil(ms_id: str):
+    store.material_stock_remove(ms_id)
+    return jsonify({"ok": True})
+
+
 @app.route("/api/brands", methods=["GET"])
 def api_brands_list():
     return jsonify({"ok": True, "brands": get_brands_registry()})

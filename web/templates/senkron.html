@@ -17,6 +17,11 @@
         </a>
     </header>
 
+    <nav class="snk-subnav" aria-label="Senkron bölümleri">
+        <a href="{{ url_for('senkron_page') }}" class="snk-subnav-link {% if request.endpoint in ('senkron_page','senkron_detay','senkron_yeni','senkron_duzenle','senkron_kaydet') %}is-active{% endif %}">Tezgahlar</a>
+        <a href="{{ url_for('senkron_havuz') }}" class="snk-subnav-link {% if request.endpoint == 'senkron_havuz' %}is-active{% endif %}">İplik Havuzu</a>
+    </nav>
+
     {% if total == 0 %}
     <div class="snk-empty">
         <div class="empty-icon-wrap"><svg class="empty-icon"><use href="#ic-factory"/></svg></div>
