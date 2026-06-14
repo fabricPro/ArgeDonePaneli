@@ -140,7 +140,7 @@
    Konum: albüm sekmeleri ALTINDA, renk paleti ÜSTÜNDE. Yalnız body.embed-calisma-left'te
    görünür (CSS); tam ürün sayfasında künye zaten detail-header + meta-list'te.
    Salt-okuma; veri product.* (mevcut, migration yok). #}
-{% set _kunye_taxo = product.category or product.pattern or product.color_family or product.color_count or product.weave_tags or product.style_tags %}
+{% set _kunye_taxo = product.category or product.pattern or product.color_family or product.color_count or product.weave_tags or product.style_tags or (product.repeat_vertical_cm is not none) or (product.repeat_horizontal_cm is not none) %}
 {% if _kunye_taxo or product.ai_notu or product.arge_notu %}
 <button type="button" class="cw-kunye-bar" id="cw-kunye-bar" aria-label="Künye ve AI bilgilerini göster">
     <svg class="icon"><use href="#ic-clipboard"/></svg>
@@ -156,6 +156,7 @@
     </div>
     {% if _kunye_taxo %}
     <dl class="cw-kunye-list">
+        {% if product.repeat_vertical_cm is not none or product.repeat_horizontal_cm is not none %}<div><dt>Rapor (boy × en)</dt><dd class="cw-kunye-num">{{ product.repeat_vertical_cm if product.repeat_vertical_cm is not none else '–' }} × {{ product.repeat_horizontal_cm if product.repeat_horizontal_cm is not none else '–' }} cm</dd></div>{% endif %}
         {% if product.category %}<div><dt>Kategori</dt><dd>{{ product.category|replace('-',' ') }}</dd></div>{% endif %}
         {% if product.pattern %}<div><dt>Desen</dt><dd>{{ product.pattern|replace('-',' ') }}</dd></div>{% endif %}
         {% if product.color_family %}<div><dt>Renk ailesi</dt><dd>{{ product.color_family|replace('-',' ') }}</dd></div>{% endif %}

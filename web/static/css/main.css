@@ -7628,6 +7628,10 @@ body.embed-calisma-left.kunye-view .cw-kunye-view { display: block; }
     color: var(--ink);
     text-transform: capitalize;
 }
+.cw-kunye-list dd.cw-kunye-num {
+    text-transform: none;
+    font-variant-numeric: tabular-nums;
+}
 .cw-kunye-tags { display: flex; flex-wrap: wrap; gap: 6px; text-transform: none; }
 .cw-kunye-tags .chip {
     display: inline-flex;
