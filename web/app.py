@@ -432,6 +432,9 @@ def product_summary(d: dict) -> dict:
         "color_count": d.get("color_count"),
         "weave_tags": d.get("weave_tags") or [],
         "style_tags": d.get("style_tags") or [],
+        # Faz 2 — To-Do ilerleme rozeti (galeri/çalışma kartı)
+        "todo_total": len(d.get("todo") or []),
+        "todo_done": sum(1 for t in (d.get("todo") or []) if isinstance(t, dict) and t.get("done")),
     }
 
 
@@ -2645,6 +2648,38 @@ def api_teknik_surum_notlar(urun_id: str, surum_id: str):
     d["updated_at"] = surum["guncelleme_tarihi"]
     store.upsert(d)
     return jsonify({"ok": True, "html": clean_html, "surum_id": surum_id})
+
+
+@app.route("/api/urun/<urun_id>/todo", methods=["POST"])
+def api_todo(urun_id: str):
+    """Faz 2 — ürün-bazlı To-Do listesi kaydet. Body: {todo: [{id,text,done,order}]}.
+    Tüm liste tek seferde gönderilir (notlar deseni gibi: client durumu otorite)."""
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    body = request.get_json(force=True) or {}
+    raw = body.get("todo")
+    if not isinstance(raw, list):
+        return jsonify({"ok": False, "error": "todo bir liste olmalı"}), 400
+    if len(raw) > 500:
+        return jsonify({"ok": False, "error": "Çok fazla adım (en fazla 500)"}), 400
+    clean = []
+    for it in raw:
+        if not isinstance(it, dict):
+            continue
+        text = str(it.get("text") or "").strip()[:500]
+        if not text:
+            continue  # boş adımları atla
+        clean.append({
+            "id": str(it.get("id") or "")[:40] or f"t{len(clean)}",
+            "text": text,
+            "done": bool(it.get("done")),
+            "order": len(clean),  # temiz liste içinde sıralı (0,1,2…)
+        })
+    d["todo"] = clean
+    d["updated_at"] = now_iso()
+    store.upsert(d)
+    return jsonify({"ok": True, "todo": clean})
 
 
 @app.route("/api/urun/<urun_id>/teknik/<surum_id>/notlar", methods=["GET"])

@@ -150,6 +150,8 @@
   background: var(--accent); color: #fff; border-radius: 999px; border: 1.5px solid var(--surface);
 }
 .studio .card-indicators .ind.is-completed { box-shadow: 0 0 0 2px var(--accent-bg); }
+/* Faz 2 — To-Do tümü tamamlandığında yeşil */
+.studio .card-indicators .ind-todo.todo-done { background: var(--green-bg); color: var(--green); }
 /* Tooltip — açık zemin */
 .studio .card-indicators .ind[data-tooltip] { cursor: default; }
 .studio .card-indicators .ind[data-tooltip]:hover::after,

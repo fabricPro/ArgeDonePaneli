@@ -36,6 +36,7 @@ PRODUCT_COLUMNS = [
     "reference_price", "reference_price_type", "reference_price_evidence",
     "from_research_id",  # v4.0-part-2 Sprint 14 — Ön çalışma kaynağı (varsa)
     "plan",  # tasarim-v2 Plan Parça 1 — sürüm-bazlı planlama (surum_id ile anahtarlı jsonb)
+    "todo",  # Faz 2 — ürün-bazlı To-Do listesi (jsonb: [{id,text,done,order}])
     # OnCalisma-V2 (Problem 2) — taksonomi (3 bağımsız eksen; controlled vocab + migration ile)
     "category", "pattern", "weave_tags", "style_tags", "color_family",
     # OnCalisma-V2 (Problem 4b) — renk sayısı (color_family yerine UI'da) + AI notu
@@ -119,8 +120,10 @@ def upsert(product: dict) -> None:
         # OnCalisma-V2 (Problem 2) — taksonomi kolonları migration öncesi yoksa
         # onları düşür ve yeniden dene (research_insert deseni). Diğer hatalar aynen fırlar.
         msg = str(e).lower()
-        if any(k in msg for k in _TAXONOMY_KEYS) or "schema cache" in msg or "column" in msg:
-            slim = {k: v for k, v in row.items() if k not in _TAXONOMY_KEYS}
+        if any(k in msg for k in _TAXONOMY_KEYS) or "todo" in msg or "schema cache" in msg or "column" in msg:
+            # Migration-öncesi yoksa düşür (taksonomi + Faz 2 todo). DB'deki mevcut değerler korunur.
+            _drop = set(_TAXONOMY_KEYS) | {"todo"}
+            slim = {k: v for k, v in row.items() if k not in _drop}
             client().table(TABLE).upsert(slim, on_conflict="urun_id").execute()
         else:
             raise

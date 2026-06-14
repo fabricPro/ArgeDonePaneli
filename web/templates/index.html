@@ -139,6 +139,14 @@
                         <svg class="icon"><use href="{{ sprite }}#ic-image"/></svg>
                         {% if p.color_album_image_count %}<sup class="ind-count">{{ p.color_album_image_count }}</sup>{% endif %}
                     </span>
+                    {# Faz 2 — To-Do ilerleme (kalan adım rozeti; tümü bitince yeşil) #}
+                    {% if p.todo_total %}
+                    <span class="ind on ind-todo{% if p.todo_done >= p.todo_total %} todo-done{% endif %}"
+                          data-tooltip="To-Do: {{ p.todo_done }}/{{ p.todo_total }} tamamlandı">
+                        <svg class="icon"><use href="{{ sprite }}#ic-clipboard"/></svg>
+                        {% if p.todo_done < p.todo_total %}<sup class="ind-count">{{ p.todo_total - p.todo_done }}</sup>{% endif %}
+                    </span>
+                    {% endif %}
                     {% if p.status == 'archived' %}
                     <span class="ind ind-archived" data-tooltip="Çalışma yapıldı (arşivde)">
                         <svg class="icon"><use href="{{ sprite }}#ic-check"/></svg>

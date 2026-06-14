@@ -1645,7 +1645,7 @@
     const NUMUNE_TAB_KEY = 'numune_tab';
     // v4.0-part-2 Sprint 8.4 — Notlar 4. alt-sekme olarak eklendi (sürüm-spesifik)
     // tasarim-v2 Plan Parça 1 — 'plan' alt-sekmesi eklendi (tarak ile notlar arası)
-    const NUMUNE_VALID_TABS = ['analiz', 'desen', 'tarak', 'plan', 'notlar'];
+    const NUMUNE_VALID_TABS = ['analiz', 'desen', 'tarak', 'plan', 'todo', 'notlar'];
     const numuneTabBtns = document.querySelectorAll('.numune-tab');
     const numuneSections = document.querySelectorAll('.numune-section');
 

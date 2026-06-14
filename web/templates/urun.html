@@ -740,6 +740,11 @@
                 <button class="numune-tab" data-numune-tab="plan" type="button" role="tab" aria-selected="false">
                     <span class="numune-tab-label">Plan</span>
                 </button>
+                {# Faz 2 — To-Do alt-sekmesi (plan ile notlar arası) #}
+                <button class="numune-tab" data-numune-tab="todo" type="button" role="tab" aria-selected="false">
+                    <span class="numune-tab-label">To-Do</span>
+                    <span class="numune-tab-count" id="todo-tab-count" hidden></span>
+                </button>
                 {# v4.0-part-2 Sprint 8.4 — Notlar artık burada (sürüm-spesifik) #}
                 <button class="numune-tab" data-numune-tab="notlar" type="button" role="tab" aria-selected="false">
                     <span class="numune-tab-label">Notlar</span>
@@ -1557,6 +1562,23 @@
             </fieldset>
         </section>
 
+        {# Faz 2 — To-Do (ürün-bazlı adım listesi; plan ile notlar arası) #}
+        <section data-numune-section="todo" class="numune-section" role="tabpanel" aria-label="To-Do" hidden>
+            <header class="todo-head">
+                <div class="todo-title">
+                    <h2>To-Do</h2>
+                    <span class="todo-progress" id="todo-progress" hidden></span>
+                </div>
+                <span class="todo-status" id="todo-status">Kaydedildi</span>
+            </header>
+            <form class="todo-add" id="todo-add">
+                <input type="text" id="todo-input" class="todo-input" placeholder="Yeni adım yaz, Enter ile ekle…" autocomplete="off" maxlength="500">
+                <button type="submit" class="btn btn-primary"><svg class="icon"><use href="#ic-plus"/></svg> Ekle</button>
+            </form>
+            <ul class="todo-list" id="todo-list"></ul>
+            <p class="todo-empty" id="todo-empty" hidden>Henüz adım yok. Bu ürün için yapılacakları yukarıdan ekle.</p>
+        </section>
+
         {# v4.0-part-2 Sprint 8.4 — 4·Notlar (sürüm-spesifik, ana tab'dan buraya taşındı) #}
         <section data-numune-section="notlar" class="numune-section" role="tabpanel" aria-label="Notlar" hidden>
             <header class="notlar-head">
@@ -1607,6 +1629,8 @@
     <script type="application/json" id="teknik-data">{{ teknik|tojson }}</script>
     {# tasarim-v2 Plan Parça 1 — ürünün plan verisi (sürüm-bazlı sözlük; plan.js okur) #}
     <script type="application/json" id="plan-data">{{ (product.plan or {})|tojson }}</script>
+    {# Faz 2 — To-Do verisi (todo.js okur) #}
+    <script type="application/json" id="todo-data">{{ (product.todo or [])|tojson }}</script>
     {# tasarim-v2 Plan Parça 3 — varyant sayısı önerisi için toplam foto sayısı #}
     <script>window.PLAN_IMG_COUNT = {{ (display_images|length) or 0 }};</script>
 </section>{# /Teknik sekmesi #}
@@ -3212,6 +3236,7 @@ grid.addEventListener('dragover', (e) => {
 <script src="{{ url_for('static', filename='js/plan.js') }}"></script>
 <script src="{{ url_for('static', filename='js/pdf-tab.js') }}"></script>
 <script src="{{ url_for('static', filename='js/notlar.js') }}"></script>
+<script src="{{ url_for('static', filename='js/todo.js') }}"></script>
 
 {% endif %}
 {% endblock %}
