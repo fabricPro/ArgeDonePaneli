@@ -238,10 +238,33 @@ def get_kartela(kartela_id: str) -> dict | None:
     return res.data[0] if res.data else None
 
 
+def ensure_renk_ids(sayfalar) -> int:
+    """sayfalar[].renkler[] içindeki her renge KALICI renk_id (uuid hex[:12]) bas — yalnız
+    EKSİK/boş olanlara. In-place; mevcut renk_id ASLA değişmez (Senkron demirleme önkoşulu).
+    numara/ad/hex vb. alanlara dokunmaz. Damgalanan renk sayısını döndürür (idempotent)."""
+    if not isinstance(sayfalar, list):
+        return 0
+    stamped = 0
+    for s in sayfalar:
+        if not isinstance(s, dict):
+            continue
+        renkler = s.get("renkler")
+        if not isinstance(renkler, list):
+            continue
+        for r in renkler:
+            if isinstance(r, dict) and not str(r.get("renk_id") or "").strip():
+                r["renk_id"] = _uuid.uuid4().hex[:12]
+                stamped += 1
+    return stamped
+
+
 def upsert_kartela(data: dict) -> None:
     # Sadece bilinen kolonlari gonder; guncelleme_tarihi her zaman tazelenir.
     # olusturma_tarihi payload'a EKLENMEZ: yeni kayitta DB default doldurur,
     # guncellemede dokunulmaz.
+    # Sunucu garantisi (tek doğruluk noktası): client renk_id göndermese bile her renk
+    # kalıcı renk_id taşır. In-place damga → endpoint'in response renkler'i de id'li döner.
+    ensure_renk_ids(data.get("sayfalar"))
     row = {k: data.get(k) for k in KARTELA_COLUMNS if k in data}
     row["guncelleme_tarihi"] = _now_iso()
     row.pop("olusturma_tarihi", None)
