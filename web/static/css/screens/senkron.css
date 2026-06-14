@@ -348,6 +348,12 @@
 .snk-alloc-add .snk-select { width: auto; min-width: 160px; flex: 1 1 160px; }
 .snk-alloc-add .snk-kg { width: 90px; }
 
+/* Sprint 5 — Dokuma Sonrası (gerçekleşen) */
+.snk-dokuma { margin-top: 18px; }
+.snk-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-2); cursor: pointer; }
+.snk-toggle input { width: 15px; height: 15px; accent-color: var(--accent); }
+.snk-actual-m { width: 84px; }
+
 @media (max-width: 860px) {
     .snk-cols { grid-template-columns: 1fr; }
     .snk-form .form-grid { grid-template-columns: 1fr; }

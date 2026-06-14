@@ -38,6 +38,7 @@
                     <div class="form-row"><label>Tel adedi</label><input data-wk="thread_count" type="number" value="{{ warp.thread_count if warp.thread_count is not none else '' }}"></div>
                     <div class="form-row"><label>En (cm)</label><input data-wk="width_cm" type="number" step="0.1" value="{{ warp.width_cm if warp.width_cm is not none else '' }}"></div>
                     <div class="form-row"><label>Uzunluk (m)</label><input data-wk="length_m" type="number" step="0.1" value="{{ warp.length_m if warp.length_m is not none else '' }}"></div>
+                    <div class="form-row"><label>Gerçekleşen uzunluk (m) <span class="snk-soft">(boş=plan)</span></label><input data-wk="actual_length_m" type="number" step="0.1" value="{{ warp.actual_length_m if warp.actual_length_m is not none else '' }}" placeholder="{{ warp.length_m if warp.length_m is not none else '' }}"></div>
                     <div class="form-row"><label>kg override <span class="snk-soft">(boş=otomatik)</span></label><input data-wk="consumed_kg_override" type="number" step="0.01" value="{{ warp.consumed_kg_override if warp.consumed_kg_override is not none else '' }}"></div>
                     <div class="form-row"><label>İşbağ override</label><input data-wk="tie_group_override" value="{{ warp.tie_group_override or '' }}" placeholder="boş=otomatik tespit"></div>
                     <div class="form-row form-row-wide"><label>Not</label><input data-wk="notes" value="{{ warp.notes or '' }}"></div>

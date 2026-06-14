@@ -29,6 +29,7 @@ TABLE_WEFT_MAPPINGS = "weft_color_mappings"  # Senkron Sprint 3 — atkı renk e
 TABLE_WARPS = "warps"  # Senkron Sprint 4 — çözgü
 TABLE_WARP_YARNS = "warp_yarns"  # Senkron Sprint 4 — çözgü iplikleri
 TABLE_WARP_ALLOCATIONS = "warp_product_allocations"  # Senkron Sprint 4 — metre bütçesi
+TABLE_WEFT_VARIANT_ACTUALS = "weft_variant_actuals"  # Senkron Sprint 5 — dokuma sonrası gerçekleşen
 
 PRODUCT_COLUMNS = [
     "urun_id", "brand", "brand_slug", "country", "collection", "product_name",
@@ -546,6 +547,7 @@ def weft_mapping_clear(loom_product_id: str, surum_id: str, iplik_index: int, ce
 # ============================================================
 WARP_COLUMNS = [
     "id", "loom_id", "name", "layer", "kind", "thread_count", "width_cm", "length_m",
+    "actual_length_m",  # Sprint 5 — dokuma sonrası gerçekleşen uzunluk (boşsa length_m)
     "consumed_kg_override", "tie_group_override", "source_product_id", "source_surum_id",
     "source_durum", "sequence", "notes", "created_at", "updated_at",
 ]
@@ -673,6 +675,42 @@ def allocation_set(warp_id: str, loom_product_id: str, allocated_m, notes=None) 
 
 def allocation_remove(alloc_id: str) -> None:
     client().table(TABLE_WARP_ALLOCATIONS).delete().eq("id", alloc_id).execute()
+
+
+# ============================================================
+# Senkron Sprint 5 — weft_variant_actuals (dokuma sonrası gerçekleşen, atkı varyant bazlı)
+# Şema: scripts/supabase_schema_senkron_part5.sql. Read'ler migration öncesi boş döner.
+# Master'a YAZMAZ; yalnız gerçekleşen (woven + actual_m) tutar.
+# ============================================================
+
+def weft_variant_actuals_for(loom_product_id: str, surum_id: str) -> dict:
+    """{variant_index: {woven, actual_m, ...}} — bir (ürün,sürüm) için gerçekleşen atkı kayıtları."""
+    try:
+        rows = (client().table(TABLE_WEFT_VARIANT_ACTUALS).select("*")
+                .eq("loom_product_id", loom_product_id).eq("surum_id", surum_id).execute()).data or []
+    except Exception as e:  # noqa: BLE001
+        if _missing_table(e):
+            return {}
+        raise
+    return {r.get("variant_index"): r for r in rows}
+
+
+def weft_variant_actual_set(loom_product_id: str, surum_id: str, variant_index: int,
+                            woven: bool, actual_m=None, notes=None) -> dict:
+    """Doğal anahtara (lp, surum, variant_index) gerçekleşen yaz — varsa güncelle, yoksa ekle."""
+    existing = (client().table(TABLE_WEFT_VARIANT_ACTUALS).select("id")
+                .eq("loom_product_id", loom_product_id).eq("surum_id", surum_id)
+                .eq("variant_index", int(variant_index)).limit(1).execute()).data
+    if existing:
+        wid = existing[0]["id"]
+        client().table(TABLE_WEFT_VARIANT_ACTUALS).update(
+            {"woven": bool(woven), "actual_m": actual_m, "notes": notes}).eq("id", wid).execute()
+        return {"id": wid, "updated": True}
+    row = {"id": "wva_" + _uuid.uuid4().hex[:10], "loom_product_id": loom_product_id,
+           "surum_id": surum_id, "variant_index": int(variant_index),
+           "woven": bool(woven), "actual_m": actual_m, "notes": notes, "created_at": _now_iso()}
+    client().table(TABLE_WEFT_VARIANT_ACTUALS).insert(row).execute()
+    return row
 
 
 # ---- kartelalar Storage (Parça 2'de sayfa fotoğrafları için) ----

@@ -1189,8 +1189,8 @@ def _material_stock_items():
     """material_stock satırları → katalog iplik/renk bilgisi + CANLI atkı tüketimi/KALAN (Sprint 3)."""
     rows = store.list_material_stock()
     kmap, cmap = _kartela_color_index()
-    atki_cons, atki_loom = _material_stock_consumption()   # Sprint 3 — atkı
-    cozgu_cons, cozgu_loom = _warp_consumption()           # Sprint 4 — çözgü
+    atki_plan, atki_act, atki_loom = _material_stock_consumption()   # Sprint 3/5 — atkı (plan+gerçek)
+    cozgu_plan, cozgu_act, cozgu_loom = _warp_consumption()          # Sprint 4/5 — çözgü (plan+gerçek)
     items = []
     for ms in rows:
         kid, rid = ms.get("kartela_id"), ms.get("renk_id")
@@ -1198,12 +1198,17 @@ def _material_stock_items():
         col = cmap.get((kid, rid)) or {}
         planned = ms.get("planned_purchase_kg")
         msid = ms.get("id")
-        a = round(atki_cons.get(msid, 0.0), 3)
-        cz = round(cozgu_cons.get(msid, 0.0), 3)
-        tot = round(a + cz, 3)
         base = planned if planned is not None else 0.0
-        # KALAN = alım − (atkı + çözgü tüketimi)  [aynı ip hem çözgü hem atkı → tek kalemde toplanır]
+        # PLANLANAN (Sprint 3-4 — AYNEN; alan adları korunur)
+        a = round(atki_plan.get(msid, 0.0), 3)
+        cz = round(cozgu_plan.get(msid, 0.0), 3)
+        tot = round(a + cz, 3)
         kalan = round(base - tot, 3) if (planned is not None or tot) else None
+        # GERÇEKLEŞEN (Sprint 5 — dokuma sonrası; veri yoksa plana eşit)
+        a_a = round(atki_act.get(msid, 0.0), 3)
+        cz_a = round(cozgu_act.get(msid, 0.0), 3)
+        tot_a = round(a_a + cz_a, 3)
+        kalan_a = round(base - tot_a, 3) if (planned is not None or tot_a) else None
         loom_ids = sorted(atki_loom.get(msid, set()) | cozgu_loom.get(msid, set()))
         items.append({
             "id": msid, "kartela_id": kid, "renk_id": rid,
@@ -1213,11 +1218,11 @@ def _material_stock_items():
             "renk_missing": (kid, rid) not in cmap,
             "planned_purchase_kg": planned,
             "actual_purchase_kg": ms.get("actual_purchase_kg"),
-            "atki_consumption_kg": a,
-            "cozgu_consumption_kg": cz,
-            "total_consumption_kg": tot,
-            "kalan_kg": kalan,
-            "warning": (tot > base and tot > 0),      # tüketim > alım → yetersiz
+            "atki_consumption_kg": a, "cozgu_consumption_kg": cz, "total_consumption_kg": tot,
+            "kalan_kg": kalan, "warning": (tot > base and tot > 0),
+            "atki_consumption_actual_kg": a_a, "cozgu_consumption_actual_kg": cz_a,
+            "total_consumption_actual_kg": tot_a,
+            "kalan_actual_kg": kalan_a, "warning_actual": (tot_a > base and tot_a > 0),
             "loom_ids": loom_ids,
             "notes": ms.get("notes"),
         })
@@ -1348,10 +1353,21 @@ def _active_surum(d):
     return next((s for s in surumler if s.get("id") == aid), surumler[0])
 
 
-def _atki_pairs(d, surum):
+def _variant_actual_metre(plan_m, a):
+    """Sprint 5 — bir varyantın GERÇEKLEŞEN metresi: woven=false→0, actual_m doluysa o, yoksa plan."""
+    if not a:
+        return plan_m
+    if a.get("woven") is False:
+        return 0.0
+    am = _num_or_none(a.get("actual_m"))
+    return am if am is not None else plan_m
+
+
+def _atki_pairs(d, surum, actuals=None):
     """Sürümün atkı planından (iplik_index, renk-hücresi) çiftleri + CANLI tüketim kg.
     Tüketim = atki_gmt_j × Σ(o rengi taşıyan varyantların metresi) / 1000.
-    atki_gmt = siklik(tel adedi) × ham_en/100 × g/m  (app.py _g_per_mt_row + teknik formülü)."""
+    Sprint 5: actuals (varyant gerçekleşeni) verilince consumption_kg_actual de hesaplanır;
+    actuals=None → gerçekleşen=planlanan (PLANLANAN davranışı ZERRE değişmez)."""
     if not surum:
         return []
     params = surum.get("parametreler") or {}
@@ -1364,35 +1380,40 @@ def _atki_pairs(d, surum):
         g, _ = _g_per_mt_row(yarn)
         siklik = _num_or_none(yarn.get("siklik"))   # atkıda siklik = tel adedi
         atki_gmt = (siklik * (ham_en / 100) * g) if (g and siklik and ham_en and ham_en > 0) else None
-        cells = {}   # cell_key -> {ad, hex, metre_sum, varyant_count}
-        for v in varyantlar:
+        cells = {}   # cell_key -> {ad, hex, metre_sum, metre_sum_act, varyant_count}
+        for vi, v in enumerate(varyantlar):
             ra = v.get("renk_atamalari") or []
             cell = ra[j] if j < len(ra) else None
             if not cell:
                 continue
             ck = _cell_key(cell.get("hex"), cell.get("ad"))
             c = cells.setdefault(ck, {"ad": cell.get("ad") or "", "hex": cell.get("hex") or "",
-                                      "metre_sum": 0.0, "varyant_count": 0})
-            c["metre_sum"] += (_num_or_none(v.get("metre")) or 0.0)
+                                      "metre_sum": 0.0, "metre_sum_act": 0.0, "varyant_count": 0})
+            plan_m = _num_or_none(v.get("metre")) or 0.0
+            c["metre_sum"] += plan_m
+            c["metre_sum_act"] += _variant_actual_metre(plan_m, actuals.get(vi) if actuals else None)
             c["varyant_count"] += 1
         for ck, c in cells.items():
             cons = (atki_gmt * c["metre_sum"] / 1000.0) if (atki_gmt and c["metre_sum"] > 0) else None
+            cons_a = (atki_gmt * c["metre_sum_act"] / 1000.0) if (atki_gmt and c["metre_sum_act"] > 0) else None
             pairs.append({
                 "iplik_index": j, "yarn_ref": _atki_yarn_ref(yarn, j),
                 "cell_key": ck, "renk_ad": c["ad"], "renk_hex": c["hex"],
                 "metre_sum": c["metre_sum"], "varyant_count": c["varyant_count"],
-                "atki_gmt": atki_gmt, "consumption_kg": (round(cons, 3) if cons is not None else None),
+                "atki_gmt": atki_gmt,
+                "consumption_kg": (round(cons, 3) if cons is not None else None),
+                "consumption_kg_actual": (round(cons_a, 3) if cons_a is not None else None),
             })
     return pairs
 
 
 def _material_stock_consumption():
-    """({ms_id: Σ planlanan atkı tüketim kg}, {ms_id: set(loom_id)}) — TÜM eşlemelerden canlı.
-    Bir kalem birden çok ürün/tezgahtan tüketilebilir → hepsi toplanır (global havuz)."""
+    """({ms_id: planlanan atkı kg}, {ms_id: gerçekleşen atkı kg}, {ms_id: set(loom_id)}) — TÜM eşlemelerden canlı.
+    Sprint 5: gerçekleşen, weft_variant_actuals ile (tek pass). Plan tarafı AYNEN (regresyon yok)."""
     maps = store.list_weft_mappings()
-    cons, loom_ids = {}, {}
+    cons, cons_act, loom_ids = {}, {}, {}
     if not maps:
-        return cons, loom_ids
+        return cons, cons_act, loom_ids
     groups = {}
     for m in maps:
         groups.setdefault((m.get("loom_product_id"), m.get("surum_id")), []).append(m)
@@ -1402,14 +1423,20 @@ def _material_stock_consumption():
             continue
         d = store.get(lp.get("urun_id"))
         surum = _find_surum(d.get("teknik") or {}, surum_id) if d else None
-        pairs = {f"{p['iplik_index']}@{p['cell_key']}": p for p in _atki_pairs(d, surum)} if surum else {}
+        actuals = store.weft_variant_actuals_for(lp_id, surum_id) if surum else {}
+        pairs = {f"{p['iplik_index']}@{p['cell_key']}": p
+                 for p in _atki_pairs(d, surum, actuals or None)} if surum else {}
         for m in ms_list:
             ms_id = m.get("material_stock_id")
             loom_ids.setdefault(ms_id, set()).add(lp.get("loom_id"))
             p = pairs.get(f"{m.get('iplik_index')}@{m.get('cell_key')}")
-            if p and p.get("consumption_kg"):
+            if not p:
+                continue
+            if p.get("consumption_kg"):
                 cons[ms_id] = cons.get(ms_id, 0.0) + p["consumption_kg"]
-    return cons, loom_ids
+            if p.get("consumption_kg_actual"):
+                cons_act[ms_id] = cons_act.get(ms_id, 0.0) + p["consumption_kg_actual"]
+    return cons, cons_act, loom_ids
 
 
 @app.route("/senkron/esle/<lp_id>")
@@ -1430,9 +1457,19 @@ def senkron_esle(lp_id: str):
         m = existing.get(f"{p['iplik_index']}@{p['cell_key']}")
         p["material_stock_id"] = m.get("material_stock_id") if m else None
     has_atki = bool(surum and ((surum.get("iplikler") or {}).get("atki")))
+    # Sprint 5 — Dokuma Sonrası: aktif sürümün varyantları + gerçekleşen kayıtları
+    avp = (((d.get("plan") or {}).get(surum.get("id")) or {}).get("atki_varyant_plani") or {}) if surum else {}
+    wva = store.weft_variant_actuals_for(lp_id, surum.get("id")) if surum else {}
+    variants = []
+    for vi, v in enumerate(avp.get("varyantlar") or []):
+        a = wva.get(vi) or {}
+        variants.append({"index": vi, "ad": v.get("ad") or f"Varyant {vi + 1}",
+                         "plan_metre": _num_or_none(v.get("metre")),
+                         "woven": (a.get("woven") if "woven" in a else True),
+                         "actual_m": a.get("actual_m")})
     return render_template("senkron_esle.html", loom=loom, lp=lp,
                            product=product_summary(d), surum=surum, pairs=pairs,
-                           stock=_material_stock_items(), has_atki=has_atki)
+                           stock=_material_stock_items(), has_atki=has_atki, variants=variants)
 
 
 @app.route("/api/senkron/esle/<lp_id>/set", methods=["POST"])
@@ -1462,6 +1499,28 @@ def api_senkron_esle_set(lp_id: str):
     return jsonify({"ok": True})
 
 
+@app.route("/api/senkron/esle/<lp_id>/actual", methods=["POST"])
+def api_senkron_esle_actual(lp_id: str):
+    """Sprint 5 — dokuma sonrası: bir varyantın 'dokundu mu' + 'gerçek metre' kaydı. Master'a yazmaz."""
+    lp = store.loom_product_get(lp_id)
+    if not lp:
+        return jsonify({"ok": False, "error": "Atama bulunamadı"}), 404
+    d = store.get(lp.get("urun_id"))
+    surum = _active_surum(d) if d else None
+    if not surum:
+        return jsonify({"ok": False, "error": "Aktif sürüm yok"}), 400
+    body = request.get_json(force=True) or {}
+    try:
+        vi = int(body.get("variant_index"))
+    except (TypeError, ValueError):
+        return jsonify({"ok": False, "error": "variant_index geçersiz"}), 400
+    woven = body.get("woven")
+    woven = True if woven is None else bool(woven)
+    store.weft_variant_actual_set(lp_id, surum.get("id"), vi, woven,
+                                  _num_or_none(body.get("actual_m")))
+    return jsonify({"ok": True})
+
+
 # ============================================================
 # Senkron Sprint 4 — ÇÖZGÜ (warps + warp_yarns + warp_product_allocations)
 # Çözgü AYRI fiziksel kayıt (paylaşılır); cozgu_plani'dan SEED alır, sonra bağımsız yaşar.
@@ -1479,9 +1538,10 @@ def _warp_yarn_auto_kg(yarn, length_m):
     return None
 
 
-def _warp_effective_yarn_kgs(warp, yarns):
-    """{wy_id: kg}. consumed_kg_override doluysa warp-toplamı=override; yarn'lara auto-orana göre dağıt."""
-    L = warp.get("length_m")
+def _warp_effective_yarn_kgs(warp, yarns, length=None):
+    """{wy_id: kg}. length None→warp.length_m (Sprint 5: gerçekleşende actual_length_m geçilir).
+    consumed_kg_override doluysa warp-toplamı=override → length-bağımsız (plan==gerçek; fiziksel ölçüm)."""
+    L = length if length is not None else warp.get("length_m")
     auto = {y["id"]: (_warp_yarn_auto_kg(y, L) or 0.0) for y in yarns}
     override = _num_or_none(warp.get("consumed_kg_override"))
     if override is None:
@@ -1494,12 +1554,12 @@ def _warp_effective_yarn_kgs(warp, yarns):
 
 
 def _warp_consumption():
-    """({ms_id: Σ çözgü tüketim kg}, {ms_id: set(loom_id)}) — tüm warp_yarns'tan canlı.
-    Eşlenmemiş (material_stock_id boş) yarn tüketime GİRMEZ."""
+    """({ms_id: planlanan çözgü kg}, {ms_id: gerçekleşen çözgü kg}, {ms_id: set(loom_id)}) — canlı.
+    Sprint 5: gerçekleşen, warp.actual_length_m ile (yoksa length_m). Plan tarafı AYNEN. Eşlenmemiş yarn girmez."""
     yarns = store.list_all_warp_yarns()
-    cons, loom_ids = {}, {}
+    cons, cons_act, loom_ids = {}, {}, {}
     if not yarns:
-        return cons, loom_ids
+        return cons, cons_act, loom_ids
     warps = {w["id"]: w for w in store.list_all_warps()}
     by_warp = {}
     for y in yarns:
@@ -1508,16 +1568,19 @@ def _warp_consumption():
         w = warps.get(wid)
         if not w:
             continue
-        eff = _warp_effective_yarn_kgs(w, ylist)
+        eff = _warp_effective_yarn_kgs(w, ylist)                                    # planlanan (length_m)
+        act_len = _num_or_none(w.get("actual_length_m"))
+        eff_a = _warp_effective_yarn_kgs(w, ylist, length=act_len) if act_len is not None else eff
         for y in ylist:
             ms_id = y.get("material_stock_id")
             if not ms_id:
                 continue
             loom_ids.setdefault(ms_id, set()).add(w.get("loom_id"))
-            kg = eff.get(y["id"])
-            if kg:
-                cons[ms_id] = cons.get(ms_id, 0.0) + kg
-    return cons, loom_ids
+            if eff.get(y["id"]):
+                cons[ms_id] = cons.get(ms_id, 0.0) + eff[y["id"]]
+            if eff_a.get(y["id"]):
+                cons_act[ms_id] = cons_act.get(ms_id, 0.0) + eff_a[y["id"]]
+    return cons, cons_act, loom_ids
 
 
 def _warp_signature(warp, yarns):
@@ -1712,6 +1775,7 @@ def api_cozgu_kaydet(warp_id: str):
         "thread_count": _num_or_none(b.get("thread_count")),
         "width_cm": _num_or_none(b.get("width_cm")),
         "length_m": _num_or_none(b.get("length_m")),
+        "actual_length_m": _num_or_none(b.get("actual_length_m")),   # Sprint 5 — gerçekleşen uzunluk
         "consumed_kg_override": _num_or_none(b.get("consumed_kg_override")),
         "tie_group_override": clean(b.get("tie_group_override")),
         "notes": clean(b.get("notes")),

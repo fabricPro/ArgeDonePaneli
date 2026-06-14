@@ -22,8 +22,8 @@
 
     <div class="snk-esle-note">
         Atkı renkleri ürünün <strong>atkı varyant planından</strong> okunur (salt okuma — master'a yazılmaz).
-        Tüketim havuza canlı yansır. KALAN şimdilik yalnız <strong>planlanan atkı</strong> bazlıdır;
-        çözgü tüketimi Sprint 4'te eklenecek.
+        Tüketim havuza canlı yansır. Aşağıdaki <strong>Dokuma Sonrası</strong> ile gerçekleşeni girince
+        havuzdaki Gerçekleşen KALAN plandan ayrışır.
     </div>
 
     {% if not has_atki %}
@@ -75,6 +75,29 @@
     {% if not stock %}
     <p class="snk-hint">Havuzda iplik kalemi yok — önce <a href="{{ url_for('senkron_havuz') }}">İplik Havuzu</a>'na ekle, sonra eşle.</p>
     {% endif %}
+    {% endif %}
+
+    {# Sprint 5 — Dokuma Sonrası (gerçekleşen): master'a yazmaz; havuza canlı yansır #}
+    {% if has_atki and variants %}
+    <section class="fcard snk-dokuma" id="snk-dokuma" data-lp-id="{{ lp.id }}">
+        <div class="fcard-h">Dokuma Sonrası <span class="snk-soft">— gerçekleşen (boş = plan geçerli)</span></div>
+        <div class="snk-table-wrap">
+            <table class="snk-table">
+                <thead><tr><th>Varyant</th><th class="snk-num">Plan metre</th><th>Dokundu mu</th><th class="snk-num">Gerçek metre</th></tr></thead>
+                <tbody>
+                    {% for v in variants %}
+                    <tr class="snk-dvrow" data-variant-index="{{ v.index }}">
+                        <td>{{ v.ad }}</td>
+                        <td class="snk-num">{{ v.plan_metre|round(0)|int if v.plan_metre is not none else '—' }}</td>
+                        <td><label class="snk-toggle"><input type="checkbox" class="snk-woven" {% if v.woven %}checked{% endif %}> <span>dokundu</span></label></td>
+                        <td class="snk-num"><input class="snk-kg snk-actual-m" type="number" step="0.1" inputmode="decimal" value="{{ v.actual_m if v.actual_m is not none else '' }}" placeholder="{{ v.plan_metre|round(0)|int if v.plan_metre is not none else '' }}"></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <p class="snk-hint">"Dokundu" kapalı → o varyant gerçekleşen tüketimden çıkar (kg = 0). Gerçek metre boşsa plan metresi geçerli. Havuzdaki Gerçekleşen KALAN anında güncellenir.</p>
+    </section>
     {% endif %}
 </div>
 {% endblock %}

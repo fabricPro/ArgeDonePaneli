@@ -127,7 +127,8 @@
                     <th class="snk-num">Gerçek (kg)</th>
                     <th class="snk-num">Atkı tük. (kg)</th>
                     <th class="snk-num">Çözgü tük. (kg)</th>
-                    <th class="snk-num">Kalan</th>
+                    <th class="snk-num">Planlanan KALAN</th>
+                    <th class="snk-num">Gerçekleşen KALAN</th>
                     <th>Not</th><th></th>
                 </tr>
             </thead>
@@ -161,8 +162,14 @@
                     <td class="snk-num snk-kalan">
                         {% if it.kalan_kg is not none %}
                         <span class="snk-kalan-val{% if it.warning %} snk-kalan-warn{% endif %}">{{ it.kalan_kg }}</span>
-                        {% if it.warning %}<span class="snk-warn-badge" title="Tüketim alımı aştı — metreyi düşür veya alımı artır">yetersiz</span>{% endif %}
-                        {% else %}<span class="snk-soon" title="Planlanan alım girilmedi ve eşlenmiş tüketim yok">—</span>{% endif %}
+                        {% if it.warning %}<span class="snk-warn-badge" title="Planlanan tüketim alımı aştı">yetersiz</span>{% endif %}
+                        {% else %}<span class="snk-soon" title="Planlanan alım/tüketim yok">—</span>{% endif %}
+                    </td>
+                    <td class="snk-num snk-kalan" title="Atkı {{ it.atki_consumption_actual_kg }} + Çözgü {{ it.cozgu_consumption_actual_kg }} = {{ it.total_consumption_actual_kg }} kg (dokuma sonrası)">
+                        {% if it.kalan_actual_kg is not none %}
+                        <span class="snk-kalan-val{% if it.warning_actual %} snk-kalan-warn{% endif %}">{{ it.kalan_actual_kg }}</span>
+                        {% if it.warning_actual %}<span class="snk-warn-badge" title="Gerçekleşen tüketim alımı aştı">yetersiz</span>{% endif %}
+                        {% else %}<span class="snk-soon" title="Gerçekleşen veri yok = plana eşit">—</span>{% endif %}
                     </td>
                     <td><input class="snk-note-inp" value="{{ it.notes or '' }}" placeholder="—"></td>
                     <td class="snk-row-actions">
