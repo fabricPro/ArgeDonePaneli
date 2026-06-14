@@ -20,6 +20,7 @@
     // === State ===
     let state = DC.defaultDesen();
     let renkliMode = false;
+    let warpColor = '#000000';   // önizleme DOLU (çözgü) hücre rengi — varsayılan siyah, picker ile değişir
 
     // === DOM cache ===
     const $ = id => document.getElementById(id);
@@ -503,8 +504,9 @@
             for (let c = 0; c < totalCols; c++) {
                 const w = c % warpCount;
                 const isOn = !!(desen[w] && desen[w][origPick]);
-                // Dobby kareli kağıt: dolu=kırmızı, boş=beyaz; renkli mod KORUNUR (boş=atkı/iro rengi)
-                const bg = isOn ? 'var(--red)' : (renkliMode ? iroColor : '#fff');
+                // Önizleme: DOLU = çözgü rengi (varsayılan siyah, picker ile değişir);
+                // BOŞ = beyaz (renkli modda atkı/iro rengi). Tahar/armür kırmızı kalır.
+                const bg = isOn ? warpColor : (renkliMode ? iroColor : '#fff');
                 cells.push(`<span class="dgrid-cell ${isOn ? 'is-on' : ''}" style="background:${bg}"></span>`);
             }
         }
@@ -517,6 +519,15 @@
             renkliMode = toggle.checked;
             renderDesenPreview();
         });
+        // Çözgü (dolu hücre) rengi — opsiyonel görüntülenme rengi (varsayılan siyah)
+        const warpInput = $('desen-warp-color');
+        if (warpInput) {
+            warpColor = warpInput.value || '#000000';
+            warpInput.addEventListener('input', () => {
+                warpColor = warpInput.value || '#000000';
+                renderDesenPreview();
+            });
+        }
     }
 
     // === Init ===

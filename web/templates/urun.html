@@ -1209,10 +1209,17 @@
                     </legend>
                     <div class="desen-preview-head">
                         <span class="desen-preview-stats" id="desen-preview-stats">—</span>
-                        <label class="desen-color-toggle">
-                            <input type="checkbox" id="desen-renkli">
-                            <span>Renkli</span>
-                        </label>
+                        <div class="desen-preview-controls">
+                            <label class="desen-color-toggle">
+                                <input type="checkbox" id="desen-renkli">
+                                <span>Renkli</span>
+                            </label>
+                            {# Çözgü (dolu hücre) görüntülenme rengi — varsayılan siyah, opsiyonel #}
+                            <label class="desen-warp-color" title="Dolu (çözgü) hücre rengi — önizleme">
+                                <span>Çözgü rengi</span>
+                                <input type="color" id="desen-warp-color" value="#000000">
+                            </label>
+                        </div>
                     </div>
                     <div class="desen-preview-wrap" id="desen-preview-grid"></div>
                 </fieldset>
