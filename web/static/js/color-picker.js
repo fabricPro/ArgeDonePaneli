@@ -564,20 +564,41 @@
  * ============================================================ */
 (function () {
     const MODE_KEY = 'palette_mode';
-    const VALID = ['collage', 'weft', 'warp', 'mix', 'legacy'];
+    const VALID = ['all', 'collage', 'weft', 'warp', 'mix', 'legacy'];
+    // İki düzen: (a) urun → tek düz liste .palette-grid[data-grid="palette"] (rol filtresi);
+    //           (b) research/ekle → kolaj .palette-grid-image + legacy grid (eski davranış).
+    const flatGrid   = document.querySelector('.palette-grid[data-grid="palette"]');
     const legacyGrid = document.querySelector('.palette-grid[data-grid="legacy"]');
     const imageGrid  = document.querySelector('.palette-grid-image[data-grid="image"]');
     const modeBtns   = document.querySelectorAll('.palette-mode-btn');
-    if (!modeBtns.length || !imageGrid) return;  // mode bar yoksa (image_color_map boş) skip
+    if (!modeBtns.length || (!flatGrid && !imageGrid)) return;
+    const FLAT = !!flatGrid;
+    const DEFAULT = FLAT ? 'all' : 'collage';
 
     function applyMode(mode) {
-        if (!VALID.includes(mode)) mode = 'collage';
+        if (!VALID.includes(mode)) mode = DEFAULT;
+        // Paylaşılan MODE_KEY çakışmasını çöz (urun='all', kolaj='collage'); urun'da 'legacy' yok → 'all'
+        if (FLAT && (mode === 'collage' || mode === 'legacy')) mode = 'all';
+        if (!FLAT && mode === 'all') mode = 'collage';
         try { localStorage.setItem(MODE_KEY, mode); } catch (e) {}
         modeBtns.forEach(b => {
             const active = b.dataset.mode === mode;
             b.classList.toggle('is-active', active);
             b.setAttribute('aria-selected', active ? 'true' : 'false');
         });
+        if (FLAT) {
+            // urun düz liste: tek grid, role göre chip filtrele (Tümü = hepsi)
+            const rf = (mode === 'weft' || mode === 'warp' || mode === 'mix') ? mode : null;
+            flatGrid.querySelectorAll('.palette-chip').forEach(chip => {
+                const roles = (chip.dataset.roles || '').split(' ').filter(Boolean);
+                chip.hidden = rf ? roles.indexOf(rf) < 0 : false;
+            });
+            // Rol-bazlı birleştirme çubuğu yalnız Atkı/Çözgü/Toplam'da görünür
+            const mergeBar = document.getElementById('palette-merge-bar');
+            if (mergeBar) mergeBar.hidden = !rf;
+            return;
+        }
+        // research/ekle: kolaj + legacy (eski davranış korunur)
         if (mode === 'legacy') {
             if (legacyGrid) legacyGrid.hidden = false;
             imageGrid.hidden = true;
@@ -585,19 +606,17 @@
         } else {
             if (legacyGrid) legacyGrid.hidden = true;
             imageGrid.hidden = false;
-            if (mode === 'collage') {
-                imageGrid.removeAttribute('data-filter');
-            } else {
-                imageGrid.dataset.filter = mode;   // weft|warp|mix
-            }
+            if (mode === 'collage') imageGrid.removeAttribute('data-filter');
+            else imageGrid.dataset.filter = mode;   // weft|warp|mix
         }
     }
+    window.__applyPaletteMode = applyMode;   // rebuildPalette sonrası yeniden uygulamak için
 
     modeBtns.forEach(b => b.addEventListener('click', () => applyMode(b.dataset.mode)));
 
-    // İlk yüklemede localStorage'tan oku
-    let initial = 'collage';
-    try { initial = localStorage.getItem(MODE_KEY) || 'collage'; } catch (e) {}
+    // İlk yüklemede localStorage'tan oku (geçersiz/çakışan değer → DEFAULT)
+    let initial = DEFAULT;
+    try { initial = localStorage.getItem(MODE_KEY) || DEFAULT; } catch (e) {}
     applyMode(initial);
 })();
 
@@ -631,6 +650,7 @@
         if (!grid || grid.dataset.s14Bound) return;
         grid.dataset.s14Bound = '1';
         grid.addEventListener('click', (e) => {
+            if (window.__pmIsMerging && window.__pmIsMerging()) return;   // birleştirme modunda görsele atlama
             // Image-based chip (Sprint 8.8) → tek path
             const imgChip = e.target.closest('.palette-image-chip');
             if (imgChip && imgChip.dataset.path) {
@@ -648,4 +668,5 @@
     }
     bind(document.querySelector('.palette-grid-image[data-grid="image"]'));
     bind(document.querySelector('.palette-grid[data-grid="legacy"]'));
+    bind(document.querySelector('.palette-grid[data-grid="palette"]'));   // urun: palet grid
 })();

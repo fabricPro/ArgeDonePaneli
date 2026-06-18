@@ -673,6 +673,7 @@ def urun_detail(urun_id: str):
     albums = d.get("albums") or []
     album_counts = {a.get("slug"): sum(1 for im in images if a.get("slug") in (im.get("albums") or [])) for a in albums}
     # v3.6: Renk paleti (auto-derived, açıktan koyuya — LAB L desc)
+    # Renk birleştirme kalıcı (images[].colors master'a yazılır) → palet doğrudan güncel veriden gelir.
     color_palette = _derive_color_palette(images)
     # v3.6+: Renk çözümleme yalnız "Renkler" albümündeki görsellerden
     color_album_slug = None
@@ -2546,6 +2547,7 @@ def _normalize_role_colors(colors) -> dict:
 
 def _derive_color_palette(images: list[dict]) -> list[dict]:
     """images[i].colors -> dedup hex palette, açıktan koyuya (LAB L desc).
+    (Renk birleştirme KALICI/verisel yapılır — colors zaten master'lı olduğu için ek harita yok.)
     v4.0-part-2 Sprint 12: weft/warp array iterasyonu (geriye uyumlu)."""
     items = []
     for im in images:
@@ -3396,6 +3398,88 @@ def api_set_image_colors(urun_id: str):
         "palette": _derive_color_palette(d.get("images") or []),
         "image_colors": cur,
     })
+
+
+_COLOR_ROLES = ("weft", "warp", "mix")
+
+
+def _normalize_role_map(raw_map) -> dict:
+    """Bir ROLÜN {src_hex: master_hex} haritasını normalize et: hex upper, src==master atılır,
+    rol-içi zincir önlenir (bir master aynı anda başka bir kaynağın anahtarı olamaz)."""
+    out: dict = {}
+    if isinstance(raw_map, dict):
+        for src, master in raw_map.items():
+            if not isinstance(src, str) or not isinstance(master, str):
+                continue
+            s, m = src.strip().upper(), master.strip().upper()
+            if not s.startswith("#") or not m.startswith("#") or s == m:
+                continue
+            out[s] = m
+    return {s: m for s, m in out.items() if m not in out}
+
+
+@app.route("/api/urun/<urun_id>/renk-birlestir", methods=["POST"])
+def api_merge_colors(urun_id: str):
+    """Renk Optimizasyonu — bir ROLÜN renklerini master'a KALICI dönüştür (destructive).
+    Body: {role:'weft'|'warp'|'mix', map:{src_hex:master_hex}}.
+    images[].colors içindeki kaynak hex'ler master ile DEĞİŞTİRİLİR (hex+ad+lab); palet, görsel
+    rozetleri, Renk Atama ve plan otomatik master'ı gösterir. Geri alınamaz. Diğer roller ETKİLENMEZ.
+    Döner: {ok, palette}."""
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    body = request.get_json(force=True) or {}
+    role = body.get("role")
+    if role not in _COLOR_ROLES:
+        return jsonify({"ok": False, "error": "Geçersiz rol"}), 400
+    role_map = _normalize_role_map(body.get("map"))
+    imgs = d.get("images") or []
+    if not role_map:
+        return jsonify({"ok": True, "palette": _derive_color_palette(imgs)})
+
+    # Master meta'yı mevcut veriden çöz (master = o rolde zaten var olan bir renk)
+    masters = set(role_map.values())
+    master_meta: dict = {}
+    for im in imgs:
+        rv = (im.get("colors") or {}).get(role)
+        for c in (rv if isinstance(rv, list) else [rv]):
+            if isinstance(c, dict) and c.get("hex"):
+                h = c["hex"].upper()
+                if h in masters and h not in master_meta:
+                    master_meta[h] = c
+    for m in masters:
+        master_meta.setdefault(m, {"hex": m, "name": m})
+
+    def _conv(c):
+        """Bir renk girdisini (master'a uğruyorsa) master meta kopyasına çevir."""
+        if not isinstance(c, dict) or not c.get("hex"):
+            return c
+        tgt = role_map.get(c["hex"].upper())
+        return dict(master_meta[tgt]) if tgt else c
+
+    # KALICI yeniden yazım: her görselde o rolün hex'lerini master'a çevir + dedupe
+    for im in imgs:
+        colors = im.get("colors")
+        if not isinstance(colors, dict) or role not in colors:
+            continue
+        v = colors[role]
+        if isinstance(v, list):
+            seen, out = set(), []
+            for c in v:
+                nc = _conv(c)
+                hx = (nc.get("hex") or "").upper() if isinstance(nc, dict) else None
+                if hx and hx in seen:
+                    continue            # aynı master iki kez kalmasın (dedupe)
+                if hx:
+                    seen.add(hx)
+                out.append(nc)
+            colors[role] = out
+        elif isinstance(v, dict):
+            colors[role] = _conv(v)     # mix tek obje
+
+    d["updated_at"] = now_iso()
+    store.upsert(d)
+    return jsonify({"ok": True, "palette": _derive_color_palette(imgs)})
 
 
 def _image_set_ai_colors(d: dict, key: str, ai_data: dict, key_field: str = "path") -> dict:

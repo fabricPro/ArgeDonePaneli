@@ -37,14 +37,18 @@ body.urun-page { background: #f7f7f8; }
   height: 360px;
   background: var(--surface-2);
   background-image: repeating-linear-gradient(45deg, rgba(23,24,31,.018) 0 6px, transparent 6px 12px);
+  user-select: none;   /* sürükleme sırasında metin/görsel seçimi olmasın */
 }
 .urun-detail .hero-slide {
-  position: absolute; inset: 0; margin: auto;
-  max-width: 100%; max-height: 100%;
-  width: auto; height: auto; object-fit: contain;
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover;   /* çerçeveyi tam doldur (tam görsel: tıkla → lightbox) */
   opacity: 0; transition: opacity .2s ease; cursor: zoom-in;
+  -webkit-user-drag: none; user-select: none;   /* native görsel sürüklemeyi engelle (yoksa pointer akışı kopar) */
 }
 .urun-detail .hero-slide.is-active { opacity: 1; }
+/* sürükleme geri bildirimi */
+.urun-detail .hero-stage.is-grabbing,
+.urun-detail .hero-stage.is-grabbing .hero-slide { cursor: grabbing; }
 
 .urun-detail .hero-arrow {
   position: absolute; top: 50%; transform: translateY(-50%); z-index: 3;
@@ -293,32 +297,10 @@ body.urun-page { background: #f7f7f8; }
 }
 .urun-detail .palette-mode-btn.is-active { background: var(--accent); color: #fff; }
 
-/* Görsel-bazlı palet kolajı */
-.urun-detail .palette-grid-image {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); gap: 10px;
-}
-.urun-detail .palette-image-chip {
-  display: flex; flex-direction: column; gap: 6px; padding: 0;
-  background: transparent; border: none; cursor: pointer; text-align: left;
-}
-.urun-detail .pic-swatch {
-  display: flex; width: 100%; aspect-ratio: 4 / 3; overflow: hidden;
-  border: 1px solid var(--border); border-radius: var(--r-sm);
-  transition: box-shadow .14s, border-color .14s;
-}
-.urun-detail .palette-image-chip:hover .pic-swatch { border-color: var(--accent-border); box-shadow: 0 0 0 2px var(--accent-bg); }
-.urun-detail .pic-swatch .pic-region { display: block; flex: 1; }
-.urun-detail .pic-layout-quad { flex-wrap: wrap; }
-.urun-detail .pic-layout-quad .pic-mix { flex: 0 0 50%; }
-.urun-detail .pic-layout-quad .pic-warp,
-.urun-detail .pic-layout-quad .pic-weft { flex: 0 0 50%; }
-.urun-detail .pic-swatch .pic-band { display: flex; flex: 1; flex-direction: column; }
-.urun-detail .pic-band > span { flex: 1; display: block; }
-.urun-detail .pic-label {
-  font-size: 11px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
+/* Faz A — görsel-bazlı kolaj urun paletinden kaldırıldı (düz listeye geçildi).
+   Kolaj CSS'i (.palette-grid-image / .pic-*) main.css'te kalır; research/ekle partial'ı kullanır. */
 
-/* Legacy hex-dedup chip listesi */
+/* Renk paleti — düz chip listesi */
 .urun-detail .palette-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 .urun-detail .palette-grid[hidden] { display: none; }
 .urun-detail .palette-chip {
@@ -340,6 +322,24 @@ body.urun-page { background: #f7f7f8; }
 .urun-detail .palette-chip .chip-role-weft { background: var(--weft-bg); color: var(--weft); }
 .urun-detail .palette-chip .chip-role-mix { background: var(--accent-bg); color: var(--accent-strong); }
 .urun-detail .ct-empty { font-size: 12.5px; color: var(--ink-3); }
+
+/* ===== Renk Optimizasyonu — rol-bazlı birleştirme çubuğu ===== */
+.urun-detail .palette-merge-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--surface-2); }
+.urun-detail .palette-merge-bar[hidden] { display: none; }
+.urun-detail .pm-idle, .urun-detail .pm-active { display: flex; align-items: center; gap: 8px; flex: 1; flex-wrap: wrap; }
+.urun-detail .pm-idle[hidden], .urun-detail .pm-active[hidden] { display: none; }
+.urun-detail .palette-merge-bar .btn { height: 30px; }
+.urun-detail .pm-flex { flex: 1; }
+.urun-detail .pm-note { font-size: 12px; color: var(--ink-3); }
+.urun-detail .pm-hint { font-size: 12.5px; color: var(--ink-2); }
+.urun-detail .pm-hint b { color: var(--ink); font-weight: 600; }
+.urun-detail .pm-reset { color: var(--red); }
+.urun-detail .pm-reset:hover { background: var(--red-bg); border-color: var(--red-bg); }
+
+/* birleştirme modunda çip seçimi: master = accent halka, üye = accent dolgu */
+.urun-detail .palette-grid.is-merging .palette-chip { cursor: pointer; }
+.urun-detail .palette-chip.pm-master { box-shadow: 0 0 0 2px var(--accent); border-color: var(--accent); }
+.urun-detail .palette-chip.pm-member { background: var(--accent-bg); border-color: var(--accent-border); }
 
 /* Renk Atama akordiyonu */
 .urun-detail .ct-picker-details { margin-top: 14px; background: transparent; border: none; border-top: 1px solid var(--surface-2); padding: 12px 0 0; }
@@ -527,6 +527,16 @@ body.urun-page { background: #f7f7f8; }
   background: var(--c, var(--ink-3));
 }
 .urun-detail .color-badge .cb-name { max-width: 86px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* renk sil (×) — kart hover'ında çıkar; dokunmalı ekranda hep görünür */
+.urun-detail .color-badge .cb-del {
+  display: none; align-items: center; justify-content: center;
+  width: 14px; height: 14px; margin-left: 1px; padding: 0;
+  border: none; background: transparent; color: var(--ink-3);
+  font-size: 13px; line-height: 1; cursor: pointer; border-radius: 3px;
+}
+.urun-detail .img-manage-card:hover .color-badge .cb-del { display: inline-flex; }
+.urun-detail .color-badge .cb-del:hover { background: var(--red-bg); color: var(--red); }
+@media (hover: none) { .urun-detail .color-badge .cb-del { display: inline-flex; } }
 
 .urun-detail .img-manage-actions {
   display: flex; align-items: center; gap: 4px; flex-wrap: wrap;

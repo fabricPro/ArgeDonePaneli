@@ -130,7 +130,8 @@ def upsert(product: dict) -> None:
         # OnCalisma-V2 (Problem 2) — taksonomi kolonları migration öncesi yoksa
         # onları düşür ve yeniden dene (research_insert deseni). Diğer hatalar aynen fırlar.
         msg = str(e).lower()
-        if any(k in msg for k in _TAXONOMY_KEYS) or "todo" in msg or "schema cache" in msg or "column" in msg:
+        if (any(k in msg for k in _TAXONOMY_KEYS) or "todo" in msg
+                or "schema cache" in msg or "column" in msg):
             # Migration-öncesi yoksa düşür (taksonomi + Faz 2 todo). DB'deki mevcut değerler korunur.
             _drop = set(_TAXONOMY_KEYS) | {"todo"}
             slim = {k: v for k, v in row.items() if k not in _drop}

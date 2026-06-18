@@ -35,6 +35,7 @@
         {% for im in display_images %}
         <img class="hero-slide {% if loop.first %}is-active{% endif %}"
              src="{{ im.url }}"
+             draggable="false"
              data-idx="{{ loop.index0 }}"
              data-full="{{ im.url }}"
              data-path="{{ im.path }}"
@@ -301,79 +302,23 @@
             {% if color_palette %}<span class="cnt" id="palette-cnt">{{ color_palette|length }}</span>{% endif %}
         </header>
 
-        {# v4.0-part-2 Sprint 8.8 — Mode toggle (görsel-bazlı kolaj + rol filtreleri) #}
-        {% if image_color_map %}
+        {# Renk paleti görünüm sekmeleri — düz liste (rol filtresi). Faz A: kolaj kaldırıldı. #}
+        {% if color_palette %}
         <div class="palette-mode-bar" role="tablist" aria-label="Renk paleti görünümü">
-            <button type="button" class="palette-mode-btn is-active" data-mode="collage" role="tab">Tümü</button>
+            <button type="button" class="palette-mode-btn is-active" data-mode="all" role="tab">Tümü</button>
             <button type="button" class="palette-mode-btn" data-mode="weft" role="tab">Atkı</button>
             <button type="button" class="palette-mode-btn" data-mode="warp" role="tab">Çözgü</button>
             <button type="button" class="palette-mode-btn" data-mode="mix"  role="tab">Toplam</button>
-            <button type="button" class="palette-mode-btn" data-mode="legacy" role="tab">Ayrı</button>
         </div>
         {% endif %}
 
-        {# Görsel-bazlı grid (default: collage modu)
-           v4.0-part-2 Sprint 12: weft/warp array, mix tek; layout adaptive (solid/duo/quad/bands) #}
-        {% if image_color_map %}
-        <div class="palette-grid-image" data-grid="image">
-            {% for path, info in image_color_map.items() %}
-            {% set c = info.colors %}
-            {% set weft_list = c.weft or [] %}
-            {% set warp_list = c.warp or [] %}
-            {% set mix_c = c.mix %}
-            <button type="button" class="palette-image-chip"
-                    data-path="{{ path }}"
-                    data-weft-count="{{ weft_list|length }}"
-                    data-warp-count="{{ warp_list|length }}"
-                    data-has-mix="{{ '1' if mix_c else '0' }}"
-                    title="{{ info.label or path.rsplit('/',1)[-1] }}">
-                <div class="pic-swatch pic-layout-{{ info.layout }}">
-                    {% if info.layout == 'solid' %}
-                        {# Tek renk: weft / warp / mix'ten varolan — role class şart (filtre modu için) #}
-                        {% set only = mix_c or (weft_list[0] if weft_list else (warp_list[0] if warp_list else None)) %}
-                        {% set only_role = 'mix' if mix_c else ('weft' if weft_list else 'warp') %}
-                        {% if only %}<span class="pic-region pic-{{ only_role }}" style="background:{{ only.hex }}"></span>{% endif %}
-                    {% elif info.layout == 'duo' %}
-                        {# 2 renk: rol önceliği mix > warp > weft; her region kendi role class'ını taşır (filtre modu için) #}
-                        {% set parts = [] %}
-                        {% if mix_c %}{% set _ = parts.append((mix_c, 'mix')) %}{% endif %}
-                        {% for x in warp_list %}{% set _ = parts.append((x, 'warp')) %}{% endfor %}
-                        {% for x in weft_list %}{% set _ = parts.append((x, 'weft')) %}{% endfor %}
-                        {% for pair in parts[:2] %}<span class="pic-region pic-{{ pair[1] }}" style="background:{{ pair[0].hex }}"></span>{% endfor %}
-                    {% elif info.layout == 'quad' %}
-                        {# Sprint 8.8 mevcut 4-quadrant (1+1+1): sol mix, sağ-üst warp, sağ-alt weft #}
-                        <span class="pic-region pic-mix"  style="background:{{ mix_c.hex }}"  title="Toplam · {{ mix_c.name }}"></span>
-                        <span class="pic-region pic-warp" style="background:{{ warp_list[0].hex }}" title="Çözgü · {{ warp_list[0].name }}"></span>
-                        <span class="pic-region pic-weft" style="background:{{ weft_list[0].hex }}" title="Atkı · {{ weft_list[0].name }}"></span>
-                    {% else %}
-                        {# bands: üst atkılar, orta mix (varsa), alt çözgüler #}
-                        {% if weft_list %}
-                        <div class="pic-band pic-band-weft">
-                            {% for x in weft_list %}<span style="background:{{ x.hex }}" title="Atkı · {{ x.name }}"></span>{% endfor %}
-                        </div>
-                        {% endif %}
-                        {% if mix_c %}
-                        <div class="pic-band pic-band-mix">
-                            <span style="background:{{ mix_c.hex }}" title="Toplam · {{ mix_c.name }}"></span>
-                        </div>
-                        {% endif %}
-                        {% if warp_list %}
-                        <div class="pic-band pic-band-warp">
-                            {% for x in warp_list %}<span style="background:{{ x.hex }}" title="Çözgü · {{ x.name }}"></span>{% endfor %}
-                        </div>
-                        {% endif %}
-                    {% endif %}
-                </div>
-                <span class="pic-label">{{ info.label or '—' }}</span>
-            </button>
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        {# Legacy hex-dedup grid (default gizli; "Ayrı" modunda gösterilir) #}
-        <div class="palette-grid" id="palette-grid" data-grid="legacy" {% if image_color_map %}hidden{% endif %}>
+        {# Faz A — görsel-bazlı kolaj ana paletten kaldırıldı; renk paleti tek düz liste.
+           (Kolaj research/ekle'deki paylaşılan _album_color_tools.html partial'ında kalır.) #}
+        {# Renk paleti — tek düz liste; sekmeler data-roles ile filtreler (color-picker.js applyMode) #}
+        <div class="palette-grid" id="palette-grid" data-grid="palette">
             {% for c in color_palette %}
             <button type="button" class="palette-chip" data-hex="{{ c.hex }}"
+                    data-roles="{{ c.roles|join(' ') }}"
                     data-image-paths='{{ (c.image_paths or [])|tojson }}'
                     title="{{ c.name }} · {{ c.hex }} · L {{ '%.0f'|format(c.lab[0]) }} · görsele git">
                 <span class="chip-swatch" style="background:{{ c.hex }}"></span>
@@ -388,6 +333,22 @@
         </div>
         {% if not color_palette %}
         <p class="ct-empty">Henüz renk seçilmedi. Aşağıdan renk çözümleme yapabilirsin.</p>
+        {% endif %}
+
+        {# Renk Optimizasyonu — ROL-BAZLI manuel birleştirme (yalnız Atkı/Çözgü/Toplam sekmelerinde görünür) #}
+        {% if color_palette %}
+        <div class="palette-merge-bar" id="palette-merge-bar" hidden>
+            <div class="pm-idle" id="pm-idle">
+                <button type="button" class="btn" id="pm-start"><svg class="icon"><use href="#ic-palette"/></svg> Renkleri Birleştir</button>
+                <span class="pm-note">Yakın çözgü/atkı tonlarını tek master renge kalıcı dönüştür.</span>
+            </div>
+            <div class="pm-active" id="pm-active" hidden>
+                <span class="pm-hint" id="pm-hint">Önce master rengi seç</span>
+                <span class="pm-flex"></span>
+                <button type="button" class="btn btn-primary" id="pm-apply" disabled>Uygula</button>
+                <button type="button" class="btn" id="pm-cancel">İptal</button>
+            </div>
+        </div>
         {% endif %}
     </div>
 
@@ -551,14 +512,19 @@
         {% if item.colors %}
         <div class="img-color-badges" data-path="{{ item.path }}">
             {% for role in ['weft','warp','mix'] %}
-                {% set c = item.colors.get(role) %}
-                {% if c %}
-                <span class="color-badge color-badge-{{ role }}" style="--c:{{ c.hex }}"
+                {% set rv = item.colors.get(role) %}
+                {# weft/warp = array, mix = tek obje; ikisini de listeye indir #}
+                {% set clist = rv if (rv is iterable and rv is not mapping and rv is not string) else ([rv] if rv else []) %}
+                {% for c in clist %}
+                {% if c and c.hex %}
+                <span class="color-badge color-badge-{{ role }}" style="--c:{{ c.hex }}" data-hex="{{ c.hex }}"
                       title="{{ {'weft':'Atkı','warp':'Çözgü','mix':'Toplam'}[role] }}: {{ c.name or c.nearest }} ({{ c.hex }})">
                     <em class="cb-role">{{ {'weft':'A','warp':'Ç','mix':'T'}[role] }}</em>
                     <span class="cb-name">{{ c.name or c.nearest }}</span>
+                    <button type="button" class="cb-del" data-path="{{ item.path }}" data-role="{{ role }}" data-i="{{ loop.index0 }}" title="Rengi sil" aria-label="Rengi sil">×</button>
                 </span>
                 {% endif %}
+                {% endfor %}
             {% endfor %}
         </div>
         {% endif %}
@@ -2201,6 +2167,7 @@ grid.addEventListener('dragover', (e) => {
         if (next) next.hidden = true;
     }
     let cur = 0;
+    let swiped = false;   // sürükleme yapıldı mı (sonraki click'i yutup lightbox'ı açma)
 
     function visibleIndexes() {
         return slides.map((s, i) => i).filter(i => !slides[i].hidden);
@@ -2240,10 +2207,45 @@ grid.addEventListener('dragover', (e) => {
 
     slides.forEach(s => {
         s.addEventListener('click', () => {
+            if (swiped) { swiped = false; return; }   // sürükleme sonrası click'i yut
             if (document.body.classList.contains('image-select-on')) return;
             openLightboxByPath(s.dataset.path);
         });
     });
+
+    // --- Sürükle / kaydır ile gezinme (fare + dokunma) ---
+    // dx, son pointermove konumundan hesaplanır (pointercancel'ın clientX=0 tuzağına düşmemek için);
+    // pointer capture ile olay akışı stage'de kalır.
+    const stage = document.getElementById('hero-stage');
+    if (stage && slides.length > 1) {
+        const SWIPE_MIN = 45;   // px eşiği
+        let downX = null, lastX = null, pid = null;
+        stage.addEventListener('pointerdown', (e) => {
+            // butonlar / cetvel kendi etkileşimlerini yönetsin
+            if (e.target.closest('.hero-arrow, .hero-tool-btn, .ruler-overlay, .ruler-toolbar')) return;
+            const rulerOv = document.getElementById('ruler-overlay');
+            if (rulerOv && !rulerOv.hidden) return;   // cetvel açıkken sürükleme kapalı
+            if (e.pointerType === 'mouse' && e.button !== 0) return;
+            downX = e.clientX; lastX = e.clientX; pid = e.pointerId; swiped = false;
+            stage.classList.add('is-grabbing');
+        });
+        // native görsel sürüklemesini iptal et (img üzerinde mousedown+move ghost-drag başlatır)
+        stage.addEventListener('dragstart', (e) => e.preventDefault());
+        stage.addEventListener('pointermove', (e) => {
+            if (downX === null || e.pointerId !== pid) return;
+            lastX = e.clientX;   // son geçerli konum (cancel olsa bile bunu kullanırız)
+        });
+        function endDrag(e) {
+            if (downX === null || (e.pointerId != null && e.pointerId !== pid)) return;
+            const dx = (lastX != null ? lastX : e.clientX) - downX;
+            downX = null; lastX = null; pid = null;
+            stage.classList.remove('is-grabbing');
+            if (Math.abs(dx) >= SWIPE_MIN) { swiped = true; step(dx < 0 ? 1 : -1); }  // sola → sonraki
+        }
+        stage.addEventListener('pointerup', endDrag);
+        stage.addEventListener('pointercancel', endDrag);
+        stage.addEventListener('pointerleave', endDrag);
+    }
 
     // Klavye ←/→ — lightbox kapalıyken hero focused değilse de çalışsın (sadece masaüstü için)
     document.addEventListener('keydown', (e) => {
@@ -2742,25 +2744,38 @@ grid.addEventListener('dragover', (e) => {
 
     const ROLE_SHORT = { weft: 'A', warp: 'Ç', mix: 'T' };
 
-    function rebuildPalette(palette) {
-        if (!paletteGrid) return;
-        if (paletteCnt) paletteCnt.textContent = palette.length;
-        paletteGrid.innerHTML = palette.map(c => {
-            const rolesHtml = c.roles.map(r =>
-                '<em class="chip-role chip-role-' + r + '">' + (ROLE_SHORT[r] || '?') + '</em>'
-            ).join('');
-            return '<button type="button" class="palette-chip" data-hex="' + c.hex + '" ' +
-                'title="' + escapeHtml(c.name) + ' · ' + c.hex + ' · L ' + Math.round(c.lab[0]) + '">' +
-                '<span class="chip-swatch" style="background:' + c.hex + '"></span>' +
-                '<span class="chip-info">' +
-                    '<span class="chip-name">' + escapeHtml(c.name) + '</span>' +
-                    '<span class="chip-roles">' + rolesHtml + '</span>' +
-                '</span>' +
-            '</button>';
-        }).join('');
-        const emptyHint = sectionEl.querySelector('.ct-empty');
-        if (palette.length && emptyHint) emptyHint.remove();
+    function _chipHtml(c) {
+        const rolesHtml = (c.roles || []).map(r =>
+            '<em class="chip-role chip-role-' + r + '">' + (ROLE_SHORT[r] || '?') + '</em>'
+        ).join('');
+        return '<button type="button" class="palette-chip" data-hex="' + c.hex + '" ' +
+            'data-roles="' + (c.roles || []).join(' ') + '" ' +
+            'title="' + escapeHtml(c.name) + ' · ' + c.hex + ' · L ' + Math.round((c.lab || [0])[0]) + '">' +
+            '<span class="chip-swatch" style="background:' + c.hex + '"></span>' +
+            '<span class="chip-info">' +
+                '<span class="chip-name">' + escapeHtml(c.name) + '</span>' +
+                '<span class="chip-roles">' + rolesHtml + '</span>' +
+            '</span>' +
+        '</button>';
     }
+    // palette = master (optimize); paletteRaw = ham ("Ayrı"). İkisi de verilince iki grid de tazelenir.
+    function rebuildPalette(palette, paletteRaw) {
+        if (paletteGrid && palette) {
+            if (paletteCnt) paletteCnt.textContent = palette.length;
+            paletteGrid.innerHTML = palette.map(_chipHtml).join('');
+        }
+        const rawGrid = document.getElementById('palette-grid-raw');
+        if (rawGrid && paletteRaw) rawGrid.innerHTML = paletteRaw.map(_chipHtml).join('');
+        const emptyHint = sectionEl.querySelector('.ct-empty');
+        if (palette && palette.length && emptyHint) emptyHint.remove();
+        // Aktif sekme filtresini yeni chip'lere yeniden uygula (Faz A düz liste)
+        if (window.__applyPaletteMode) {
+            let m = 'all';
+            try { m = localStorage.getItem('palette_mode') || 'all'; } catch (e) {}
+            window.__applyPaletteMode(m);
+        }
+    }
+    window.__rebuildPalette = rebuildPalette;   // optimizasyon paneli (ayrı IIFE) erişsin
 
     function updateImageBadges(path, colors) {
         const card = document.querySelector(`.img-manage-card[data-path="${CSS.escape(path)}"]`);
@@ -2778,36 +2793,24 @@ grid.addEventListener('dragover', (e) => {
             if (labelInput) labelInput.insertAdjacentElement('afterend', badgesEl);
             else card.appendChild(badgesEl);
         }
-        // v4.0-part-2 Sprint 12: weft/warp array, mix obje — her rolün baskın (ilk) rengini badge'de göster
-        // ve birden fazla varsa "A2" gibi sayım rozeti ekle.
+        // Renk-başına çip: her rolün TÜM renklerini ayrı badge + × (sil) ile bas (weft/warp array, mix tek obje)
         const ROLE_LONG = { weft: 'Atkı', warp: 'Çözgü', mix: 'Toplam' };
-        function _firstOf(role) {
+        function _arr(role) {
             const v = colors[role];
-            if (!v) return null;
-            if (Array.isArray(v)) return v[0] || null;
-            if (v.hex) return v;
-            return null;
+            if (!v) return [];
+            if (Array.isArray(v)) return v.filter(x => x && x.hex);
+            return v.hex ? [v] : [];
         }
-        function _countOf(role) {
-            const v = colors[role];
-            if (!v) return 0;
-            if (Array.isArray(v)) return v.length;
-            return v.hex ? 1 : 0;
-        }
-        badgesEl.innerHTML = ['weft', 'warp', 'mix']
-            .filter(r => _countOf(r) > 0)
-            .map(r => {
-                const c = _firstOf(r);
-                const n = _countOf(r);
-                const label = ROLE_SHORT[r] || '?';
-                const suffix = n > 1 ? ('<sup class="cb-count">' + n + '</sup>') : '';
-                const titleMore = n > 1 ? (' (+' + (n-1) + ' renk daha)') : '';
-                return '<span class="color-badge color-badge-' + r + '" style="--c:' + c.hex + '" ' +
-                       'title="' + ROLE_LONG[r] + ': ' + escapeHtml(c.name) + ' (' + c.hex + ')' + titleMore + '">' +
-                       '<em class="cb-role">' + label + suffix + '</em>' +
+        badgesEl.innerHTML = ['weft', 'warp', 'mix'].flatMap(r =>
+            _arr(r).map((c, i) =>
+                '<span class="color-badge color-badge-' + r + '" style="--c:' + c.hex + '" data-hex="' + c.hex + '" ' +
+                       'title="' + ROLE_LONG[r] + ': ' + escapeHtml(c.name) + ' (' + c.hex + ')">' +
+                       '<em class="cb-role">' + (ROLE_SHORT[r] || '?') + '</em>' +
                        '<span class="cb-name">' + escapeHtml(c.name) + '</span>' +
-                       '</span>';
-            }).join('');
+                       '<button type="button" class="cb-del" data-path="' + path + '" data-role="' + r + '" data-i="' + i + '" title="Rengi sil" aria-label="Rengi sil">×</button>' +
+                '</span>'
+            )
+        ).join('');
     }
 
     function escapeHtml(s) {
@@ -2822,7 +2825,7 @@ grid.addEventListener('dragover', (e) => {
         if (data.ok) {
             IMAGE_COLORS[path] = IMAGE_COLORS[path] || {};
             IMAGE_COLORS[path].colors = data.image_colors || {};
-            rebuildPalette(data.palette);
+            rebuildPalette(data.palette, data.palette_raw);
             updateImageBadges(path, data.image_colors);
             renderSavedStrip();
             if (successMsg) (window.toast || alert)(successMsg, 'success');
@@ -3045,13 +3048,43 @@ grid.addEventListener('dragover', (e) => {
         if (data.ok) {
             IMAGE_COLORS[path] = IMAGE_COLORS[path] || {};
             IMAGE_COLORS[path].colors = data.image_colors || {};
-            rebuildPalette(data.palette);
+            rebuildPalette(data.palette, data.palette_raw);
             updateImageBadges(path, data.image_colors);
             renderSavedStrip();
             (window.toast || alert)('Renk çıkarıldı', 'success');
         } else {
             (window.toast || alert)(data.error || 'Silme hatası', 'error');
         }
+    });
+
+    // Görsel kartı rozetinde × → o rengi sil (saveColorsForPath her şeyi tazeler)
+    function _roleColorsFor(path, role) {
+        // Önce IMAGE_COLORS (tam obje: hex/name/lab); yoksa kart rozetlerinden (hex+ad) kur
+        const arr = getRoleArray(path, role);
+        if (arr && arr.length) return arr.slice();
+        const card = document.querySelector(`.img-manage-card[data-path="${CSS.escape(path)}"]`);
+        if (!card) return [];
+        return [...card.querySelectorAll('.color-badge-' + role)]
+            .map(b => ({ hex: b.dataset.hex, name: (b.querySelector('.cb-name') || {}).textContent || '' }))
+            .filter(c => c.hex);
+    }
+    document.getElementById('image-grid')?.addEventListener('click', async (e) => {
+        const del = e.target.closest('.cb-del');
+        if (!del) return;
+        if (document.body.classList.contains('image-select-on')) return;   // seçim modunda pasif
+        e.preventDefault(); e.stopPropagation();                            // kart seçimi/lightbox açma
+        const path = del.dataset.path, role = del.dataset.role, idx = parseInt(del.dataset.i, 10);
+        if (!path || !role) return;
+        let payload;
+        if (role === 'mix') {
+            payload = { mix: null };
+        } else {
+            const arr = _roleColorsFor(path, role);
+            if (isNaN(idx) || idx < 0 || idx >= arr.length) return;
+            arr.splice(idx, 1);
+            payload = { [role]: arr.length ? arr : null };
+        }
+        await saveColorsForPath(path, payload, 'Renk çıkarıldı');
     });
 
     // Init (sözlük yüklensin); ilk görsel sadece details açılınca yüklenir
@@ -3247,6 +3280,93 @@ grid.addEventListener('dragover', (e) => {
             return;
         }
     });
+})();
+</script>
+
+{# Renk Optimizasyonu — ROL-BAZLI manuel birleştirme (çip tıklayarak master + üye seç) #}
+<script>
+(function () {
+    const bar  = document.getElementById('palette-merge-bar');
+    const grid = document.getElementById('palette-grid');
+    if (!bar || !grid || !window.URUN_ID) return;
+    const URUN_ID = window.URUN_ID;
+    const idleEl   = document.getElementById('pm-idle');
+    const activeEl = document.getElementById('pm-active');
+    const startBtn = document.getElementById('pm-start');
+    const applyBtn = document.getElementById('pm-apply');
+    const cancelBtn= document.getElementById('pm-cancel');
+    const hintEl   = document.getElementById('pm-hint');
+    const modeBtns = [...document.querySelectorAll('.palette-mode-btn')];
+    function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function toast(m,t){ if(window.toast) window.toast(m,t||'info'); }
+
+    function activeMode(){ const b = modeBtns.find(x=>x.classList.contains('is-active')); return b ? b.dataset.mode : 'all'; }
+    function activeRole(){ const m = activeMode(); return (m==='weft'||m==='warp'||m==='mix') ? m : null; }
+
+    let merging = false, masterHex = null, masterName = '';
+    const members = new Set();
+    window.__pmIsMerging = function(){ return merging; };   // chip jump-to-image guard'ı için
+
+    function clearMarks(){ grid.querySelectorAll('.pm-master,.pm-member').forEach(c=>c.classList.remove('pm-master','pm-member')); }
+    function setHint(){
+        if (!masterHex) hintEl.textContent = 'Önce master rengi seç';
+        else hintEl.innerHTML = 'Master: <b>'+esc(masterName||masterHex)+'</b> · birleştirilecekleri seç ('+members.size+')';
+        if (applyBtn) applyBtn.disabled = !(masterHex && members.size);
+    }
+    function enterMerge(){
+        if (!activeRole()) return;
+        merging = true; masterHex = null; masterName = ''; members.clear();
+        grid.classList.add('is-merging');
+        idleEl.hidden = true; activeEl.hidden = false;
+        clearMarks(); setHint();
+    }
+    function exitMerge(){
+        merging = false; masterHex = null; masterName = ''; members.clear();
+        grid.classList.remove('is-merging'); clearMarks();
+        idleEl.hidden = false; activeEl.hidden = true;
+    }
+
+    // Çip seçimi (capture: jump-to-image listener'ından önce yakala + durdur)
+    grid.addEventListener('click', (e)=>{
+        if (!merging) return;
+        const chip = e.target.closest('.palette-chip');
+        if (!chip) return;
+        e.preventDefault(); e.stopPropagation();
+        const h = (chip.dataset.hex || '').toUpperCase();
+        if (!h) return;
+        if (!masterHex) { masterHex = h; masterName = ((chip.querySelector('.chip-name')||{}).textContent || h).trim(); chip.classList.add('pm-master'); }
+        else if (h === masterHex) { clearMarks(); masterHex = null; members.clear(); }
+        else if (members.has(h)) { members.delete(h); chip.classList.remove('pm-member'); }
+        else { members.add(h); chip.classList.add('pm-member'); }
+        setHint();
+    }, true);
+
+    async function post(body){
+        const res = await fetch('/api/urun/'+URUN_ID+'/renk-birlestir', {
+            method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)
+        });
+        return res.json();
+    }
+
+    if (startBtn)  startBtn.addEventListener('click', enterMerge);
+    if (cancelBtn) cancelBtn.addEventListener('click', exitMerge);
+    if (applyBtn)  applyBtn.addEventListener('click', async ()=>{
+        const r = activeRole();
+        if (!r || !masterHex || !members.size) return;
+        const map = {}; members.forEach(h => { map[h] = masterHex; });   // üye → master (kalıcı dönüştürme)
+        const n = members.size;
+        applyBtn.disabled = true;
+        try {
+            const data = await post({ role: r, map });
+            if (!data || !data.ok) { toast((data && data.error) || 'Hata', 'error'); applyBtn.disabled = false; return; }
+            if (window.__rebuildPalette) window.__rebuildPalette(data.palette);
+            exitMerge();
+            toast(n + ' renk master rengine dönüştürüldü', 'success');
+        } catch (e) { toast('Bağlantı hatası', 'error'); applyBtn.disabled = false; }
+    });
+
+    // Sekme değişince merge modundan çık
+    modeBtns.forEach(b => b.addEventListener('click', ()=>{ if (merging) exitMerge(); }));
 })();
 </script>
 
