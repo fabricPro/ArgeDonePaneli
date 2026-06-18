@@ -1,0 +1,83 @@
+/* ============================================================
+   Görevler panosu (Faz 3) — Stüdyo. Ürün-gruplu görev listesi.
+   Chip'ler (.tek-todo-status / .tek-todo-prio / .tek-todo-surum) components.css'ten
+   PAYLAŞILIR (Faz 2 To-Do paneliyle aynı). Burada yalnız pano-özel düzen.
+   ============================================================ */
+
+.gor-page { max-width: 1180px; margin: 0 auto; padding: 20px 24px 96px; }
+
+/* başlık + kahraman metrik (tek kahraman: açık görev sayısı) */
+.gor-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.gor-head h1 { font-size: 19px; font-weight: 600; letter-spacing: -0.015em; color: var(--ink); }
+.gor-head-sub { font-size: 12.5px; color: var(--ink-2); margin-top: 3px; }
+.gor-head-metric { display: inline-flex; align-items: baseline; gap: 6px; flex: 0 0 auto; padding: 8px 14px; background: var(--accent-bg); border-radius: var(--r); }
+.gor-metric-num { font-size: 22px; font-weight: 600; color: var(--accent-strong); font-variant-numeric: tabular-nums; }
+.gor-metric-label { font-size: 11px; color: var(--ink-2); }
+
+/* filtre barı */
+.gor-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 18px; }
+.gor-search { position: relative; flex: 1 1 220px; min-width: 0; }
+.gor-search .icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--ink-3); pointer-events: none; }
+.gor-search input { width: 100%; height: 32px; padding: 0 11px 0 32px; font-size: 13px; background: #fff; border: 1px solid var(--border); border-radius: var(--r-sm); box-shadow: var(--sh); color: var(--ink); }
+.gor-search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+.gor-select { height: 32px; padding: 0 30px 0 11px; font-size: 12.5px; color: var(--ink); background-color: #fff; border: 1px solid var(--border); border-radius: var(--r-sm); box-shadow: var(--sh); cursor: pointer;
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235f6370' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center; background-size: 13px; }
+.gor-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+/* tamamlananları göster — toggle-chip (native checkbox gizli) */
+.gor-toggle { display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 12px; font-size: 12.5px; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-sm); cursor: pointer; user-select: none; }
+.gor-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+.gor-toggle::before { content: ""; width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid var(--border-strong); background: #fff; flex: 0 0 auto; }
+.gor-toggle:has(input:checked) { background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent-strong); }
+.gor-toggle:has(input:checked)::before { background: var(--accent); border-color: var(--accent); }
+
+/* gruplar */
+.gor-groups { display: flex; flex-direction: column; gap: 14px; }
+.gor-group { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh); overflow: hidden; }
+.gor-group[hidden] { display: none; }
+
+/* ürün başlığı satırı (tıkla → ürün detayı) */
+.gor-prod { display: flex; align-items: center; gap: 12px; padding: 10px 14px; cursor: pointer; border-bottom: 1px solid var(--surface-2); }
+.gor-prod:hover { background: var(--surface-2); }
+.gor-prod-thumb { flex: 0 0 auto; width: 44px; height: 44px; border-radius: var(--r-sm); overflow: hidden; background: var(--surface-2); }
+.gor-prod-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gor-prod-noimg { display: block; width: 100%; height: 100%; background: var(--surface-2); }
+.gor-prod-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+.gor-prod-eyebrow { font-size: 10.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gor-prod-name { font-size: 14px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gor-prod-code { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+.gor-prod-count { flex: 0 0 auto; display: inline-flex; align-items: center; height: 22px; padding: 0 9px; font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; border-radius: 999px; background: var(--accent-bg); color: var(--accent-strong); white-space: nowrap; }
+.gor-prod-count[data-open="0"] { background: var(--surface-2); color: var(--ink-3); }
+
+/* görev satırları */
+.gor-tasks { padding: 4px 14px 10px; }
+.gor-task { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--surface-2); cursor: pointer; }
+.gor-task:last-child { border-bottom: none; }
+.gor-task[hidden] { display: none; }
+.gor-task-text { flex: 1 1 150px; min-width: 120px; font-size: 13px; color: var(--ink); line-height: 1.4; }
+.gor-task.is-done { opacity: .62; }
+.gor-task.is-done .gor-task-text { color: var(--ink-3); text-decoration: line-through; }
+.gor-task-meta { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; }
+/* panoda öncelik chip'i salt-okuma (düzenleme ürün panelinde) */
+.gor-task .tek-todo-prio.is-static { cursor: default; }
+.gor-task-complete { flex: 0 0 auto; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; border: none; background: transparent; color: var(--ink-3); border-radius: var(--r-sm); cursor: pointer; }
+.gor-task-complete:hover { background: var(--green-bg); color: var(--green); }
+.gor-task-complete .icon { width: 15px; height: 15px; }
+.gor-task.is-done .gor-task-complete { color: var(--green); }
+
+/* boş durum */
+.gor-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 48px 24px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh); text-align: center; }
+.gor-empty[hidden] { display: none; }
+.gor-empty .icon { width: 28px; height: 28px; color: var(--ink-3); margin-bottom: 4px; }
+.gor-empty-title { font-size: 14px; font-weight: 600; color: var(--ink); }
+.gor-empty-sub { font-size: 12.5px; color: var(--ink-2); max-width: 380px; }
+
+/* dar ekran (tablet / split) — taşma yok */
+@media (max-width: 680px) {
+  .gor-page { padding: 16px 14px 96px; }
+  .gor-head { flex-direction: column; gap: 10px; }
+  .gor-search { flex-basis: 100%; }
+  .gor-task-meta { margin-left: 0; }
+  .tek-todo-surum { max-width: 96px; }
+}

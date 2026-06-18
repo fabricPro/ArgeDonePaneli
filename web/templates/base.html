@@ -58,6 +58,9 @@
             <a href="{{ url_for('calisma_page') }}" class="appbar-link {% if request.endpoint == 'calisma_page' %}is-active{% endif %}">
                 <svg class="icon"><use href="{{ sprite }}#ic-pin"/></svg> Çalışma
             </a>
+            <a href="{{ url_for('gorevler_dashboard') }}" class="appbar-link {% if request.endpoint == 'gorevler_dashboard' %}is-active{% endif %}">
+                <svg class="icon"><use href="{{ sprite }}#ic-check"/></svg> Görevler{% if gorev_open_count %}<span class="appbar-badge">{{ gorev_open_count }}</span>{% endif %}
+            </a>
             <a href="{{ url_for('analiz') }}" class="appbar-link {% if request.endpoint == 'analiz' %}is-active{% endif %}">
                 <svg class="icon"><use href="{{ sprite }}#ic-bar-chart"/></svg> Analiz
             </a>
@@ -118,7 +121,7 @@
         </a>
         {# tasarim-v2 Sprint 19 — Çıkış drawer'a taşındı; en sağa "Daha fazla" #}
         <button type="button"
-                class="tab-item tab-item-more {% if request.endpoint in ('analiz', 'ayarlar') %}is-active{% endif %}"
+                class="tab-item tab-item-more {% if request.endpoint in ('analiz', 'ayarlar', 'gorevler_dashboard') %}is-active{% endif %}"
                 id="mobile-more-btn" aria-haspopup="true" aria-expanded="false" aria-controls="mobile-more-drawer">
             <span class="tab-icon" aria-hidden="true">⋯</span>
             <span class="tab-label">Daha fazla</span>
@@ -130,6 +133,10 @@
         <div class="mmd-backdrop" data-mmd-close></div>
         <div class="mmd-sheet" role="menu" aria-label="Daha fazla menü">
             <div class="mmd-handle" aria-hidden="true"></div>
+            <a href="{{ url_for('gorevler_dashboard') }}"
+               class="mmd-item {% if request.endpoint == 'gorevler_dashboard' %}is-active{% endif %}" role="menuitem">
+                <span class="mmd-emoji" aria-hidden="true"><svg class="icon"><use href="#ic-check"/></svg></span> <span>Görevler{% if gorev_open_count %} · {{ gorev_open_count }}{% endif %}</span>
+            </a>
             <a href="{{ url_for('analiz') }}"
                class="mmd-item {% if request.endpoint == 'analiz' %}is-active{% endif %}" role="menuitem">
                 <span class="mmd-emoji" aria-hidden="true">📊</span> <span>Analiz</span>

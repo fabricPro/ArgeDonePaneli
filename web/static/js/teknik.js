@@ -38,6 +38,16 @@
     if (!teknik || typeof teknik !== 'object') teknik = {};
     if (!Array.isArray(teknik.surumler)) teknik.surumler = [];
 
+    // Faz 3 — Görevler panosu derin linki: ?surum=<id> verilirse aktif sürümü ona ayarla
+    // (yalnız mevcut bir sürümse). teknik.js'in active_surum_id mekanizması üstüne minimum ek.
+    try {
+        const _dlSurum = new URLSearchParams(location.search).get('surum');
+        if (_dlSurum && teknik.surumler.some(s => s.id === _dlSurum)) {
+            teknik.active_surum_id = _dlSurum;
+            if (window.URUN_TEKNIK_STATE) window.URUN_TEKNIK_STATE.activeSurumId = _dlSurum;
+        }
+    } catch (e) {}
+
     const URUN_ID = window.URUN_ID || (document.querySelector('[data-urun-id]') || {}).dataset?.urunId;
 
     // tasarim-v2 Sprint 17 — otomatik kaydetme durumu (notlar.js pattern'i)

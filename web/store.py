@@ -383,11 +383,13 @@ def gorev_sync_items(urun_id: str, items: list[dict]) -> list[dict]:
 def gorev_list_dashboard(*, durum: str | None = None, oncelik: str | None = None,
                          surum_id: str | None = None, urun_id: str | None = None,
                          arama: str | None = None, limit: int = 500) -> list[dict]:
-    """Faz 3 görev panosu için ürün bilgisiyle birleştirilmiş görev listesi.
-    Tüm filtreler opsiyonel (durum/oncelik/surum/ürün/başlık-arama). Tablo yoksa [].
-    NOT: Faz 3'te tüketilecek — şimdilik yalnız tanımlı (UI yok)."""
+    """Faz 3 görev panosu için ürün bilgisiyle birleştirilmiş görev listesi (PostgREST
+    embed: gorevler.product_id → products(urun_id) FK ilişkisi üzerinden tek sorgu).
+    Tüm filtreler opsiyonel (durum/oncelik/surum/ürün/başlık-arama). Tablo yoksa []."""
     try:
-        sel = "*, products(urun_id,product_name,product_code,brand,brand_slug,images)"
+        # embed: kapak (images) + künye + eyebrow (marka·ülke) için gereken alanlar
+        sel = ("*, products(urun_id,product_name,product_code,brand,brand_slug,images,"
+               "country,country_code,brand_country,brand_country_code)")
         q = client().table(TABLE_GOREVLER).select(sel)
         if durum:
             q = q.eq("durum", durum)
@@ -404,6 +406,28 @@ def gorev_list_dashboard(*, durum: str | None = None, oncelik: str | None = None
     except Exception as e:
         if _is_missing_gorevler(e):
             return []
+        raise
+
+
+def products_teknik_map(urun_ids) -> dict[str, dict]:
+    """Verilen ürünler için {urun_id: teknik(jsonb)} — sürüm adı (surum_id→ad) eşlemesi
+    için tek 'in' sorgusu (N+1 değil). Boş liste → {}."""
+    ids = list({u for u in (urun_ids or []) if u})
+    if not ids:
+        return {}
+    res = client().table(TABLE).select("urun_id,teknik").in_("urun_id", ids).execute()
+    return {r["urun_id"]: (r.get("teknik") or {}) for r in (res.data or [])}
+
+
+def gorev_open_count() -> int:
+    """Açık (tamamlanmamış) görev sayısı — üst nav rozeti için. Tablo yoksa 0."""
+    try:
+        res = client().table(TABLE_GOREVLER).select("id", count="exact").neq(
+            "durum", "tamamlandi").limit(1).execute()
+        return res.count or 0
+    except Exception as e:
+        if _is_missing_gorevler(e):
+            return 0
         raise
 
 

@@ -124,6 +124,15 @@ def inject_git_branch():
     b = APP_GIT_BRANCH
     return {"git_branch": b, "git_branch_show": bool(b) and b not in ("main", "master")}
 
+
+@app.context_processor
+def inject_gorev_badge():
+    # Faz 3 — üst nav "Görevler" sekmesi açık görev sayacı (tablo yoksa 0; sayfayı kırmaz).
+    try:
+        return {"gorev_open_count": store.gorev_open_count()}
+    except Exception:
+        return {"gorev_open_count": 0}
+
 TRACKED_BRANDS = [
     ("Kvadrat", "kvadrat"), ("Dedar", "dedar"), ("Rubelli", "rubelli"),
     ("Sahco", "sahco"), ("Nya Nordiska", "nya_nordiska"),
@@ -3637,6 +3646,92 @@ def api_todo(urun_id: str):
         })
     todo = store.gorev_sync_items(urun_id, items)
     return jsonify({"ok": True, "todo": todo})
+
+
+# ============================================================
+# Faz 3 — Görevler panosu (ürün-gruplu görev panosu)
+# ============================================================
+
+_GOREV_PRIO_RANK = {"yuksek": 3, "orta": 2, "dusuk": 1, None: 0}
+_GOREV_DURUM_ORDER = {"yapiliyor": 0, "acik": 1, "tamamlandi": 2}
+
+
+@app.route("/api/gorev/<gorev_id>/durum", methods=["POST"])
+def api_gorev_durum(gorev_id: str):
+    """Faz 3 — pano içi tek görev durum güncelle (tamamla / hap döngüsü). Body: {durum}.
+    Oluşturma/düzenleme/SİLME panoda YOK (onlar ürün To-Do panelinde). gorev_update kullanır."""
+    body = request.get_json(force=True) or {}
+    durum = body.get("durum")
+    if durum not in _GOREV_DURUM:
+        return jsonify({"ok": False, "error": "Geçersiz durum"}), 400
+    row = store.gorev_update(gorev_id, durum=durum)
+    if not row:
+        return jsonify({"ok": False, "error": "Görev bulunamadı"}), 404
+    return jsonify({"ok": True, "gorev": store._gorev_to_item(row, 0)})
+
+
+@app.route("/gorevler")
+def gorevler_dashboard():
+    """Ürün-gruplu görev panosu. Tüm görevler PostgREST embed ile TEK sorguda çekilir
+    (gorev_list_dashboard), ürün bazında gruplanır, en acil açık göreve göre sıralanır.
+    Filtre/arama/tamamlandı-toggle client-side (gorevler.js) — yeniden sorgu yok."""
+    rows = store.gorev_list_dashboard()
+
+    groups: dict[str, dict] = {}
+    for r in rows:
+        pid = r.get("product_id")
+        g = groups.setdefault(pid, {"product": r.get("products") or {}, "tasks": []})
+        g["tasks"].append(r)
+
+    # sürüm adları — yalnız sürüme-özel görevi olan ürünler için tek 'in' sorgusu (N+1 yok)
+    surum_pids = {r["product_id"] for r in rows if r.get("surum_id")}
+    teknik_map = store.products_teknik_map(surum_pids)
+    surum_ad: dict[str, dict] = {}
+    for pid, tk in teknik_map.items():
+        surum_ad[pid] = {s.get("id"): s.get("ad") for s in (tk.get("surumler") or []) if s.get("id")}
+
+    # klasörler (workspace_data albümleri) + çoka-çok üyelik
+    wdata = store.workspace_data_get()
+    albums = wdata.get("albums") or []
+    membership = wdata.get("membership") or {}
+    albums_by_id = {a.get("id"): a for a in albums}
+    folders = []
+    for a in albums:
+        disp = _workspace_album_display(a.get("id"), albums_by_id)
+        if disp:
+            folders.append({"id": a.get("id"), "path": disp["path"] or disp["name"]})
+    folders.sort(key=lambda f: (f["path"] or "").lower())
+
+    def task_key(t):
+        return (_GOREV_DURUM_ORDER.get(t.get("durum"), 3),
+                -_GOREV_PRIO_RANK.get(t.get("oncelik"), 0), t.get("sira", 0))
+
+    out = []
+    for pid, g in groups.items():
+        p = g["product"]
+        tasks = sorted(g["tasks"], key=task_key)
+        for t in tasks:
+            t["surum_ad"] = surum_ad.get(pid, {}).get(t.get("surum_id")) if t.get("surum_id") else None
+        open_tasks = [t for t in tasks if t.get("durum") != "tamamlandi"]
+        urgency = max((_GOREV_PRIO_RANK.get(t.get("oncelik"), 0) for t in open_tasks), default=-1)
+        out.append({
+            "urun_id": pid,
+            "product_name": p.get("product_name") or pid,
+            "product_code": p.get("product_code"),
+            "brand": p.get("brand"),
+            "country": p.get("brand_country") or p.get("country"),
+            "cover": store.public_url(cover_path(p)),
+            "open_count": len(open_tasks),
+            "urgency": urgency,
+            "folders": membership.get(pid) or [],
+            "tasks": tasks,
+        })
+    # ürünler: en acil açık görev (öncelik) desc, eşitlikte açık görev sayısı desc, sonra ad
+    out.sort(key=lambda g: (-g["urgency"], -g["open_count"], (g["product_name"] or "").lower()))
+    total_open = sum(g["open_count"] for g in out)
+
+    return render_template("gorevler.html", groups=out, folders=folders,
+                           total_open=total_open, total_tasks=len(rows))
 
 
 @app.route("/api/urun/<urun_id>/teknik/<surum_id>/notlar", methods=["GET"])

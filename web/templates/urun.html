@@ -3270,7 +3270,12 @@ grid.addEventListener('dragover', (e) => {
     // v4.0-part-2 Sprint 8.4 — 'notlar' ana sekmeden Teknik > 4·Notlar alt sekmesine taşındı
     const VALID_TABS = ['galeri', 'teknik', 'dokuman'];
     // v4.0-part-2 Sprint 8 — embed modunda zorunlu varsayılan tab
-    let initial = (location.hash || '#galeri').slice(1);
+    // Faz 3 — Görevler panosu derin linki: ?tab=teknik&sub=todo[&surum=<id>].
+    // sub → teknik.js'in numune_tab tercihine yazılır (teknik.js init'te okur); surum teknik.js'te.
+    const _qp = new URLSearchParams(location.search);
+    const _qpSub = _qp.get('sub');
+    if (_qpSub) { try { localStorage.setItem('numune_tab', _qpSub); } catch (e) {} }
+    let initial = _qp.get('tab') || (location.hash || '#galeri').slice(1);
     // Eski hash'lerden gelenler için bekç: '#notlar' → teknik aç, JS sub-tab Notlar'ı seçer
     if (initial === 'notlar') {
         initial = 'teknik';

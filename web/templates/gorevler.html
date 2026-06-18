@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Görevler — {{ total_open }} açık{% endblock %}
+{% block body_class %}studio{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/screens/gorevler.css') }}">
+{% endblock %}
+
+{% set DURUM_LBL = {'acik': 'Açık', 'yapiliyor': 'Yapılıyor', 'tamamlandi': 'Tamamlandı'} %}
+{% set ONC_LBL = {'': 'Öncelik', 'dusuk': 'Düşük', 'orta': 'Orta', 'yuksek': 'Yüksek'} %}
+
+{% block content %}
+<main class="studio gor-page">
+    <header class="gor-head">
+        <div class="gor-head-title">
+            <h1>Görevler</h1>
+            <p class="gor-head-sub">Ürün bazında yapılacaklar — en acil açık görevler üstte.</p>
+        </div>
+        <div class="gor-head-metric">
+            <span class="gor-metric-num" id="gor-total-open">{{ total_open }}</span>
+            <span class="gor-metric-label">açık görev</span>
+        </div>
+    </header>
+
+    {# Filtre barı — Stüdyo galeri filtre dili #}
+    <div class="gor-filters">
+        <div class="gor-search">
+            <svg class="icon"><use href="#ic-search"/></svg>
+            <input type="search" id="gor-search" placeholder="Görev veya ürün ara…" autocomplete="off">
+        </div>
+        <select id="gor-f-durum" class="gor-select" aria-label="Durum filtresi">
+            <option value="">Tüm durumlar</option>
+            <option value="acik">Açık</option>
+            <option value="yapiliyor">Yapılıyor</option>
+            <option value="tamamlandi">Tamamlandı</option>
+        </select>
+        <select id="gor-f-oncelik" class="gor-select" aria-label="Öncelik filtresi">
+            <option value="">Tüm öncelikler</option>
+            <option value="yuksek">Yüksek</option>
+            <option value="orta">Orta</option>
+            <option value="dusuk">Düşük</option>
+            <option value="__none__">Önceliksiz</option>
+        </select>
+        {% if folders %}
+        <select id="gor-f-folder" class="gor-select" aria-label="Klasör filtresi">
+            <option value="">Tüm klasörler</option>
+            {% for f in folders %}
+            <option value="{{ f.id }}">{{ f.path }}</option>
+            {% endfor %}
+        </select>
+        {% endif %}
+        <label class="gor-toggle">
+            <input type="checkbox" id="gor-show-done"> Tamamlananları göster
+        </label>
+    </div>
+
+    {# Ürün-gruplu görev listesi #}
+    <div class="gor-groups" id="gor-groups">
+        {% for g in groups %}
+        <section class="gor-group" data-urun-id="{{ g.urun_id }}"
+                 data-folders="{{ g.folders|join(',') }}" data-open="{{ g.open_count }}">
+            <header class="gor-prod" role="button" tabindex="0"
+                    title="{{ g.product_name }} — ürün detayına git">
+                <div class="gor-prod-thumb">
+                    {% if g.cover %}<img src="{{ g.cover }}" loading="lazy" alt="">
+                    {% else %}<span class="gor-prod-noimg" aria-hidden="true"></span>{% endif %}
+                </div>
+                <div class="gor-prod-info">
+                    <span class="gor-prod-eyebrow">{{ g.brand or '—' }}{% if g.country %} · {{ g.country }}{% endif %}</span>
+                    <span class="gor-prod-name">{{ g.product_name }}</span>
+                    {% if g.product_code %}<span class="gor-prod-code">{{ g.product_code }}</span>{% endif %}
+                </div>
+                <span class="gor-prod-count" data-open="{{ g.open_count }}">{{ g.open_count }} açık</span>
+            </header>
+            <ul class="gor-tasks">
+                {% for t in g.tasks %}
+                <li class="gor-task{% if t.durum == 'tamamlandi' %} is-done{% endif %}"
+                    data-id="{{ t.id }}" data-durum="{{ t.durum }}"
+                    data-oncelik="{{ t.oncelik or '' }}" data-surum="{{ t.surum_id or '' }}"
+                    role="button" tabindex="0" title="To-Do sekmesinde aç">
+                    <button type="button" class="tek-todo-status" data-durum="{{ t.durum }}" title="Durumu değiştir">{{ DURUM_LBL[t.durum] }}</button>
+                    <span class="gor-task-text">{{ t.baslik }}</span>
+                    <span class="gor-task-meta">
+                        <span class="tek-todo-prio is-static" data-oncelik="{{ t.oncelik or '' }}"><span class="tek-todo-prio-dot"></span>{{ ONC_LBL[t.oncelik or ''] }}</span>
+                        {% if t.surum_id %}<span class="tek-todo-surum" title="{{ t.surum_ad or 'Sürüm' }} sürümüne özel"><svg class="icon"><use href="#ic-tag"/></svg><span>{{ t.surum_ad or 'Sürüm' }}</span></span>{% endif %}
+                        <button type="button" class="gor-task-complete" title="Tamamla" aria-label="Tamamla"><svg class="icon"><use href="#ic-check"/></svg></button>
+                    </span>
+                </li>
+                {% endfor %}
+            </ul>
+        </section>
+        {% endfor %}
+    </div>
+
+    {# Boş durum (JS, görünür grup kalmazsa açar) #}
+    <div class="gor-empty" id="gor-empty" {% if total_open > 0 %}hidden{% endif %}>
+        <svg class="icon"><use href="#ic-check"/></svg>
+        <p class="gor-empty-title">Açık görev yok</p>
+        <p class="gor-empty-sub">Ürün detayındaki <strong>Teknik Analiz → To-Do</strong> sekmesinden görev ekleyebilirsin.</p>
+    </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/gorevler.js') }}"></script>
+{% endblock %}
