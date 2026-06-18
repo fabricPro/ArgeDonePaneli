@@ -388,23 +388,62 @@
 .tek-module .numune-tab.is-active .numune-tab-count { background: rgba(255,255,255,.25); color: #fff; }
 .tek-module .numune-tab-count.is-complete { background: var(--green-bg); color: var(--green); }
 .tek-module .numune-tab.is-active .numune-tab-count.is-complete { background: rgba(255,255,255,.92); color: var(--green); }
-/* ekleme formu */
-.tek-module .todo-add { display: flex; gap: 8px; margin-bottom: 12px; }
-.tek-module .todo-input { flex: 1; height: 32px; padding: 0 11px; font-size: 13px; background: #fff; border: 1px solid var(--border); border-radius: var(--r-sm); box-shadow: var(--sh); color: var(--ink); }
+/* ===== To-Do paneli — Faz 2 (durum + öncelik + sürüm bağı) ===== */
+/* yeni görev formu: başlık + kapsam toggle + Ekle */
+.tek-module .tek-todo-add { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.tek-module .todo-input { flex: 1 1 200px; min-width: 0; height: 32px; padding: 0 11px; font-size: 13px; background: #fff; border: 1px solid var(--border); border-radius: var(--r-sm); box-shadow: var(--sh); color: var(--ink); }
 .tek-module .todo-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
-/* liste */
-.tek-module .todo-list { display: flex; flex-direction: column; gap: 6px; }
-.tek-module .todo-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); box-shadow: var(--sh); }
-.tek-module .todo-check { flex: 0 0 auto; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border-strong); border-radius: 999px; background: #fff; color: transparent; cursor: pointer; }
-.tek-module .todo-check .icon { width: 13px; height: 13px; }
-.tek-module .todo-item.is-done .todo-check { background: var(--green); border-color: var(--green); color: #fff; }
-.tek-module .todo-text { flex: 1; font-size: 13px; color: var(--ink); line-height: 1.4; outline: none; border-radius: 3px; padding: 1px 3px; }
-.tek-module .todo-text:focus { background: var(--accent-bg); box-shadow: 0 0 0 2px var(--accent-bg); }
-.tek-module .todo-item.is-done .todo-text { color: var(--ink-3); text-decoration: line-through; }
-.tek-module .todo-del { flex: 0 0 auto; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; border: none; background: transparent; color: var(--ink-3); border-radius: var(--r-sm); cursor: pointer; }
-.tek-module .todo-del:hover { background: var(--red-bg); color: var(--red); }
-.tek-module .todo-del .icon { width: 14px; height: 14px; }
+/* kapsam toggle (segmented control — tarak-mode-toggle deseni) */
+.tek-module .tek-todo-scope { display: inline-flex; padding: 3px; gap: 2px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-sm); }
+.tek-module .tek-todo-scope-btn { height: 26px; padding: 0 11px; font-size: 11.5px; font-weight: 500; color: var(--ink-2); background: transparent; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; }
+.tek-module .tek-todo-scope-btn.is-active { background: var(--accent); color: #fff; }
+.tek-module .tek-todo-scope-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+/* liste + satır */
+.tek-module .tek-todo-list { display: flex; flex-direction: column; gap: 6px; }
+.tek-module .tek-todo-item { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 8px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); box-shadow: var(--sh); }
+.tek-module .tek-todo-item.is-done { background: var(--surface-2); }
+
+/* durum hapı (tıkla → döngü açık→yapılıyor→tamamlandı) */
+.tek-module .tek-todo-status { flex: 0 0 auto; display: inline-flex; align-items: center; height: 22px; padding: 0 10px; font-size: 11px; font-weight: 600; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); color: var(--ink-2); cursor: pointer; white-space: nowrap; }
+.tek-module .tek-todo-status[data-durum="yapiliyor"] { background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent-strong); }
+.tek-module .tek-todo-status[data-durum="tamamlandi"] { background: var(--green-bg); border-color: transparent; color: var(--green); }
+
+/* başlık (satır içi düzenlenebilir) */
+.tek-module .tek-todo-text { flex: 1 1 150px; min-width: 120px; font-size: 13px; color: var(--ink); line-height: 1.4; outline: none; border-radius: 3px; padding: 1px 3px; }
+.tek-module .tek-todo-text:focus { background: var(--accent-bg); box-shadow: 0 0 0 2px var(--accent-bg); }
+.tek-module .tek-todo-item.is-done .tek-todo-text { color: var(--ink-3); text-decoration: line-through; }
+
+/* sağ meta blok: öncelik + sürüm rozeti + sil */
+.tek-module .tek-todo-meta { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; }
+
+/* öncelik hapı (tıkla → döngü yok→düşük→orta→yüksek) */
+.tek-module .tek-todo-prio { display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 8px; font-size: 10.5px; font-weight: 600; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); color: var(--ink-2); cursor: pointer; white-space: nowrap; }
+.tek-module .tek-todo-prio-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-3); }
+.tek-module .tek-todo-prio[data-oncelik=""] { background: transparent; border-style: dashed; border-color: var(--border-strong); color: var(--ink-3); }
+.tek-module .tek-todo-prio[data-oncelik=""] .tek-todo-prio-dot { display: none; }
+.tek-module .tek-todo-prio[data-oncelik="orta"] { background: var(--amber-bg); border-color: transparent; color: var(--amber); }
+.tek-module .tek-todo-prio[data-oncelik="orta"] .tek-todo-prio-dot { background: var(--amber); }
+.tek-module .tek-todo-prio[data-oncelik="yuksek"] { background: var(--red-bg); border-color: transparent; color: var(--red); }
+.tek-module .tek-todo-prio[data-oncelik="yuksek"] .tek-todo-prio-dot { background: var(--red); }
+
+/* sürüm rozeti (indigo — yalnız sürüme özel görevde) */
+.tek-module .tek-todo-surum { display: inline-flex; align-items: center; gap: 4px; max-width: 130px; height: 22px; padding: 0 8px; font-size: 10.5px; font-weight: 600; border-radius: 999px; background: var(--accent-bg); border: 1px solid var(--accent-border); color: var(--accent-strong); white-space: nowrap; overflow: hidden; }
+.tek-module .tek-todo-surum span { overflow: hidden; text-overflow: ellipsis; }
+.tek-module .tek-todo-surum .icon { width: 11px; height: 11px; flex: 0 0 auto; }
+
+/* sil */
+.tek-module .tek-todo-del { flex: 0 0 auto; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; border: none; background: transparent; color: var(--ink-3); border-radius: var(--r-sm); cursor: pointer; }
+.tek-module .tek-todo-del:hover { background: var(--red-bg); color: var(--red); }
+.tek-module .tek-todo-del .icon { width: 14px; height: 14px; }
+
 .tek-module .todo-empty { font-size: 12.5px; color: var(--ink-3); padding: 8px 2px; }
+
+/* dar kap (Çalışma split ≤680px): meta sola hizalanıp alt satıra aksın, taşma yok */
+@container tek (max-width: 680px) {
+  .tek-module .tek-todo-meta { margin-left: 0; }
+  .tek-module .tek-todo-surum { max-width: 96px; }
+}
 .tek-module .rich-editor { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--sh); overflow: hidden; }
 .tek-module .rich-toolbar { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; padding: 8px 10px; border-bottom: 1px solid var(--surface-2); background: var(--surface-2); }
 .tek-module .rich-toolbar > button {

@@ -371,7 +371,15 @@ def _palette_completed(d: dict, color_album_slug: str | None) -> bool:
     return True
 
 
-def product_summary(d: dict) -> dict:
+def product_summary(d: dict, gorev_counts: dict | None = None) -> dict:
+    # Faz 1 — To-Do sayımı artık 'gorevler' tablosundan (products.todo JSON'dan DEĞİL).
+    # gorev_counts verilirse (galeri gibi döngülerde tek sorguyla hazırlanmış map) ondan
+    # okunur; verilmezse tek ürünlük sorgu yapılır (detay/küçük listeler). Tablo yoksa 0/0.
+    uid = d.get("urun_id")
+    if gorev_counts is not None:
+        _gc = gorev_counts.get(uid) or {"total": 0, "done": 0}
+    else:
+        _gc = store.gorev_count_one(uid)
     # "Renkler" adında veya slug'ında albüm var mı? (v3.6+)
     has_color_album = False
     color_album_slug = None
@@ -434,9 +442,9 @@ def product_summary(d: dict) -> dict:
         "style_tags": d.get("style_tags") or [],
         # ARGE notu (AI çıkarımı) — kart/künye barı için salt-okuma ek alan
         "ai_notu": d.get("ai_notu"),
-        # Faz 2 — To-Do ilerleme rozeti (galeri/çalışma kartı)
-        "todo_total": len(d.get("todo") or []),
-        "todo_done": sum(1 for t in (d.get("todo") or []) if isinstance(t, dict) and t.get("done")),
+        # Faz 1 — To-Do ilerleme rozeti (gorevler tablosundan; bkz. fonksiyon başı)
+        "todo_total": _gc["total"],
+        "todo_done": _gc["done"],
     }
 
 
@@ -482,7 +490,8 @@ def logout():
 @app.route("/")
 def index():
     raw = store.get_all()
-    products = [product_summary(p) for p in raw]
+    gorev_counts = store.gorev_counts_all()  # Faz 1 — tek sorguyla todo sayıları (N+1 yok)
+    products = [product_summary(p, gorev_counts) for p in raw]
     # dashboard_order'i ozetlere ekle (siralama icin)
     order_map = {p.get("urun_id"): p.get("dashboard_order") for p in raw}
     # v4.0-part-2 Sprint 8 — workspace pin durumu (galeri kartlarında ikon için)
@@ -629,6 +638,10 @@ def urun_detail(urun_id: str):
     for p in pdfs:
         p["url"] = store.public_url_pdf(p.get("path"))
     d["pdfs"] = pdfs
+    # Faz 2 — To-Do verisi gorevler tablosundan (#todo-data bunu okur): ürünün TÜM
+    # görevleri (geneli + her sürüm), {id,text,durum,oncelik,surum_id,order}. Sürüm adı
+    # rozeti için sürüm listesi #teknik-data'dan (teknik.surumler) gelir. Tablo yoksa [].
+    d["todo"] = store.gorev_list_items(urun_id)
     # Gorselleri varyant etiketine gore grupla (ayni varyantlar bitisik).
     # Grup sirasi: ilk gorulus sirasi (orders korur), grup ici sirasi: order.
     groups: dict[str, list[dict]] = {}
@@ -3582,10 +3595,17 @@ def api_teknik_surum_notlar(urun_id: str, surum_id: str):
     return jsonify({"ok": True, "html": clean_html, "surum_id": surum_id})
 
 
+_GOREV_DURUM = {"acik", "yapiliyor", "tamamlandi"}
+_GOREV_ONCELIK = {"dusuk", "orta", "yuksek"}
+
+
 @app.route("/api/urun/<urun_id>/todo", methods=["POST"])
 def api_todo(urun_id: str):
-    """Faz 2 — ürün-bazlı To-Do listesi kaydet. Body: {todo: [{id,text,done,order}]}.
-    Tüm liste tek seferde gönderilir (notlar deseni gibi: client durumu otorite)."""
+    """Faz 2 — To-Do görevleri 'gorevler' tablosunda. Body:
+    {todo: [{id?, text, durum, oncelik, surum_id, order}]} — tüm liste tek seferde
+    (client otorite). Her item kendi surum_id'sini taşır (null = ürün geneli).
+    Kasıtlı breaking: eski done↔durum köprüsü kalktı, durum doğrudan kullanılır.
+    Cevap: {ok, todo:[{id,text,durum,oncelik,surum_id,order}]} (store.gorev_sync_items)."""
     d = store.get(urun_id)
     if not d:
         return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
@@ -3594,24 +3614,29 @@ def api_todo(urun_id: str):
     if not isinstance(raw, list):
         return jsonify({"ok": False, "error": "todo bir liste olmalı"}), 400
     if len(raw) > 500:
-        return jsonify({"ok": False, "error": "Çok fazla adım (en fazla 500)"}), 400
-    clean = []
+        return jsonify({"ok": False, "error": "Çok fazla görev (en fazla 500)"}), 400
+    items = []
     for it in raw:
         if not isinstance(it, dict):
             continue
         text = str(it.get("text") or "").strip()[:500]
         if not text:
-            continue  # boş adımları atla
-        clean.append({
-            "id": str(it.get("id") or "")[:40] or f"t{len(clean)}",
+            continue  # boş başlıkları atla
+        durum = it.get("durum")
+        if durum not in _GOREV_DURUM:
+            durum = "acik"
+        oncelik = it.get("oncelik")
+        if oncelik not in _GOREV_ONCELIK:
+            oncelik = None
+        items.append({
+            "id": str(it.get("id") or "")[:64] or None,  # mevcut gorev uuid'i ya da client "t..." id
             "text": text,
-            "done": bool(it.get("done")),
-            "order": len(clean),  # temiz liste içinde sıralı (0,1,2…)
+            "durum": durum,
+            "oncelik": oncelik,
+            "surum_id": clean(it.get("surum_id")) or None,
         })
-    d["todo"] = clean
-    d["updated_at"] = now_iso()
-    store.upsert(d)
-    return jsonify({"ok": True, "todo": clean})
+    todo = store.gorev_sync_items(urun_id, items)
+    return jsonify({"ok": True, "todo": todo})
 
 
 @app.route("/api/urun/<urun_id>/teknik/<surum_id>/notlar", methods=["GET"])
@@ -3635,7 +3660,8 @@ def api_teknik_surum_notlar_get(urun_id: str, surum_id: str):
 
 @app.route("/api/urunler")
 def api_urunler():
-    products = [product_summary(p) for p in store.get_all()]
+    gorev_counts = store.gorev_counts_all()  # Faz 1 — tek sorguyla todo sayıları (N+1 yok)
+    products = [product_summary(p, gorev_counts) for p in store.get_all()]
     return jsonify({"count": len(products), "products": products})
 
 
@@ -5129,10 +5155,11 @@ def _workspace_summary_list() -> list[dict]:
         return []
     all_products = store.get_all()
     by_id = {p["urun_id"]: p for p in all_products}
+    gorev_counts = store.gorev_counts_all()  # Faz 1 — tek sorguyla todo sayıları (N+1 yok)
     items = []
     for uid in ids:
         if uid in by_id:
-            items.append(product_summary(by_id[uid]))
+            items.append(product_summary(by_id[uid], gorev_counts))
     return items
 
 

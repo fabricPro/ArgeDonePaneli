@@ -1623,12 +1623,17 @@
                 </div>
                 <span class="todo-status" id="todo-status">Kaydedildi</span>
             </header>
-            <form class="todo-add" id="todo-add">
-                <input type="text" id="todo-input" class="todo-input" placeholder="Yeni adım yaz, Enter ile ekle…" autocomplete="off" maxlength="500">
+            {# Faz 2 — yeni görev: başlık + kapsam toggle (ürün geneli / bu sürüme özel) #}
+            <form class="tek-todo-add" id="todo-add">
+                <input type="text" id="todo-input" class="todo-input" placeholder="Yeni görev yaz, Enter ile ekle…" autocomplete="off" maxlength="500">
+                <div class="tek-todo-scope" id="todo-scope" role="group" aria-label="Görev kapsamı">
+                    <button type="button" class="tek-todo-scope-btn is-active" data-scope="genel">Ürün geneli</button>
+                    <button type="button" class="tek-todo-scope-btn" data-scope="surum" id="todo-scope-surum" title="Şu an seçili sürüme özel görev">Bu sürüme özel</button>
+                </div>
                 <button type="submit" class="btn btn-primary"><svg class="icon"><use href="#ic-plus"/></svg> Ekle</button>
             </form>
-            <ul class="todo-list" id="todo-list"></ul>
-            <p class="todo-empty" id="todo-empty" hidden>Henüz adım yok. Bu ürün için yapılacakları yukarıdan ekle.</p>
+            <ul class="tek-todo-list" id="todo-list"></ul>
+            <p class="todo-empty" id="todo-empty" hidden>Henüz görev yok. Bu ürün için yapılacakları yukarıdan ekle.</p>
         </section>
 
         {# v4.0-part-2 Sprint 8.4 — 4·Notlar (sürüm-spesifik, ana tab'dan buraya taşındı) #}

@@ -10,6 +10,7 @@ gorseller bucket: herkese acik okuma (CDN). Yol: <brand_slug>/<kod>/<dosya>.jpg
 from __future__ import annotations
 
 import os
+from datetime import datetime, timezone
 from functools import lru_cache
 
 from supabase import Client, create_client
@@ -30,6 +31,7 @@ TABLE_WARPS = "warps"  # Senkron Sprint 4 — çözgü
 TABLE_WARP_YARNS = "warp_yarns"  # Senkron Sprint 4 — çözgü iplikleri
 TABLE_WARP_ALLOCATIONS = "warp_product_allocations"  # Senkron Sprint 4 — metre bütçesi
 TABLE_WEFT_VARIANT_ACTUALS = "weft_variant_actuals"  # Senkron Sprint 5 — dokuma sonrası gerçekleşen
+TABLE_GOREVLER = "gorevler"  # Faz 1 — To-Do gerçek tabloya terfi (eski: products.todo jsonb)
 
 PRODUCT_COLUMNS = [
     "urun_id", "brand", "brand_slug", "country", "collection", "product_name",
@@ -139,6 +141,270 @@ def upsert(product: dict) -> None:
 
 def delete(urun_id: str) -> None:
     client().table(TABLE).delete().eq("urun_id", urun_id).execute()
+
+
+# ---- Gorevler (Faz 1 — To-Do tablo terfisi) ----
+#
+# Veri modeli: gorevler(id uuid, product_id text→products.urun_id, surum_id text|null,
+#   baslik, durum['acik'|'yapiliyor'|'tamamlandi'], oncelik['dusuk'|'orta'|'yuksek']|null,
+#   sira int, created_at, updated_at, completed_at|null).
+# Eski todo.js sözleşmesi {id,text,done,order} ile köprü: text↔baslik, done↔durum, order↔sira.
+#
+# strip-retry: migration koşulmadan tablo yoksa okuma fonksiyonları boş/0 döner,
+# yazma fonksiyonları None döner — uygulama patlamaz (Anayasa: hata zarif düşer).
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _is_missing_gorevler(e: Exception) -> bool:
+    """gorevler tablosu/kolonu henüz migrate edilmediğinde oluşan hata mı?
+    (Sorgular hep gorevler üzerinde olduğu için tablo-yok hatası mesajda 'gorevler' ya da
+    PostgREST/Postgres 'tablo bulunamadı' koduyla gelir.)"""
+    msg = str(e).lower()
+    return (
+        "gorevler" in msg
+        or "pgrst205" in msg            # PostgREST: tablo schema cache'te yok
+        or "42p01" in msg               # Postgres: undefined_table
+        or "schema cache" in msg
+        or "could not find the table" in msg
+    )
+
+
+def _gorev_to_item(r: dict, order: int) -> dict:
+    """gorevler satırı → panel item biçimi {id,text,durum,oncelik,surum_id,order}.
+    (Faz 2: eski {done} köprüsü kaldırıldı — durum/oncelik/surum_id doğrudan taşınır.)"""
+    return {
+        "id": r.get("id"),
+        "text": r.get("baslik") or "",
+        "durum": r.get("durum") or "acik",
+        "oncelik": r.get("oncelik"),
+        "surum_id": r.get("surum_id"),
+        "order": order,
+    }
+
+
+def gorev_list_by_product(urun_id: str, surum_id: str | None = None,
+                          include_all_surum: bool = False) -> list[dict]:
+    """Bir ürünün görevleri (sira, sonra created_at sırasıyla). Tablo yoksa [].
+    include_all_surum=True → ürünün tüm görevleri (sürüm ayrımı yok).
+    Aksi halde surum_id=None → yalnız ürün-geneli (surum_id IS NULL),
+    surum_id verilirse → o sürümün görevleri."""
+    try:
+        q = client().table(TABLE_GOREVLER).select("*").eq("product_id", urun_id)
+        if not include_all_surum:
+            if surum_id is None:
+                q = q.is_("surum_id", "null")
+            else:
+                q = q.eq("surum_id", surum_id)
+        res = q.order("sira").order("created_at").execute()
+        return res.data or []
+    except Exception as e:
+        if _is_missing_gorevler(e):
+            return []
+        raise
+
+
+def gorev_create(urun_id: str, baslik: str, *, surum_id: str | None = None,
+                 durum: str = "acik", oncelik: str | None = None,
+                 sira: int = 0) -> dict | None:
+    """Tek görev oluştur. Tablo yoksa None döner."""
+    row = {
+        "product_id": urun_id,
+        "surum_id": surum_id,
+        "baslik": baslik,
+        "durum": durum,
+        "oncelik": oncelik,
+        "sira": sira,
+    }
+    if durum == "tamamlandi":
+        row["completed_at"] = _now_iso()
+    try:
+        res = client().table(TABLE_GOREVLER).insert(row).execute()
+        return (res.data or [None])[0]
+    except Exception as e:
+        if _is_missing_gorevler(e):
+            return None
+        raise
+
+
+def gorev_update(gorev_id: str, *, baslik: str | None = None,
+                 durum: str | None = None, oncelik: str | None = None,
+                 sira: int | None = None, surum_id: str | None = None,
+                 set_surum: bool = False, set_oncelik: bool = False) -> dict | None:
+    """Verilen alanları güncelle (None → dokunma). durum 'tamamlandi' olursa completed_at
+    şimdi; başka durumdaysa completed_at temizlenir. set_surum=True ise surum_id (None dahil),
+    set_oncelik=True ise oncelik (None dahil — önceliği temizle) yazılır. Tablo yoksa None."""
+    patch: dict = {"updated_at": _now_iso()}
+    if baslik is not None:
+        patch["baslik"] = baslik
+    if durum is not None:
+        patch["durum"] = durum
+        patch["completed_at"] = _now_iso() if durum == "tamamlandi" else None
+    if set_oncelik:
+        patch["oncelik"] = oncelik       # None dahil (önceliği temizle)
+    elif oncelik is not None:
+        patch["oncelik"] = oncelik
+    if sira is not None:
+        patch["sira"] = sira
+    if set_surum:
+        patch["surum_id"] = surum_id
+    try:
+        res = client().table(TABLE_GOREVLER).update(patch).eq("id", gorev_id).execute()
+        return (res.data or [None])[0]
+    except Exception as e:
+        if _is_missing_gorevler(e):
+            return None
+        raise
+
+
+def gorev_complete(gorev_id: str) -> dict | None:
+    """Görevi 'tamamlandi' işaretle (completed_at şimdi). Tablo yoksa None."""
+    return gorev_update(gorev_id, durum="tamamlandi")
+
+
+def gorev_delete(gorev_id: str) -> None:
+    """Görevi sil. Tablo yoksa sessiz geç."""
+    try:
+        client().table(TABLE_GOREVLER).delete().eq("id", gorev_id).execute()
+    except Exception as e:
+        if _is_missing_gorevler(e):
+            return
+        raise
+
+
+def gorev_counts_all() -> dict[str, dict]:
+    """Tüm ürünler için {urun_id: {'total': n, 'done': m}} (tek sorgu, galeri için).
+    Tablo yoksa {} (galeri 0/0 gösterir)."""
+    try:
+        res = client().table(TABLE_GOREVLER).select("product_id,durum").execute()
+    except Exception as e:
+        if _is_missing_gorevler(e):
+            return {}
+        raise
+    out: dict[str, dict] = {}
+    for r in res.data or []:
+        slot = out.setdefault(r.get("product_id"), {"total": 0, "done": 0})
+        slot["total"] += 1
+        if r.get("durum") == "tamamlandi":
+            slot["done"] += 1
+    return out
+
+
+def gorev_count_one(urun_id: str) -> dict:
+    """Tek ürünün {'total': n, 'done': m} sayımı. Tablo yoksa {0,0}."""
+    try:
+        res = client().table(TABLE_GOREVLER).select("durum").eq("product_id", urun_id).execute()
+    except Exception as e:
+        if _is_missing_gorevler(e):
+            return {"total": 0, "done": 0}
+        raise
+    rows = res.data or []
+    return {"total": len(rows),
+            "done": sum(1 for r in rows if r.get("durum") == "tamamlandi")}
+
+
+def gorev_list_items(urun_id: str) -> list[dict]:
+    """Panel için ürünün TÜM görevleri (ürün-geneli + her sürüm), sira sırasıyla,
+    {id,text,durum,oncelik,surum_id,order} biçiminde. Tablo yoksa [].
+    (Faz 2: panel sürüm ayrımı yapmadan hepsini gösterir; rozeti surum_id'den türetir.)"""
+    rows = gorev_list_by_product(urun_id, include_all_surum=True)
+    return [_gorev_to_item(r, i) for i, r in enumerate(rows)]
+
+
+def gorev_sync_items(urun_id: str, items: list[dict]) -> list[dict]:
+    """Panelin gönderdiği TAM listeyi (client otorite) gorevler tablosuna uygula.
+    items: [{id?, text, durum, oncelik, surum_id}] (zaten temizlenmiş). Uzlaştırma ürün
+    GENELİNDE (tüm sürüm scope'ları dahil) tek listede yapılır — her item kendi surum_id'sini
+    taşır (None = ürün geneli).
+
+    Eşleme stratejisi (id churn'ü + created_at sabitliği):
+      1) Gelen id mevcut bir gorev uuid'i ile eşleşiyorsa → o satırı güncelle.
+      2) Eşleşmeyen için aynı (baslik, surum_id) çiftli kullanılmamış satır → onu güncelle
+         (durum/sıra değişiminde yeni insert yerine mevcut satır korunur).
+      3) Hâlâ eşleşmeyen → yeni insert.
+    Listede olmayan mevcut satırlar silinir. completed_at yalnız durum GERÇEKTEN değişince
+    dokunulur. Dönen: {id,text,durum,oncelik,surum_id,order} listesi. Tablo yoksa []."""
+    existing = gorev_list_by_product(urun_id, include_all_surum=True)
+    by_id = {r["id"]: r for r in existing}
+    by_key: dict[tuple, list[dict]] = {}
+    for r in existing:
+        by_key.setdefault((r.get("baslik") or "", r.get("surum_id")), []).append(r)
+
+    used: set = set()
+    result_rows: list[dict] = []
+    for i, it in enumerate(items):
+        baslik = it["text"]
+        durum = it.get("durum") or "acik"
+        oncelik = it.get("oncelik")
+        surum_id = it.get("surum_id")
+        cid = it.get("id")
+        match = None
+        if cid and cid in by_id and cid not in used:
+            match = by_id[cid]
+        else:
+            for cand in by_key.get((baslik, surum_id), []):
+                if cand["id"] not in used:
+                    match = cand
+                    break
+        if match:
+            used.add(match["id"])
+            kwargs: dict = {}
+            if (match.get("baslik") or "") != baslik:
+                kwargs["baslik"] = baslik
+            if match.get("durum") != durum:
+                kwargs["durum"] = durum          # completed_at yalnız burada değişir
+            if match.get("oncelik") != oncelik:
+                kwargs["oncelik"] = oncelik
+                kwargs["set_oncelik"] = True      # None dahil yaz (önceliği temizle)
+            if match.get("sira") != i:
+                kwargs["sira"] = i
+            if match.get("surum_id") != surum_id:
+                kwargs["surum_id"] = surum_id
+                kwargs["set_surum"] = True
+            row = gorev_update(match["id"], **kwargs) if kwargs else match
+            result_rows.append(row or match)
+        else:
+            row = gorev_create(urun_id, baslik, surum_id=surum_id,
+                               durum=durum, oncelik=oncelik, sira=i)
+            if row is None:          # tablo yok → migration koşulmamış
+                return []
+            used.add(row["id"])
+            result_rows.append(row)
+
+    for r in existing:
+        if r["id"] not in used:
+            gorev_delete(r["id"])
+
+    return [_gorev_to_item(r, i) for i, r in enumerate(result_rows)]
+
+
+def gorev_list_dashboard(*, durum: str | None = None, oncelik: str | None = None,
+                         surum_id: str | None = None, urun_id: str | None = None,
+                         arama: str | None = None, limit: int = 500) -> list[dict]:
+    """Faz 3 görev panosu için ürün bilgisiyle birleştirilmiş görev listesi.
+    Tüm filtreler opsiyonel (durum/oncelik/surum/ürün/başlık-arama). Tablo yoksa [].
+    NOT: Faz 3'te tüketilecek — şimdilik yalnız tanımlı (UI yok)."""
+    try:
+        sel = "*, products(urun_id,product_name,product_code,brand,brand_slug,images)"
+        q = client().table(TABLE_GOREVLER).select(sel)
+        if durum:
+            q = q.eq("durum", durum)
+        if oncelik:
+            q = q.eq("oncelik", oncelik)
+        if surum_id:
+            q = q.eq("surum_id", surum_id)
+        if urun_id:
+            q = q.eq("product_id", urun_id)
+        if arama:
+            q = q.ilike("baslik", f"%{arama}%")
+        res = q.order("durum").order("updated_at", desc=True).limit(limit).execute()
+        return res.data or []
+    except Exception as e:
+        if _is_missing_gorevler(e):
+            return []
+        raise
 
 
 # ---- app_state (kullanici tercihleri: country_order, vb.) ----
