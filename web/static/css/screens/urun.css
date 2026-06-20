@@ -513,9 +513,29 @@ body.urun-page { background: #f7f7f8; }
 }
 .urun-detail .variant-label-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
 
-.urun-detail .img-color-badges,
-.urun-detail .img-ai-colors { display: flex; flex-wrap: wrap; gap: 5px; padding: 8px 10px 0; }
+.urun-detail .img-color-badges { display: flex; flex-wrap: wrap; gap: 5px; padding: 8px 10px 0; }
+.urun-detail .img-ai-colors { display: flex; flex-direction: column; gap: 6px; padding: 8px 10px 0; }
 .urun-detail .img-ai-colors:empty { display: none; padding: 0; }
+
+/* AI (vision) renk analizi — Stüdyo (eski koyu main.css .iac-* override'ı) */
+.urun-detail .iac-head { display: flex; align-items: center; gap: 6px; }
+.urun-detail .iac-badge { display: inline-flex; align-items: center; height: 17px; padding: 0 7px; font-size: 9.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; border-radius: 999px; background: var(--accent-bg); color: var(--accent-strong); border: 1px solid var(--accent-border); }
+.urun-detail .iac-meta { font-size: 10.5px; color: var(--ink-3); }
+.urun-detail .iac-chips { display: flex; flex-direction: column; gap: 4px; }
+.urun-detail .iac-chip { display: flex; align-items: center; gap: 7px; padding: 4px 6px; border: 1px solid var(--border); background: var(--surface-2); border-radius: var(--r-sm); font-size: 11.5px; color: var(--ink); }
+.urun-detail .iac-chip.is-applied { opacity: .5; }
+.urun-detail .iac-sw { width: 18px; height: 18px; border-radius: var(--r-sm); border: 1px solid rgba(23,24,31,.12); flex: 0 0 auto; }
+.urun-detail .iac-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.urun-detail .iac-hex { font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); flex: 0 0 auto; }
+.urun-detail .iac-apply { display: inline-flex; gap: 3px; flex: 0 0 auto; }
+.urun-detail .iac-role { width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; padding: 0; border: none; border-radius: var(--r-sm); font-size: 10px; font-weight: 700; cursor: pointer; transition: background .12s, color .12s; }
+.urun-detail .iac-role[data-role="weft"] { background: var(--weft-bg); color: var(--weft); }
+.urun-detail .iac-role[data-role="warp"] { background: var(--warp-bg); color: var(--warp); }
+.urun-detail .iac-role[data-role="mix"]  { background: var(--accent-bg); color: var(--accent-strong); }
+.urun-detail .iac-role[data-role="weft"]:hover { background: var(--weft); color: #fff; }
+.urun-detail .iac-role[data-role="warp"]:hover { background: var(--warp); color: #fff; }
+.urun-detail .iac-role[data-role="mix"]:hover  { background: var(--accent); color: #fff; }
+.urun-detail .iac-role:disabled { opacity: .45; cursor: default; }
 .urun-detail .color-badge {
   display: inline-flex; align-items: center; gap: 5px; height: 20px; padding: 0 8px 0 6px;
   font-size: 10.5px; border-radius: 999px;
