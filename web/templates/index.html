@@ -36,6 +36,13 @@
         <option value="active">Aktif</option>
         <option value="archived">Çalışma Yapıldı</option>
     </select>
+    {# Çalışma Alanı filtresi — klasörlü/klasörsüz pinli ürünler #}
+    <select id="filter-workspace" class="filter-select" aria-label="Çalışma Alanı filtresi">
+        <option value="">Çalışma: Tümü</option>
+        <option value="ws">Çalışmadakiler</option>
+        <option value="ws_foldered">Çalışmada · klasörlü</option>
+        <option value="ws_unfoldered">Çalışmada · klasörsüz</option>
+    </select>
     <div class="view-toggle" role="group" aria-label="Görüntüleme modu">
         <button class="view-btn" data-mode="grid" title="Kart grid"><svg class="icon"><use href="{{ sprite }}#ic-grid"/></svg></button>
         <button class="view-btn" data-mode="list" title="Liste"><svg class="icon"><use href="{{ sprite }}#ic-list"/></svg></button>
@@ -182,6 +189,7 @@ const searchInput = document.getElementById('search-input');
 const brandSelect = document.getElementById('filter-brand');
 const countrySelect = document.getElementById('filter-country');
 const statusSelect = document.getElementById('filter-status');
+const wsSelect = document.getElementById('filter-workspace');
 const groups = document.querySelectorAll('.country-group');
 
 function applyFilters() {
@@ -189,6 +197,7 @@ function applyFilters() {
     const brand = (brandSelect.value || '').toLowerCase();
     const country = countrySelect ? (countrySelect.value || '') : '';
     const status = statusSelect ? (statusSelect.value || '') : '';
+    const ws = wsSelect ? (wsSelect.value || '') : '';
     groups.forEach(group => {
         let anyVisible = false;
         group.querySelectorAll('.product-card').forEach(card => {
@@ -201,7 +210,16 @@ function applyFilters() {
             const matchesBrand = !brand || cb === brand;
             const matchesCountry = !country || ccRaw === country;
             const matchesStatus = !status || cs === status;
-            const show = matchesQ && matchesBrand && matchesCountry && matchesStatus;
+            // Çalışma Alanı filtresi — canlı DOM'dan: pin durumu + klasör rozeti sayısı
+            let matchesWs = true;
+            if (ws) {
+                const inWs = card.querySelector('.card-pin-btn')?.dataset.pinned === 'true';
+                const folderCount = card.querySelectorAll('.card-folder-tags .card-folder-tag').length;
+                if (ws === 'ws') matchesWs = inWs;
+                else if (ws === 'ws_foldered') matchesWs = inWs && folderCount > 0;
+                else if (ws === 'ws_unfoldered') matchesWs = inWs && folderCount === 0;
+            }
+            const show = matchesQ && matchesBrand && matchesCountry && matchesStatus && matchesWs;
             card.style.display = show ? '' : 'none';
             if (show) anyVisible = true;
         });
@@ -212,6 +230,7 @@ searchInput.addEventListener('input', applyFilters);
 brandSelect.addEventListener('change', applyFilters);
 countrySelect?.addEventListener('change', applyFilters);
 statusSelect?.addEventListener('change', applyFilters);
+wsSelect?.addEventListener('change', applyFilters);
 
 // --- Tekil kart silme (sağ-üst X butonu) ---
 async function deleteProduct(uid, name) {
@@ -263,6 +282,7 @@ document.querySelectorAll('.card-pin-btn').forEach(btn => {
                 btn.dataset.pinned = newPinned ? 'true' : 'false';
                 btn.classList.toggle('is-pinned', newPinned);
                 btn.title = newPinned ? 'Çalışmadan çıkar' : 'Çalışmaya ekle';
+                if (typeof applyFilters === 'function') applyFilters();   // Çalışma filtresi aktifse anında yansısın
                 (window.toast || alert)(newPinned ? 'Çalışma Alanına eklendi' : 'Çalışmadan çıkarıldı', 'success');
             } else {
                 (window.toast || alert)(data.error || 'Hata', 'error');
@@ -407,6 +427,7 @@ function setGalleryCardFolders(uid, albumIds) {
             `<svg class="icon"${col}><use href="${spritePath}#ic-folder"/></svg>` +
             `<span class="cft-name">${escAttr(a.name || '')}</span></span>`;
     }).join('');
+    if (typeof applyFilters === 'function') applyFilters();   // klasör değişince Çalışma filtresi güncellensin
 }
 async function pinAndAssign(uid, albumId) {
     await fetch('/api/calisma/ekle', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ urun_id: uid }) });
