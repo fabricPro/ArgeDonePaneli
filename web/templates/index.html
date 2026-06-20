@@ -36,12 +36,12 @@
         <option value="active">Aktif</option>
         <option value="archived">Çalışma Yapıldı</option>
     </select>
-    {# Çalışma Alanı filtresi — klasörlü/klasörsüz pinli ürünler #}
-    <select id="filter-workspace" class="filter-select" aria-label="Çalışma Alanı filtresi">
-        <option value="">Çalışma: Tümü</option>
+    {# Klasör/Çalışma filtresi — klasörlü/klasörsüz (klasör etiketine göre) + Çalışmadakiler (pinli) #}
+    <select id="filter-workspace" class="filter-select" aria-label="Klasör/Çalışma filtresi">
+        <option value="">Klasör: Tümü</option>
+        <option value="foldered">Klasörlü</option>
+        <option value="unfoldered">Klasörsüz</option>
         <option value="ws">Çalışmadakiler</option>
-        <option value="ws_foldered">Çalışmada · klasörlü</option>
-        <option value="ws_unfoldered">Çalışmada · klasörsüz</option>
     </select>
     <div class="view-toggle" role="group" aria-label="Görüntüleme modu">
         <button class="view-btn" data-mode="grid" title="Kart grid"><svg class="icon"><use href="{{ sprite }}#ic-grid"/></svg></button>
@@ -210,14 +210,13 @@ function applyFilters() {
             const matchesBrand = !brand || cb === brand;
             const matchesCountry = !country || ccRaw === country;
             const matchesStatus = !status || cs === status;
-            // Çalışma Alanı filtresi — canlı DOM'dan: pin durumu + klasör rozeti sayısı
+            // Klasör/Çalışma filtresi — canlı DOM'dan: klasör rozeti sayısı + pin durumu
             let matchesWs = true;
             if (ws) {
-                const inWs = card.querySelector('.card-pin-btn')?.dataset.pinned === 'true';
                 const folderCount = card.querySelectorAll('.card-folder-tags .card-folder-tag').length;
-                if (ws === 'ws') matchesWs = inWs;
-                else if (ws === 'ws_foldered') matchesWs = inWs && folderCount > 0;
-                else if (ws === 'ws_unfoldered') matchesWs = inWs && folderCount === 0;
+                if (ws === 'foldered') matchesWs = folderCount > 0;            // klasöre atanmış
+                else if (ws === 'unfoldered') matchesWs = folderCount === 0;   // klasöre atanmamış
+                else if (ws === 'ws') matchesWs = card.querySelector('.card-pin-btn')?.dataset.pinned === 'true';
             }
             const show = matchesQ && matchesBrand && matchesCountry && matchesStatus && matchesWs;
             card.style.display = show ? '' : 'none';
