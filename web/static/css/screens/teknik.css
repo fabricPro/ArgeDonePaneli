@@ -339,11 +339,28 @@
 .tek-module .tarak-dent-bar { background: var(--accent); border-radius: 2px 2px 0 0; align-self: flex-end; }
 .tek-module .tarak-dent-bar.is-empty { background: var(--border); }
 .tek-module .tarak-empty { font-size: 12px; color: var(--ink-3); padding: 12px 0; }
-/* Manuel mod — diş ekle/sil araç çubuğu */
-.tek-module .tarak-manuel-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
-.tek-module .tarak-dent-add { color: var(--accent-strong); border-color: var(--accent-border); background: var(--accent-bg); font-weight: 600; }
-.tek-module .tarak-dent-add:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
-.tek-module .tarak-manuel-hint { font-size: 11px; color: var(--ink-3); margin-left: 4px; }
+/* Manuel mod — diş-başına birim (araya ekle/çıkar) */
+.tek-module .tarak-manuel-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0; }
+.tek-module .tarak-mdent { display: flex; flex-direction: column; align-items: center; gap: 3px; position: relative; padding: 14px 1px 0; }
+.tek-module .tarak-mdent .tarak-dent-cell { width: 30px; height: 30px; }
+.tek-module .tarak-mdent-bar { width: 30px; background: var(--accent); border-radius: 2px 2px 0 0; }
+.tek-module .tarak-mdent-bar.is-empty { background: var(--border); }
+.tek-module .tarak-mdent-num { font-size: 9px; color: var(--ink-3); }
+.tek-module .tarak-mdent-del {
+  position: absolute; top: 0; right: -2px; z-index: 2;
+  width: 16px; height: 16px; padding: 0; line-height: 1; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--ink-3);
+  font-size: 12px; cursor: pointer; opacity: 0; transition: opacity .12s;
+}
+.tek-module .tarak-mdent:hover .tarak-mdent-del { opacity: 1; }
+.tek-module .tarak-mdent-del:hover { background: var(--red-bg); color: var(--red); border-color: var(--red-bg); }
+.tek-module .tarak-mins {
+  align-self: stretch; flex: 0 0 auto; width: 16px; min-height: 30px; margin-bottom: 14px;
+  padding: 0; border: 1px dashed transparent; border-radius: 4px; background: transparent;
+  color: var(--ink-3); font-size: 14px; line-height: 1; cursor: pointer; transition: background .12s, color .12s, border-color .12s;
+}
+.tek-module .tarak-mins:hover { background: var(--accent-bg); color: var(--accent-strong); border-color: var(--accent-border); }
+.tek-module .tarak-manuel-hint { font-size: 11px; color: var(--ink-3); margin-top: 10px; }
 
 /* Tarak raporu (RLE) */
 .tek-module .tarak-card-report { border-left: 3px solid var(--weft); }

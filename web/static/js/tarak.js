@@ -242,6 +242,25 @@
     }
 
     /**
+     * Manuel mod — i konumuna boş diş (0 tel) ekle (araya ekleme). i: 0..len (clamp).
+     * raporDis güncellenir. MAX_DIS sınırı.
+     * @param {TarakState} t
+     * @param {number} i
+     * @returns {TarakState}
+     */
+    function insertDent(t, i) {
+        if (!t) return defaultTarak();
+        const cur = Array.isArray(t.dentThreads) ? t.dentThreads : [];
+        if (cur.length >= MAX_DIS) return t;
+        let idx = (typeof i === 'number' && isFinite(i)) ? Math.round(i) : cur.length;
+        if (idx < 0) idx = 0;
+        if (idx > cur.length) idx = cur.length;
+        const newThreads = cur.slice();
+        newThreads.splice(idx, 0, 0);
+        return { ...t, dentThreads: newThreads, raporDis: String(newThreads.length) };
+    }
+
+    /**
      * Manuel mod — bir dişi sil (i verilmezse SON diş). raporDis güncellenir.
      * @param {TarakState} t
      * @param {number} [i]
@@ -337,6 +356,7 @@
         incThread,
         resetThreads,
         addDent,
+        insertDent,
         removeDent,
 
         // RLE

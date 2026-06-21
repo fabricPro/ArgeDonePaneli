@@ -118,20 +118,11 @@
     function renderDentGrid() {
         const host = $('tarak-dent-grid');
         if (!host) return;
+        if (state.mode === 'manuel') { renderManuelGrid(host); return; }
         const dis = state.dentThreads.length;
-        const manuel = state.mode === 'manuel';
-        // Manuel modda "+ Diş ekle" / "− Son diş" araç çubuğu (her render'da görünür)
-        const manuelTools = manuel ? `
-            <div class="tarak-manuel-tools">
-                <button type="button" class="btn-mini tarak-dent-add" data-dent-add>+ Diş ekle</button>
-                <button type="button" class="btn-mini tarak-dent-del-last" data-dent-del-last ${dis === 0 ? 'disabled' : ''}>− Son diş</button>
-                <span class="tarak-manuel-hint">Dişe sol-tık <b>+1 tel</b> · sağ-tık <b>−1 tel</b></span>
-            </div>` : '';
 
         if (dis === 0) {
-            host.innerHTML = manuel
-                ? `<div class="tarak-empty">Sıklığı gir, sonra <b>+ Diş ekle</b> ile rapor kur</div>${manuelTools}`
-                : `<div class="tarak-empty">Tarak sıklığı ve rapor değerini girin</div>`;
+            host.innerHTML = `<div class="tarak-empty">Tarak sıklığı ve rapor değerini girin</div>`;
             return;
         }
 
@@ -167,8 +158,32 @@
                 <div class="tarak-dent-numbers">${numbers.join('')}</div>
                 <div class="tarak-dent-bars">${bars.join('')}</div>
             </div>
-            ${manuelTools}
         `;
+    }
+
+    // Manuel mod — diş-başına birim: aralarda "+" ekleme noktası, her dişte × çıkar + tel hücresi.
+    function renderManuelGrid(host) {
+        const dis = state.dentThreads.length;
+        let maxThread = 0;
+        for (let i = 0; i < dis; i++) if (state.dentThreads[i] > maxThread) maxThread = state.dentThreads[i];
+        const ins = (k, title) => `<button type="button" class="tarak-mins" data-dent-insert="${k}" title="${title}" aria-label="${title}">+</button>`;
+        let row = '<div class="tarak-manuel-row">' + ins(0, 'Başa diş ekle');
+        for (let i = 0; i < dis; i++) {
+            const tel = state.dentThreads[i] || 0;
+            const filled = tel > 0;
+            const barH = (maxThread > 0 && tel > 0) ? Math.max(2, Math.round((tel / maxThread) * 34)) : 0;
+            row += `<div class="tarak-mdent">
+                <button type="button" class="tarak-mdent-del" data-dent-del="${i}" title="Bu dişi çıkar" aria-label="Diş ${i + 1} çıkar">×</button>
+                <span class="tarak-mdent-bar ${tel === 0 ? 'is-empty' : ''}" style="height:${barH}px"></span>
+                <button type="button" class="tarak-dent-cell ${filled ? 'is-filled' : ''}" data-dent-i="${i}" aria-label="Diş ${i + 1}: ${tel} tel">${tel || ''}</button>
+                <span class="tarak-mdent-num">${i + 1}</span>
+            </div>`;
+            row += ins(i + 1, 'Araya diş ekle');
+        }
+        row += '</div>';
+        const empty = dis === 0 ? '<div class="tarak-empty">Sıklığı gir, <b>+</b> ile diş ekle</div>' : '';
+        const hint = '<div class="tarak-manuel-hint">Dişe sol-tık <b>+1 tel</b> · sağ-tık <b>−1 tel</b> · aradaki <b>+</b> araya ekler · <b>×</b> dişi çıkarır</div>';
+        host.innerHTML = empty + row + hint;
     }
 
     // === KART 4 — TARAK RAPORU ===
@@ -303,14 +318,16 @@
         const host = $('tarak-dent-grid');
         if (!host) return;
         host.addEventListener('click', evt => {
-            // Manuel mod — diş ekle / son dişi sil
-            if (evt.target.closest('[data-dent-add]')) {
-                state = TC.addDent(state);
+            // Manuel mod — araya diş ekle / o dişi çıkar
+            const insBtn = evt.target.closest('[data-dent-insert]');
+            if (insBtn) {
+                state = TC.insertDent(state, parseInt(insBtn.dataset.dentInsert, 10));
                 renderDentGrid(); renderStats(); renderReport(); renderHint();
                 return;
             }
-            if (evt.target.closest('[data-dent-del-last]')) {
-                state = TC.removeDent(state);
+            const delBtn = evt.target.closest('[data-dent-del]');
+            if (delBtn) {
+                state = TC.removeDent(state, parseInt(delBtn.dataset.dentDel, 10));
                 renderDentGrid(); renderStats(); renderReport(); renderHint();
                 return;
             }
