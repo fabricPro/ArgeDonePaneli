@@ -719,7 +719,19 @@
                     <div id="surum-source-list">
                         {# JS doldurur — mevcut sürüm listesi #}
                     </div>
-                    <p class="surum-source-hint">Miras alındığında <strong>1·Analiz</strong> + <strong>2·Desen</strong> tabları kopyalanır. <strong>3·Tarak</strong> ve notlar boş başlar.</p>
+                    <p class="surum-source-hint">Bir kaynak sürüm seçersen aşağıdan <strong>kopyalanacak sekmeleri</strong> belirleyebilirsin (hepsi seçili gelir).</p>
+                    {# Kaynak seçilince görünür — kopyalanacak sekmeler (hepsi varsayılan seçili) #}
+                    <div class="surum-sections" id="surum-sections" hidden>
+                        <span class="surum-sections-lbl">Kopyalanacak sekmeler</span>
+                        <div class="surum-sections-grid">
+                            <label><input type="checkbox" class="surum-sec-cb" value="analiz" checked> Analiz</label>
+                            <label><input type="checkbox" class="surum-sec-cb" value="desen" checked> Desen</label>
+                            <label><input type="checkbox" class="surum-sec-cb" value="tarak" checked> Tarak</label>
+                            <label><input type="checkbox" class="surum-sec-cb" value="plan" checked> Plan</label>
+                            <label><input type="checkbox" class="surum-sec-cb" value="notlar" checked> Notlar</label>
+                            <label><input type="checkbox" class="surum-sec-cb" value="todo" checked> To-Do</label>
+                        </div>
+                    </div>
                 </fieldset>
             </div>
 
@@ -1266,6 +1278,7 @@
                             <span class="tarak-mode-toggle" role="tablist">
                                 <button type="button" class="tarak-mode-btn is-active" data-tarak-mode="dis">Diş</button>
                                 <button type="button" class="tarak-mode-btn" data-tarak-mode="cm">cm</button>
+                                <button type="button" class="tarak-mode-btn" data-tarak-mode="manuel">Manuel</button>
                             </span>
                         </div>
                         <div class="tarak-field tarak-actions">

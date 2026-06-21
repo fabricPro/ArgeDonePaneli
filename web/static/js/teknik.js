@@ -340,7 +340,7 @@
                 <input type="radio" name="surum-source" value="${s.id}">
                 <div>
                     <strong>${escapeHtml(s.ad || s.id)}</strong>
-                    <small>${escapeHtml(s.id)} sürümünden 1·Analiz + 2·Desen miras al</small>
+                    <small>${escapeHtml(s.id)} sürümünden seçili sekmeleri kopyala</small>
                 </div>
             `;
             sourceListEl.appendChild(lbl);
@@ -349,6 +349,16 @@
         // "Boş başla" default seçili
         const emptyOpt = modalYeniSurum.querySelector('input[name="surum-source"][value=""]');
         if (emptyOpt) emptyOpt.checked = true;
+
+        // Kopyalanacak-sekmeler bloğu: yalnız bir KAYNAK sürüm seçiliyse görünür (hepsi seçili gelir)
+        const secBox = document.getElementById('surum-sections');
+        const syncSecBox = () => {
+            const r = modalYeniSurum.querySelector('input[name="surum-source"]:checked');
+            if (secBox) secBox.hidden = !(r && r.value);
+        };
+        syncSecBox();
+        modalYeniSurum.querySelectorAll('input[name="surum-source"]').forEach(r =>
+            r.addEventListener('change', syncSecBox));
 
         if (typeof modalYeniSurum.showModal === 'function') {
             modalYeniSurum.showModal();
@@ -376,7 +386,12 @@
         const sourceId = (sourceRadio && sourceRadio.value) || '';
 
         const body = { ad };
-        if (sourceId) body.source_surum_id = sourceId;
+        if (sourceId) {
+            body.source_surum_id = sourceId;
+            // Kopyalanacak sekmeler (işaretli olanlar). Hiçbiri seçilmezse boş liste → hiç kopyalanmaz.
+            body.sections = Array.from(
+                modalYeniSurum.querySelectorAll('.surum-sec-cb:checked')).map(cb => cb.value);
+        }
 
         btnConfirmCreate.disabled = true;
         btnConfirmCreate.textContent = 'Oluşturuluyor…';

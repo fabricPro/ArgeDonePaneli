@@ -116,6 +116,13 @@
     function calcHint(t) {
         const siklik = parseN(t && t.siklik, 0);
         if (siklik <= 0) return null;
+        if (t.mode === 'manuel') {
+            // Diş diş kurulur; uzunluk = dentThreads. Rapor cm bundan türetilir.
+            const dis = (t && Array.isArray(t.dentThreads)) ? t.dentThreads.length : 0;
+            if (dis <= 0) return null;
+            const cm = dis / siklik;
+            return { from: `${dis} diş ÷ ${siklik} diş/cm`, to: `rapor ${cm.toFixed(4)} cm` };
+        }
         if (t.mode === 'dis') {
             const dis = parseN(t.raporDis, 0);
             if (dis <= 0) return null;
@@ -149,7 +156,11 @@
         let target = 0;
         const siklik = parseN(t.siklik, 0);
 
-        if (t.mode === 'cm') {
+        const current0 = Array.isArray(t.dentThreads) ? t.dentThreads : [];
+        if (t.mode === 'manuel') {
+            // Manuel: uzunluk DIŞARIDAN belirlenmez; dentThreads kullanıcının kurduğu kadar (addDent/removeDent ile).
+            target = current0.length;
+        } else if (t.mode === 'cm') {
             const cm = parseN(t.raporCm, 0);
             if (siklik > 0 && cm > 0) {
                 target = Math.round(siklik * cm);
@@ -162,7 +173,7 @@
         if (target < 0) target = 0;
         if (target > MAX_DIS) target = MAX_DIS;
 
-        const current = Array.isArray(t.dentThreads) ? t.dentThreads : [];
+        const current = current0;
         let newThreads = current;
         if (current.length !== target) {
             newThreads = new Array(target);
@@ -172,8 +183,8 @@
             }
         }
 
-        // cm modunda raporDis'i güncelle (string)
-        const newRaporDis = (t.mode === 'cm' && target > 0) ? String(target) : t.raporDis;
+        // cm/manuel modunda raporDis'i diş sayısına eşitle (string)
+        const newRaporDis = ((t.mode === 'cm' && target > 0) || t.mode === 'manuel') ? String(target) : t.raporDis;
 
         // Idempotent check — referans eşitliği
         if (newThreads === current && newRaporDis === t.raporDis) {
@@ -215,6 +226,34 @@
         if (!t || !Array.isArray(t.dentThreads)) return t;
         const n = t.dentThreads.length;
         return { ...t, dentThreads: new Array(n).fill(0) };
+    }
+
+    /**
+     * Manuel mod — sona yeni boş diş (0 tel) ekle. raporDis diş sayısına eşitlenir. MAX_DIS sınırı.
+     * @param {TarakState} t
+     * @returns {TarakState}
+     */
+    function addDent(t) {
+        if (!t) return defaultTarak();
+        const cur = Array.isArray(t.dentThreads) ? t.dentThreads : [];
+        if (cur.length >= MAX_DIS) return t;
+        const newThreads = cur.concat(0);
+        return { ...t, dentThreads: newThreads, raporDis: String(newThreads.length) };
+    }
+
+    /**
+     * Manuel mod — bir dişi sil (i verilmezse SON diş). raporDis güncellenir.
+     * @param {TarakState} t
+     * @param {number} [i]
+     * @returns {TarakState}
+     */
+    function removeDent(t, i) {
+        if (!t || !Array.isArray(t.dentThreads) || t.dentThreads.length === 0) return t;
+        const idx = (typeof i === 'number' && i >= 0 && i < t.dentThreads.length)
+            ? i : (t.dentThreads.length - 1);
+        const newThreads = t.dentThreads.slice();
+        newThreads.splice(idx, 1);
+        return { ...t, dentThreads: newThreads, raporDis: String(newThreads.length) };
     }
 
     // === RLE ===
@@ -265,7 +304,7 @@
         const out = {
             siklik:    typeof t.siklik === 'string' ? t.siklik : (typeof t.siklik === 'number' ? String(t.siklik) : ''),
             raporDis:  typeof t.raporDis === 'string' ? t.raporDis : (typeof t.raporDis === 'number' ? String(t.raporDis) : ''),
-            mode:      (t.mode === 'cm' || t.mode === 'dis') ? t.mode : 'dis',
+            mode:      (t.mode === 'cm' || t.mode === 'dis' || t.mode === 'manuel') ? t.mode : 'dis',
             raporCm:   typeof t.raporCm === 'string' ? t.raporCm : (typeof t.raporCm === 'number' ? String(t.raporCm) : ''),
             dentThreads: Array.isArray(t.dentThreads)
                 ? t.dentThreads.map(v => {
@@ -297,6 +336,8 @@
         syncDentThreads,
         incThread,
         resetThreads,
+        addDent,
+        removeDent,
 
         // RLE
         rle,

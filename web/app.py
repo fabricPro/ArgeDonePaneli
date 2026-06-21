@@ -2646,12 +2646,12 @@ def _find_surum(teknik: dict, surum_id: str) -> dict | None:
 @app.route("/api/urun/<urun_id>/teknik/surum", methods=["POST"])
 def api_teknik_surum_create(urun_id: str):
     """Yeni teknik sürüm oluştur.
-    Body: {ad, source_surum_id?}
+    Body: {ad, source_surum_id?, sections?}
 
-    v4.0-part-2 Adım 8 — Eğer source_surum_id verilirse, o sürümdeki
-    1·Analiz (kunye + parametreler + iplikler) + 2·Desen (desen) tablar
-    KOPYALANIR. 3·Tarak (tahar_grid, tarak_raporu, tarak) ve notlar her
-    zaman BOŞ başlar.
+    source_surum_id verilirse SEÇİLİ sekmeler kaynaktan kopyalanır. sections listesi:
+    'analiz' (kunye+parametreler+iplikler), 'desen', 'tarak' (tahar_grid+tarak_raporu+tarak),
+    'notlar' (notlar+notlar_html), 'plan' (d.plan[surum]), 'todo' (gorevler tablosu, surum_id'li).
+    sections yoksa ama kaynak varsa → HEPSİ. Seçilmeyen sekmeler boş başlar.
     """
     import copy
     d = store.get(urun_id)
@@ -2666,30 +2666,47 @@ def api_teknik_surum_create(urun_id: str):
     now = now_iso()
 
     source = _find_surum(teknik, source_id) if source_id else None
+    # Hangi sekmeler kopyalanacak? Body'de 'sections' yoksa (ama kaynak varsa) → HEPSİ (varsayılan).
+    SECTION_KEYS = ["analiz", "desen", "tarak", "notlar", "plan", "todo"]
+    sections = body.get("sections")
+    if source and sections is None:
+        sections = list(SECTION_KEYS)
+    sections = set(sections or [])
     if source:
-        # Miras alma: Analiz + Desen kopyalanır, Tarak + notlar boş.
-        kunye_copy = copy.deepcopy(source.get("kunye") or {})
-        # Tarih taze: yeni çalışma bugün başlıyor
-        kunye_copy["tarih"] = now[:10]
+        # Boş tabandan kur, yalnız SEÇİLİ sekmeleri kaynaktan kopyala (deepcopy).
         surum = {
             "id": new_id,
             "ad": ad,
             "olusturma_tarihi": now,
             "guncelleme_tarihi": now,
-            "kunye": kunye_copy,
-            "parametreler": copy.deepcopy(source.get("parametreler") or {}),
-            "iplikler": copy.deepcopy(source.get("iplikler") or {"cozgu": [], "atki": []}),
-            "desen": copy.deepcopy(source.get("desen") or {}),
-            # 3·Tarak boş başlar
+            "kunye": {"ad": d.get("product_code") or d.get("product_name") or "",
+                      "musteri": d.get("brand") or "", "tarih": now[:10]},
+            "parametreler": {},
+            "iplikler": {"cozgu": [], "atki": []},
+            "desen": {},
             "tahar_grid": {},
             "tarak_raporu": {},
             "tarak": {},
-            # Notlar boş başlar (sürüm-spesifik)
             "notlar": "",
             "notlar_html": "",
             # Mirastan geldiği info (audit + UI badge için)
             "inherited_from": source_id,
         }
+        if "analiz" in sections:
+            kunye_copy = copy.deepcopy(source.get("kunye") or {})
+            kunye_copy["tarih"] = now[:10]   # yeni çalışma bugün başlıyor
+            surum["kunye"] = kunye_copy
+            surum["parametreler"] = copy.deepcopy(source.get("parametreler") or {})
+            surum["iplikler"] = copy.deepcopy(source.get("iplikler") or {"cozgu": [], "atki": []})
+        if "desen" in sections:
+            surum["desen"] = copy.deepcopy(source.get("desen") or {})
+        if "tarak" in sections:
+            surum["tahar_grid"] = copy.deepcopy(source.get("tahar_grid") or {})
+            surum["tarak_raporu"] = copy.deepcopy(source.get("tarak_raporu") or {})
+            surum["tarak"] = copy.deepcopy(source.get("tarak") or {})
+        if "notlar" in sections:
+            surum["notlar"] = source.get("notlar") or ""
+            surum["notlar_html"] = source.get("notlar_html") or ""
     else:
         surum = {
             "id": new_id,
@@ -2729,8 +2746,26 @@ def api_teknik_surum_create(urun_id: str):
     teknik["surumler"].append(surum)
     # İlk sürüm otomatik aktif (veya miras alındıysa onu da aktif yap — kullanıcı yeniyi düzenleyecek)
     teknik["active_surum_id"] = new_id
+    # Plan dilimi kopyala (upsert ÖNCESİ — aynı products kaydında jsonb)
+    if source and "plan" in sections:
+        plan_map = d.get("plan")
+        if isinstance(plan_map, dict) and isinstance(plan_map.get(source_id), dict):
+            new_plan = copy.deepcopy(plan_map[source_id])
+            new_plan["surum_id"] = new_id
+            new_plan["guncelleme_tarihi"] = now
+            plan_map[new_id] = new_plan
+            d["plan"] = plan_map
     d["updated_at"] = now
     store.upsert(d)
+    # To-Do kopyala (upsert SONRASI — ayrı 'gorevler' tablosu; kaynağın sürüm görevlerini yeni sürüme replike)
+    if source and "todo" in sections:
+        try:
+            for g in store.gorev_list_by_product(urun_id, source_id):
+                store.gorev_create(urun_id, g.get("baslik") or "", surum_id=new_id,
+                                   durum=g.get("durum") or "acik", oncelik=g.get("oncelik"),
+                                   sira=g.get("sira") or 0)
+        except Exception:
+            pass  # gorevler tablosu yoksa sessiz geç (defensive)
     return jsonify({"ok": True, "surum": surum, "active_surum_id": teknik["active_surum_id"]})
 
 

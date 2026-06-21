@@ -119,9 +119,19 @@
         const host = $('tarak-dent-grid');
         if (!host) return;
         const dis = state.dentThreads.length;
+        const manuel = state.mode === 'manuel';
+        // Manuel modda "+ Diş ekle" / "− Son diş" araç çubuğu (her render'da görünür)
+        const manuelTools = manuel ? `
+            <div class="tarak-manuel-tools">
+                <button type="button" class="btn-mini tarak-dent-add" data-dent-add>+ Diş ekle</button>
+                <button type="button" class="btn-mini tarak-dent-del-last" data-dent-del-last ${dis === 0 ? 'disabled' : ''}>− Son diş</button>
+                <span class="tarak-manuel-hint">Dişe sol-tık <b>+1 tel</b> · sağ-tık <b>−1 tel</b></span>
+            </div>` : '';
 
         if (dis === 0) {
-            host.innerHTML = `<div class="tarak-empty">Tarak sıklığı ve rapor değerini girin</div>`;
+            host.innerHTML = manuel
+                ? `<div class="tarak-empty">Sıklığı gir, sonra <b>+ Diş ekle</b> ile rapor kur</div>${manuelTools}`
+                : `<div class="tarak-empty">Tarak sıklığı ve rapor değerini girin</div>`;
             return;
         }
 
@@ -157,6 +167,7 @@
                 <div class="tarak-dent-numbers">${numbers.join('')}</div>
                 <div class="tarak-dent-bars">${bars.join('')}</div>
             </div>
+            ${manuelTools}
         `;
     }
 
@@ -267,6 +278,10 @@
                 const newMode = btn.dataset.tarakMode;
                 if (newMode === state.mode) return;
                 state = TC.syncDentThreads({ ...state, mode: newMode });
+                // Manuel'e geçişte diş yoksa ilk dişi aç (kullanıcı "+" ile devam eder)
+                if (newMode === 'manuel' && state.dentThreads.length === 0) {
+                    state = TC.addDent(state);
+                }
                 render();
             });
         });
@@ -288,6 +303,17 @@
         const host = $('tarak-dent-grid');
         if (!host) return;
         host.addEventListener('click', evt => {
+            // Manuel mod — diş ekle / son dişi sil
+            if (evt.target.closest('[data-dent-add]')) {
+                state = TC.addDent(state);
+                renderDentGrid(); renderStats(); renderReport(); renderHint();
+                return;
+            }
+            if (evt.target.closest('[data-dent-del-last]')) {
+                state = TC.removeDent(state);
+                renderDentGrid(); renderStats(); renderReport(); renderHint();
+                return;
+            }
             const cell = evt.target.closest('[data-dent-i]');
             if (!cell) return;
             const i = parseInt(cell.dataset.dentI, 10);
