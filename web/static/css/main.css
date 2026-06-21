@@ -7466,6 +7466,37 @@ body.cw-fullscreen .cw-right-pane {
 }
 body.cw-fullscreen main { padding: 0 !important; max-width: 100% !important; }
 
+/* tasarim-v2 — Sol FOTO pane'i geçici tam-pane (cw-fullscreen simetriği). Rail + sağ teknik pane + topbar
+   gizlenir; foto tüm genişlik+yükseklik. Tekrar bas/Esc → split eski oranıyla geri (kalıcı daralma yok). */
+body.cw-left-full .topbar,
+body.cw-left-full .mobile-tabbar,
+body.cw-left-full .cw-rail,
+body.cw-left-full .cw-right-pane { display: none !important; }
+body.cw-left-full .cw-split {
+    grid-template-columns: 1fr !important;     /* sadece sol foto pane */
+    grid-template-rows: 1fr !important;        /* portrait stack'i de geçersiz kıl */
+    gap: 0 !important;
+    height: 100vh !important;
+}
+body.cw-left-full .cw-left-pane { border-radius: 0 !important; border: none !important; }
+body.cw-left-full .cw-divider { display: none !important; }
+body.cw-left-full main { padding: 0 !important; max-width: 100% !important; }
+
+/* Sol pane "Büyüt" yüzer butonu (üst-sol köşe; beyaz hap, gallery/hero-tool dili) */
+.cw-left-pane { position: relative; }
+.cw-left-expand {
+    position: absolute; top: 8px; left: 8px; z-index: 7;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 999px;
+    background: rgba(255,255,255,.92); border: 1px solid var(--border); color: var(--ink-2);
+    box-shadow: var(--sh); cursor: pointer;
+    -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+    transition: color .14s, background .14s, border-color .14s;
+}
+.cw-left-expand:hover { color: var(--accent-strong); border-color: var(--accent-border); }
+.cw-left-expand .icon { width: 16px; height: 16px; }
+body.cw-left-full .cw-left-expand { color: var(--accent-strong); border-color: var(--accent-border); }
+
 /* ---- Mobil portrait fallback: stacked (sadece dik tutulduğunda) ---- */
 @media (max-width: 900px) and (orientation: portrait) {
     .cw-split {

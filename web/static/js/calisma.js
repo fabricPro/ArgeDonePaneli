@@ -723,6 +723,24 @@
     }
   }
 
+  // Sol foto pane'ini GEÇİCİ tam-pane büyüt (oran/teknik pane kalıcı daralmaz). cw-fullscreen simetriği.
+  const leftExpandBtn = document.getElementById('cw-left-expand');
+  function setLeftFull(on) {
+    document.body.classList.toggle('cw-left-full', !!on);
+    if (leftExpandBtn) {
+      leftExpandBtn.title = on ? 'Küçült' : 'Fotoğrafı büyüt';
+      leftExpandBtn.setAttribute('aria-label', leftExpandBtn.title);
+      const use = leftExpandBtn.querySelector('use');
+      if (use) use.setAttribute('href', on ? '#ic-minimize' : '#ic-maximize');
+    }
+    requestAnimationFrame(positionDivider);
+  }
+  if (leftExpandBtn) leftExpandBtn.addEventListener('click', () =>
+    setLeftFull(!document.body.classList.contains('cw-left-full')));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.body.classList.contains('cw-left-full')) setLeftFull(false);
+  });
+
   // tasarim-v2 — Teknik iframe'inden gelen "tam ekran" sinyali (iframe sınırı aştırma)
   // Iframe sağ pane'in body'sine teknik-fullscreen class'ı eklemek yetmiyor (parent grid sabit
   // kalıyor); parent'a postMessage ile sinyal gönderiyor, biz burada body class'ı çevirip
