@@ -7541,20 +7541,15 @@ body.embed-calisma-left [data-tab="notlar"] {
     display: none !important;
 }
 
-/* Sol pane = temiz GÖRSEL İNCELEYİCİ (tablet düzeltme): hero görseli pane'i doldurur
-   (iframe içinde 100vh = pane yüksekliği → portrait/landscape ikisine de uyar), görselin
-   TAMAMI görünür (contain), yönetim grid'i + albüm sekmeleri galeri modunda gizli.
-   Yalnız künye barı (+ künye görünümü) kalır. Tam ürün sayfası/sağ pane ETKİLENMEZ. */
-body.embed-calisma-left .urun-sticky-hero {
-    position: static; top: auto; margin: 0 0 8px;
-    display: flex; flex-direction: column;
-}
-body.embed-calisma-left .hero-carousel { display: flex; flex-direction: column; }
-body.embed-calisma-left .hero-stage { height: calc(100vh - 132px); min-height: 200px; }
-body.embed-calisma-left .hero-thumbs { flex: 0 0 auto; }
+/* Sol pane = GÖRSEL + KÜNYE + RENK PALETİ (tablet): hero makul yükseklikte (pane'i doldurmaz),
+   görselin TAMAMI görünür (contain). Galeri modunda yönetim grid'i + albüm sekmeleri + header gizli;
+   görünür kalanlar: künye barı, künye görünümü ve Renk Paleti (.color-tools — künye barının altında).
+   İçerik uzarsa pane doğal kaydırır. Tam ürün sayfası/sağ pane ETKİLENMEZ. */
+body.embed-calisma-left .urun-sticky-hero { position: static; top: auto; margin: 0 0 8px; }
+body.embed-calisma-left .hero-stage { height: clamp(220px, 56vh, 440px); }   /* iframe içi vh = pane yüksekliği */
 body.embed-calisma-left .hero-slide { object-fit: contain; }   /* kenar kırpma yok — kumaşın tamamı */
-/* Galeri modunda yönetim grid'i / albüm sekmeleri / ekleme UI'ı gizle (bar + künye görünümü hariç) */
-body.embed-calisma-left:not(.kunye-view) [data-tab="galeri"] > :not(.cw-kunye-bar):not(.cw-kunye-view) {
+/* Galeri modunda: bar + künye görünümü + Renk Paleti hariç her şeyi gizle (yönetim grid'i, sekmeler...) */
+body.embed-calisma-left:not(.kunye-view) [data-tab="galeri"] > :not(.cw-kunye-bar):not(.cw-kunye-view):not(.color-tools) {
     display: none !important;
 }
 
