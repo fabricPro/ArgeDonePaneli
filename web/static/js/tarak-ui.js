@@ -21,6 +21,7 @@
     // === State ===
     let state = TC.defaultTarak();
     let copyTimer = null;
+    let manuelEdit = false;   // Manuel mod "Tasarım Modu" — salt UI; kapalıyken +/× gizli (temiz görünüm)
 
     // === DOM cache ===
     const $ = id => document.getElementById(id);
@@ -167,7 +168,12 @@
         let maxThread = 0;
         for (let i = 0; i < dis; i++) if (state.dentThreads[i] > maxThread) maxThread = state.dentThreads[i];
         const ins = (k, title) => `<button type="button" class="tarak-mins" data-dent-insert="${k}" title="${title}" aria-label="${title}">+</button>`;
-        let row = '<div class="tarak-manuel-row">' + ins(0, 'Başa diş ekle');
+        const head = `<div class="tarak-manuel-head">
+            <button type="button" class="btn-mini tarak-edit-toggle ${manuelEdit ? 'is-active' : ''}" data-manuel-edit aria-pressed="${manuelEdit}">
+                <svg class="icon"><use href="#ic-pencil"/></svg> Tasarım Modu
+            </button>
+        </div>`;
+        let row = `<div class="tarak-manuel-row ${manuelEdit ? 'is-editing' : ''}">` + ins(0, 'Başa diş ekle');
         for (let i = 0; i < dis; i++) {
             const tel = state.dentThreads[i] || 0;
             const filled = tel > 0;
@@ -181,9 +187,13 @@
             row += ins(i + 1, 'Araya diş ekle');
         }
         row += '</div>';
-        const empty = dis === 0 ? '<div class="tarak-empty">Sıklığı gir, <b>+</b> ile diş ekle</div>' : '';
-        const hint = '<div class="tarak-manuel-hint">Dişe sol-tık <b>+1 tel</b> · sağ-tık <b>−1 tel</b> · aradaki <b>+</b> araya ekler · <b>×</b> dişi çıkarır</div>';
-        host.innerHTML = empty + row + hint;
+        const empty = dis === 0
+            ? `<div class="tarak-empty">Sıklığı gir, <b>Tasarım Modu</b>'nu açıp <b>+</b> ile diş ekle</div>`
+            : '';
+        const hint = manuelEdit
+            ? '<div class="tarak-manuel-hint">Dişe sol-tık <b>+1 tel</b> · sağ-tık <b>−1 tel</b> · aradaki <b>+</b> araya ekler · <b>×</b> dişi çıkarır</div>'
+            : '<div class="tarak-manuel-hint">Dişe sol-tık <b>+1 tel</b> · sağ-tık <b>−1 tel</b> · diş ekle/çıkar için <b>Tasarım Modu</b></div>';
+        host.innerHTML = head + empty + row + hint;
     }
 
     // === KART 4 — TARAK RAPORU ===
@@ -318,6 +328,12 @@
         const host = $('tarak-dent-grid');
         if (!host) return;
         host.addEventListener('click', evt => {
+            // Manuel mod — Tasarım Modu aç/kapa (düzenleme kontrolleri görünür/gizli)
+            if (evt.target.closest('[data-manuel-edit]')) {
+                manuelEdit = !manuelEdit;
+                renderDentGrid();
+                return;
+            }
             // Manuel mod — araya diş ekle / o dişi çıkar
             const insBtn = evt.target.closest('[data-dent-insert]');
             if (insBtn) {
