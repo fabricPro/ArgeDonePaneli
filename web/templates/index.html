@@ -94,7 +94,8 @@
            data-name="{{ p.product_name|lower }}"
            data-country="{{ (p.country or '')|lower }}"
            data-country-raw="{{ p.country or '' }}"
-           data-status="{{ p.status or 'active' }}">
+           data-status="{{ p.status or 'active' }}"
+           data-has-notlar="{{ 'true' if p.has_urun_notlar else 'false' }}">
             <button type="button" class="card-delete-btn" data-urunid="{{ p.urun_id }}" data-name-label="{{ p.product_name }}" aria-label="Bu ürünü sil" title="Bu ürünü sil"><svg class="icon"><use href="{{ sprite }}#ic-x"/></svg></button>
             {# v4.0-part-2 Sprint 8 — Çalışma Alanına pin/unpin #}
             <button type="button" class="card-pin-btn {% if p.in_workspace %}is-pinned{% endif %}"
@@ -151,7 +152,7 @@
                           data-tooltip="{% if p.has_pdf %}{{ p.pdf_count }} PDF doküman yüklü{% else %}PDF doküman yok{% endif %}">
                         <svg class="icon"><use href="{{ sprite }}#ic-file"/></svg>
                     </span>
-                    <span class="ind {% if p.has_notlar %}on{% else %}off{% endif %}"
+                    <span class="ind {% if p.has_notlar %}on{% else %}off{% endif %}{% if p.has_urun_notlar %} nh-trigger{% endif %}"
                           data-tooltip="{% if p.has_notlar %}Notlar mevcut{% else %}Not girilmemiş{% endif %}">
                         <svg class="icon"><use href="{{ sprite }}#ic-pencil"/></svg>
                     </span>
@@ -438,17 +439,26 @@ async function pinAndAssign(uid, albumId) {
     if (d.ok) setGalleryCardFolders(uid, d.album_ids || []);
     return d.ok;
 }
-// Tekil kart "⋯"
+// Tekil kart "Çalışma klasörüne ata" → FolderPicker popover (ürün detayı ile aynı)
 document.querySelectorAll('.card-folder-btn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
+    btn.addEventListener('click', (e) => {
         e.preventDefault(); e.stopPropagation();
         if (selectMode) return;   // seç modunda gizli zaten
+        if (!window.FolderPicker) { (window.toast || alert)('Klasör seçici yüklenemedi', 'error'); return; }
         const uid = btn.dataset.urunid;
-        const name = btn.dataset.nameLabel || uid;
-        const pick = await pickCwFolder(`"${name}" kumaşını hangi Çalışma klasörüne at?`);
-        if (!pick) return;
-        const ok = await pinAndAssign(uid, pick.albumId);
-        (window.toast || alert)(ok ? (pick.albumId ? 'Çalışma klasörüne eklendi' : 'Çalışmaya eklendi') : 'Atanamadı', ok ? 'success' : 'error');
+        window.FolderPicker.open({
+            urunId: uid,
+            anchorEl: btn,
+            onChange: (ev) => {
+                if (!ev) return;
+                if (ev.albums) cwAlbumsCache = ev.albums;                  // rozet ad/renkleri güncel kalsın
+                if (ev.albumIds) setGalleryCardFolders(uid, ev.albumIds);  // kart klasör rozetleri (çoka-çok)
+                if (ev.pinned) {
+                    const pinBtn = document.querySelector(`.card-pin-btn[data-urunid="${CSS.escape(uid)}"]`);
+                    if (pinBtn) { pinBtn.dataset.pinned = 'true'; pinBtn.classList.add('is-pinned'); pinBtn.title = 'Çalışmadan çıkar'; }
+                }
+            },
+        });
     });
 });
 // Toplu "Klasöre Taşı"

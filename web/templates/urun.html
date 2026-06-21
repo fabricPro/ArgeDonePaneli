@@ -107,7 +107,10 @@
         <span><svg class="icon"><use href="#ic-file"/></svg> Dokümanlar</span>
         {% if product.pdfs %}<span class="utab-cnt">{{ product.pdfs|length }}</span>{% endif %}
     </button>
-    {# v4.0-part-2 Sprint 8.4 — Notlar artık Teknik > 4·Notlar alt-sekmesinde (sürüm-spesifik) #}
+    {# v3.0 — Ürün-seviyesi serbest Notlar (sürüm-spesifik Teknik>Notlar'dan AYRI) #}
+    <button type="button" class="utab-btn {% if not product.notlar_html %}is-empty{% endif %}" data-tab="notlar">
+        <span><svg class="icon"><use href="#ic-pencil"/></svg> Notlar</span>
+    </button>
 </nav>
 
 {# === GALERİ SEKMESİ — mevcut tüm yapı === #}
@@ -220,6 +223,13 @@
                 title="Bu ürünü Çalışma Alanı tab'ında listele (hızlı erişim için)">
             <svg class="icon"><use href="#ic-pin"/></svg>
             <span class="pin-label">{% if in_workspace %}Çalışmadan Çıkar{% else %}Çalışmaya Ekle{% endif %}</span>
+        </button>
+        {# Galeriden ürün detayında: Çalışma klasörüne gönder (galeri ⋯ ile aynı yetenek) #}
+        <button class="btn btn-secondary" id="send-folder-btn"
+                aria-haspopup="dialog" aria-expanded="false"
+                title="Bu ürünü bir Çalışma klasörüne (albüm) ekle">
+            <svg class="icon"><use href="#ic-folder-plus"/></svg>
+            <span>Klasöre Ekle</span>
         </button>
         <button class="btn btn-danger" id="delete-product-btn"><svg class="icon"><use href="#ic-trash"/></svg> Ürünü Sil</button>
     </div>
@@ -557,6 +567,44 @@
 <div class="thumb-strip" id="thumb-strip" aria-label="Görsel önizleme"></div>
 
 </section>{# /Galeri sekmesi #}
+
+{# === v3.0 ÜRÜN-SEVİYESİ NOTLAR SEKMESİ (sürüm-spesifik Teknik>Notlar'dan AYRI) === #}
+<section data-tab="notlar" class="utab-section" hidden>
+  <div class="tek-module urun-notlar-wrap">
+    <header class="notlar-head">
+      <h2>Notlar</h2>
+      <div class="notlar-actions">
+        <span class="notlar-status" id="urun-notlar-status">Kaydedildi</span>
+        <button class="btn btn-primary" id="urun-notlar-save-btn" type="button">Kaydet</button>
+      </div>
+    </header>
+    <div class="rich-editor">
+      <div class="rich-toolbar" id="urun-notlar-toolbar">
+        <button type="button" data-cmd="bold" title="Kalın (Ctrl+B)"><b>B</b></button>
+        <button type="button" data-cmd="italic" title="İtalik (Ctrl+I)"><i>I</i></button>
+        <button type="button" data-cmd="underline" title="Altı çizili (Ctrl+U)"><u>U</u></button>
+        <span class="rich-sep"></span>
+        <select id="urun-notlar-fontsize" title="Yazı boyutu">
+          <option value="2">Küçük</option><option value="3" selected>Normal</option>
+          <option value="5">Büyük</option><option value="6">Çok Büyük</option>
+        </select>
+        <span class="rich-sep"></span>
+        <div class="rich-colors" role="toolbar" aria-label="Renk paleti">
+          <button type="button" data-color="#1d1f27" title="Varsayılan (siyah)" style="--c:#1d1f27"></button>
+          <button type="button" data-color="#5253c8" title="İndigo (vurgu)" style="--c:#5253c8"></button>
+          <button type="button" data-color="#0f857c" title="Teal (atkı)" style="--c:#0f857c"></button>
+          <button type="button" data-color="#178f5c" title="Yeşil (olumlu)" style="--c:#178f5c"></button>
+          <button type="button" data-color="#d23b3b" title="Kırmızı (uyarı)" style="--c:#d23b3b"></button>
+        </div>
+        <span class="rich-sep"></span>
+        <button type="button" data-cmd="insertUnorderedList" title="Liste">&bull;</button>
+        <button type="button" data-cmd="removeFormat" title="Format temizle">&#9003;</button>
+      </div>
+      <div id="urun-notlar-content" class="rich-content" contenteditable="true"
+           aria-label="Ürün notları düzenleme alanı">{{ (product.notlar_html or '')|safe }}</div>
+    </div>
+  </div>
+</section>
 
 {# === v4.0-part-2 Sprint 14 — ÖN ÇALIŞMA SEKMESİ (sadece from_research_row varsa) === #}
 {% if from_research_row %}
@@ -1771,6 +1819,26 @@ async function postJson(url, body) {
     });
     return res.json();
 }
+
+// --- Galeriden ürün detayı: Çalışma klasörüne gönder (FolderPicker popover) ---
+(function () {
+    const sendFolderBtn = document.getElementById('send-folder-btn');
+    if (!sendFolderBtn) return;
+    function syncPinButton(pinned) {
+        const pinBtn = document.getElementById('workspace-pin-btn');
+        if (!pinBtn || !pinned) return;
+        pinBtn.dataset.pinned = 'true';
+        const lbl = pinBtn.querySelector('.pin-label');
+        if (lbl) lbl.textContent = 'Çalışmadan Çıkar';
+    }
+    sendFolderBtn.addEventListener('click', () => {
+        if (!window.FolderPicker) { window.toast('Klasör seçici yüklenemedi', 'error'); return; }
+        window.FolderPicker.open({
+            urunId: URUN_ID, anchorEl: sendFolderBtn,
+            onChange: (ev) => { if (ev && ev.pinned) syncPinButton(true); },
+        });
+    });
+})();
 
 let designMode = false;
 
@@ -3401,7 +3469,7 @@ grid.addEventListener('dragover', (e) => {
     }
     tabs.forEach(t => t.addEventListener('click', () => setTab(t.dataset.tab)));
     // v4.0-part-2 Sprint 8.4 — 'notlar' ana sekmeden Teknik > 4·Notlar alt sekmesine taşındı
-    const VALID_TABS = ['galeri', 'teknik', 'dokuman'];
+    const VALID_TABS = ['galeri', 'teknik', 'dokuman', 'notlar'];
     // v4.0-part-2 Sprint 8 — embed modunda zorunlu varsayılan tab
     // Faz 3 — Görevler panosu derin linki: ?tab=teknik&sub=todo[&surum=<id>].
     // sub → teknik.js'in numune_tab tercihine yazılır (teknik.js init'te okur); surum teknik.js'te.
@@ -3410,10 +3478,7 @@ grid.addEventListener('dragover', (e) => {
     if (_qpSub) { try { localStorage.setItem('numune_tab', _qpSub); } catch (e) {} }
     let initial = _qp.get('tab') || (location.hash || '#galeri').slice(1);
     // Eski hash'lerden gelenler için bekç: '#notlar' → teknik aç, JS sub-tab Notlar'ı seçer
-    if (initial === 'notlar') {
-        initial = 'teknik';
-        try { localStorage.setItem('numune_tab', 'notlar'); } catch (e) {}
-    }
+    // v3.0 — '#notlar' artık gerçek bir üst sekme (eski Teknik yönlendirmesi kaldırıldı)
     const body = document.body;
     if (body.classList.contains('embed-calisma-left')) {
         initial = 'galeri';  // sol pane: sadece galeri
@@ -3443,6 +3508,7 @@ grid.addEventListener('dragover', (e) => {
 <script src="{{ url_for('static', filename='js/plan.js') }}"></script>
 <script src="{{ url_for('static', filename='js/pdf-tab.js') }}"></script>
 <script src="{{ url_for('static', filename='js/notlar.js') }}"></script>
+<script src="{{ url_for('static', filename='js/urun-notlar.js') }}"></script>
 <script src="{{ url_for('static', filename='js/todo.js') }}"></script>
 
 {% endif %}

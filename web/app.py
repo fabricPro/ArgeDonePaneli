@@ -439,6 +439,8 @@ def product_summary(d: dict, gorev_counts: dict | None = None) -> dict:
         "has_teknik": store.has_teknik_calisma(d),
         "has_pdf": store.has_pdfs(d),
         "has_notlar": store.has_notlar(d),
+        # Galeri hover not-kartı kapısı — YALNIZ ürün-seviyesi not (sürüm hariç)
+        "has_urun_notlar": bool((d.get("notlar_html") or "").strip()),
         # tasarim-v2 Sprint 18 — tooltip için sayılar (v{N} sürüm, {N} PDF)
         "teknik_surum_count": len(((d.get("teknik") or {}).get("surumler")) or []),
         "pdf_count": len(d.get("pdfs") or []),
@@ -3698,6 +3700,15 @@ def api_notlar(urun_id: str):
     d["updated_at"] = now_iso()
     store.upsert(d)
     return jsonify({"ok": True, "html": clean_html})
+
+
+@app.route("/api/urun/<urun_id>/notlar", methods=["GET"])
+def api_notlar_get(urun_id: str):
+    """Ürün-seviyesi rich-text notları döner (galeri hover-kartı + Notlar sekmesi)."""
+    d = store.get(urun_id)
+    if not d:
+        return jsonify({"ok": False, "error": "Ürün bulunamadı"}), 404
+    return jsonify({"ok": True, "html": d.get("notlar_html") or ""})
 
 
 @app.route("/api/urun/<urun_id>/teknik/<surum_id>/notlar", methods=["POST"])
