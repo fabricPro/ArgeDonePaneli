@@ -7541,15 +7541,15 @@ body.embed-calisma-left [data-tab="notlar"] {
     display: none !important;
 }
 
-/* Sol pane = GÖRSEL + KÜNYE + RENK PALETİ (tablet): hero makul yükseklikte (pane'i doldurmaz),
-   görselin TAMAMI görünür (contain). Galeri modunda yönetim grid'i + albüm sekmeleri + header gizli;
-   görünür kalanlar: künye barı, künye görünümü ve Renk Paleti (.color-tools — künye barının altında).
-   İçerik uzarsa pane doğal kaydırır. Tam ürün sayfası/sağ pane ETKİLENMEZ. */
+/* Sol pane GALERİ modu = temiz GÖRSEL inceleyici (tablet): hero pane'i DOLDURUR (iframe içi 100vh =
+   pane yüksekliği), görselin TAMAMI görünür (contain). Yalnız hero + ince künye barı görünür; Renk Paleti
+   (.color-tools) galeri modunda GİZLİ — künye barına tıklayınca künye görünümünde açılır (aşağıdaki blok).
+   Tam ürün sayfası/sağ pane ETKİLENMEZ. */
 body.embed-calisma-left .urun-sticky-hero { position: static; top: auto; margin: 0 0 8px; }
-body.embed-calisma-left .hero-stage { height: clamp(220px, 56vh, 440px); }   /* iframe içi vh = pane yüksekliği */
+body.embed-calisma-left .hero-stage { height: calc(100vh - 132px); min-height: 200px; }   /* foto pane'i doldursun */
 body.embed-calisma-left .hero-slide { object-fit: contain; }   /* kenar kırpma yok — kumaşın tamamı */
-/* Galeri modunda: bar + künye görünümü + Renk Paleti hariç her şeyi gizle (yönetim grid'i, sekmeler...) */
-body.embed-calisma-left:not(.kunye-view) [data-tab="galeri"] > :not(.cw-kunye-bar):not(.cw-kunye-view):not(.color-tools) {
+/* Galeri modunda: bar + künye görünümü hariç her şeyi gizle (Renk Paleti, yönetim grid'i, sekmeler...) */
+body.embed-calisma-left:not(.kunye-view) [data-tab="galeri"] > :not(.cw-kunye-bar):not(.cw-kunye-view) {
     display: none !important;
 }
 
@@ -7600,12 +7600,14 @@ body.embed-calisma-left:not(.kunye-view) .cw-kunye-bar:hover {
 .cw-kunye-bar-label { flex: 1 1 auto; text-align: left; }
 .cw-kunye-bar-chev { transform: rotate(-90deg); opacity: .65; } /* chevron-down → sağ ok */
 
-/* Künye modu: hero + diğer tüm galeri içeriği gizli, yalnız künye görünümü */
+/* Künye modu: hero gizli; künye görünümü + Renk Paleti (.color-tools) birlikte görünür (hero gittiği için
+   ikisine de tam alan var). Diğer tüm galeri içeriği gizli. */
 body.embed-calisma-left.kunye-view .urun-sticky-hero,
-body.embed-calisma-left.kunye-view [data-tab="galeri"] > :not(.cw-kunye-view) {
+body.embed-calisma-left.kunye-view [data-tab="galeri"] > :not(.cw-kunye-view):not(.color-tools) {
     display: none !important;
 }
 body.embed-calisma-left.kunye-view .cw-kunye-view { display: block; }
+body.embed-calisma-left.kunye-view .color-tools { margin-top: 14px; }
 
 .cw-kunye-head {
     display: flex;
