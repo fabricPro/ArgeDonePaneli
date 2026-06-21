@@ -23,6 +23,8 @@
     const DURUM_CYCLE = ["acik", "yapiliyor", "tamamlandi"];
     const DURUM_LABEL = { acik: "Açık", yapiliyor: "Yapılıyor", tamamlandi: "Tamamlandı" };
 
+    let designMode = false;   // Tasarım Modu — ürün gruplarını sürükle-sırala (açıkken navigasyon bastırılır)
+
     function toast(msg, type) { if (window.toast) window.toast(msg, type || "info"); }
     function lc(s) { return (s || "").toLowerCase(); }
 
@@ -157,6 +159,7 @@
 
     // ---- Olaylar ----
     groupsEl.addEventListener("click", (e) => {
+        if (designMode) return;   // tasarım modunda tıklama navigasyon/durum tetiklemez (sürükleme var)
         if (e.target.closest(".tek-todo-status")) { cycleStatus(e.target.closest(".gor-task")); return; }
         if (e.target.closest(".gor-task-complete")) { writeDurum(e.target.closest(".gor-task"), "tamamlandi"); return; }
         const prod = e.target.closest(".gor-prod");
@@ -166,6 +169,7 @@
     });
 
     groupsEl.addEventListener("keydown", (e) => {
+        if (designMode) return;
         if (e.key !== "Enter" && e.key !== " ") return;
         const prod = e.target.closest(".gor-prod");
         const task = e.target.closest(".gor-task");
@@ -178,6 +182,75 @@
         el.addEventListener("input", applyFilters);
         el.addEventListener("change", applyFilters);
     });
+
+    // ---- Tasarım Modu — ürün gruplarını sürükle-sırala (calisma.js deseni; DİKEY reorder) ----
+    const designToggle = document.getElementById("gor-design-toggle");
+    const designSave = document.getElementById("gor-design-save");
+    const designCancel = document.getElementById("gor-design-cancel");
+    const designAuto = document.getElementById("gor-design-auto");
+    let dragEl = null, preOrder = [];
+
+    function groupOrder() {
+        return Array.from(groupsEl.querySelectorAll(".gor-group")).map(g => g.dataset.urunId);
+    }
+    function reorderDomTo(order) {
+        const byId = {};
+        groupsEl.querySelectorAll(".gor-group").forEach(g => { byId[g.dataset.urunId] = g; });
+        order.forEach(id => { const g = byId[id]; if (g) groupsEl.appendChild(g); });
+    }
+    function setDesignMode(on) {
+        designMode = on;
+        (document.querySelector(".gor-page") || document.body).classList.toggle("gor-design-on", on);
+        if (designToggle) designToggle.hidden = on;
+        [designSave, designCancel, designAuto].forEach(b => { if (b) b.hidden = !on; });
+        if (on) preOrder = groupOrder();
+    }
+    async function postOrder(ids) {
+        const res = await fetch("/api/gorevler/sirala", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ urun_ids: ids }),
+        });
+        return res.json();
+    }
+    if (designToggle) designToggle.addEventListener("click", () => setDesignMode(true));
+    if (designCancel) designCancel.addEventListener("click", () => { reorderDomTo(preOrder); setDesignMode(false); });
+    if (designSave) designSave.addEventListener("click", async () => {
+        try {
+            const d = await postOrder(groupOrder());
+            if (d.ok) { toast("Sıra kaydedildi", "success"); setDesignMode(false); }
+            else toast(d.error || "Kaydedilemedi", "error");
+        } catch (e) { toast("Bağlantı hatası", "error"); }
+    });
+    if (designAuto) designAuto.addEventListener("click", async () => {
+        try {
+            const d = await postOrder([]);   // boş = otomatik (aciliyet) sıraya dön
+            if (d.ok) { toast("Aciliyete göre sıralandı", "success"); location.reload(); }
+            else toast(d.error || "Olmadı", "error");
+        } catch (e) { toast("Bağlantı hatası", "error"); }
+    });
+
+    function endDrag() { if (dragEl) dragEl.classList.remove("dragging"); dragEl = null; }
+    groupsEl.addEventListener("pointerdown", (e) => {
+        if (!designMode) return;
+        if (e.target.closest("button, a")) return;
+        const g = e.target.closest(".gor-group");
+        if (!g) return;
+        e.preventDefault();
+        dragEl = g; g.classList.add("dragging");
+        try { g.setPointerCapture(e.pointerId); } catch (_) { /* yok say */ }
+    });
+    groupsEl.addEventListener("pointermove", (e) => {
+        if (!designMode || !dragEl) return;
+        e.preventDefault();
+        const under = document.elementFromPoint(e.clientX, e.clientY);
+        const t = under && under.closest ? under.closest(".gor-group") : null;
+        if (!t || t === dragEl) return;
+        const rect = t.getBoundingClientRect();
+        const after = (e.clientY - rect.top) > rect.height / 2;
+        groupsEl.insertBefore(dragEl, after ? t.nextSibling : t);
+    });
+    groupsEl.addEventListener("pointerup", endDrag);
+    groupsEl.addEventListener("pointercancel", endDrag);
 
     // İlk filtre uygula (tamamlandı varsayılan gizli)
     applyFilters();

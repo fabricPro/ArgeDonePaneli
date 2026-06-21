@@ -3789,6 +3789,18 @@ def api_gorev_durum(gorev_id: str):
     return jsonify({"ok": True, "gorev": store._gorev_to_item(row, 0)})
 
 
+@app.route("/api/gorevler/sirala", methods=["POST"])
+def api_gorevler_sirala():
+    """Görevler panosu — ürün gruplarının elle sırası (Tasarım Modu). Body: {urun_ids:[...]}.
+    Kalıcı app_state 'gorev_urun_order'; boş liste → otomatik (aciliyet) sıraya dön."""
+    body = request.get_json(silent=True) or {}
+    ids = body.get("urun_ids") or []
+    if not isinstance(ids, list) or not all(isinstance(x, str) for x in ids):
+        return jsonify({"ok": False, "error": "urun_ids string listesi olmalı"}), 400
+    store.set_app_state("gorev_urun_order", ids)
+    return jsonify({"ok": True, "count": len(ids)})
+
+
 @app.route("/gorevler")
 def gorevler_dashboard():
     """Ürün-gruplu görev panosu. Tüm görevler PostgREST embed ile TEK sorguda çekilir
@@ -3847,10 +3859,17 @@ def gorevler_dashboard():
         })
     # ürünler: en acil açık görev (öncelik) desc, eşitlikte açık görev sayısı desc, sonra ad
     out.sort(key=lambda g: (-g["urgency"], -g["open_count"], (g["product_name"] or "").lower()))
+    # Kullanıcı elle sıra (Tasarım Modu) — kayıtlıysa otomatiği EZER; kayıtlılar kullanıcı sırasında,
+    # kalanlar (yeni ürünler) aciliyet sırasında sona (stable sort).
+    saved_order = store.get_app_state("gorev_urun_order") or []
+    if saved_order:
+        pos = {uid: i for i, uid in enumerate(saved_order)}
+        out.sort(key=lambda g: pos.get(g["urun_id"], 10**9))
     total_open = sum(g["open_count"] for g in out)
 
     return render_template("gorevler.html", groups=out, folders=folders,
-                           total_open=total_open, total_tasks=len(rows))
+                           total_open=total_open, total_tasks=len(rows),
+                           manual_order=bool(saved_order))
 
 
 @app.route("/api/urun/<urun_id>/teknik/<surum_id>/notlar", methods=["GET"])

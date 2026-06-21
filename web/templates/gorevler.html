@@ -15,9 +15,20 @@
             <h1>Görevler</h1>
             <p class="gor-head-sub">Ürün bazında yapılacaklar — en acil açık görevler üstte.</p>
         </div>
-        <div class="gor-head-metric">
-            <span class="gor-metric-num" id="gor-total-open">{{ total_open }}</span>
-            <span class="gor-metric-label">açık görev</span>
+        <div class="gor-head-right">
+            {# Tasarım Modu — ürün gruplarını elle sırala #}
+            <div class="gor-design-actions">
+                <button type="button" class="btn btn-primary btn-sm" id="gor-design-save" hidden>Kaydet</button>
+                <button type="button" class="btn btn-ghost btn-sm" id="gor-design-cancel" hidden>İptal</button>
+                <button type="button" class="btn btn-ghost btn-sm" id="gor-design-auto" hidden title="Kaydedilen sırayı sil, aciliyete göre otomatik sırala">Aciliyete göre</button>
+                <button type="button" class="btn btn-ghost btn-sm" id="gor-design-toggle"{% if total_open == 0 and total_tasks == 0 %} hidden{% endif %}>
+                    <svg class="icon"><use href="#ic-pencil"/></svg> Tasarım Modu
+                </button>
+            </div>
+            <div class="gor-head-metric">
+                <span class="gor-metric-num" id="gor-total-open">{{ total_open }}</span>
+                <span class="gor-metric-label">açık görev</span>
+            </div>
         </div>
     </header>
 
