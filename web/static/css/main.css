@@ -7541,6 +7541,23 @@ body.embed-calisma-left [data-tab="notlar"] {
     display: none !important;
 }
 
+/* Sol pane = temiz GÖRSEL İNCELEYİCİ (tablet düzeltme): hero görseli pane'i doldurur
+   (iframe içinde 100vh = pane yüksekliği → portrait/landscape ikisine de uyar), görselin
+   TAMAMI görünür (contain), yönetim grid'i + albüm sekmeleri galeri modunda gizli.
+   Yalnız künye barı (+ künye görünümü) kalır. Tam ürün sayfası/sağ pane ETKİLENMEZ. */
+body.embed-calisma-left .urun-sticky-hero {
+    position: static; top: auto; margin: 0 0 8px;
+    display: flex; flex-direction: column;
+}
+body.embed-calisma-left .hero-carousel { display: flex; flex-direction: column; }
+body.embed-calisma-left .hero-stage { height: calc(100vh - 132px); min-height: 200px; }
+body.embed-calisma-left .hero-thumbs { flex: 0 0 auto; }
+body.embed-calisma-left .hero-slide { object-fit: contain; }   /* kenar kırpma yok — kumaşın tamamı */
+/* Galeri modunda yönetim grid'i / albüm sekmeleri / ekleme UI'ı gizle (bar + künye görünümü hariç) */
+body.embed-calisma-left:not(.kunye-view) [data-tab="galeri"] > :not(.cw-kunye-bar):not(.cw-kunye-view) {
+    display: none !important;
+}
+
 /* Sağ pane: galeri sekmesi + nav'daki "Galeri" butonu + sticky hero gizli
    (Sticky hero ana tab'lardan bağımsız, üstte sabit duruyor — burada gerek yok) */
 body.embed-calisma-right .urun-sticky-hero,
