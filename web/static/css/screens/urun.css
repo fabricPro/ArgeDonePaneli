@@ -24,7 +24,9 @@ body.urun-page { background: #f7f7f8; }
    1 — Hero carousel
    ============================================================ */
 .urun-detail .urun-sticky-hero {
-  position: sticky; top: calc(var(--tb-h) + 12px); z-index: 5;
+  /* v3.9 — sticky kaldırıldı: hero artık sayfayla birlikte kayar,
+     aşağı scroll'da üstte pinlenip takip etmez. */
+  position: relative;
   margin-bottom: 16px;
 }
 .urun-detail .hero-carousel {
@@ -34,7 +36,8 @@ body.urun-page { background: #f7f7f8; }
 .urun-detail .hero-stage {
   position: relative;
   display: flex; align-items: center; justify-content: center;
-  height: 360px;
+  /* v3.9 — akışkan yükseklik: tablet/telefonda alan yok olmasın, masaüstünde 360px'i geçmesin */
+  height: clamp(220px, 42vw, 360px);
   background: var(--surface-2);
   background-image: repeating-linear-gradient(45deg, rgba(23,24,31,.018) 0 6px, transparent 6px 12px);
   user-select: none;   /* sürükleme sırasında metin/görsel seçimi olmasın */
@@ -688,8 +691,8 @@ body.urun-page { background: #f7f7f8; }
    9 — Mobil (≤720px)
    ============================================================ */
 @media (max-width: 720px) {
-  .urun-detail .urun-sticky-hero { position: static; }
-  .urun-detail .hero-stage { height: 260px; }
+  /* v3.9 — hero yüksekliği artık akışkan (clamp); sticky de kaldırıldı,
+     bu yüzden eski position:static / height:260px override'ları gerekmez. */
   .urun-detail .detail-header { gap: 10px; }
   .urun-detail .detail-header-actions { width: 100%; }
   .urun-detail .ct-picker-grid { grid-template-columns: 1fr; }

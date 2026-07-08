@@ -356,6 +356,8 @@
             renderStats();
             renderReport();
         });
+        // Genel sağ-tık menüsü bu bölgeye karışmasın (tarak hücre azaltma kendi menüsü)
+        host.setAttribute('data-ctx-native', '');
         host.addEventListener('contextmenu', evt => {
             const cell = evt.target.closest('[data-dent-i]');
             if (!cell) return;
