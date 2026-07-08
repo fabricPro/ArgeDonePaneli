@@ -168,6 +168,35 @@
         if (task) { goTask(task); return; }
     });
 
+    // ---- Sağ tık: ürün / görev bağlam menüsü ----
+    if (window.ContextMenu) {
+        ContextMenu.register(".gor-prod, .gor-task", (el) => {
+            if (designMode) return null;   // tasarım modunda native menü
+            const group = el.closest(".gor-group");
+            const uid = group && group.dataset.urunId;
+            if (!uid) return null;
+            const isTask = el.classList.contains("gor-task");
+            let url = "/urun/" + encodeURIComponent(uid);
+            if (isTask) {
+                url += "?tab=teknik&sub=todo";
+                if (el.dataset.surum) url += "&surum=" + encodeURIComponent(el.dataset.surum);
+            }
+            const items = [
+                ContextMenu.openInNewTab(url),
+                ContextMenu.copyLink(url),
+            ];
+            if (isTask) {
+                const complete = el.querySelector(".gor-task-complete");
+                if (complete && el.dataset.durum !== "tamamlandi") {
+                    items.push("---");
+                    items.push({ label: "Tamamlandı işaretle", icon: "ic-check",
+                        onSelect: () => complete.click() });
+                }
+            }
+            return items;
+        });
+    }
+
     groupsEl.addEventListener("keydown", (e) => {
         if (designMode) return;
         if (e.key !== "Enter" && e.key !== " ") return;

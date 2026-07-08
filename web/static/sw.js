@@ -1,6 +1,7 @@
 // Minimal service worker — installability + offline fallback
 // v4.0-part-2 Sprint 8.6: PWA shortcuts + manuel yatay buton — cache bust v11
-const CACHE = 'fas-v11';
+// v3.9: cross-origin isteklere (Supabase görsel CDN, Google Fonts) karışma — cache bust v12
+const CACHE = 'fas-v12';
 const CORE = ['/'];
 
 self.addEventListener('install', (e) => {
@@ -24,6 +25,13 @@ self.addEventListener('message', (e) => {
 self.addEventListener('fetch', (e) => {
     // Network-first, fallback to cache on offline
     if (e.request.method !== 'GET') return;
+    // v3.9 — YALNIZ same-origin isteklere karış. Supabase görsel CDN'i ve Google
+    // Fonts gibi cross-origin (özellikle no-cors / opaque) isteklere DOKUNMA;
+    // aksi halde mobil/PWA'da görsel fetch'leri sessizce bozulabiliyordu.
+    let sameOrigin = false;
+    try { sameOrigin = new URL(e.request.url).origin === self.location.origin; }
+    catch (_) { return; }
+    if (!sameOrigin) return;
     e.respondWith(
         fetch(e.request).catch(() => caches.match(e.request))
     );

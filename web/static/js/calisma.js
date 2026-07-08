@@ -243,6 +243,34 @@
     });
   });
 
+  // ---- Sağ tık: ürün bağlam menüsü (kart + rail) ----
+  if (window.ContextMenu) {
+    ContextMenu.register('.cw-card-main[data-urunid], .cw-rail-item[data-urunid]', (el) => {
+      if (designMode || selectMode) return null;   // sürükle/seç modunda native menü
+      const id = el.dataset.urunid;
+      if (!id) return null;
+      const url = '/urun/' + encodeURIComponent(id);
+      const items = [
+        ContextMenu.openInNewTab(url),
+        ContextMenu.copyLink(url),
+      ];
+      // Klasöre ekle — mevcut FolderPicker'ı kullan (yalnız kart üzerinde)
+      const card = el.closest('.cw-card');
+      if (window.FolderPicker && card) {
+        items.push('---');
+        items.push({ label: 'Klasöre ekle', icon: 'ic-folder-plus',
+          onSelect: () => { try { FolderPicker.open({ urunId: id, anchorEl: el, onChange() {} }); } catch (e) {} } });
+      }
+      // Çalışmadan çıkar — mevcut .cw-unpin handler'ını tetikle (backend duplikasyonu yok)
+      const unpin = card && card.querySelector('.cw-unpin');
+      if (unpin) {
+        items.push({ label: 'Çalışmadan çıkar', icon: 'ic-x', danger: true,
+          onSelect: () => unpin.click() });
+      }
+      return items;
+    });
+  }
+
   // Unpin (× butonu)
   $$('.cw-unpin').forEach(btn => {
     btn.addEventListener('click', async (e) => {

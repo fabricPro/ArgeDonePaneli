@@ -491,3 +491,22 @@
 .studio .nh-body img{ max-width:100%; height:auto; border-radius:var(--r-sm); display:block; margin:4px 0; }
 .studio .nh-empty{ color:var(--ink-3); font-style:italic; }
 @media (max-width:520px){ .studio .nh-card{ left:8px !important; right:8px; top:auto !important; bottom:8px; width:auto; max-width:none; max-height:60vh; } }
+
+/* === Sağ-tık (context) menüsü (.studio kapsamı) — FolderPicker/NoteHoverCard komşusu === */
+.studio.ctx-root{ position:fixed; inset:0; z-index:340; pointer-events:none; }
+.studio .ctx-menu{ position:fixed; pointer-events:auto; min-width:200px; max-width:calc(100vw - 16px);
+  padding:4px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r);
+  box-shadow:var(--sh-pop); outline:none; }
+.studio .ctx-item{ display:flex; align-items:center; gap:8px; width:100%; padding:7px 10px;
+  border:none; background:transparent; border-radius:var(--r-sm); font:inherit; font-size:13px;
+  color:var(--ink); text-align:left; cursor:pointer; transition:background .12s; }
+.studio .ctx-item:hover,.studio .ctx-item[data-active]{ background:var(--surface-2); }
+.studio .ctx-item:focus-visible{ outline:none; background:var(--surface-2); }
+.studio .ctx-item.is-danger{ color:var(--red); }
+.studio .ctx-item.is-danger:hover,.studio .ctx-item.is-danger[data-active]{ background:var(--red-bg,var(--surface-2)); }
+.studio .ctx-item[aria-disabled="true"]{ opacity:.5; pointer-events:none; }
+.studio .ctx-item .icon{ width:15px; height:15px; flex:0 0 auto; color:var(--ink-3); }
+.studio .ctx-item.is-danger .icon{ color:var(--red); }
+.studio .ctx-label{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.studio .ctx-sep{ height:1px; margin:4px 6px; background:var(--border); }
+@media (max-width:520px){ .studio .ctx-menu{ min-width:180px; } }
