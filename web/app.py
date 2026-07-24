@@ -791,6 +791,33 @@ def ayarlar():
     )
 
 
+# ---- Depolama Bakımı (yetim/kullanılmayan dosya denetimi + temizlik) ----
+
+@app.route("/api/storage/audit", methods=["GET"])
+def api_storage_audit():
+    """Salt-okunur depolama denetimi: bucket + kategori başına sayı/boyut dökümü."""
+    try:
+        return jsonify({"ok": True, "audit": store.storage_audit()})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@app.route("/api/storage/gc", methods=["POST"])
+def api_storage_gc():
+    """Seçili kategorileri temizle. Body: {categories:[...], confirm:bool}.
+    confirm=false/eksik → dry-run özeti (silme YOK); confirm=true → uygula."""
+    data = request.get_json(silent=True) or {}
+    categories = data.get("categories") or []
+    if not isinstance(categories, list):
+        return jsonify({"ok": False, "error": "categories liste olmalı"}), 400
+    confirm = bool(data.get("confirm"))
+    try:
+        res = store.storage_gc(categories, dry_run=not confirm)
+        return jsonify({"ok": True, "result": res})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
 # =================================================================
 # İplik Kataloğu — Parça 1 (veri modeli + CRUD + liste + meta düzenleme)
 # =================================================================
@@ -1971,8 +1998,11 @@ def _new_product_id(brand_slug: str, product_code: str, product_name: str):
 
 def _copy_research_images(research_row: dict | None, prefill_paths, prefill_alts, dest_prefix, images):
     """Ön çalışma görsellerini ürün klasörüne kopyala (albüm+renk taşır).
-    images listesine ekler; kullanılan albüm slug set'ini döner."""
+    images listesine ekler; (kullanılan albüm slug set'i, başarıyla kopyalanan
+    kaynak _inbox path listesi) döner. Kopyalanan orijinaller sonradan
+    _assemble_and_save_product tarafından storage'tan temizlenir (sızıntı önleme)."""
     used_album_slugs: set[str] = set()
+    copied_src_paths: list[str] = []
     by_path = {}
     if research_row:
         for im in (research_row.get("images") or []):
@@ -1997,14 +2027,16 @@ def _copy_research_images(research_row: dict | None, prefill_paths, prefill_alts
                 if r_colors:
                     img_obj["colors"] = r_colors
             images.append(img_obj)
+            copied_src_paths.append(src_path)
         except Exception as e:
             print(f"[Sprint 10.5] Prefill görsel kopyalanamadı ({src_path}): {e}")
-    return used_album_slugs
+    return used_album_slugs, copied_src_paths
 
 
 def _assemble_and_save_product(*, urun_id, folder_code, fields: dict, images: list,
                                research_row=None, used_album_slugs=None,
-                               pdfs_meta=None, from_research_id=None):
+                               pdfs_meta=None, from_research_id=None,
+                               research_inbox_paths=None):
     """Ürün dict'ini kur + albüm tohumla + 'Renkler' garanti + upsert + research'i imported işaretle.
     fields: çözümlenmiş skaler değerler (brand, brand_slug, product_name, taksonomi, ülke, fiyat...).
     Hem /ekle (form) hem araştırma→ürün (JSON) bunu kullanır. urun_id döner."""
@@ -2082,6 +2114,12 @@ def _assemble_and_save_product(*, urun_id, folder_code, fields: dict, images: li
             store.research_update_status(from_research_id, "imported", imported_product_id=urun_id)
         except Exception:
             pass  # best-effort, ürün yine de oluştu
+        # Sızıntı önleme: ürüne kopyalanan _inbox orijinallerini storage'tan temizle
+        if research_inbox_paths:
+            try:
+                store.research_purge_inbox(from_research_id, research_inbox_paths)
+            except Exception:
+                pass  # best-effort; ürün ve import zaten tamam
     return urun_id
 
 
@@ -2107,7 +2145,7 @@ def api_create_urun():
     # Ön Çalışmadan gelen görseller (prefill) — albüm + renk taşır
     from_research_id = clean(f.get("from_research_id"))
     research_row = store.research_get(from_research_id) if from_research_id else None
-    used_album_slugs = _copy_research_images(
+    used_album_slugs, copied_inbox_paths = _copy_research_images(
         research_row, request.form.getlist("prefill_image_paths"),
         request.form.getlist("prefill_image_alts"), dest_prefix, images,
     )
@@ -2152,6 +2190,7 @@ def api_create_urun():
         urun_id=urun_id, folder_code=folder_code, fields=fields, images=images,
         research_row=research_row, used_album_slugs=used_album_slugs,
         pdfs_meta=pdfs_meta, from_research_id=from_research_id,
+        research_inbox_paths=copied_inbox_paths,
     )
     return jsonify({"ok": True, "urun_id": urun_id, "redirect": url_for("urun_detail", urun_id=urun_id)})
 
@@ -4614,7 +4653,7 @@ def api_arastirma_to_product(research_id: str):
     research_imgs = [im for im in (row.get("images") or []) if isinstance(im, dict) and im.get("storage_path")]
     prefill_paths = [im["storage_path"] for im in research_imgs]
     prefill_alts = [im.get("alt") or "" for im in research_imgs]
-    used_album_slugs = _copy_research_images(row, prefill_paths, prefill_alts, dest_prefix, images)
+    used_album_slugs, copied_inbox_paths = _copy_research_images(row, prefill_paths, prefill_alts, dest_prefix, images)
 
     # reference_price tip/evidence: draft önce, yoksa kabul edilmiş fact
     ref_type = draft.get("reference_price_type")
@@ -4646,6 +4685,7 @@ def api_arastirma_to_product(research_id: str):
     _assemble_and_save_product(
         urun_id=urun_id, folder_code=folder_code, fields=fields, images=images,
         research_row=row, used_album_slugs=used_album_slugs, from_research_id=research_id,
+        research_inbox_paths=copied_inbox_paths,
     )
     return jsonify({"ok": True, "urun_id": urun_id, "redirect": url_for("urun_detail", urun_id=urun_id)})
 
