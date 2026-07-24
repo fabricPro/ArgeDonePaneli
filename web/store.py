@@ -571,6 +571,17 @@ def upsert_kartela(data: dict) -> None:
 
 
 def delete_kartela(kartela_id: str) -> None:
+    # Kök-neden düzeltmesi: toptan kartela silme, sayfa fotoğraflarını da
+    # kartelalar bucket'ından temizler (yoksa yetim dosya bırakırdı).
+    row = get_kartela(kartela_id)
+    if row:
+        foto_paths = [
+            s.get("foto_path")
+            for s in (row.get("sayfalar") or [])
+            if s.get("foto_path")
+        ]
+        if foto_paths:
+            delete_kartelalar(foto_paths)
     client().table(TABLE_KARTELA).delete().eq("kartela_id", kartela_id).execute()
 
 
@@ -1051,6 +1062,210 @@ def ensure_bucket_kartelalar() -> None:
 
 
 # =================================================================
+# Depolama Bakımı — yetim/kullanılmayan dosya denetimi + GC
+# Bucket nesnelerini DB referanslarıyla kıyaslayıp sınıflandırır.
+# storage_audit() salt-okunur; storage_gc() dry_run=False ile siler.
+# =================================================================
+
+# Silinebilir kategoriler (active asla silinmez)
+GC_CATEGORIES = {"orphan", "research_imported_inbox", "research_dismissed_inbox"}
+
+
+def _chunk(seq: list, n: int = 100):
+    for i in range(0, len(seq), n):
+        yield seq[i:i + n]
+
+
+def storage_list_all(bucket: str, prefix: str = "") -> list[dict]:
+    """Bir bucket'taki TÜM nesneleri özyinelemeli listeler → [{path, size}].
+    Supabase list() klasör girişlerini metadata'sız (id=None) döndürür; dosyalarda
+    metadata.size vardır. Prefix başına sayfalama (limit 100, offset)."""
+    out: list[dict] = []
+    limit = 100
+    offset = 0
+    while True:
+        try:
+            batch = client().storage.from_(bucket).list(
+                prefix, {"limit": limit, "offset": offset,
+                         "sortBy": {"column": "name", "order": "asc"}}
+            )
+        except Exception:
+            break
+        if not batch:
+            break
+        for e in batch:
+            name = e.get("name")
+            if not name:
+                continue
+            full = f"{prefix}{name}"
+            meta = e.get("metadata")
+            is_file = bool(e.get("id")) or (isinstance(meta, dict) and meta.get("size") is not None)
+            if is_file:
+                size = (meta or {}).get("size") or 0
+                try:
+                    size = int(size)
+                except (TypeError, ValueError):
+                    size = 0
+                out.append({"path": full, "size": size})
+            else:
+                out.extend(storage_list_all(bucket, prefix=f"{full}/"))
+        if len(batch) < limit:
+            break
+        offset += limit
+    return out
+
+
+def storage_referenced_paths() -> dict:
+    """DB'den bucket-göreli referans kümelerini derler.
+    - gorseller_active: ürün görselleri + status='pending' araştırma _inbox görselleri (KEEP)
+    - pdfler_active / kartelalar_active: aktif PDF / kartela sayfa foto path'leri
+    - reclaimable: {path: {kind, research_id}} — imported/dismissed araştırma _inbox'ları
+    """
+    g_active: set[str] = set()
+    p_active: set[str] = set()
+    k_active: set[str] = set()
+    reclaimable: dict[str, dict] = {}
+
+    for d in get_all():
+        for im in (d.get("images") or []):
+            if im.get("path"):
+                g_active.add(im["path"])
+        for pf in (d.get("pdfs") or []):
+            if pf.get("path"):
+                p_active.add(pf["path"])
+
+    for r in research_list(status="all", limit=1_000_000):
+        st = r.get("status")
+        rid = r.get("id")
+        rpaths: list[str] = []
+        if r.get("image_storage_path"):
+            rpaths.append(r["image_storage_path"])
+        for im in (r.get("images") or []):
+            if im.get("storage_path"):
+                rpaths.append(im["storage_path"])
+        if st == "pending":
+            g_active.update(rpaths)
+        elif st == "imported":
+            for p in rpaths:
+                reclaimable[p] = {"kind": "research_imported_inbox", "research_id": rid}
+        elif st == "dismissed":
+            for p in rpaths:
+                reclaimable[p] = {"kind": "research_dismissed_inbox", "research_id": rid}
+
+    for k in list_kartelalar():
+        for s in (k.get("sayfalar") or []):
+            if s.get("foto_path"):
+                k_active.add(s["foto_path"])
+
+    return {
+        "gorseller_active": g_active,
+        "pdfler_active": p_active,
+        "kartelalar_active": k_active,
+        "reclaimable": reclaimable,
+    }
+
+
+def _storage_classify() -> list[dict]:
+    """Her bucket nesnesini sınıflandır → [{bucket, path, size, category, research_id}].
+    category ∈ {active, research_imported_inbox, research_dismissed_inbox, orphan}."""
+    ref = storage_referenced_paths()
+    bucket_defs = [
+        (BUCKET, ref["gorseller_active"], ref["reclaimable"]),
+        (BUCKET_PDFS, ref["pdfler_active"], {}),
+        (BUCKET_KARTELALAR, ref["kartelalar_active"], {}),
+    ]
+    out: list[dict] = []
+    for bucket, active, reclaimable in bucket_defs:
+        for obj in storage_list_all(bucket):
+            p = obj["path"]
+            if p in active:                       # active her zaman öncelikli (KEEP)
+                cat, rid = "active", None
+            elif p in reclaimable:
+                cat, rid = reclaimable[p]["kind"], reclaimable[p]["research_id"]
+            else:
+                cat, rid = "orphan", None
+            out.append({"bucket": bucket, "path": p, "size": obj["size"],
+                        "category": cat, "research_id": rid})
+    return out
+
+
+def storage_audit(top_n: int = 20) -> dict:
+    """Salt-okunur denetim: bucket + kategori başına sayı/boyut, genel toplam,
+    en büyük silinebilir nesneler."""
+    objs = _storage_classify()
+    buckets: dict[str, dict] = {}
+    for o in objs:
+        b = buckets.setdefault(o["bucket"], {"total": {"count": 0, "bytes": 0}, "categories": {}})
+        b["total"]["count"] += 1
+        b["total"]["bytes"] += o["size"]
+        c = b["categories"].setdefault(o["category"], {"count": 0, "bytes": 0})
+        c["count"] += 1
+        c["bytes"] += o["size"]
+    deletable = [o for o in objs if o["category"] != "active"]
+    top = sorted(deletable, key=lambda o: o["size"], reverse=True)[:top_n]
+    return {
+        "buckets": buckets,
+        "totals": {
+            "count": len(objs),
+            "bytes": sum(o["size"] for o in objs),
+            "deletable_count": len(deletable),
+            "deletable_bytes": sum(o["size"] for o in deletable),
+        },
+        "top_objects": [
+            {"bucket": o["bucket"], "path": o["path"], "size": o["size"], "category": o["category"]}
+            for o in top
+        ],
+    }
+
+
+def storage_gc(categories, dry_run: bool = True) -> dict:
+    """Seçili kategorilerdeki nesneleri sil (dry_run=True → yalnız özet, silme yok).
+    categories ⊆ GC_CATEGORIES. Reclaimable araştırma _inbox'ları research_purge_inbox
+    ile (storage sil + refs null, satır korunur); orphan'lar doğrudan bucket'tan."""
+    cats = set(categories) & GC_CATEGORIES
+    objs = _storage_classify()
+    targets = [o for o in objs if o["category"] in cats]
+
+    summary: dict[str, dict] = {}
+    for o in targets:
+        s = summary.setdefault(o["category"], {"count": 0, "bytes": 0})
+        s["count"] += 1
+        s["bytes"] += o["size"]
+    freed = sum(o["size"] for o in targets)
+    result = {"dry_run": dry_run, "categories": sorted(cats),
+              "summary": summary, "freed_bytes": freed, "total_count": len(targets)}
+    if dry_run or not targets:
+        return result
+
+    # 1) orphan → bucket'a göre grupla, chunk'la sil
+    orphan_by_bucket: dict[str, list[str]] = {}
+    for o in targets:
+        if o["category"] == "orphan":
+            orphan_by_bucket.setdefault(o["bucket"], []).append(o["path"])
+    for bucket, paths in orphan_by_bucket.items():
+        for chunk in _chunk(paths):
+            if bucket == BUCKET:
+                delete_images(chunk)
+            elif bucket == BUCKET_PDFS:
+                delete_pdfs(chunk)
+            elif bucket == BUCKET_KARTELALAR:
+                delete_kartelalar(chunk)
+
+    # 2) reclaimable araştırma _inbox → research_id'ye göre grupla
+    inbox_by_rid: dict[str, list[str]] = {}
+    for o in targets:
+        if o["category"] in ("research_imported_inbox", "research_dismissed_inbox") and o["research_id"]:
+            inbox_by_rid.setdefault(o["research_id"], []).append(o["path"])
+    for rid, paths in inbox_by_rid.items():
+        try:
+            research_purge_inbox(rid, paths)
+        except Exception:
+            pass
+
+    return result
+
+
+# =================================================================
 # v4.0-part-2 Adim 8 — URL normalize + research_pool + product status
 # =================================================================
 
@@ -1468,8 +1683,54 @@ def research_update_status(research_id: str, new_status: str, imported_product_i
 
 
 def research_delete(research_id: str) -> None:
-    """Soft delete: status='dismissed'."""
-    research_update_status(research_id, "dismissed")
+    """Soft delete: status='dismissed'.
+    Kök-neden düzeltmesi: reddedilen satırın _inbox görsellerini de storage'tan
+    temizler ve path referanslarını null'lar (satır dismissed kalır; sha256
+    korunur → aynı görsel yeniden yakalanırsa dedup çalışmaya devam eder)."""
+    row = research_get(research_id)
+    if not row:
+        return
+    paths: list[str] = []
+    if row.get("image_storage_path"):
+        paths.append(row["image_storage_path"])
+    cleaned_images = []
+    for im in (row.get("images") or []):
+        if im.get("storage_path"):
+            paths.append(im["storage_path"])
+        # sha256/alt/source_image_url korunur, yalnız storage_path düşer
+        cleaned_images.append({**im, "storage_path": None})
+    if paths:
+        delete_images(paths)   # gorseller bucket (_inbox/... research görselleri)
+    client().table(TABLE_RESEARCH).update({
+        "status": "dismissed",
+        "image_storage_path": None,
+        "images": cleaned_images,
+    }).eq("id", research_id).execute()
+
+
+def research_purge_inbox(research_id: str, paths: list[str]) -> None:
+    """Kök-neden düzeltmesi: ürüne aktarılan _inbox orijinallerini storage'tan
+    siler ve satırın ilgili storage_path referanslarını null'lar. Satır (imported)
+    korunur; sha256 kalır → dedup çalışmaya devam eder. `paths` = başarıyla
+    kopyalanan kaynak path'ler."""
+    paths = [p for p in (paths or []) if p]
+    if not paths:
+        return
+    delete_images(paths)   # gorseller bucket (_inbox/...)
+    row = research_get(research_id)
+    if not row:
+        return
+    pset = set(paths)
+    new_images = []
+    for im in (row.get("images") or []):
+        if im.get("storage_path") in pset:
+            new_images.append({**im, "storage_path": None})
+        else:
+            new_images.append(im)
+    patch: dict = {"images": new_images}
+    if row.get("image_storage_path") in pset:
+        patch["image_storage_path"] = None
+    client().table(TABLE_RESEARCH).update(patch).eq("id", research_id).execute()
 
 
 def research_hard_delete(research_id: str) -> None:

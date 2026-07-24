@@ -78,6 +78,31 @@
     {% endif %}
 </section>
 
+<section class="settings-section" id="storage-maint">
+    <header class="settings-header">
+        <h2>Depolama Bakımı</h2>
+        <div class="settings-actions">
+            <button id="st-audit-btn" class="btn btn-primary" type="button">
+                <svg class="icon"><use href="{{ sprite }}#ic-refresh"/></svg> Denetle
+            </button>
+        </div>
+    </header>
+    <p class="subtitle">Supabase depolamada kullanılmayan/yetim dosyaları tespit et ve temizle.
+        Denetim salt-okunurdur; her temizlik öncesi özet + onay istenir (geri alınamaz).</p>
+
+    <div id="st-hint" class="st-hint">Depolamayı taramak için <strong>Denetle</strong>'ye bas.</div>
+
+    <div id="st-result" hidden>
+        <div id="st-summary" class="st-summary"></div>
+        <div id="st-actions" class="st-actions"></div>
+        <div id="st-buckets" class="st-buckets"></div>
+        <details class="st-top">
+            <summary>En büyük silinebilir dosyalar</summary>
+            <div id="st-top-list" class="st-top-list"></div>
+        </details>
+    </div>
+</section>
+
 {# Modal: Yeni / Düzenle firma (Stüdyo bileşeni — settings.js id-bazlı, güvenli) #}
 <div class="modal" id="brand-modal" hidden role="dialog" aria-label="Firma düzenle" aria-modal="true">
     <div class="modal-card">
@@ -112,4 +137,5 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+<script src="{{ url_for('static', filename='js/settings-storage.js') }}"></script>
 {% endblock %}
